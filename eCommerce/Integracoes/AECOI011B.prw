@@ -115,6 +115,8 @@ Local nTimeOut		:= 240
 
 Local oRestRet   	:= Nil 
 
+Default lCancel		:= .F.
+
 aAdd(aHeadOut,"Content-Type: application/json" )
 aAdd(aHeadOut,"X-VTEX-API-AppKey:" + cAppKey )
 aAdd(aHeadOut,"X-VTEX-API-AppToken:" + cAppToken )

@@ -2928,26 +2928,6 @@ Static Function AEcoUpdPv(cOrderId,cOrdPvCli,cNumOrc,cNumDoc,cNumSer,cNumPv,oRes
 		Return aRet
 	EndIf
 		
-	//----------------------------+
-	// Valida se existe pagamento |
-	//----------------------------+
-	dbSelectArea("WSC")
-	WSC->( dbSetOrder(1) )
-	If !WSC->( dbSeek(xFilial("WSC") + cNumOrc) )
-		
-		//-----------------+
-		// Dados do Cartao |
-		//-----------------+
-		cPedCodCli	:= oRestPv:Sequence
-		dDtaEmiss	:= dToc(sTod(StrTran(SubStr(oRestPv:creationDate,1,10),"-","")))
-		cHoraEmis	:= SubStr(oRestPv:cReationDate,At("T",oRestPv:creationDate) + 1,5)
-					
-		//------------------+
-		// Grava Financeiro |
-		//------------------+
-		aRet := AEcoGrvFin(oRestPv:PaymentData,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmis,dDtaEmiss)
-	EndIf 
-
 	//---------------------------+
 	// Valida reserva do produto | 
 	//---------------------------+
@@ -2989,157 +2969,33 @@ Static Function AEcoUpdPv(cOrderId,cOrdPvCli,cNumOrc,cNumDoc,cNumSer,cNumPv,oRes
 	//------------------+
 	If WS1->WS1_CODIGO == "008" 
 				
-		aRet := u_AEcoCancPv(cOrderId,cOrdPvCli,cNumOrc,cNumPv)
-		If aRet[1]
-			//--------------------------------+
-			// Envia status para o e-Commerce |
-			//--------------------------------+
-			lEnvStatus	:= IIF(WS1->WS1_ENVECO == "S",.T.,.F.)
-			lBaixaEco	:= .T.
+		//--------------------------------+
+		// Envia status para o e-Commerce |
+		//--------------------------------+
+		lEnvStatus	:= IIF(WS1->WS1_ENVECO == "S",.T.,.F.)
+		lBaixaEco	:= .T.
 				
-			RecLock("WSA",.F.)
-				WSA->WSA_CODSTA	:= WS1->WS1_CODIGO
-				WSA->WSA_DESTAT	:= Alltrim(WS1->WS1_DESCRI)
-			WSA->( MsUnLock() )	
-		EndIf
-
+		RecLock("WSA",.F.)
+			WSA->WSA_CODSTA	:= WS1->WS1_CODIGO
+			WSA->WSA_DESTAT	:= Alltrim(WS1->WS1_DESCRI)
+		WSA->( MsUnLock() )	
+	
 		//----------------------+
 		// Pagamento Confirmado |
 		//----------------------+
-	ElseIf WS1->WS1_CODIGO == "002" .And. Empty(cNumDoc) .And. Empty(cNumSer) .And. lLiberPv	
+	ElseIf WS1->WS1_CODIGO == "002"
 			
 		//--------------------------------+
 		// Envia status para o e-Commerce |
 		//--------------------------------+
 		lEnvStatus	:= IIF(WS1->WS1_ENVECO == "S",.T.,.F.)
 		lBaixaEco	:= .T.
-								
-		//----------------------+
-		// Cria Pedido de Venda |
-		//----------------------+
-		LjMsgRun("Aguarde gerando/atualizando pedido de venda.","e-Commerce - eCommerce", {|| aRet := u_AEcoPedVnd(cOrderId,cOrdPvCli,cNumOrc,cNotaDev,@cNumPv)})
-				
-		//------------------------+
-		// Libera Pedido de Venda |
-		//------------------------+
-		If aRet[1]
-					
-			LjMsgRun("Aguarde liberando pedido " + cNumPv + ".","e-Commerce - eCommerce", {|| aRet := u_AEcoLiberPv(cNumPv,cOrderId)})
 			
-			//----------------------------+
-			// Atualiza Status do Pedido  |
-			// Para bloqueado por estoque |
-			//----------------------------+
-			If aRet[1]
-				//---------------------------+
-				// Status de Pedido Liberado |
-				//---------------------------+
-				WS1->( dbSetOrder(1) )
-				If !WS1->( dbSeek(xFilial("WS1") + "003") )
-					LogExec("STATUS CODIGO 003 NAO LOCALIZADO PARA O PEDIDO ORDERID " + cOrderId + " FAVOR CADASTRAR O STATUS E IMPORTAR O PEDIDO NOVAMENTE.")
-					aRet[1] := .F.
-					aRet[2] := cOrderId
-					aRet[3] := "STATUS CODIGO 003 NAO LOCALIZADO PARA O PEDIDO ORDERID " + cOrderId + " FAVOR CADASTRAR O STATUS E IMPORTAR O PEDIDO NOVAMENTE."
-					RestArea(aArea)
-					Return aRet
-				EndIf
-				
-				//--------------------------------+
-				// Envia status para o e-Commerce |
-				//--------------------------------+
-				lEnvStatus := IIF(WS1->WS1_ENVECO == "S",.T.,.F.)
-
-			Else	
-			
-				//----------------------------------------+
-				// Status de Pedido bloqueado por estoque |
-				//----------------------------------------+
-				WS1->( dbSetOrder(1) )
-				If !WS1->( dbSeek(xFilial("WS1") + "004") )
-					LogExec("STATUS 004 NAO LOCALIZADO PARA O PEDIDO ORDERID " + cOrderId + " FAVOR CADASTRAR O STATUS E IMPORTAR O PEDIDO NOVAMENTE.")
-					aRet[1] := .F.
-					aRet[2] := cOrderId
-					aRet[3] := "STATUS 004 NAO LOCALIZADO PARA O PEDIDO ORDERID " + cOrderId + " FAVOR CADASTRAR O STATUS E IMPORTAR O PEDIDO NOVAMENTE."
-					RestArea(aArea)
-					Return aRet
-				EndIf
-				
-				//--------------------------------+
-				// Envia status para o e-Commerce |
-				//--------------------------------+
-				lEnvStatus 	:= IIF(WS1->WS1_ENVECO == "S",.T.,.F.)
-				lBaixaEco	:= .T.	
-			EndIf
-
-			//------------------+
-			// Gera nota fiscal |
-			//------------------+
-			If aRet[1] .And. lFatAut
-				LjMsgRun("Aguarde gerando nota fiscal. ","e-Commerce - eCommerce",{|| aRet := u_aEcoGerNf(cNumPv,@cDocEco)})
-			EndIf	
-
-			//---------------------------------------+
-			// Valida se nota foi gerada com sucesso |
-			//---------------------------------------+
-			If aRet[1] .And. lFatAut
-				aRet := u_aEcoVldNf(cOrderId,cDocEco)
-				//---------------------------+
-				// Status de Pedido Faturado |
-				//---------------------------+
-				If aRet[1]
-					WS1->( dbSetOrder(1) )
-					If !WS1->( dbSeek(xFilial("WS1") + "005") )
-						LogExec("STATUS CODIGO 005 NAO LOCALIZADO PARA O PEDIDO ORDERID " + cOrderId + " FAVOR CADASTRAR O STATUS E IMPORTAR O PEDIDO NOVAMENTE.")
-						aRet[1] := .F.
-						aRet[2] := cOrderId
-						aRet[3] := "STATUS CODIGO 005 NAO LOCALIZADO PARA O PEDIDO ORDERID " + cOrderId + " FAVOR CADASTRAR O STATUS E IMPORTAR O PEDIDO NOVAMENTE."
-						RestArea(aArea)
-						Return aRet
-					EndIf
-					
-					//--------------------------------+
-					// Envia status para o e-Commerce |
-					//--------------------------------+
-					lEnvStatus 	:= IIF(WS1->WS1_ENVECO == "S",.T.,.F.)
-					lBaixaEco	:= .T.
-				EndIf
-			EndIf
-		EndIf
-		
 		RecLock("WSA",.F.)
 			WSA->WSA_CODSTA	:= WS1->WS1_CODIGO
 			WSA->WSA_DESTAT	:= Alltrim(WS1->WS1_DESCRI)
 		WSA->( MsUnLock() )
-			
-	//--------------+
-	// Status Troca |
-	//--------------+
-	ElseIf WS1->WS1_CODIGO == "099"
-
-		LjMsgRun("Aguarde .. Gerando documento de troca.","e-Commerce - eCommerce",{|| aRet := u_AEcoTro(cNumDoc,cNumSer,SA1->A1_COD,SA1->A1_LOJA,WSA->WSA_NUM)})
-		If aRet[1]
-			
-			Aviso("e-Commerce - eCommerce","Nota de Devolução " + aRet[2] + " gerada com sucesso.",{"Ok"})
-			
-			//--------------------------------+
-			// Envia status para o e-Commerce |
-			//--------------------------------+
-			lEnvStatus 	:= IIF(WS1->WS1_ENVECO == "S",.T.,.F.)
-			lBaixaEco	:= .T.
-			
-			RecLock("WSA",.F.)
-				WSA->WSA_CODSTA	:= WS1->WS1_CODIGO
-				WSA->WSA_DESTAT	:= Alltrim(WS1->WS1_DESCRI)
-			WSA->( MsUnLock() )
-			
-		//---------------------------+	
-		// Erro na pre-nota de troca |
-		//---------------------------+	
-		Else
-			RestArea(aArea)
-			Return aRet	
-		EndIf
-
+	
 	//---------------+
 	// Demais Status |
 	//---------------+
@@ -3150,25 +3006,19 @@ Static Function AEcoUpdPv(cOrderId,cOrdPvCli,cNumOrc,cNumDoc,cNumSer,cNumPv,oRes
 		WSA->( MsUnLock() )	
 	EndIf
 
+	//------------------------+
+	// Grava Status do Pedido |
+	//------------------------+
+	u_AEcoStaLog(WS1->WS1_CODIGO,cOrderId,cNumOrc,dDataBase,Time())
+
 	//---------------------------+
-	// Atualiza Status do Pedido |
+	// Atualiza status ecommerce |
 	//---------------------------+
-	If aRet[1]
-		//------------------------+
-		// Grava Status do Pedido |
-		//------------------------+
-		u_AEcoStaLog(WS1->WS1_CODIGO,cOrderId,cNumOrc,dDataBase,Time())
+	If lEnvStatus
+		aRet := u_AEcoStat(WSA->WSA_NUM)
+	EndIf	
 
-		//---------------------------+
-		// Atualiza status ecommerce |
-		//---------------------------+
-		If lEnvStatus
-			aRet := u_AEcoStat(WSA->WSA_NUM)
-		EndIf	
-
-	EndIf
-
-	RestArea(aArea)
+RestArea(aArea)
 Return aRet
 
 /*********************************************************************************************************/
