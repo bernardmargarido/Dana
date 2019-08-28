@@ -1,0 +1,21 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                                //
+// Dentro do arquivo ZIP existem patches para o Protheus conforme o ambiente.                     //
+//                                                                                                //
+// O nome da patch determina a qual ambiente se destina:                                          //
+//                                                                                                //
+// PACOTE_DE_CORRECAO_nnnnnn_iiiiiiiiii_TT x y vvvvv.PTM                                          //
+//                       |        |        | |   |                                                //
+//                       |        |        | |   |                                                //
+//                       |        |        | |   +-> Versão / Release                             //
+//                       |        |        | +-> P – Português, S – Español, E – English          //
+//                       |        |        +-> T – DBAccess, C - CTree (PDV), D - CodeBase (PDV)  //
+//                       |        +---> Código da Issue (Tarefa de Manutenção)                    //
+//                       +---> Número do Ticket                                                   //
+//                                                                                                //
+// Aplique a patch correspondente a seu ambiente através do IDE ou TDS.                           //
+//                                                                                                //
+//                                                                                                //
+// TOTVS S.A.|Protheus                                                                            //
+//                                                                                                //
+////////////////////////////////////////////////////////////////////////////////////////////////////
