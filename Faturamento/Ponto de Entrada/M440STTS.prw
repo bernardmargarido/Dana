@@ -74,7 +74,7 @@ Endif
 RecLock("SC5",.F.)
 	SC5->C5_XTOTLIB	:= nTotPed
 	If cFilSC5 $ _cFilWMS
-		SC5->C5_XENVWMS := IIF(SC5->C5_XENVWMS == "3",SC5->C5_XENVWMS,"1")
+		SC5->C5_XENVWMS := "1"
 		SC5->C5_XDTALT	:= Date()
 		SC5->C5_XHRALT	:= Time()
 	EndIf
