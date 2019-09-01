@@ -793,3 +793,27 @@ EndIf
 
 RestArea(_aArea)
 Return Nil
+
+/**************************************************************************************************/
+/*/{Protheus.doc} AEcoPerDes
+
+@description	Calcula percentual de desconto
+
+@author			Bernard M.Margarido
+@version   		1.00
+@since     		10/02/2016
+
+@param			nVlr		, Valor Total
+@param			nVlrDesc	, Valor do Desconto
+
+@return			nPerDes		, Retorna percentual de desconto calculado 
+/*/
+/**************************************************************************************************/
+User Function AEcoPerDes(nVlr,nVlrDesc)
+	Local nPerDesc 	:= 0
+	Local nVlrDif	:= 0
+	
+	nVlrDif		:= nVlr - nVlrDesc
+	nPerDesc 	:= Round((nVlrDif / nVlr) * 100,2)
+
+Return nPerDesc
