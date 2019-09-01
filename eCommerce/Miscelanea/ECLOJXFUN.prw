@@ -815,5 +815,5 @@ User Function AEcoPerDes(nVlr,nVlrDesc)
 	
 	nVlrDif		:= nVlr - nVlrDesc
 	nPerDesc 	:= Round((nVlrDif / nVlr) * 100,2)
-
+	nPerDesc	:= IIF(nPerDesc >= 100,99.99,nPerDesc)	
 Return nPerDesc

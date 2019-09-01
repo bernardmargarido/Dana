@@ -391,7 +391,7 @@ Else
 	cCodCli := GetSxeNum("SA1","A1_COD")
 	cLoja	:= "01"
 	SA1->( dbSetOrder(1) )
-	While SA1->( dbSeek(xFilial("SA1") + cCodCli + cLoja ) )
+	While SA1->( dbSeek(xFilial("SA1") + PadR(cCodCli,nTCodCli) + cLoja ) )
 		ConfirmSx8()
 		cCodCli	:= GetSxeNum("SA1","A1_COD","",1)
 	EndDo	
@@ -1201,6 +1201,7 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDescVnd,nPe
 	Local nValor	:= 0
 	Local nVlrFinal	:= 0
 	Local nVlrBrinde:= 0	
+	Local nVlrDesc	:= 0
 	
 	Local dDtaEntr	:= Nil
 			
@@ -1277,7 +1278,7 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDescVnd,nPe
 			nVlrBrinde	+= IIF(lBrinde,0.01,0)		
 			nQtdItem	:= oItems[nPrd]:Quantity
 			nValor		:= IIF(lGift,0.01,RetPrcUni(oItems[nPrd]:Price))
-			nVlrFinal	:= IIF(lGift,0.01,RetPrcUni(oItems[nPrd]:SellingPrice))
+			nVlrFinal	:= IIF(lGift .Or. oItems[nPrd]:SellingPrice <= 0, 0.01, RetPrcUni(oItems[nPrd]:SellingPrice))
 			If Empty(oTransp:LogisticsInfo[nPrd]:ShippingEstimateDate)
 				dDtaEntr	:= cTod(dDtaEmiss) + Val(oTransp:LogisticsInfo[nPrd]:ShippingEstimate)
 				nPrzEntr	:= Val(oTransp:LogisticsInfo[nPrd]:ShippingEstimate)
@@ -1290,18 +1291,29 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDescVnd,nPe
 			// Valida se desconto foi aplicado em percentual ou valor |
 			//--------------------------------------------------------+
 			lDescPer	:= IIF(Len(oItems[nPrd]:PriceTags) > 0 ,oItems[nPrd]:PriceTags[1]:IsPercentual,.F.)
+			nVlrDesc	:= IIF(Len(oItems[nPrd]:PriceTags) > 0 ,oItems[nPrd]:PriceTags[1]:value,0)
 				
 			//------------------------------+
 			// Acha percentual de desconto  |
 			//------------------------------+ 
 			If !lGift
-				If nValor > nVlrFinal .And. !lDescPer
-					nPerDItem := U_AEcoPerDes(nValor,nVlrFinal)
-				ElseIf lDescPer
+				If lDescPer
 					nPerDItem := RetPrcUni(oItems[nPrd]:PriceTags[1]:Value * -1)
+				ElseIf nVlrDesc > 0
+					nVlrDesc := RetPrcUni(oItems[nPrd]:PriceTags[1]:Value * -1)
+					nPerDItem:= Round(( nVlrDesc / nValor ) * 100,2)
 				EndIf		
 			EndIf
 			
+			//-----------------+
+			// Valida desconto |
+			//-----------------+
+			If nPerDItem >= 100 .And. !lGift
+				nPerDItem	:= 0
+				nVlrFinal 	:= 0.01
+				lGift		:= .T.
+				lBrinde		:= .T.
+			EndIf
 			//-----------------+
 			// Soma peso Bruto |
 			//-----------------+
@@ -1339,14 +1351,14 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDescVnd,nPe
 			// quando pedido for faturado calcula IPI |
 			// no padrao do sistema                   |
 			//----------------------------------------+
-			If SB1->B1_IPI > 0 .And. SF4->F4_IPI == "S" 
+			If SB1->B1_IPI > 0 .And. SF4->F4_IPI == "S" .And. !lGift
 				nVlrFinal := NoRound( nVlrFinal / ( 1 + ( SB1->B1_IPI / 100 ) ), 4 )
 			EndIf
 	
 			//-------------------------------+
 			// Valida se valor foi informado |
 			//-------------------------------+
-			If Empty(nVlrFinal)
+			If Empty(nVlrFinal) 
 				LogExec("VALOR DO PRODUTO " + Alltrim(cProduto) + " NAO INFORMADO. VERIFIQUE VALOR NO ADMINISTRATIVO VTEX PARA PEDIDO ORDERID " + cOrderId)
 				aRet[1] := .F.
 				aRet[2] := cOrderId
@@ -1699,7 +1711,7 @@ Local nPDesc	:= 0
 
 
 dbSelectArea("WSB")
-WSB->( dbSetOrder(1) )
+WSB->( dbSetOrder(2) )
 WSB->( dbSeek(xFilial("WSB") + cNumOrc + cItem) )
 
 //----------------------+
@@ -1795,7 +1807,7 @@ EndIf
 		//-----------------------------------+
 		// Efetua a reserva dos peodutos KIT |
 		//-----------------------------------+
-		aRet 	:= AEcoGrvRKit(cOrderId,cPedCodCli,cNumOrc,cCodCli,cLojaCli,cVendedor,nDesconto,dDtaEmiss,oItems[nPrd]:Quantity,oItems[nPrd]:Components,oTransp,oRestPv,cProduto,nPrd)
+		aRet 	:= AEcoGrvRKit(cOrderId,cPedCodCli,cNumOrc,cCodCli,cLojaCli,cVendedor,nDesconto,dDtaEmiss,oItems[nPrd]:Quantity,oItems[nPrd]:Components,oTransp,oRestPv,cProduto,dDtVldRserv)
 		If !aRet[1]
 			RestArea(aArea)
 			Return aRet
@@ -1920,7 +1932,7 @@ Return aRet
 	@type function
 /*/
 /**************************************************************************************/
-Static Function AEcoGrvRKit(cOrderId,cPedCodCli,cNumOrc,cCodCli,cLojaCli,cVendedor,nDesconto,dDtaEmiss,nQtdKit,oItKit,oTransp,oRestPv,cCodKit)
+Static Function AEcoGrvRKit(cOrderId,cPedCodCli,cNumOrc,cCodCli,cLojaCli,cVendedor,nDesconto,dDtaEmiss,nQtdKit,oItKit,oTransp,oRestPv,cCodKit,dDtVldRserv)
 Local _aArea	:= GetArea()
 
 Local aRet		:= {.T.,"",""}
