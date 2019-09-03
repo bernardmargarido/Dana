@@ -152,7 +152,6 @@ Private nTTipo      := TamSx3("C0_TIPO")[1]
 Private nTNumCl     := TamSx3("L1_XNUMECL")[1]  
 
 Private lMsErroAuto := .F.
-Private lAutoExec   := .T.
 
 //----------------+
 // Valida cliente |
@@ -221,16 +220,18 @@ While WSB->( !Eof() .And. xFilial("WSB") + WSA->WSA_NUM == WSB->WSB_FILIAL + WSB
     //-----------------------------+
     // Valida se tem preço na loja |
     //-----------------------------+
-    If !SB0->( dbSeek(xFilial("SB0") + WSB->WSB_PRODUT) )
-        RecLock("SB0",.T.)
-			SB0->B0_FILIAL  :=  xFilial("SB0")
-			SB0->B0_COD     := WSB->WSB_PRODUT
-			SB0->B0_PRV1	:= WSB->WSB_VRUNIT
-		SB0->( MsUnLock() )
-    Else
-        RecLock("SB0",.F.)
-			SB0->B0_PRV1	:= WSB->WSB_VRUNIT
-		SB0->( MsUnLock() )
+    If WSB->WSB_VRUNIT > 0.01
+        If !SB0->( dbSeek(xFilial("SB0") + WSB->WSB_PRODUT) )
+            RecLock("SB0",.T.)
+                SB0->B0_FILIAL  := xFilial("SB0")
+                SB0->B0_COD     := WSB->WSB_PRODUT
+                SB0->B0_PRV1	:= WSB->WSB_VRUNIT
+            SB0->( MsUnLock() )
+        Else
+            RecLock("SB0",.F.)
+                SB0->B0_PRV1	:= WSB->WSB_VRUNIT
+            SB0->( MsUnLock() )
+        EndIf
     EndIf
 
     //------------------+
@@ -245,8 +246,8 @@ While WSB->( !Eof() .And. xFilial("WSB") + WSA->WSA_NUM == WSB->WSB_FILIAL + WSB
 	aAdd( _aItem, {"LR_VRUNIT"	, WSB->WSB_VRUNIT										, Nil })
 	aAdd( _aItem, {"LR_VLRITEM"	, WSB->WSB_VLRITE										, Nil })
 	aAdd( _aItem, {"LR_UM"		, WSB->WSB_UM    										, Nil })
-	aAdd( _aItem, {"LR_DESC"	, WSB->WSB_DESC  									    , Nil })
-	aAdd( _aItem, {"LR_VALDESC"	, WSB->WSB_VALDES										, Nil })
+	//aAdd( _aItem, {"LR_DESC"	    , WSB->WSB_DESC 								    , Nil })
+	//aAdd( _aItem, {"LR_VALDESC"	, WSB->WSB_VALDES									, Nil })
     aAdd( _aItem, {"LR_TES"	    , WSB->WSB_TES	    									, Nil })
 	aAdd( _aItem, {"LR_SERIE"	, _cSerCPF			    								, Nil })
 	aAdd( _aItem, {"LR_PDV"		, _cPDVWeb												, Nil })
@@ -312,12 +313,12 @@ aAdd( _aCabec,	{"LQ_VEND"		, WSA->WSA_VEND				                    , Nil })
 aAdd( _aCabec,	{"LQ_CLIENTE"	, SA1->A1_COD									, Nil })
 aAdd( _aCabec,	{"LQ_LOJA"		, SA1->A1_LOJA									, Nil })
 aAdd( _aCabec,	{"LQ_TIPOCLI"	, SA1->A1_TIPO									, Nil })
-aAdd( _aCabec,	{"LQ_VLRTOT"	, WSA->WSA_VLRTOT								, Nil })
+aAdd( _aCabec,	{"LQ_VLRTOT"	, WSA->WSA_VALMER								, Nil })
 aAdd( _aCabec,	{"LQ_DESCONT"	, WSA->WSA_DESCON								, Nil })
-aAdd( _aCabec,	{"LQ_VLRLIQ"	, WSA->WSA_VLRLIQ								, Nil })
+aAdd( _aCabec,	{"LQ_VLRLIQ"	, WSA->WSA_VALMER								, Nil })
 aAdd( _aCabec,	{"LQ_DTLIM"		, WSA->WSA_DTLIM 		    					, Nil })
 aAdd( _aCabec,	{"LQ_PDV"		, _cPDVWeb										, Nil })
-aAdd( _aCabec,	{"LQ_VALBRUT"	, WSA->WSA_VALBRU								, Nil })
+aAdd( _aCabec,	{"LQ_VALBRUT"	, WSA->WSA_VALMER								, Nil })
 aAdd( _aCabec,	{"LQ_VALMERC"	, WSA->WSA_VALMER 								, Nil })
 aAdd( _aCabec,	{"LQ_TIPO"		, "P"											, Nil })
 aAdd( _aCabec,	{"LQ_DESCNF"	, 0												, Nil })
@@ -585,7 +586,6 @@ _cQuery := " SELECT " + CRLF
 _cQuery += "    WSA.R_E_C_N_O_ RECNOWSA " + CRLF
 _cQuery += " FROM " + CRLF
 _cQuery += "    " + RetSqlName("WSA") + " WSA " + CRLF 
-_cQuery += "    INNER JOIN " + RetSqlName("WSB") + " WSB ON WSB.WSB_NUM = WSA.WSA_NUM AND WSB.D_E_L_E_T_ = '' " + CRLF
 _cQuery += " WHERE " + CRLF
 _cQuery += "    WSA.WSA_FILIAL = '" + xFilial("WSB") + "' AND  " + CRLF
 _cQuery += "    WSA.WSA_CODSTA IN " + _cCodSta + " AND " + CRLF

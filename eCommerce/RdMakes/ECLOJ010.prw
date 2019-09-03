@@ -298,6 +298,7 @@ Static Function MenuDef()
 Local aRotina := {}
 Local aRotFat := {}
 Local aRotTro := {}
+Local aRotIbx := {}
 
 //-----------------------+
 // Rotina de Faturamento | 
@@ -311,10 +312,15 @@ aAdd(aRotFat, {"Trans. Sefaz"	,"U_ECLOJ103", 0, 4} )	// Transmissão Sefaz
 //----------------------+
 aAdd(aRotTro, {"Cancela Pedido" ,"U_ECLOJ104", 0, 4 } )	// Cancela Pedido
 aAdd(aRotTro, {"Troca/Devolucao","U_ECLOJ105", 0, 4 } )	// Troca / Devolução
-    
+
+//-------------------+
+// Pedidos para IBEX |
+//-------------------+
+aAdd(aRotIbx, {"Envia PV. IBEX","U_IBFATM01", 0, 4 } )	// Envia Pedidos Ibex Logistica
+
 aAdd(aRotina, {"Pesquisa"   	, "AxPesqui"    , 0, 1 })  // Pesquisa
 aAdd(aRotina, {"Visualizar" 	, "U_ECLOJ10A"  , 0, 2 })  // Visualizar
 aAdd(aRotina, {"Faturamento"	, aRotFat		, 0, 4 })  // Faturamento
 aAdd(aRotina, {"Canc / Troca"   , aRotTro  		, 0, 4 })  // Cancelamento / Troca Devolução
-
+aAdd(aRotina, {"Env. IBEX"   	, aRotIbx  		, 0, 4 })  // Envia Pedidos Ibex Logistica
 Return aRotina

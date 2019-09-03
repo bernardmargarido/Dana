@@ -150,7 +150,7 @@ aAdd(aHeadOut,"Content-Type: application/json" )
 aAdd(aHeadOut,"X-VTEX-API-AppKey:" + cAppKey )
 aAdd(aHeadOut,"X-VTEX-API-AppToken:" + cAppToken ) 
 
-cUrlParms := "ready-for-handling"
+cUrlParms := "ready-for-handling,handling"
 //payment-pending,canceled
 cHtmlPage := HttpGet(cUrl + "/api/oms/pvt/orders?f_status=" + cUrlParms , /*cUrlParms*/, nTimeOut, aHeadOut, @cXmlHead)
 
@@ -180,17 +180,7 @@ If HTTPGetStatus() == 200
 				
 					IncProc('Validando novos pedidos VTEX ')
 					
-					//-------------------------+
-					// Valida Status do Pedido |
-					//-------------------------+
-					//If Alltrim(oRestRet:LIST[nList]:Status) $ "payment-pending/waiting-ffmt-authorization/window-to-cancel" 
-					//----------------------------------+
-					// Validando novos pedidos de venda |
-					//----------------------------------+
-					//If Upper(oRestRet:List[nList]:OrderId) == "762633150649-01"	
-						aAdd(aOrderId,oRestRet:List[nList]:OrderId)
-					//EndIf	
-					//EndIf
+					aAdd(aOrderId,oRestRet:List[nList]:OrderId)
 				Next nList
 			Else
 				Aviso('e-Commerce','Nao existem novos pedidos a serem integrados',{"Ok"})	
@@ -1061,9 +1051,10 @@ Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt)
 	Else
 		nQtdParc	:= oRestPv:PayMentData:Transactions[1]:Payments[1]:InstallMents
 	EndIf	
+
 	nVlrFrete	:= RetPrcUni(oRestPv:Totals[3]:Value)
 	nVrSubTot	:= RetPrcUni(oRestPv:Totals[1]:Value)
-	nVlrTotal	:= RetPrcUni(oRestPv:Value)
+	nVlrTotal	:= RetPrcUni(oRestPv:Totals[1]:Value) //RetPrcUni(oRestPv:Value)
 	nQtdItem	:= Len(oRestPv:Items)
 		
 	//---------------------+
@@ -1202,7 +1193,8 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDescVnd,nPe
 	Local nVlrFinal	:= 0
 	Local nVlrBrinde:= 0	
 	Local nVlrDesc	:= 0
-	
+	Local nVlrTotIt	:= 0
+		
 	Local dDtaEntr	:= Nil
 			
 	LogExec("GRAVANDO ITENS DO PEDIDO ORDERID " + cOrderId )
@@ -1275,10 +1267,10 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDescVnd,nPe
 			
 			lGift		:= oItems[nPrd]:IsGift
 			lBrinde		:= IIF(!lBrinde,lGift,lBrinde)
-			nVlrBrinde	+= IIF(lBrinde,0.01,0)		
 			nQtdItem	:= oItems[nPrd]:Quantity
-			nValor		:= IIF(lGift,0.01,RetPrcUni(oItems[nPrd]:Price))
+			nValor		:= IIF(lGift, 0.01, RetPrcUni(oItems[nPrd]:Price))
 			nVlrFinal	:= IIF(lGift .Or. oItems[nPrd]:SellingPrice <= 0, 0.01, RetPrcUni(oItems[nPrd]:SellingPrice))
+			nVlrBrinde	+= IIF(lBrinde .Or. oItems[nPrd]:SellingPrice <= 0, 0.01 * nQtdItem,0)		
 			If Empty(oTransp:LogisticsInfo[nPrd]:ShippingEstimateDate)
 				dDtaEntr	:= cTod(dDtaEmiss) + Val(oTransp:LogisticsInfo[nPrd]:ShippingEstimate)
 				nPrzEntr	:= Val(oTransp:LogisticsInfo[nPrd]:ShippingEstimate)
@@ -1299,18 +1291,21 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDescVnd,nPe
 			If !lGift
 				If lDescPer
 					nPerDItem := RetPrcUni(oItems[nPrd]:PriceTags[1]:Value * -1)
-				ElseIf nVlrDesc > 0
+				ElseIf nVlrDesc < 0
 					nVlrDesc := RetPrcUni(oItems[nPrd]:PriceTags[1]:Value * -1)
-					nPerDItem:= Round(( nVlrDesc / nValor ) * 100,2)
+					nVlrTotIt:= nQtdItem * nValor		
+					nPerDItem:= Round(( nVlrDesc / nVlrTotIt ) * 100,2)
 				EndIf		
 			EndIf
 			
 			//-----------------+
 			// Valida desconto |
 			//-----------------+
-			If nPerDItem >= 100 .And. !lGift
+			If (nPerDItem >= 100 .Or. nVlrFinal <= 0 ) .And. !lGift
 				nPerDItem	:= 0
+				nVlrDesc	:= 0
 				nVlrFinal 	:= 0.01
+				nValor		:= 0.01
 				lGift		:= .T.
 				lBrinde		:= .T.
 			EndIf
@@ -2112,9 +2107,9 @@ Static Function AEcoGrvCab(	cNumOrc,cOrderId,cCodCli,cLojaCli,cTipoCli,cVendedor
 	// Valida Tipo de Frete |
 	//----------------------+
 	If SubStr(Alltrim(cOrderId),1,3) == "MRC"
-		cTpFrete := "S"
+		cTpFrete := "0"
 	ElseIf Empty(cIdPost) .And. Alltrim(cCodTransp) $ cTransViz 
-		cTpFrete := "S"
+		cTpFrete := "0"
 	ElseIf !Empty(cIdPost)
 		If nVlrFrete > 0
 			cTpFrete := "F"
@@ -2156,8 +2151,8 @@ Static Function AEcoGrvCab(	cNumOrc,cOrderId,cCodCli,cLojaCli,cTipoCli,cVendedor
 		WSA->WSA_DESCON		:= nDesconto
 		WSA->WSA_VLRLIQ		:= nVrSubTot
 		WSA->WSA_DTLIM		:= DaySum(cTod(dDtaEmiss),nDiasOrc)
-		WSA->WSA_VALBRU		:= MaFisRet(,"NF_TOTAL") 
-		WSA->WSA_VALMER		:= MaFisRet(,"NF_TOTAL")
+		WSA->WSA_VALBRU		:= nVlrTotal //MaFisRet(,"NF_TOTAL") 
+		WSA->WSA_VALMER		:= nVlrTotal //MaFisRet(,"NF_VALMERC")
 		WSA->WSA_DESCNF		:= 0
 		WSA->WSA_DINHEI		:= 0
 		WSA->WSA_CHEQUE		:= 0
@@ -2885,15 +2880,6 @@ Return aRet
 @version   		1.00
 @since     		10/02/2016
 
-@param			cNumOrc		, Numero do Orçamento 
-@param			cOrderId	, Numero OrderId e-Commerce	
-@param			cOrdPvCli	, Numero do Pedido e-Commerce exibido para o Cliente
-@param			cNumDoc		, Numero Documento de Saída
-@param			cNumSer		, Serie do documento de saida
-@param			oPedido		, Objeto contendo os pedidos e-Commerce
-@param			cNumPv		, Numero do Pedido de Venda
-
-@return			aRet		- Array aRet[1] - Logico aRet[2] - Codigo Erro aRet[3] - Descricao do Erro  
 /*/
 /**************************************************************************************************/
 Static Function AEcoUpdPv(cOrderId,cOrdPvCli,cNumOrc,cNumDoc,cNumSer,cNumPv,oRestPv)
