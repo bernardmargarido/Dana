@@ -711,7 +711,7 @@ If _lContinua
 		//----------------------+	
 		// Log processo da nota |
 		//----------------------+
-		LogExec(_cPedido + "CONFERENCIA REALIZADA COM SUCESSO.")
+		LogExec(_cPedido + " CONFERENCIA REALIZADA COM SUCESSO.")
 		aAdd(aMsgErro,{cFilAnt,_cPedido,.T.,"CONFERENCIA REALIZADA COM SUCESSO."})
 
 	EndIf
