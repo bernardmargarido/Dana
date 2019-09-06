@@ -32,11 +32,13 @@ Local clQrb 	:= CHR(13) + CHR(10)
 //-----------------------------------------------+
 // Valida se o pedido foi confirmada a separação |
 //-----------------------------------------------+
-If cFilAnt $ _cFilWMS
-	If !U_DnFatM01()
+/*
+If cFilAnt $ _cFilWMS //
+	If !U_DnFatM01(cMarca,lInverte)
 		Return .F.
 	EndIf
 EndIf
+*/
 
 Pergunte("MT461A", .F.)
 

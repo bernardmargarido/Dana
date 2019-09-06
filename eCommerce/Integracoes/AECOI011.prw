@@ -1268,7 +1268,7 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDescVnd,nPe
 			lGift		:= oItems[nPrd]:IsGift
 			lBrinde		:= IIF(!lBrinde,lGift,lBrinde)
 			nQtdItem	:= oItems[nPrd]:Quantity
-			nValor		:= IIF(lGift, 0.01, RetPrcUni(oItems[nPrd]:Price))
+			nValor		:= RetPrcUni(oItems[nPrd]:Price) //IIF(lGift, 0.01, RetPrcUni(oItems[nPrd]:Price))
 			nVlrFinal	:= IIF(lGift .Or. oItems[nPrd]:SellingPrice <= 0, 0.01, RetPrcUni(oItems[nPrd]:SellingPrice))
 			nVlrBrinde	+= IIF(lBrinde .Or. oItems[nPrd]:SellingPrice <= 0, 0.01 * nQtdItem,0)		
 			If Empty(oTransp:LogisticsInfo[nPrd]:ShippingEstimateDate)
@@ -1305,7 +1305,7 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDescVnd,nPe
 				nPerDItem	:= 0
 				nVlrDesc	:= 0
 				nVlrFinal 	:= 0.01
-				nValor		:= 0.01
+				//nValor		:= 0.01
 				lGift		:= .T.
 				lBrinde		:= .T.
 			EndIf

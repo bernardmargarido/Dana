@@ -204,7 +204,7 @@ Local cRest			:= ""
 
 Local nTimeOut		:= 240
 
-Local oRestClient	:= Nil
+Local _oRest		:= Nil
 
 //---------------------------+
 // Transforma Objeto em JSON |
@@ -218,22 +218,22 @@ aAdd(aHeadOut,"X-VTEX-API-AppToken:" + cAppToken )
 //-----------------------+
 // Instancia Classe Rest |
 //-----------------------+
-oRestClient := FWRest():New(cUrl)
+_oRest := FWRest():New(cUrl)
 
 //---------------------+
 // TimeOut do processo |
 //---------------------+
-oRestClient:nTimeOut := nTimeOut
+_oRest:nTimeOut := nTimeOut
 
 //----------------------+
 // Metodo a ser enviado | 
 //----------------------+
-oRestClient:SetPath("/pricing/prices/"+ Alltrim(Str(nIdSku)))
+_oRest:SetPath("/danacosmeticos/pricing/prices/"+ Alltrim(Str(nIdSku)))
 
  //--------------------+
  // Utiliza metodo PUT |
  //--------------------+
-If oRestClient:Put(aHeadOut,cRest)
+If _oRest:Put(aHeadOut,cRest)
 
 	//--------------------+
 	// Posiciona Registro |
@@ -251,8 +251,8 @@ Else
 	//---------------------------------------+
 	// Cria array com os erros de integracao |
 	//---------------------------------------+
-	aAdd(aMsgErro,{cCodSku,"ERRO AO ENVIAR A PRECO "  + oRestClient:GetLastError()})
-	LogExec("ERRO AO ENVIAR A PRECO " + oRestClient:GetLastError() )	
+	aAdd(aMsgErro,{cCodSku,"ERRO AO ENVIAR A PRECO "  + _oRest:GetLastError()})
+	LogExec("ERRO AO ENVIAR A PRECO " + _oRest:GetLastError() )	
 EndIf 
 
 RestArea(aArea)

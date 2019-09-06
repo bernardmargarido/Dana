@@ -250,7 +250,6 @@ If !DnaApiQry(cAlias,cNota,cSerie,cDataHora,cTamPage,cPage)
 	aRet[1] := .F.
 	aRet[2] := EncodeUtf8(cRest)
 	
-	(cAlias)->( dbCloseArea() )
 	RestArea(aArea)
 	Return aRet
 EndIf
@@ -493,6 +492,7 @@ dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
 
 If (cAlias)->( Eof() )
 	LogExec("NAO EXISTEM DADOS PARA SEREM ENVIADOS.")
+	(cAlias)->( dbCloseArea() )
 	Return .F.
 EndIf
 

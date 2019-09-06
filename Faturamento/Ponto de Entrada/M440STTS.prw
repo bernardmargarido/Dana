@@ -52,7 +52,7 @@ If SC9->( dbseek(cFilSC5 + cPedSC5) )
 					SC9->C9_XDTALT 	:= Date()
 					SC9->C9_XHRALT 	:= Time()
 				ElseIf SC5->C5_XENVWMS $ "1/2" .And. Empty(SC9->C9_XENVWMS) 
-					SC9->C9_XENVWMS := "1"
+					SC9->C9_XENVWMS := SC5->C5_XENVWMS
 					SC9->C9_XDTALT 	:= Date()
 					SC9->C9_XHRALT 	:= Time()	
 				EndIf
@@ -74,7 +74,7 @@ Endif
 RecLock("SC5",.F.)
 	SC5->C5_XTOTLIB	:= nTotPed
 	If cFilSC5 $ _cFilWMS
-		SC5->C5_XENVWMS := "1"
+		SC5->C5_XENVWMS := SC5->C5_XENVWMS
 		SC5->C5_XDTALT	:= Date()
 		SC5->C5_XHRALT	:= Time()
 	EndIf

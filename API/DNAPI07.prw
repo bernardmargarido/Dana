@@ -344,8 +344,7 @@ If !DnaApiQry(cAlias,cPedido,cDataHora,cTamPage,cPage)
 	
 	aRet[1] := .F.
 	aRet[2] := EncodeUtf8(cRest)
-	
-	(cAlias)->( dbCloseArea() )
+		
 	RestArea(aArea)
 	Return aRet
 EndIf
@@ -416,6 +415,11 @@ While (cAlias)->( !Eof() )
 		oItens[#"data_validade"]:= (cAlias)->DTVALID
 		oItens[#"armazem"]		:= (cAlias)->ARMAZEM
 		
+		//-----------------------+
+		// Atualiza item enviado |
+		//-----------------------+
+		DnApi07I(cFilAut,cPedVen,(cAlias)->ITEM,(cAlias)->PRODUTO)
+
 		(cAlias)->( dbSkip() )
 	EndDo
 
@@ -445,6 +449,48 @@ aRet[2] := EncodeUtf8(cRest)
 
 RestArea(aArea)
 Return aRet 
+
+/************************************************************************************/
+/*/{Protheus.doc} DnApi07I
+
+@description Atualiza item do pedido de venda
+
+@author Bernard M. Margarido
+@since 29/04/2019
+@version 1.0
+
+@type function
+/*/
+/************************************************************************************/
+Static Function DnApi07I(cFilAut,_cPedVen,_cItem,_cProduto)
+Local _aArea	:= GetArea()
+Local _cFilAux	:= cFilAnt
+
+//------------------+
+// Posiciona filial |
+//------------------+
+cFilAnt := cFilAut
+
+//--------------------------+
+// Posiciona item do pedido |
+//--------------------------+
+dbSelectArea("SC6")
+SC6->( dbSetOrder(1) )
+If SC6->( dbSeeK(xFilial("SC6") + _cPedVen + _cItem + _cProduto) )
+	RecLock("SC6",.F.)
+		SC6->C6_XENVWMS := "1"
+		SC6->C6_XDTALT 	:= Date()
+		SC6->C6_XHRALT	:= Time()
+	SC6->( MsUnLock() )	
+EndIf
+
+//-----------------+
+// Restaura Filial | 
+//-----------------+
+cFilAnt	:= _cFilAux
+
+RestArea(_aArea)
+Return Nil
 
 /************************************************************************************/
 /*/{Protheus.doc} DnApi07TPv
@@ -523,6 +569,7 @@ Local _nPed		:= 0
 Local _nTotIt	:= 0
 
 Local _aDiverg	:= {}
+Local _aItensC	:= {}
 
 Local _lContinua:= .T.	
 Local _lLibParc	:= .F.
@@ -640,7 +687,7 @@ For _nPed := 1 To Len(_oItPed)
 				//------------------------------+
 				// Valida divergencia separação |
 				//------------------------------+
-				If _nQtdConf < SC9->C9_QTDLIB
+				If _nQtdConf < SC9->C9_QTDLIB .Or. _nQtdConf > SC9->C9_QTDLIB
 					//-------------------+
 					// Array Divergencia |
 					//-------------------+
@@ -650,7 +697,18 @@ For _nPed := 1 To Len(_oItPed)
 									SC9->C9_QTDLIB		,;	// 4 - Quantidade Liberada
 									SC6->C6_LOTECTL		,;	// 4 - Lote Produto
 									SC6->C6_LOCAL		})	// 5 - Armazem 	
+				//------------------+					
+				// Itens conferidos |
+				//------------------+					
+				Else
+					aAdd(_aItensC,{ SC6->C6_ITEM		,;	// 1 - Item Pre Nota
+				 					SC6->C6_PRODUTO		,;	// 2 - Codigo do Produto
+									_nQtdConf			,;	// 3 - Quantidade Transferida
+									SC9->C9_QTDLIB		,;	// 4 - Quantidade Liberada
+									SC6->C6_LOTECTL		,;	// 4 - Lote Produto
+									SC6->C6_LOCAL		})	// 5 - Armazem 	
 				EndIf
+
 			EndIf 
 			SC9->( dbSkip() )
 		EndDo
@@ -685,7 +743,10 @@ If _lContinua
 	// Libera faturamento do pedido |
 	//------------------------------+	 
 	Else
-	
+
+		//--------------------------+
+		// Atualiza dados do pedido |
+		//--------------------------+
 		RecLock("SC5",.F.)
 			SC5->C5_XENVWMS := IIF(_lLibParc,"2","3")
 			SC5->C5_XDTALT	:= Date()
@@ -695,7 +756,13 @@ If _lContinua
 			SC5->C5_PBRUTO	:= _nPeso
 			SC5->C5_VOLUME1	:= _nVolume
 		SC5->( MsUnLock() )
-				
+
+		//------------------------+
+		// Tabela itens do pedido |
+		//------------------------+
+		dbSelectArea("SC6")
+		SC6->( dbSetOrder(1) )
+
 		//---------------------------+
 		// Posiciona Itens Liberados |
 		//---------------------------+
@@ -703,8 +770,54 @@ If _lContinua
 		SC9->( dbSetOrder(1) )
 		SC9->( dbSeek(xFilial("SC9") + SC5->C5_NUM) )
 		While SC9->( !Eof() .And. xFilial("SC9") + SC5->C5_NUM == SC9->C9_FILIAL + SC9->C9_PEDIDO)
-			RecLock("SC9",.F.)
-				SC9->C9_XENVWMS := "3"
+			/*
+			If SC6->( dbSeeK(xFilial("SC9") + SC9->C9_PEDIDO + SC9->C9_ITEM + SC9->C9_PRODUTO) )
+				If !Empty(SC6->C6_XENVWMS) .And. !Empty(SC6->C6_XDTALT) .And.  !Empty(SC6->C6_XHRALT)
+					//------------------------+
+					// Atualiza item liberado |
+					//------------------------+
+					RecLock("SC9",.F.)
+						SC9->C9_XENVWMS := "3"
+						SC9->C9_XDTALT	:= Date()
+						SC9->C9_XHRALT	:= Time()
+					SC9->( MsUnLock() )
+
+					//----------------------+
+					// Atualiza item pedido | 
+					//----------------------+
+					RecLock("SC6",.F.)
+						SC6->C6_XENVWMS := "3"
+						SC6->C6_XDTALT	:= Date()
+						SC6->C6_XHRALT	:= Time()
+					SC6->( MsUnLock() )
+				Else
+				*/
+					//------------------------------+
+					// Valida se items esta no JSON |
+					//------------------------------+
+					If aScan(_aItensC,{|x| RTrim(x[1]) + RTrim(x[2]) == RTrim(SC9->C9_ITEM) + RTrim(SC9->C9_PRODUTO) }) > 0
+						//------------------------+
+						// Atualiza item liberado |
+						//------------------------+
+						RecLock("SC9",.F.)
+							SC9->C9_XENVWMS := "3"
+							SC9->C9_XDTALT	:= Date()
+							SC9->C9_XHRALT	:= Time()
+						SC9->( MsUnLock() )
+						
+						If SC6->( dbSeeK(xFilial("SC9") + SC9->C9_PEDIDO + SC9->C9_ITEM + SC9->C9_PRODUTO) )
+							//----------------------+
+							// Atualiza item pedido | 
+							//----------------------+
+							RecLock("SC6",.F.)
+								SC6->C6_XENVWMS := "3"
+								SC6->C6_XDTALT	:= Date()
+								SC6->C6_XHRALT	:= Time()
+							SC6->( MsUnLock() )
+						EndIf
+					EndIf
+				//EndIf
+			//EndIf	
 			SC9->( dbSkip() )
 		EndDo	
 		
@@ -780,17 +893,42 @@ RecLock("SC5",.F.)
 	SC5->C5_XHRALT	:= Time()
 SC5->( MsUnLock() )
 
+//------------------------+
+// Tabela itens do pedido |
+//------------------------+
+dbSelectArea("SC6")
+SC6->( dbSetOrder(1) )
+
 //---------------------------+
 // Posiciona Itens Liberados |
 //---------------------------+
-
 dbSelectArea("SC9")
 SC9->( dbSetOrder(1) )
 SC9->( dbSeek(xFilial("SC9") + SC5->C5_NUM) )
 While SC9->( !Eof() .And. xFilial("SC9") + SC5->C5_NUM == SC9->C9_FILIAL + SC9->C9_PEDIDO)
-	RecLock("SC9",.F.)
-		SC9->C9_XENVWMS := "2"
-	SC9->( dbSkip() )
+	If SC6->( dbSeeK(xFilial("SC9") + SC9->C9_PEDIDO + SC9->C9_ITEM + SC9->C9_PRODUTO) )
+		If !Empty(SC6->C6_XENVWMS) .And. !Empty(SC6->C6_XDTALT) .And.  !Empty(SC6->C6_XHRALT)
+			//------------------------+
+			// Atualiza item liberado |
+			//------------------------+
+			RecLock("SC9",.F.)
+				SC9->C9_XENVWMS := "2"
+				SC9->C9_XDTALT	:= Date()
+				SC9->C9_XHRALT	:= Time()
+			SC9->( MsUnLock() )
+
+			//----------------------+
+			// Atualiza item pedido | 
+			//----------------------+
+			RecLock("SC6",.F.)
+				SC6->C6_XENVWMS := "2"
+				SC6->C6_XDTALT	:= Date()
+				SC6->C6_XHRALT	:= Time()
+			SC6->( MsUnLock() )
+
+		EndIf	
+	EndIF
+	SC9->( dbSkip() )	
 EndDo
 
 
@@ -913,7 +1051,7 @@ EndIf
 cQuery += "				C5.D_E_L_E_T_ = '' " + CRLF
 cQuery += "	) PEDIDO  " + CRLF
 cQuery += "	WHERE RNUM > " + cTamPage + " * (" + cPage + " - 1) " + CRLF 
-cQuery += "	ORDER BY FILIAL,PEDIDO"
+cQuery += "	ORDER BY FILIAL,PEDIDO,ITEM"
 
 //LogExec(cQuery)
 
@@ -921,6 +1059,7 @@ dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
 
 If (cAlias)->( Eof() )
 	LogExec("NAO EXISTEM DADOS PARA SEREM ENVIADOS.")
+	(cAlias)->( dbCloseArea() )
 	Return .F.
 EndIf
 
@@ -956,8 +1095,8 @@ cQuery += "		COUNT(*) TOTREG " + CRLF
 cQuery += "	FROM " + CRLF 
 cQuery += "				" + RetSqlName("SC5") + " C5 " + CRLF 
 
-cQuery += "				INNER JOIN " + RetSqlName("SC6") + " C6 ON C6.C6_FILIAL = C5.C5_FILIAL AND C6.C6_NUM = C5.C5_NUM AND C6.D_E_L_E_T_ = '' " + CRLF
-cQuery += "				INNER JOIN " + RetSqlName("SC9") + " C9 ON C9.C9_FILIAL = C6.C6_FILIAL AND C9.C9_PEDIDO = C6.C6_NUM AND C9.C9_PRODUTO = C6.C6_PRODUTO AND C9.C9_ITEM = C6.C6_ITEM AND C9.C9_BLEST = '' AND C9.C9_BLCRED = '' AND C9.C9_NFISCAL = '' AND C9.D_E_L_E_T_ = '' " + CRLF
+//cQuery += "				INNER JOIN " + RetSqlName("SC6") + " C6 ON C6.C6_FILIAL = C5.C5_FILIAL AND C6.C6_NUM = C5.C5_NUM AND C6.D_E_L_E_T_ = '' " + CRLF
+//cQuery += "				INNER JOIN " + RetSqlName("SC9") + " C9 ON C9.C9_FILIAL = C6.C6_FILIAL AND C9.C9_PEDIDO = C6.C6_NUM AND C9.C9_PRODUTO = C6.C6_PRODUTO AND C9.C9_ITEM = C6.C6_ITEM AND C9.C9_BLEST = '' AND C9.C9_BLCRED = '' AND C9.C9_NFISCAL = '' AND C9.D_E_L_E_T_ = '' " + CRLF
 
 cQuery += "			WHERE " + CRLF
 
@@ -979,8 +1118,8 @@ Else
 	cQuery += "				C5.C5_NUM = '" + cPedido + "' AND " + CRLF
 EndIf
 cQuery += "				C5.D_E_L_E_T_ = ''  " + CRLF
-cQuery += "		GROUP BY C5.C5_NUM " + CRLF
-cQuery += "		HAVING COUNT(C5.C5_NUM) > 0 "
+//cQuery += "		GROUP BY C5.C5_NUM " + CRLF
+//cQuery += "		HAVING COUNT(C5.C5_NUM) > 0 "
 
 dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
 
@@ -1157,10 +1296,21 @@ dbSelectArea("SC6")
 SC6->( dbSetOrder(1) )
 SC6->( dbSeeK(xFilial("SC6") + _cPedido) )
 While SC6->( !Eof() .And. xFilial("SC6") + _cPedido == SC6->C6_FILIAL + SC6->C6_NUM )
+
 	_nQtdLib := SC6->C6_QTDVEN - ( SC6->C6_QTDEMP + SC6->C6_QTDENT + SC6->C6_QTDLIB + SC6->C6_XQTDRES )  
 	If _nQtdLib > 0
 		MaLibDoFat(SC6->(RecNo()),_nQtdLib,@_lCredito,@_lEstoque,.T.,.T.,_lLiber,_lTransf)
 	EndIf
+
+	//-------------------------+
+	// Atualiza flag dos itens |
+	//-------------------------+
+	RecLock("SC6",.F.)
+		SC6->C6_XENVWMS := ""
+		SC6->C6_XDTALT	:= dToc('')
+		SC6->C6_XHRALT	:= ""
+	SC6->( MsUnLock() )
+
 	SC6->( dbSkip() )
 EndDo
 

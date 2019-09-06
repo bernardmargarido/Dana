@@ -27,12 +27,29 @@ EndIf
 //----------------------------------------+
 // Valida se pedido já foi enviado ao WMS |
 //----------------------------------------+
-If SC5->C5_XENVWMS == "2"
-	RecLock("SC5",.F.)
-		SC5->C5_XENVWMS := "1"
-		SC5->C5_XDTALT	:= Date()
-		SC5->C5_XHRALT	:= Time()
-	SC5->( MsUnLock() )
+RecLock("SC5",.F.)
+	SC5->C5_XENVWMS := "1"
+	SC5->C5_XDTALT	:= Date()
+	SC5->C5_XHRALT	:= Time()
+SC5->( MsUnLock() )
+
+//--------------+
+// Altera Itens |
+//--------------+
+dbSelectArea("SC6")
+SC6->( dbSetOrder(1) )
+If SC6->( dbSeeK(xFilial("SC6") + SC5->C5_NUM ) )
+	While SC6->( !Eof() .And. xFilial("SC6") + SC5->C5_NUM == SC6->C6_FILIAL + SC6->C6_NUM) 
+		//----------------------+
+		// Atualiza item pedido | 
+		//----------------------+
+		RecLock("SC6",.F.)
+			SC6->C6_XENVWMS := "1"
+			SC6->C6_XDTALT	:= Date()
+			SC6->C6_XHRALT	:= Time()
+		SC6->( MsUnLock() )
+		SC6->( dbSkip() )		
+	EndDo
 EndIf
 
 RestArea(_aArea)	

@@ -30070,6 +30070,156 @@ aAdd( aSX3, { ;
 	''	, ; //X3_AGRUP
 	''	, ; //X3_MODAL
 	''	} ) //X3_PYME
+	
+//
+// Campos Tabela DA1
+//
+aAdd( aSX3, { ;
+	'DA1', ; //X3_ARQUIVO
+	'29', ; //X3_ORDEM
+	'DA1_ENVECO', ; //X3_CAMPO
+	'C'	, ; //X3_TIPO
+	1	, ; //X3_TAMANHO
+	0	, ; //X3_DECIMAL
+	'Envia eComm', ; //X3_TITULO
+	'Envia eComm', ; //X3_TITSPA
+	'Envia eComm', ; //X3_TITENG
+	'Envio eCommerce', ; //X3_DESCRIC
+	'Envio eCommerce', ; //X3_DESCSPA
+	'Envio eCommerce', ; //X3_DESCENG
+	'@!', ; //X3_PICTURE
+	''	, ; //X3_VALID
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(160)					, ; //X3_USADO
+	'"1"', ; //X3_RELACAO
+	''	, ; //X3_F3
+	0	, ; //X3_NIVEL
+	Chr(254) + Chr(192), ; //X3_RESERV
+	''	, ; //X3_CHECK
+	''	, ; //X3_TRIGGER
+	'U'	, ; //X3_PROPRI
+	'N'	, ; //X3_BROWSE
+	'V'	, ; //X3_VISUAL
+	'R'	, ; //X3_CONTEXT
+	''	, ; //X3_OBRIGAT
+	''	, ; //X3_VLDUSER
+	'1=Nao Enviado;2=Enviado', ; //X3_CBOX
+	'1=Nao Enviado;2=Enviado', ; //X3_CBOXSPA
+	'1=Nao Enviado;2=Enviado', ; //X3_CBOXENG
+	''	, ; //X3_PICTVAR
+	''	, ; //X3_WHEN
+	''	, ; //X3_INIBRW
+	''	, ; //X3_GRPSXG
+	''	, ; //X3_FOLDER
+	''	, ; //X3_CONDSQL
+	''	, ; //X3_CHKSQL
+	''	, ; //X3_IDXSRV
+	''	, ; //X3_ORTOGRA
+	''	, ; //X3_TELA
+	''	, ; //X3_POSLGT
+	''	, ; //X3_IDXFLD
+	''	, ; //X3_AGRUP
+	''	, ; //X3_MODAL
+	''	} ) //X3_PYME
+
+aAdd( aSX3, { ;
+	'DA1', ; //X3_ARQUIVO
+	'30', ; //X3_ORDEM
+	'DA1_XDTEXP', ; //X3_CAMPO
+	'C'	, ; //X3_TIPO
+	8	, ; //X3_TAMANHO
+	0	, ; //X3_DECIMAL
+	'Dt Export'	, ; //X3_TITULO
+	'Dt Export'	, ; //X3_TITSPA
+	'Dt Export'	, ; //X3_TITENG
+	'Data Exportacao', ; //X3_DESCRIC
+	'Data Exportacao', ; //X3_DESCSPA
+	'Data Exportacao', ; //X3_DESCENG
+	''	, ; //X3_PICTURE
+	''	, ; //X3_VALID
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(160)					, ; //X3_USADO
+	''	, ; //X3_RELACAO
+	''	, ; //X3_F3
+	0	, ; //X3_NIVEL
+	Chr(254) + Chr(192), ; //X3_RESERV
+	''	, ; //X3_CHECK
+	''	, ; //X3_TRIGGER
+	'U'	, ; //X3_PROPRI
+	'N'	, ; //X3_BROWSE
+	'V'	, ; //X3_VISUAL
+	'R'	, ; //X3_CONTEXT
+	''	, ; //X3_OBRIGAT
+	''	, ; //X3_VLDUSER
+	''	, ; //X3_CBOX
+	''	, ; //X3_CBOXSPA
+	''	, ; //X3_CBOXENG
+	''	, ; //X3_PICTVAR
+	''	, ; //X3_WHEN
+	''	, ; //X3_INIBRW
+	''	, ; //X3_GRPSXG
+	''	, ; //X3_FOLDER
+	''	, ; //X3_CONDSQL
+	''	, ; //X3_CHKSQL
+	''	, ; //X3_IDXSRV
+	'N'	, ; //X3_ORTOGRA
+	''	, ; //X3_TELA
+	''	, ; //X3_POSLGT
+	'N'	, ; //X3_IDXFLD
+	''	, ; //X3_AGRUP
+	''	, ; //X3_MODAL
+	''	} ) //X3_PYME
+
+aAdd( aSX3, { ;
+	'DA1', ; //X3_ARQUIVO
+	'31', ; //X3_ORDEM
+	'DA1_XHREXP', ; //X3_CAMPO
+	'C'	, ; //X3_TIPO
+	8	, ; //X3_TAMANHO
+	0	, ; //X3_DECIMAL
+	'Hr Export'	, ; //X3_TITULO
+	'Hr Export'	, ; //X3_TITSPA
+	'Hr Export'	, ; //X3_TITENG
+	'Hora Exportacao', ; //X3_DESCRIC
+	'Hora Exportacao', ; //X3_DESCSPA
+	'Hora Exportacao', ; //X3_DESCENG
+	''	, ; //X3_PICTURE
+	''	, ; //X3_VALID
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(160)					, ; //X3_USADO
+	''	, ; //X3_RELACAO
+	''	, ; //X3_F3
+	0	, ; //X3_NIVEL
+	Chr(254) + Chr(192), ; //X3_RESERV
+	''	, ; //X3_CHECK
+	''	, ; //X3_TRIGGER
+	'U'	, ; //X3_PROPRI
+	'N'	, ; //X3_BROWSE
+	'V'	, ; //X3_VISUAL
+	'R'	, ; //X3_CONTEXT
+	''	, ; //X3_OBRIGAT
+	''	, ; //X3_VLDUSER
+	''	, ; //X3_CBOX
+	''	, ; //X3_CBOXSPA
+	''	, ; //X3_CBOXENG
+	''	, ; //X3_PICTVAR
+	''	, ; //X3_WHEN
+	''	, ; //X3_INIBRW
+	''	, ; //X3_GRPSXG
+	''	, ; //X3_FOLDER
+	''	, ; //X3_CONDSQL
+	''	, ; //X3_CHKSQL
+	''	, ; //X3_IDXSRV
+	'N'	, ; //X3_ORTOGRA
+	''	, ; //X3_TELA
+	''	, ; //X3_POSLGT
+	'N'	, ; //X3_IDXFLD
+	''	, ; //X3_AGRUP
+	''	, ; //X3_MODAL
+	''	} ) //X3_PYME
 
 
 //
