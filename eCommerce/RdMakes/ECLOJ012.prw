@@ -13,7 +13,7 @@ Static cDirImp	:= "/ecommerce/"
     @since 28/05/2019
 /*/
 /**************************************************************************/
-User Function ECLOJ012(_cEmp,_cFil)
+User Function ECLOJ012(aParam)
 Local _aArea    := GetArea()
 
 Local _cAlias   := ""
@@ -22,17 +22,14 @@ Local _lContinua:= .T.
 
 Private cArqLog	:= ""	
 
-Private _lJob   := IIF(!Empty(_cEmp) .And. !Empty(_cFil), .T., .F.)
-
-Default _cEmp   := "01"
-Default _cFil   := "06"
+Private _lJob   := IIF(ValType(aParam) <> "U" , .T., .F.)
 
 //-----------------------+
 // Abre empresa / filial | 
 //-----------------------+
 If _lJob
     RpcSetType(3)
-	RpcSetEnv(_cEmp, _cFil,,,'LOJ')
+	RpcSetEnv(aParam[1], aParam[2],,,'LOJ')
 EndIf
 
 //------------------------------+
@@ -134,7 +131,7 @@ Local _aParcela     := {}
 
 Local _cSerCPF      := GetNewPar("EC_SERWEB","ECO") 
 Local _cPDVWeb      := GetNewPar("EC_PDVWEB","0001")
-Local _cOperador    := GetNewPar("EC_PDVOPE","C03")    
+Local _cOperador    := GetNewPar("EC_PDVOPE","C01")    
 Local _cDocPed      := ""
 Local _cReserva     := ""
 Local _cNumLJ       := ""
@@ -247,7 +244,7 @@ While WSB->( !Eof() .And. xFilial("WSB") + WSA->WSA_NUM == WSB->WSB_FILIAL + WSB
 	aAdd( _aItem, {"LR_VLRITEM"	, WSB->WSB_VLRITE										, Nil })
 	aAdd( _aItem, {"LR_UM"		, WSB->WSB_UM    										, Nil })
 	//aAdd( _aItem, {"LR_DESC"	    , WSB->WSB_DESC 								    , Nil })
-	//aAdd( _aItem, {"LR_VALDESC"	, WSB->WSB_VALDES									, Nil })
+	aAdd( _aItem, {"LR_VALDESC"	, WSB->WSB_VALDES									, Nil })
     aAdd( _aItem, {"LR_TES"	    , WSB->WSB_TES	    									, Nil })
 	aAdd( _aItem, {"LR_SERIE"	, _cSerCPF			    								, Nil })
 	aAdd( _aItem, {"LR_PDV"		, _cPDVWeb												, Nil })
@@ -259,7 +256,7 @@ While WSB->( !Eof() .And. xFilial("WSB") + WSA->WSA_NUM == WSB->WSB_FILIAL + WSB
 	aAdd( _aItem, {"LR_DOCPED"	, _cDocPed												, Nil })
 	aAdd( _aItem, {"LR_SERPED"	, _cSerCPF							    				, Nil })
 	aAdd( _aItem, {"LR_VALFRE"  , 0						                    		    , Nil })
-	aAdd( _aItem, {"LR_DESCPRO" , 0 						                    		, Nil })
+	//aAdd( _aItem, {"LR_DESCPRO" , 0 						                    		, Nil })
 	aAdd( _aItem, {"LR_LOCAL"   , WSB->WSB_LOCAL       			    				    , Nil })
     aAdd( _aItem, {"LR_ENTREGA" , "3"                  			    				    , Nil })
 
@@ -334,7 +331,7 @@ aAdd( _aCabec,	{"LQ_SITUA"		, "AG"              							, Nil })
 aAdd( _aCabec,	{"LQ_MOEDA"		, 1												, Nil })
 aAdd( _aCabec,	{"LQ_ENDCOB"	, SA1->A1_ENDCOB								, Nil })
 aAdd( _aCabec,	{"LQ_ENDENT"	, WSA->WSA_ENDENT								, Nil })
-aAdd( _aCabec,	{"LQ_TPFRET"	, WSA->WSA_TPFRET								, Nil })
+aAdd( _aCabec,	{"LQ_TPFRET"	, IIF(WSA->WSA_FRETE > 0 ,"2","0")  			, Nil })
 aAdd( _aCabec,	{"LQ_BAIRROC"	, SA1->A1_BAIRROC								, Nil })
 aAdd( _aCabec,	{"LQ_CEPC"		, SA1->A1_CEPC									, Nil })
 aAdd( _aCabec,	{"LQ_MUNC"		, SA1->A1_MUNC									, Nil })
@@ -343,12 +340,13 @@ aAdd( _aCabec,	{"LQ_BAIRROE"	, WSA->WSA_BAIRRE								, Nil })
 aAdd( _aCabec,	{"LQ_CEPE"		, WSA->WSA_CEPE  								, Nil })
 aAdd( _aCabec,	{"LQ_MUNE"		, WSA->WSA_MUNE  								, Nil })
 aAdd( _aCabec,	{"LQ_ESTE"		, WSA->WSA_ESTE  								, Nil })
-aAdd( _aCabec,	{"LQ_FRETE"		, WSA->WSA_FRETE								, Nil })
+aAdd( _aCabec,	{"LQ_FRETE"		, WSA->WSA_FRETE    							, Nil })
 aAdd( _aCabec,	{"LQ_TRANSP"	, WSA->WSA_TRANSP								, Nil })
 aAdd( _aCabec,	{"LQ_DOCPED"	, ""    										, Nil })
 aAdd( _aCabec,	{"LQ_SERPED"	, _cSerCPF				                        , Nil })
 aAdd( _aCabec,	{"LQ_CGCCLI"	, SA1->A1_CGC								    , Nil })
-aAdd( _aCabec,	{"LQ_RECISS"    ,"2"								            , Nil })
+aAdd( _aCabec,	{"LQ_RECISS"    ," "								            , Nil })
+aAdd( _aCabec,	{"LQ_TIPODES"   ,"0"								            , Nil })
 aAdd( _aCabec,	{"LQ_XNUMECO"	, WSA->WSA_NUMECO								, Nil })
 aAdd( _aCabec,	{"LQ_XNUMECL"	, WSA->WSA_NUMECL								, Nil })
 aAdd( _aCabec,	{"LQ_XCELULA"	, WSA->WSA_CELULA								, Nil })
@@ -378,7 +376,7 @@ If Len(_aCabec) > 0 .And. Len(_aItems) > 0 .And. Len(_aParcela) > 0
     //---------------+
     // Ajusta totais |
     //---------------+
-    EcLoj12Tot(_aCabec,_aParcela)
+    //EcLoj12Tot(_aCabec,_aParcela)
 
     MsExecAuto({|a,b,c,d,e,f,g,h| Loja701(a,b,c,d,e,f,g,h)},.F.,3,"","",{},_aCabec,_aItems,_aParcela)
     
@@ -451,6 +449,10 @@ If Len(_aCabec) > 0 .And. Len(_aItems) > 0 .And. Len(_aParcela) > 0
 
                 RecLock("SL2",.F.)
                     
+                    If SL2->L2_ITEM == "01" .And. WSA->WSA_FRETE > 0
+                        SL2->L2_VALFRE  := WSA->WSA_FRETE                        
+                    EndIf
+
                     SL2->L2_DOCPED	:= _cDocPed
                     SL2->L2_SERPED  := _cSerCPF
 
