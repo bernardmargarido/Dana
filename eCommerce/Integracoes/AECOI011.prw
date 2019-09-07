@@ -150,8 +150,8 @@ aAdd(aHeadOut,"Content-Type: application/json" )
 aAdd(aHeadOut,"X-VTEX-API-AppKey:" + cAppKey )
 aAdd(aHeadOut,"X-VTEX-API-AppToken:" + cAppToken ) 
 
-cUrlParms := "ready-for-handling,handling"
-//payment-pending,canceled
+cUrlParms := "ready-for-handling"
+//,handling,payment-pending,canceled
 cHtmlPage := HttpGet(cUrl + "/api/oms/pvt/orders?f_status=" + cUrlParms , /*cUrlParms*/, nTimeOut, aHeadOut, @cXmlHead)
 
 
@@ -950,7 +950,6 @@ Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt)
 	Local cCondPag		:= ""
 	
 	Local nDesconto		:= 0
-	Local nPesoBruto	:= 0
 	Local nQtdParc		:= 0
 	Local nVlrFrete		:= 0
 	Local nVrSubTot		:= 0
@@ -961,6 +960,8 @@ Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt)
 		
 	Local dDtaEmiss		:= Nil
 	
+	Private nPesoBruto	:= 0
+
 	//------------------+
 	// Ajusta variaveis |
 	//------------------+
@@ -1075,7 +1076,7 @@ Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt)
 	//-----------------------+
 	// Grava Itens do Pedido |
 	//-----------------------+
-	aRet := AEcoGrvIt(cOrderId,cNumOrc,cCodCli,cLojaCli,cVendedor,nDesconto,@nPesoBruto,dDtaEmiss,oRestPv:Items,oRestPv:ShippingData,oRestPv)
+	aRet := AEcoGrvIt(cOrderId,cNumOrc,cCodCli,cLojaCli,cVendedor,@nDesconto,@nPesoBruto,dDtaEmiss,oRestPv:Items,oRestPv:ShippingData,oRestPv)
 	If!aRet[1]
 		RestArea(aArea)
 		Return aRet
@@ -1147,22 +1148,9 @@ Return aRet
 @version   		1.00
 @since     		10/02/2016
 
-@param			cOrderId	,	character 	,Numero do Pedido e-Commerce
-@param			cNumOrc		, 	character	,Numero do Orçamento
-@param			cCliente	, 	character	,Codigo do Cliente
-@param			cLoja		, 	character	,Loja / Filial do Cliente
-@param			cVendedor	, 	character	,Código do Vendedor
-@param			nDescVnd	, 	integer		,Valor do Desconto na Venda
-@param			nPesoBruto  , 	integer		,Peso do produto
-@param			dDtaEmiss	, 	date		,Data de Emissao do Pedido no e-Commerce
-@param			oItens		, 	object		,Objeto contendo os Itens do Pedido
-@param			oTransp		, 	object		,Objeto contendo os dados de transporte
-@param			oRestPv		, 	object		,Objeto contendo os dados do Pedido
-
-@return			aRet - Array aRet[1] - Logico aRet[2] - Codigo Erro aRet[3] - Descricao do Erro
 /*/			
 /**************************************************************************************************/
-Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDescVnd,nPesoBruto,dDtaEmiss,oItems,oTransp,oRestPv)
+Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDesconto,nPesoBruto,dDtaEmiss,oItems,oTransp,oRestPv)
 	Local aArea 	:= GetArea()
 	Local aRet		:= {.T.,"",""}
 
@@ -1173,6 +1161,7 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDescVnd,nPe
 	Local lDescPer	:= .F.
 	Local lGift		:= .F.
 	Local lBrinde	:= .F.
+	Local lGratis	:= .F.
 
 	Local cTpOper	:= GetNewPar("EC_TPOPEREC")
 	Local cTesEco	:= GetNewPar("EC_TESECO")
@@ -1246,7 +1235,7 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDescVnd,nPe
 			//----------------------------+
 			// Grava itens do produto KIT |
 			//----------------------------+
-			aRet 	:= AEcoI11Kit(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDescVnd,nPesoBruto,dDtaEmiss,oItems[nPrd]:Quantity,oItems[nPrd]:Components,oTransp,oRestPv,cProduto,nPrd,@cItem)
+			aRet 	:= AEcoI11Kit(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDesconto,nPesoBruto,dDtaEmiss,oItems[nPrd]:Quantity,oItems[nPrd]:Components,oTransp,oRestPv,cProduto,nPrd,@cItem)
 			If !aRet[1]
 				RestArea(aArea)
 				Return aRet
@@ -1267,10 +1256,12 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDescVnd,nPe
 			
 			lGift		:= oItems[nPrd]:IsGift
 			lBrinde		:= IIF(!lBrinde,lGift,lBrinde)
+			lGratis		:= IIF(oItems[nPrd]:SellingPrice <= 0,.T.,.F.)
 			nQtdItem	:= oItems[nPrd]:Quantity
-			nValor		:= RetPrcUni(oItems[nPrd]:Price) //IIF(lGift, 0.01, RetPrcUni(oItems[nPrd]:Price))
-			nVlrFinal	:= IIF(lGift .Or. oItems[nPrd]:SellingPrice <= 0, 0.01, RetPrcUni(oItems[nPrd]:SellingPrice))
-			nVlrBrinde	+= IIF(lBrinde .Or. oItems[nPrd]:SellingPrice <= 0, 0.01 * nQtdItem,0)		
+			nValor		:= IIF(lGift .Or. lGratis , 0.01, RetPrcUni(oItems[nPrd]:Price))
+			nVlrFinal	:= IIF(lGift .Or. lGratis , 0.01, RetPrcUni(oItems[nPrd]:SellingPrice))
+			nVlrBrinde	+= IIF(lBrinde .Or. lGratis , ( 0.01 * nQtdItem) ,0)		
+
 			If Empty(oTransp:LogisticsInfo[nPrd]:ShippingEstimateDate)
 				dDtaEntr	:= cTod(dDtaEmiss) + Val(oTransp:LogisticsInfo[nPrd]:ShippingEstimate)
 				nPrzEntr	:= Val(oTransp:LogisticsInfo[nPrd]:ShippingEstimate)
@@ -1282,33 +1273,25 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDescVnd,nPe
 			//--------------------------------------------------------+
 			// Valida se desconto foi aplicado em percentual ou valor |
 			//--------------------------------------------------------+
+			cNameDesc	:=  IIF(Len(oItems[nPrd]:PriceTags) > 0 ,oItems[nPrd]:PriceTags[1]:name,"") 
 			lDescPer	:= IIF(Len(oItems[nPrd]:PriceTags) > 0 ,oItems[nPrd]:PriceTags[1]:IsPercentual,.F.)
-			nVlrDesc	:= IIF(Len(oItems[nPrd]:PriceTags) > 0 ,oItems[nPrd]:PriceTags[1]:value,0)
+			nVlrDesc	:= IIF(Len(oItems[nPrd]:PriceTags) > 0 ,IIF(oItems[nPrd]:PriceTags[1]:value < 0,oItems[nPrd]:PriceTags[1]:value,0),0)
 				
 			//------------------------------+
 			// Acha percentual de desconto  |
 			//------------------------------+ 
-			If !lGift
+			If !lGift .And. nVlrBrinde == 0 .And. At("discount@shipping",cNameDesc) <= 0  
 				If lDescPer
 					nPerDItem := RetPrcUni(oItems[nPrd]:PriceTags[1]:Value * -1)
 				ElseIf nVlrDesc < 0
 					nVlrDesc := RetPrcUni(oItems[nPrd]:PriceTags[1]:Value * -1)
 					nVlrTotIt:= nQtdItem * nValor		
 					nPerDItem:= Round(( nVlrDesc / nVlrTotIt ) * 100,2)
-				EndIf		
+				EndIf	
+
+
 			EndIf
 			
-			//-----------------+
-			// Valida desconto |
-			//-----------------+
-			If (nPerDItem >= 100 .Or. nVlrFinal <= 0 ) .And. !lGift
-				nPerDItem	:= 0
-				nVlrDesc	:= 0
-				nVlrFinal 	:= 0.01
-				//nValor		:= 0.01
-				lGift		:= .T.
-				lBrinde		:= .T.
-			EndIf
 			//-----------------+
 			// Soma peso Bruto |
 			//-----------------+
@@ -1346,7 +1329,7 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDescVnd,nPe
 			// quando pedido for faturado calcula IPI |
 			// no padrao do sistema                   |
 			//----------------------------------------+
-			If SB1->B1_IPI > 0 .And. SF4->F4_IPI == "S" .And. !lGift
+			If SB1->B1_IPI > 0 .And. SF4->F4_IPI == "S" //.And. nVlrBrinde <= 0
 				nVlrFinal := NoRound( nVlrFinal / ( 1 + ( SB1->B1_IPI / 100 ) ), 4 )
 			EndIf
 	
@@ -1365,7 +1348,7 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDescVnd,nPe
 			//----------------------------------------+
 			// Adiciona Produto para calculos fiscais |
 			//----------------------------------------+
-			MaFisAdd(cProduto,cTesEco,nQtdItem,nVlrFinal,nDescVnd,"","",,0,0,0,0,Round(nQtdItem * nVlrFinal,nDecIt))
+			MaFisAdd(cProduto,cTesEco,nQtdItem,nVlrFinal,nDesconto,"","",,0,0,0,0,Round(nQtdItem * nVlrFinal,nDecIt))
 	
 			//-----------------+
 			// Grava Itens SL2 |
@@ -1389,7 +1372,7 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDescVnd,nPe
 				WSB->WSB_LOCAL		:= cLocal
 				WSB->WSB_UM			:= SB1->B1_UM
 				WSB->WSB_DESC		:= nPerDItem
-				WSB->WSB_VALDES		:= Round( nValor * (nPerDItem /100 ),2)
+				WSB->WSB_VALDES		:= IIF(nVlrDesc > 0,nVlrDesc,Round( nValor * (nPerDItem /100 ),2))
 				WSB->WSB_TES		:= cTesEco
 				WSB->WSB_CF			:= SF4->F4_CF
 				WSB->WSB_VALIPI		:= MaFisRet(nPrd,"IT_VALIPI") 
@@ -1436,8 +1419,9 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDescVnd,nPe
 	// Valida se teve brinde                   |
 	// aplica desconto de 0.1 no primeiro item | 
 	//-----------------------------------------+
-	If lBrinde
-		AEcoI11Brinde(cNumOrc,nVlrBrinde)
+	If lBrinde .Or. lGratis
+		nDesconto := nVlrBrinde
+		//AEcoI11Brinde(cNumOrc,nVlrBrinde)
 	EndIf
 	
 	RestArea(aArea)
@@ -1452,24 +1436,10 @@ Return aRet
 @since 02/03/2017
 @version undefined
 
-@param cOrderId		, character 	, Numero do Pedido e-Commerce
-@param cNumOrc		, character		, Numero do Orçamento
-@param cCliente		, character		, Codigo do Cliente
-@param cLoja		, character		, Loja / Filial do Cliente
-@param cVendedor	, character		, Código do Vendedor
-@param nDescVnd		, integer		, Valor do Desconto na Venda
-@param nPesoBruto  	, integer		, Peso do produto
-@param dDtaEmiss	, date			, Data de Emissao do Pedido no e-Commerce
-@param oItKit		, object		, objeto contendo itens do produto KIT
-@param cItem		, characters	, Codigo do Item atual
-@param cCodKit		, characters	, Codigo do produto KIT
-@param oTransp		, object		, Objeto contendo os dados de transporte
-@param oRestPv		, object		, Objeto contendo os dados do Pedido
-
 @type function
 /*/
 /**************************************************************************************/
-Static Function AEcoI11Kit(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDescVnd,nPesoBruto,dDtaEmiss,nQtdKit,oItKit,oTransp,oRestPv,cCodKit,nItAtu,cItem)
+Static Function AEcoI11Kit(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDesconto,nPesoBruto,dDtaEmiss,nQtdKit,oItKit,oTransp,oRestPv,cCodKit,nItAtu,cItem)
 Local aArea	:= GetArea()
 
 Local aRet		:= {.T.,"",""}
@@ -1539,18 +1509,24 @@ For nPrd := 1 To Len(oItKit)
 		dDtaEntr	:= StoD(StrTran(SubStr(oTransp:LogisticsInfo[nItAtu]:ShippingEstimateDate,1,10),"-",""))
 		nPrzEntr	:= StoD(StrTran(SubStr(oTransp:LogisticsInfo[nItAtu]:ShippingEstimateDate,1,10),"-","")) - cTod(dDtaEmiss)
 	EndIf	 
-	
+		
+	//--------------------------------------------------------+
+	// Valida se desconto foi aplicado em percentual ou valor |
+	//--------------------------------------------------------+
 	lDescPer	:= IIF(Len(oItKit[nPrd]:PriceTags) > 0 ,oItKit[nPrd]:PriceTags[1]:IsPercentual,.F.)
+	nVlrDesc	:= IIF(Len(oItKit[nPrd]:PriceTags) > 0 ,IIF(oItKit[nPrd]:PriceTags[1]:value < 0,oItKit[nPrd]:PriceTags[1]:value,0),0)
 		
 	//------------------------------+
 	// Acha percentual de desconto  |
 	//------------------------------+ 
-	If nValor > nVlrFinal .And. !lDescPer
-		nPerDItem := U_AEcoPerDes(nValor,nVlrFinal)
-	ElseIf lDescPer
+	If lDescPer
 		nPerDItem := RetPrcUni(oItKit[nPrd]:PriceTags[1]:Value * -1)
+	ElseIf nVlrDesc < 0
+		nVlrDesc := RetPrcUni(oItKit[nPrd]:PriceTags[1]:Value * -1)
+		nVlrTotIt:= nQtdItem * nValor		
+		nPerDItem:= Round(( nVlrDesc / nVlrTotIt ) * 100,2)
 	EndIf		
-	
+		
 	//-----------------+
 	// Soma peso Bruto |
 	//-----------------+
@@ -1607,7 +1583,7 @@ For nPrd := 1 To Len(oItKit)
 	//----------------------------------------+
 	// Adiciona Produto para calculos fiscais |
 	//----------------------------------------+
-	MaFisAdd(cProduto,cTesEco,nQtdItem,nVlrFinal,nDescVnd,"","",,0,0,0,0,Round(nQtdItem * nVlrFinal,nDecIt))
+	MaFisAdd(cProduto,cTesEco,nQtdItem,nVlrFinal,nDesconto,"","",,0,0,0,0,Round(nQtdItem * nVlrFinal,nDecIt))
 	
 	//-----------------+
 	// Grava Itens SL2 |
@@ -1725,7 +1701,7 @@ nPDesc	:= WSB->WSB_DESC
 nVlrSDesc	:= Round( nQtdVen * nPrcTab ,2)
 nValDesc	:= nValDesc + nVlrBrinde 
 nVlrTot		:= nVlrTot - nVlrBrinde  
-nPDesc		:= U_AEcoPerDes(nVlrSDesc,nVlrTot)
+nPDesc		:= 0
 nPrcVen		:= Round(nVlrTot / nQtdVen ,2)
 
 //------------------------------------+
@@ -2147,12 +2123,12 @@ Static Function AEcoGrvCab(	cNumOrc,cOrderId,cCodCli,cLojaCli,cTipoCli,cVendedor
 		WSA->WSA_CLIENT		:= cCodCli
 		WSA->WSA_LOJA		:= cLojaCli
 		WSA->WSA_TIPOCL		:= cTipoCli	
-		WSA->WSA_VLRTOT		:= nVlrTotal
+		WSA->WSA_VLRTOT		:= MaFisRet(,"NF_VALMERC")
 		WSA->WSA_DESCON		:= nDesconto
-		WSA->WSA_VLRLIQ		:= nVrSubTot
+		WSA->WSA_VLRLIQ		:= MaFisRet(,"NF_VALMERC")
 		WSA->WSA_DTLIM		:= DaySum(cTod(dDtaEmiss),nDiasOrc)
-		WSA->WSA_VALBRU		:= nVlrTotal //MaFisRet(,"NF_TOTAL") 
-		WSA->WSA_VALMER		:= nVlrTotal //MaFisRet(,"NF_VALMERC")
+		WSA->WSA_VALBRU		:= MaFisRet(,"NF_VALMERC") //MaFisRet(,"NF_TOTAL") 
+		WSA->WSA_VALMER		:= MaFisRet(,"NF_VALMERC") //MaFisRet(,"NF_VALMERC")
 		WSA->WSA_DESCNF		:= 0
 		WSA->WSA_DINHEI		:= 0
 		WSA->WSA_CHEQUE		:= 0
@@ -2175,7 +2151,7 @@ Static Function AEcoGrvCab(	cNumOrc,cOrderId,cCodCli,cLojaCli,cTipoCli,cVendedor
 		WSA->WSA_VLRDEB		:= 0
 		WSA->WSA_HORA		:= SubStr(StrTran(cHoraEmis,":",""),1,4)
 		WSA->WSA_TXMOED		:= 0
-		WSA->WSA_ENDENT		:= Upper(Alltrim(cEndDest)) //+ " ," + cNumDest
+		WSA->WSA_ENDENT		:= Upper(Alltrim(cEndDest)) + " ," + cNumDest
 		WSA->WSA_ENDNUM		:= cNumDest
 		WSA->WSA_TPFRET		:= cTpFrete
 		WSA->WSA_BAIRRE		:= Upper(Alltrim(cBaiDest))
