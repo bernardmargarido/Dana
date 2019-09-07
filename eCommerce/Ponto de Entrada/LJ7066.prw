@@ -58,6 +58,12 @@ If WSA->( FieldPos("WSA_NUMSC5") ) > 0
         RecLock("WSA",.F.)
             WSA->WSA_NUMSC5 := SC5->C5_NUM
         WSA->( MsUnLock() )
+
+        If WSA->WSA_FRETE > 0
+            SC5->C5_FRETE   := WSA->WSA_FRETE
+            SC5->C5_TPFRETE := "F"
+        EndIf
+       
     EndIf
 EndIf
 
