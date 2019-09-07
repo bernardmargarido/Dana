@@ -14,7 +14,7 @@ User Function LJ7046()
 Local _aArea    := GetArea()
 Local _aRet     := {}
 Local _aCab7046 := {}
-Local _aCabec   := {}
+Local _aCabec   := ParamIxb[2]
 
 Local _nX       := 0
 
@@ -30,9 +30,12 @@ EndIf
 // Mensagem console |
 //------------------+
 CoNout("<< LJ7046 >> - INICIO " + dTos( Date() ) + " - " + Time() )
- 
-aAdd(_aCab7046,{"C5_XNUMECO",   SL1->L1_XNUMECO,        Nil })
-aAdd(_aCab7046,{"C5_XNUMECL",   SL1->L1_XNUMECL,        Nil })
+
+aAdd(_aCab7046,{"C5_XNUMECO",   SL1->L1_XNUMECO         , Nil })
+aAdd(_aCab7046,{"C5_XNUMECL",   SL1->L1_XNUMECL         , Nil })
+aAdd(_aCab7046,{"C5_XENVWMS",   "3"                     , Nil })
+aAdd(_aCab7046,{"C5_XDTALT" ,   Date()                  , Nil })
+aAdd(_aCab7046,{"C5_XHRALT" ,   Time()                  , Nil })
 
 //------------------------------+
 // Array de Retorno             |
