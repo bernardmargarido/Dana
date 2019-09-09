@@ -817,3 +817,62 @@ User Function AEcoPerDes(nVlr,nVlrDesc)
 	nPerDesc 	:= Round((nVlrDif / nVlr) * 100,2)
 	nPerDesc	:= IIF(nPerDesc >= 100,99.99,nPerDesc)	
 Return nPerDesc
+
+/*********************************************************************************/
+/*/{Protheus.doc} ECLOJXFUN
+
+@description Funções utilizadas template e-Commerce
+
+@author Bernard M. Margarido    
+@since 23/04/2019
+@version 1.0
+@type function
+/*/
+/*********************************************************************************/
+User Function EcVldNF(_cDoc,_cSerie,_cOrderId)
+Local _aArea	:= GetArea()
+
+Local _cCodSta	:= "005"
+
+//-------------------------------+
+// Atualiza dados da nota fiscal |
+//-------------------------------+
+dbSelectArea("SF2")
+SF2->( dbSetOrder(1) )
+If SF2->( dbSeek(xFilial("SF2") + _cDoc + _cSerie ) )
+	RecLock("SF2",.F.)
+		SF2->F2_XNUMECO := _cOrderId
+	SF2->( MsUnLock() )	 
+EndIf
+
+//-------------------------------+
+// Atualiza status para faturado | 
+//-------------------------------+
+dbSelectArea("WS1")
+WS1->( dbSetOrder(1) )
+WS1->( dbSeek(xFilial("WS1") + _cCodSta) )
+
+//-------------------------------------+
+// Atualiza dados da nota no orçamento |
+//-------------------------------------+
+dbSelectArea("WSA")
+WSA->( dbSetOrder(2) )
+If WSA->( dbSeek(xFilial("WSA") +_cOrderId) )
+	RecLock("WSA",.F.)
+		WSA->WSA_DOC	:= _cDoc
+		WSA->WSA_SERIE	:= _cSerie
+		WSA->WSA_CODSTA	:= _cCodSta
+		WSA->WSA_DESTAT	:= WS1->WS1_DESCRI
+	WSA->( MsUnlock() )
+EndIf
+
+//------------------------+
+// Grava Status do Pedido |
+//------------------------+
+u_AEcoStaLog(_cCodSta,_cOrderId,WSA->WSA_NUM,dDataBase,Time())
+If WS1->WS1_ENVECO == "S"
+	U_AECOI013(_cOrderId)
+EndIf
+
+RestArea(_aArea)
+Return .T.
