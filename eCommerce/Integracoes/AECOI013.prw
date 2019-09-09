@@ -2,6 +2,8 @@
 #INCLUDE "APWEBSRV.CH"
 #INCLUDE "TOPCONN.CH"
 #INCLUDE "TBICONN.CH"
+#INCLUDE "AARRAY.CH"
+#INCLUDE "JSON.CH"
 
 #DEFINE CRLF CHR(13) + CHR(10)
 
@@ -111,56 +113,67 @@ Local cFilAux	:= cFilAnt
 
 Local nDecimal 	:= 2
 Local nIdSku	:= 0
+Local _nVlrTotal:= 0
+Local _oJson	:= Nil
+Local _oItens	:= Nil
 
 //---------------------+
 // Posiciona Orçamento |
 //---------------------+
-dbSelectArea("SL1")
-SL1->( dbOrderNickName("PEDIDOECO") )
-SL1->( dbSeek(xFilial("SL1") + cOrderId) )
+dbSelectArea("WSA")
+WSA->( dbSetOrder(2) )
+WSA->( dbSeek(xFilial("WSA") + cOrderId) )
 
 //----------------------------------+
 // Consulta Data de Emissao da Nota |
 //----------------------------------+
-aEcoI13DtaE(xFilial("SF2"),SL1->L1_DOC,SL1->L1_SERIE,SL1->L1_CLIENTE,SL1->L1_LOJA,@cChaveNfe,@dDtaEmiss)
+aEcoI13DtaE(WSA->WSA_DOC,WSA->WSA_SERIE,WSA->WSA_CLIENT,WSA->WSA_LOJA,@cChaveNfe,@dDtaEmiss,@_nVlrTotal)
 
-cTracking 	:= Alltrim(SL1->L1_XTRACKI)
-cNumTransp	:= SL1->L1_TRANSP
-	
-cRest += '	{ ' + CRLF
-cRest += '  	"type": "Output", ' + CRLF
-cRest += '  	"invoiceNumber": "' +  Alltrim(SL1->L1_DOC) + '", ' + CRLF
+cTracking 	:= Alltrim(WSA->WSA_TRACKI)
+cNumTransp	:= WSA->WSA_TRANSP
+
+//-----------------------+
+// Monta String API Rest |
+//-----------------------+
+_oJson					:= {}        
+_oJson					:= Array(#)	
+_oJson[#"type"]			:= "Output"
+_oJson[#"invoiceNumber"]:= RTrim(WSA->WSA_DOC)
+//------------+
+// Chave NF-e |
+//------------+
 If !Empty(cChaveNfe)
-	cRest += '  	"invoiceKey": "' + cChaveNfe + '", ' + CRLF
-EndIf	
-cRest += '		"courier": "' +  cNumTransp + '", ' + CRLF
-cRest += '		"trackingNumber": "' + cTracking + '", ' + CRLF
-cRest += '		"trackingUrl": "' +  cUrlTrack + '", ' + CRLF
-
-cRest += '  	"items": [' + CRLF
+	_oJson[#"invoiceKey"]	:= cChaveNfe
+EndIf
+_oJson[#"courier"]			:= cNumTransp
+_oJson[#"trackingNumber"]	:= cTracking
+_oJson[#"trackingUrl"]		:= cUrlTrack
 
 //-------------------------+
 // Posiciona Itens da Nota |
 //-------------------------+
-SL2->( dbSetOrder(1) )
-SL2->( dbSeek(xFilial("SL2") + SL1->L1_NUM ) )
-While SL2->( !Eof() .And. xFilial("SL2") + SL1->L1_NUM == SL2->( L2_FILIAL + L2_NUM ) )
+_oJson[#"items"]	:= {}
 
+WSB->( dbSetOrder(1) )
+WSB->( dbSeek(xFilial("WSB") + WSA->WSA_NUM ) )
+While WSB->( !Eof() .And. xFilial("WSB") + WSA->WSA_NUM == WSB->WSB_FILIAL + WSB->WSB_NUM )
+
+	aAdd(_oJson[#"items"],Array(#))
+	_oItens				:= aTail(_oJson[#"items"])   
+	
 	//------------------------------------------+
 	// Posiciona Porduto para pegar codigo Vtex |
 	//------------------------------------------+
-	aEcoI013Sku(SL2->L2_PRODUTO,@nIdSku)
+	aEcoI013Sku(WSB->WSB_PRODUT,@nIdSku)
 	
-	cQuant := Alltrim(StrTran(Alltrim(Str(SL2->L2_QUANT)),".",""))
-	cPrcVen:= RetPrcUni(SL2->L2_VLRITEM)
-			
-	cRest += '			{ ' + CRLF
-	cRest += '  			"id": "' + Alltrim(Str(nIdSku)) + '", ' + CRLF
-    cRest += '				"quantity ":' + cQuant + ' , ' + CRLF
-    cRest += '				"price": ' + cPrcVen + '  ' + CRLF
-	cRest += '			}, ' + CRLF
-	
-	SL2->( dbSkip() )   
+	cQuant := Alltrim(Str(Int(WSB->WSB_QUANT)))
+	cPrcVen:= RetPrcUni(WSB->WSB_VRUNIT)
+
+	_oItens[#"id"]			:= 	Alltrim(Str(nIdSku)) 
+	_oItens[#"quantity"]	:= 	cQuant
+	_oItens[#"price"]		:= 	cPrcVen
+		
+	WSB->( dbSkip() )   
 	
 EndDo
 
@@ -169,55 +182,46 @@ EndDo
 //-----------------------------+
 cDtaFat := IIF(Empty(dDtaEmiss),dTos(dDataBase),dTos(dDtaEmiss))
 cDtaFat := SubStr(cDtaFat,1,4) + "-" + SubStr(cDtaFat,5,2) + "-" + SubStr(cDtaFat,7,2) //+ "T" + SubStr(Time(),1,8)
-cVlrFat	:= RetPrcUni(SL1->L1_VLRTOT)    
+cVlrFat	:= RetPrcUni(_nVlrTotal)    
 
 //------------------------+
 // Data e Valor da Fatura |
 //------------------------+
-cRest += '  	], ' + CRLF
-cRest += '  "issuanceDate": "' + cDtaFat +  '", ' + CRLF
-cRest += '	"invoiceValue": ' + cVlrFat + ' ' + CRLF 
-cRest += '	} ' + CRLF
+_oJson[#"issuanceDate"]	:= cDtaFat
+_oJson[#"invoiceValue"]	:= cVlrFat
+
+//---------------------------+
+// Transforma Objeto em JSON |
+//---------------------------+
+cRest := xToJson(_oJson)
 
 //---------------+
 // Envia Invoice |
 //---------------+ 
-aRet := AEcoI13Inv(SL1->L1_DOC,SL1->L1_SERIE,cOrderId,cRest)
+aRet := AEcoI13Inv(WSA->WSA_DOC,WSA->WSA_SERIE,cOrderId,cRest)
 
 RestArea(aArea)
 Return .T.
 
+/************************************************************************************/
 /*/{Protheus.doc} aEcoI13DtaE
-//TODO Descrição auto-gerada.
-@author berna
-@since 18/04/2017
-@version undefined
-@param cFilNf, characters, descricao
-@param cDoc, characters, descricao
-@param cSerie, characters, descricao
-@param cCliente, characters, descricao
-@param cLoja, characters, descricao
-@param cChaveNfe, characters, descricao
-@param dDtaEmiss, date, descricao
-@type function
+	@description Retorna dados da nota fiscal de saida 
+	@author Bernard M. Margarido
+	@since 18/04/2017
+	@type function
 /*/
-Static Function aEcoI13DtaE(cFilNf,cDoc,cSerie,cCliente,cLoja,cChaveNfe,dDtaEmiss)
+/************************************************************************************/
+Static Function aEcoI13DtaE(cDoc,cSerie,cCliente,cLoja,cChaveNfe,dDtaEmiss,_nVlrTotal)
 Local aArea		:= GetArea()
-Local cFilaux	:= cFilAnt
-
-If cFilNf == "10"
-	cFilAnt := cFilNf
-EndIf
 
 dbSelectArea("SF2")
 SF2->( dbSetOrder(1) )
-If SF2->( dbSeek(xFilial("SF2") + Padr(SL1->L1_DOC,TamSx3("F2_DOC")[1]) + Padr(SL1->L1_SERIE,TamSx3("F2_SERIE")[1]) + PadR(SL1->L1_CLIENTE,TamSx3("F2_CLIENTE")[1]) + PadR(SL1->L1_LOJA,TamSx3("F2_LOJA")[1])) )
+If SF2->( dbSeek(xFilial("SF2") + Padr(cDoc,TamSx3("F2_DOC")[1]) + Padr(cSerie,TamSx3("F2_SERIE")[1]) + PadR(cCliente,TamSx3("F2_CLIENTE")[1]) + PadR(cLoja,TamSx3("F2_LOJA")[1])) )
 	cChaveNfe := SF2->F2_CHVNFE
 	dDtaEmiss := SF2->F2_EMISSAO
+	_nVlrTotal:= SF2->F2_VALFAT	
 EndIf	 
-If cFilNf == "10"
-	cFilAnt := cFilAux
-EndIf	
+
 RestArea(aArea)
 Return .T.
 
@@ -292,17 +296,15 @@ EndIf
 
 Return aRet
 
+/*******************************************************************************/
 /*/{Protheus.doc} aEcoI013Sku
-
-@description Consulta SKU
-
-@author berna
-@since 23/01/2018
-@version 1.0
-
-@param nIdSku, numeric, descricao
-@type function
+	@description Consulta SKU
+	@author Bernard M. Margarido
+	@since 23/01/2018
+	@version 1.0
+	@type function
 /*/
+/*******************************************************************************/
 Static Function aEcoI013Sku(cCodProd,nIdSku)
 Local aArea		:= GetArea()
 Local cQuery 	:= ""
@@ -320,16 +322,7 @@ cQuery += "		WHERE " + CRLF
 cQuery += "			B5.B5_FILIAL = '" + xFilial("SB5") + "' AND " + CRLF 
 cQuery += "			B5.B5_COD = '" + cCodProd + "' AND  " + CRLF
 cQuery += "			B5.D_E_L_E_T_ = '' " + CRLF 
-cQuery += "	UNION ALL " + CRLF
-cQuery += "		SELECT " + CRLF 
-cQuery += "			WS6.WS6_IDSKU IDSKU " + CRLF
-cQuery += "		FROM " + CRLF
-cQuery += "		" + RetSqlName("WS6") + " WS6 " + CRLF
-cQuery += "		WHERE " + CRLF
-cQuery += "			WS6.WS6_FILIAL = '" + xFilial("WS6") + "' AND " + CRLF 
-cQuery += "			WS6.WS6_CODSKU = '" + cCodProd + "' AND " + CRLF 
-cQuery += "			WS6.D_E_L_E_T_ = '' " + CRLF 
-cQuery += "		)SKU "
+cQuery += "	)SKU "
 
 dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
 
@@ -355,19 +348,9 @@ Return .T.
 /*/
 /*******************************************************************/
 Static Function RetPrcUni(nVlrUnit) 
-Local nDecimal	:= 2
-Local cValor	:= ""
-Local cVlrUnit	:= Alltrim(Str(nVlrUnit))
-Local aValor	:= {}
-
-If At(".",cVlrUnit) > 0
-	aValor := Separa(cVlrUnit,".")
-	cValor := aValor[1] + PadR(aValor[2],nDecimal,"0")
-Else
-	cValor := cVlrUnit + "00"
-EndIf
-
-Return cValor
+Local nValor	:= 0
+	nValor		:= NoRound(nVlrUnit,2) * 100
+Return Alltrim(Str(nValor))
 
 /*********************************************************************************/
 /*/{Protheus.doc} LogExec
