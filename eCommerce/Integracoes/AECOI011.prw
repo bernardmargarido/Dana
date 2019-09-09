@@ -632,6 +632,13 @@ If Len(aCliente) > 0
 			AEc011Cont(cCodCli,cLoja,cNomeCli,IIF(Len(aEndEnt) > 0,aEndEnt,aEndRes))
 		Endif
 
+		//--------------------+
+		// Desloqueia Cliente |
+		//--------------------+
+		RecLock("SA1",.F.)
+			SA1->A1_MSBLQL := "2"
+		SA1->( MsUnLock() )
+		
 		//---------------------+
 		// Variavel de retorno |
 		//---------------------+
