@@ -87,8 +87,9 @@ Local _dDtaArq      := Date()
 Private _cArqSc5    := ""
 Private _cArqSc6    := ""
 Private _cArqLog    := ""
-Private _cCnpjDep   := GetNewPar("DN_CNPJIB","21840527000285")
+Private _cCnpjDep   := SM0->M0_CGC
 Private _cCnpjEmi   := SM0->M0_CGC
+Private _cCnpjIbx   := GetNewPar("DN_IBXCNPJ","21840527000285")
 
 Private _nHdlCab    := 0
 Private _nHdlIt     := 0
@@ -129,6 +130,7 @@ EndIf
 
 _cCnpjDep   := IIF(Len(Rtrim(_cCnpjDep)) > 11,Transform(_cCnpjDep,"@R 99.999.999/9999-99"),Transform(_cCnpjDep,"@R 999.999.999-99"))
 _cCnpjEmi   := IIF(Len(Rtrim(_cCnpjEmi)) > 11,Transform(_cCnpjEmi,"@R 99.999.999/9999-99"),Transform(_cCnpjEmi,"@R 999.999.999-99"))
+_cCnpjIbx   := IIF(Len(Rtrim(_cCnpjIbx)) > 11,Transform(_cCnpjIbx,"@R 99.999.999/9999-99"),Transform(_cCnpjIbx,"@R 999.999.999-99"))
 
 While (_cAlias)->( !Eof() )
 
@@ -481,7 +483,7 @@ _cLinArq += PadR(_cNumEnt,10)                           // 081. Numero Endereço 
 _cLinArq += PadR(_cCompEnt,50)                          // 082. Complemento Endereço Entidade de Entrega
 _cLinArq += PadR(_cNomeVend,60)                         // 083. Nome Vendedor
 _cLinArq += PadR(_cTelVend,20)                          // 084. Telefone Vendedor
-_cLinArq += PadR(_cCnpjDep,20)                          // 085. CNPJ undade de Armazenagem
+_cLinArq += PadR(_cCnpjIbx,20)                          // 085. CNPJ undade de Armazenagem
 _cLinArq += PadR(_cFatura,50)                           // 086. Fatura
 _cLinArq += PadR(_cObs,200)                             // 087. Observações
 _cLinArq += PadR(_cEstVeri,1)                           // 088. Estoque verificado
@@ -606,7 +608,7 @@ While SC6->( !Eof() .And. xFilial("SC6") + SC5->C5_NUM == SC6->C6_FILIAL + SC6->
     _cChaveIden := ""
     _cSeqPedido := ""
     _cInscEmit  := ""
-    _cF         := "*"
+    _cF         := "00"
     _cUM        := ""
 
     _nItem      := Alltrim(StrZero(Val(SC6->C6_ITEM),12))
@@ -661,7 +663,7 @@ While SC6->( !Eof() .And. xFilial("SC6") + SC5->C5_NUM == SC6->C6_FILIAL + SC6->
     _cLinArq += PadR(_cProduto,60)                          // 032. Codigo Industria
     _cLinArq += PadR(_cDesProd,120)                         // 033. Descrição Produto
     _cLinArq += PadR(_cInscEmit,20)                         // 034. Incrição Estadual Emitente
-    _cLinArq += PadR(_cF,1)                                 // 035. F
+    _cLinArq += PadR(_cF,2)                                 // 035. F
     _cLinArq += PadR(_cUM,6)                                // 036. Descrição Reduzida
     _cLinArq += CRLF
 
