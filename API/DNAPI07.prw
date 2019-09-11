@@ -999,19 +999,6 @@ cQuery += "				C5.C5_EMISSAO EMISSAO, " + CRLF
 cQuery += "				C5.C5_TIPO TIPO, " + CRLF
 cQuery += "				C5.C5_XSEQLIB SEQLIB, " + CRLF
 cQuery += "				C5.R_E_C_N_O_ RECNOSC5, " + CRLF
-
-/*
-cQuery += "				C6.C6_ITEM ITEM, " + CRLF
-cQuery += "				C6.C6_PRODUTO PRODUTO, " + CRLF
-cQuery += "				C6.C6_QTDVEN QTDLIB, " + CRLF
-cQuery += "				C6.C6_PRCVEN PRCVEN, " + CRLF
-cQuery += "				C6.C6_VALOR PRCTOTAL, " + CRLF
-cQuery += "				C6.C6_UM UM, " + CRLF
-cQuery += "				C6.C6_LOTECTL LOTE, " + CRLF
-cQuery += "				C6.C6_DTVALID DTVALID, " + CRLF
-cQuery += "				C6.C6_LOCAL ARMAZEM " + CRLF
-*/
-
 cQuery += "				C9.C9_ITEM ITEM, " + CRLF
 cQuery += "				C9.C9_PRODUTO PRODUTO, " + CRLF
 cQuery += "				C9.C9_QTDLIB QTDLIB, " + CRLF
@@ -1106,7 +1093,7 @@ Else
 	cQuery += "				C5.C5_FILIAL IN" + _cFilWMS + " AND " + CRLF
 EndIf
 
-cQuery += "				C5.C5_XENVWMS IN('1') AND " + CRLF
+cQuery += "				C5.C5_XENVWMS = '1' AND " + CRLF
 cQuery += "				C5.C5_NOTA = '' AND " + CRLF
 cQuery += "				C5.C5_LIBEROK <> 'E' AND " + CRLF
 cQuery += "				C5.C5_BLQ = '' AND " + CRLF
