@@ -193,7 +193,7 @@ Param03 - Array com os erros
 Retorno:
 Nenhum
 **************************************************************************************************/
-User Function AEcoMail(cCodInt,cDescInt,aMsgErro)
+User Function AEcoMail(cCodInt,cDescInt,aMsgErro,_cPDF)
 	Local aArea		:= GetArea()
 
 	Local cServer	:= GetMv("MV_RELSERV")
@@ -202,16 +202,20 @@ User Function AEcoMail(cCodInt,cDescInt,aMsgErro)
 	Local cFrom		:= GetMv("MV_RELACNT")
 
 	Local cMail		:= GetNewPar("EC_LOGMAIL")
+	Local cMailIbex	:= GetNewPar("EC_MAILIBX","bernard.margarido@vitreoerp.com.br;agendamento@ibexlogisitica.com.br")
 	Local cBody		:= ""	
 	Local cRgbCol	:= ""
 	Local cTitulo	:= "Dana Cosmeticos - Integrações e-Commerce"
 	Local cEndLogo	:= "https://danacosmeticos.vteximg.com.br/arquivos/dana-logo-002.png" 
 
+	Local nErro		:= 0
+
 	Local lEnviado	:= .F.
 	Local lOk		:= .F.
-	Local lAutOk	:= .F.
 	Local lZebra	:= .T.
 	Local lRelauth  := SuperGetMv("MV_RELAUTH",, .F.)
+
+	Default	_cPDF	:= ""
 
 	//---------------------------------------------+
 	// Montagem do Html que sera enciado com erros |
@@ -269,7 +273,7 @@ User Function AEcoMail(cCodInt,cDescInt,aMsgErro)
 	Next nErro
 	cBody += '        </table>'
 	cBody += '        <br><br><br>'
-	cBody += '        <font color="#000000" size="-1" face="Arial, Helvetica, sans-serif">Sigvaris - eCommerce <font face="Times New Roman">&copy;</font> - Enviado em ' + dToc(dDataBase) + ' - ' + Time() + '</font>'
+	cBody += '        <font color="#000000" size="-1" face="Arial, Helvetica, sans-serif">VitreoERP - eCommerce <font face="Times New Roman">&copy;</font> - Enviado em ' + dToc(dDataBase) + ' - ' + Time() + '</font>'
 	cBody += '    </body>'
 	cBody += '    </html>'
 
@@ -290,7 +294,13 @@ User Function AEcoMail(cCodInt,cDescInt,aMsgErro)
 	// se conseguiu atenticar para enviar o e-mail                 |
 	//-------------------------------------------------------------+
 	If lOk
-		SEND MAIL FROM cFrom TO cMail SUBJECT cTitulo BODY cBody RESULT lEnviado 
+		If !Empty(_cPDF)
+			If File(_cPDF)
+				SEND MAIL FROM cFrom TO cMailIbex SUBJECT cTitulo BODY cBody ATTACHMENT _cPDF RESULT lEnviado  
+			EndIf	
+		Else
+			SEND MAIL FROM cFrom TO cMail SUBJECT cTitulo BODY cBody RESULT lEnviado 
+		EndIf	
 	Else
 		Conout("Erro ao Conectar ! ")
 	Endif			
@@ -301,6 +311,15 @@ User Function AEcoMail(cCodInt,cDescInt,aMsgErro)
 		GET MAIL ERROR cError
 		Conout("Erro ao enviar e-mail --> " + cError)	
 	EndIf	
+
+	//--------------------+
+	// Deleta arquivo PDF |
+	//--------------------+
+	/*
+	If File(_cPDF)
+		Ferase(_cPDF)
+	EndIf
+	*/
 
 	//---------------------------------+
 	// Disconecta do servidor de saida |
