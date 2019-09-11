@@ -317,6 +317,7 @@ aAdd(aRotTro, {"Troca/Devolucao","U_ECLOJ105", 0, 4 } )	// Troca / Devolução
 // Pedidos para IBEX |
 //-------------------+
 aAdd(aRotIbx, {"Envia PV. IBEX","U_IBFATM01", 0, 4 } )	// Envia Pedidos Ibex Logistica
+aAdd(aRotIbx, {"Envia NF. IBEX","U_ECLOJM06", 0, 4 } )	// Envia Notas Ibex Logistica
 
 aAdd(aRotina, {"Pesquisa"   	, "AxPesqui"    , 0, 1 })  // Pesquisa
 aAdd(aRotina, {"Visualizar" 	, "U_ECLOJ10A"  , 0, 2 })  // Visualizar
