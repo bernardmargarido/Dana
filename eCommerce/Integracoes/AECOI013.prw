@@ -138,7 +138,7 @@ cNumTransp	:= WSA->WSA_TRANSP
 _oJson					:= {}        
 _oJson					:= Array(#)	
 _oJson[#"type"]			:= "Output"
-_oJson[#"invoiceNumber"]:= RTrim(WSA->WSA_DOC)
+_oJson[#"invoiceNumber"]:= RTrim(WSA->WSA_DOC) + RTrim(WSA->WSA_SERIE)
 //------------+
 // Chave NF-e |
 //------------+
