@@ -73,6 +73,8 @@ User Function AECOI011()
 
 	Private aMsgErro:= {}
 	Private aOrderId:= {}	
+
+	Private _lJob	:= IIF(Isincallstack("U_ECLOJM03"),.T.,.F.)
 			
 	//----------------------------------+
 	// Grava Log inicio das Integrações | 
@@ -91,13 +93,21 @@ User Function AECOI011()
 	//----------------------------+
 	// Inicia processo de Pedidos |
 	//----------------------------+
-	Processa({|| AECOINT11() },"Aguarde...","Consultando Pedidos.")
+	If _lJob
+		AECOINT11()
+	Else
+		Processa({|| AECOINT11() },"Aguarde...","Consultando Pedidos.")
+	EndIf	
 	
 	//-------------------------------+
 	// Inicia gravação / atualização |
 	//-------------------------------+
-	If Len(aOrderId) > 0
-		Processa({|| AEcoI11PvC() },"Aguarde...","Gravando/Atualizando Novos Pedidos.")
+	If Len(aOrderId) > 0 
+		If _lJob
+			AEcoI11PvC()
+		Else
+			Processa({|| AEcoI11PvC() },"Aguarde...","Gravando/Atualizando Novos Pedidos.")
+		EndIf	
 	EndIf
 		
 	LogExec("FINALIZA INTEGRACAO CLIENTES / PEDIDOS ECOMMERCE - DATA/HORA: " + DTOC(DATE()) + " AS " + TIME())
@@ -151,11 +161,13 @@ aAdd(aHeadOut,"X-VTEX-API-AppKey:" + cAppKey )
 aAdd(aHeadOut,"X-VTEX-API-AppToken:" + cAppToken ) 
 
 cUrlParms := "ready-for-handling"
-//,handling,payment-pending,canceled
+//cUrlParms := "canceled,invoiced" //handling,payment-pending,
+
 cHtmlPage := HttpGet(cUrl + "/api/oms/pvt/orders?f_status=" + cUrlParms , /*cUrlParms*/, nTimeOut, aHeadOut, @cXmlHead)
 
-
-ProcRegua(-1)
+If !_lJob
+	ProcRegua(-1)
+EndIf	
 //--------------------------+
 // Valida Status de retorno |
 //--------------------------+
@@ -177,20 +189,33 @@ If HTTPGetStatus() == 200
 			If ValType(oRestRet:List) == "A" .And. Len(oRestRet:List) > 0
 			
 				For nList := 1 To Len(oRestRet:List)
-				
-					IncProc('Validando novos pedidos VTEX ')
+
+					If !_lJob
+						IncProc('Validando novos pedidos VTEX')
+					EndIf	
 					
+					LogExec('VALIDANDO NOVOS PEDIDOS VTEX ')
+
 					aAdd(aOrderId,oRestRet:List[nList]:OrderId)
 				Next nList
 			Else
-				Aviso('e-Commerce','Nao existem novos pedidos a serem integrados',{"Ok"})	
+				If !_lJob
+					Aviso('e-Commerce','Nao existem novos pedidos a serem integrados',{"Ok"})	
+				EndIf	
+				LogExec('NAO EXISTEM NOVOS PEDIDOS A SEREM INTEGRADOS')
 			EndIf
 		EndIf
 	Else
-		Aviso('e-Commerce','Nao existem novos pedidos a serem integrados',{"Ok"})	
+		If !_lJob
+			Aviso('e-Commerce','Nao existem novos pedidos a serem integrados',{"Ok"})	
+		EndIf	
+		LogExec('NAO EXISTEM NOVOS PEDIDOS A SEREM INTEGRADOS')
 	EndIf
 Else
-	Aviso('e-Commerce','Nao existem novos pedidos a serem integrados',{"Ok"})	
+	If !_lJob
+		Aviso('e-Commerce','Nao existem novos pedidos a serem integrados',{"Ok"})	
+	EndIf	
+	LogExec('NAO EXISTEM NOVOS PEDIDOS A SEREM INTEGRADOS')
 EndIf
 
 RestArea(aArea)
@@ -234,13 +259,19 @@ aAdd(aHeadPv,"Content-Type: application/json" )
 aAdd(aHeadPv,"X-VTEX-API-AppKey:" + cAppKey )
 aAdd(aHeadPv,"X-VTEX-API-AppToken:" + cAppToken ) 
 
-ProcRegua(Len(aOrderId))
+If !_lJob
+	ProcRegua(Len(aOrderId))
+EndIf	
 
 For nPed := 1 To Len(aOrderId)
                      
 	cHtmlPv := HttpGet(cUrl + "/api/oms/pvt/orders/" + aOrderId[nPed] , /*cUrlParms*/, nTimeOut, aHeadPv, @cXmlRest)
-		
-	IncProc(' Processando OrderId ' + aOrderId[nPed] )
+
+	If !_lJob	
+		IncProc(' Processando OrderId ' + aOrderId[nPed] )
+	EndIf	
+
+	LogExec(' PROCESSANDO ORDERID ' + aOrderId[nPed] )
 
 	//--------------------------------------------------+
 	// Valida se obteve sucesso no retorno da consulta. |
@@ -285,10 +316,16 @@ For nPed := 1 To Len(aOrderId)
 			EndIf
 													
 		Else
-			Aviso('e-Commerce','Não existem novos pedidos a serem integrados',{"Ok"})	
+			If !_lJob	
+				Aviso('e-Commerce','Não existem novos pedidos a serem integrados',{"Ok"})	
+			EndIf
+			LogExec('NAO EXISTEM NOVOS PEDIDOS A SEREM INTEGRADOS')	
 		EndIf
 	Else
-		Aviso('e-Commerce','Erro na requisição de pedidos ' + Alltrim(HTTPGetStatus()),{"Ok"})	
+		If !_lJob	
+			Aviso('e-Commerce','Erro na requisição de pedidos ' + Alltrim(HTTPGetStatus()),{"Ok"})	
+		EndIf	
+		LogExec('ERRO NA REQUISIÇÃO DE PEDIDOS ' + Alltrim(HTTPGetStatus()))	
 	EndIf
 		
 Next nPed
@@ -1735,7 +1772,7 @@ Return .T.
 /**************************************************************************************/
 Static Function AEcoGrvRes(cOrderId,cPedCodCli,cNumOrc,cCodCli,cLojaCli,cVendedor,nDesconto,dDtaEmiss,oItems,oTransp,oRestPv)
 Local _aArea 		:= GetArea()
-Local aRet			:= {.T.,""}
+Local aRet			:= {.T.,"",""}
 Local aOperacao		:= {}
 Local aLote			:= {}
 
@@ -1747,6 +1784,7 @@ Local cCodKit		:= "kit"
 Local cLocal		:= GetNewPar("EC_ARMVEND")
 
 Local nQtdItem		:= 0
+Local _nSaldoSb2	:= 0
 
 Local dDtVldRserv	:= GetNewPar("EC_DTVLDRE","01/01/2049")
 
@@ -1764,11 +1802,11 @@ dbSelectArea("WSB")
 
 For nPrd := 1 To Len(oItems)
 
-If ValType(oItems[nPrd]:RefId) == "U"
-	cProduto := "000001"
-Else
-	cProduto := oItems[nPrd]:RefId
-EndIf
+	If ValType(oItems[nPrd]:RefId) == "U"
+		cProduto := "000001"
+	Else
+		cProduto := oItems[nPrd]:RefId
+	EndIf
 
 	LogExec(" GERANDO A RESERVA DO PRODUTO " + cProduto )
 				
@@ -1826,12 +1864,26 @@ EndIf
 			// Valida se produto tem armzem de venda  |
 			//----------------------------------------+
 			_aAreaSB2 := SB2->( GetArea() )
-			dbSelectArea("SB2")
-			SB2->( dbSetOrder(1) )
-			If !SB2->( dbSeek(xFilial("SB2") + cProduto + cLocal) )
-				CriaSb2(cProduto,cLocal)
-			EndIf
+				dbSelectArea("SB2")
+				SB2->( dbSetOrder(1) )
+				If !SB2->( dbSeek(xFilial("SB2") + cProduto + cLocal) )
+					CriaSb2(cProduto,cLocal)
+				EndIf
+				//-------------------------+
+				// Valida saldo do produto | 
+				//-------------------------+
+				_nSaldoSb2	:= 0
+				_nSaldoSb2 	:= SaldoSB2()
+				If _nSaldoSb2 <= 0
+					aRet[1]	:= .F.
+					aRet[2]	:= cOrderId
+					aRet[3]	:= "PRODUTO " + cProduto  + " SEM SALDO EM ESTOQUE NO ARMAZEM " + cLocal + " ."
+					RestArea(_aArea)
+					Return aRet
+				EndIf	
 			RestArea(_aAreaSB2)
+
+			
 
 			//------------------------------+
 			// Inicia a gravação da reserva |
@@ -1924,6 +1976,7 @@ Local _cClient	:= "ECOMM"
 Local cLocal	:= GetNewPar("EC_ARMVEND")
 
 Local nQtdItem	:= 0
+Local nX		:= 0
 
 		
 LogExec("EFETUANDO A RESERVA DOS PRODUTOS KIT PEDIDO " + cOrderId)
@@ -1934,13 +1987,13 @@ LogExec("EFETUANDO A RESERVA DOS PRODUTOS KIT PEDIDO " + cOrderId)
 dbSelectArea("SB1")
 dbSelectArea("WSB")
 
-For nPrd := 1 To Len(oItKit)
+For nX := 1 To Len(oItKit)
 	
 	//---------------------------+
 	// Formata codigo do Produto |
 	//---------------------------+
-	cProduto	:= PadR(oItKit[nPrd]:RefId,nTamProd) 
-	nQtdItem	:= nQtdKit * oItKit[nPrd]:Quantity
+	cProduto	:= PadR(oItKit[nX]:RefId,nTamProd) 
+	nQtdItem	:= nQtdKit * oItKit[nX]:Quantity
 
 	LogExec(" EFETUAND A RESERVA DO PRODUTO KIT " + cProduto )
 	
@@ -1968,11 +2021,25 @@ For nPrd := 1 To Len(oItKit)
 		// Valida se produto tem armzem de venda  |
 		//----------------------------------------+
 		_aAreaSB2 := SB2->( GetArea() )
-		dbSelectArea("SB2")
-		SB2->( dbSetOrder(1) )
-		If !SB2->( dbSeek(xFilial("SB2") + cProduto + cLocal) )
-			CriaSb2(cProduto,cLocal)
-		EndIf
+			dbSelectArea("SB2")
+			SB2->( dbSetOrder(1) )
+			If !SB2->( dbSeek(xFilial("SB2") + cProduto + cLocal) )
+				CriaSb2(cProduto,cLocal)
+			EndIf
+
+			//-------------------------+
+			// Valida saldo do produto | 
+			//-------------------------+
+			_nSaldoSb2 := 0
+			_nSaldoSb2 := SaldoSB2()
+			If _nSaldoSb2 <= 0
+				aRet[1]	:= .F.
+				aRet[2]	:= cOrderId
+				aRet[3]	:= "PRODUTO " + cProduto  + " SEM SALDO EM ESTOQUE NO ARMAZEM " + cLocal + " ."
+				RestArea(_aArea)
+				Return aRet
+			EndIf
+
 		RestArea(_aAreaSB2)
 
 		//------------------------------+
@@ -2029,7 +2096,7 @@ For nPrd := 1 To Len(oItKit)
 		EndIf
 
 	EndIf
-Next nPrd
+Next nX
 	
 RestArea(_aArea)
 Return aRet
@@ -2057,7 +2124,7 @@ Static Function AEcoGrvCab(	cNumOrc,cOrderId,cCodCli,cLojaCli,cTipoCli,cVendedor
 	
 	Local lGrava		:= .T.	
 
-	Local cEspecie		:= GetNewPar("EC_ESPECIE","CAIXA")
+	Local cEspecie		:= GetNewPar("EC_ESPECIE","EMBALAGEM")
 	Local cTransViz		:= GetNewPar("EC_TRANVIZ","067/077/087")
 	Local cTpFrete		:= ""
 	Local cCondPag		:= GetNewPar("EC_CONDPAG","001")
@@ -2917,8 +2984,11 @@ Static Function AEcoUpdPv(cOrderId,cOrdPvCli,cNumOrc,cNumDoc,cNumSer,cNumPv,oRes
 	cLojaCli	:= sA1->A1_LOJA
 	cVendedor	:= ""
 	nDesconto	:= 0
-	AEcoGrvRes(cOrderId,cOrdPvCli,cNumOrc,cCodCli,cLojaCli,cVendedor,nDesconto,dDtaEmiss,oRestPv:Items,oRestPv:ShippingData,oRestPv)
-
+	aRet := AEcoGrvRes(cOrderId,cOrdPvCli,cNumOrc,cCodCli,cLojaCli,cVendedor,nDesconto,dDtaEmiss,oRestPv:Items,oRestPv:ShippingData,oRestPv)
+	If !aRet[1]
+		RestArea(aArea)
+		Return aRet
+	EndIf
 	//---------------------+
 	// Posiciona Orçamento |
 	//---------------------+
@@ -3381,14 +3451,11 @@ Return nValor
 /*******************************************************************************/
 Static Function AEcoI11IP(cIdTran,cCodAfili,cCodTransp,cIdPost)
 Local aArea 	:= GetArea() 
-Local cAlias	:= GetNextAlias()
-Local cQuery 	:= ""
-Local cIdPost	:= ""
 
 If Empty(cIdPost)
-	cCodTransp	:= AEcoI11TR(cIdTran)
+	cCodTransp	:= AEcoI11TR(SubStr(cIdTran,1,6))
 Else
-	cCodTransp	:= GetNewPar("EC_TRANSP","000002")
+	cCodTransp	:= GetNewPar("EC_TRANSP","EC0001")
 EndIf	
 
 Return .T. 
