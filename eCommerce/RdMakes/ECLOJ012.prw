@@ -144,11 +144,15 @@ Local _nPAdmin      := 0
 Local _nPDtaTef     := 0
 Local _nPDocTef     := 0
 Local _nPNsuTef     := 0
+Local _nValDesc     := 0
+
+Local _lContinua    := .T.
 
 Private nTTipo      := TamSx3("C0_TIPO")[1] 
 Private nTNumCl     := TamSx3("L1_XNUMECL")[1]  
 
 Private lMsErroAuto := .F.
+Private lAutomatoX  := .T.
 
 //----------------+
 // Valida cliente |
@@ -234,8 +238,8 @@ While WSB->( !Eof() .And. xFilial("WSB") + WSA->WSA_NUM == WSB->WSB_FILIAL + WSB
     //------------------+
     // Cria array itens | 
     //------------------+
-    _aItem  := {}
-
+    _aItem      := {}
+    _nValDesc   := 0 //Max((WSB->WSB_PRCTAB -  WSB->WSB_VRUNIT  ) * WSB->WSB_QUANT ,0)
     aAdd( _aItem, {"LR_PRODUTO"	, WSB->WSB_PRODUT										, Nil })
 	aAdd( _aItem, {"LR_ITEM"	, WSB->WSB_ITEM  									    , Nil })
 	aAdd( _aItem, {"LR_DESCRI"	, WSB->WSB_DESCRI										, Nil })
@@ -243,14 +247,16 @@ While WSB->( !Eof() .And. xFilial("WSB") + WSA->WSA_NUM == WSB->WSB_FILIAL + WSB
 	aAdd( _aItem, {"LR_VRUNIT"	, WSB->WSB_VRUNIT										, Nil })
 	aAdd( _aItem, {"LR_VLRITEM"	, WSB->WSB_VLRITE										, Nil })
 	aAdd( _aItem, {"LR_UM"		, WSB->WSB_UM    										, Nil })
-	//aAdd( _aItem, {"LR_DESC"	    , WSB->WSB_DESC 								    , Nil })
-	aAdd( _aItem, {"LR_VALDESC"	, WSB->WSB_VALDES									, Nil })
+	//aAdd( _aItem, {"LR_DESC"	, WSB->WSB_DESC 	    							    , Nil })
+    aAdd( _aItem, {"LR_DESC"	, 0                 								    , Nil })
+	aAdd( _aItem, {"LR_VALDESC"	, _nValDesc         									, Nil })
     aAdd( _aItem, {"LR_TES"	    , WSB->WSB_TES	    									, Nil })
 	aAdd( _aItem, {"LR_SERIE"	, _cSerCPF			    								, Nil })
 	aAdd( _aItem, {"LR_PDV"		, _cPDVWeb												, Nil })
 	aAdd( _aItem, {"LR_TABELA"	, WSB->WSB_TABELA					   					, Nil })
 	aAdd( _aItem, {"LR_EMISSAO"	, WSB->WSB_EMISSA										, Nil })
-	aAdd( _aItem, {"LR_PRCTAB"	, WSB->WSB_PRCTAB										, Nil })
+	//aAdd( _aItem, {"LR_PRCTAB"	, WSB->WSB_PRCTAB										, Nil })
+    aAdd( _aItem, {"LR_PRCTAB"	, WSB->WSB_VRUNIT										, Nil })
 	aAdd( _aItem, {"LR_VEND"	, WSA->WSA_VEND                 					    , Nil })
 	aAdd( _aItem, {"LR_FDTENTR"	, WSB->WSB_FDTENT										, Nil })
 	aAdd( _aItem, {"LR_DOCPED"	, _cDocPed												, Nil })
@@ -260,6 +266,12 @@ While WSB->( !Eof() .And. xFilial("WSB") + WSA->WSA_NUM == WSB->WSB_FILIAL + WSB
 	aAdd( _aItem, {"LR_LOCAL"   , WSB->WSB_LOCAL       			    				    , Nil })
     aAdd( _aItem, {"LR_ENTREGA" , "3"                  			    				    , Nil })
 
+    //---------------------------+
+    // Valida reserva do produto | 
+    //---------------------------+ 
+    EcLoj012Res(WSA->WSA_NUMECO,WSA->WSA_NUMECL,WSB->WSB_PRODUT,WSB->WSB_QUANT)
+    
+    
     aAdd(_aItems,_aItem)
 
     WSB->( dbSkip() )
@@ -297,7 +309,7 @@ While WSC->( !Eof() .And. xFilial("WSC") + WSA->WSA_NUM == WSC->WSC_FILIAL + WSC
 	aAdd(_aPgtos, {"L4_FORMAID"	    , "1"					    , Nil })
     aAdd(_aPgtos, {"L4_XTID"	    , WSC->WSC_TID  			, Nil })
 
-    aAdd(_aParcela,_aPgtos)
+    aAdd(_aParcela,aClone(_aPgtos))
 
     WSC->( dbSkip() )
 EndDo
@@ -311,7 +323,8 @@ aAdd( _aCabec,	{"LQ_CLIENTE"	, SA1->A1_COD									, Nil })
 aAdd( _aCabec,	{"LQ_LOJA"		, SA1->A1_LOJA									, Nil })
 aAdd( _aCabec,	{"LQ_TIPOCLI"	, SA1->A1_TIPO									, Nil })
 aAdd( _aCabec,	{"LQ_VLRTOT"	, WSA->WSA_VALMER								, Nil })
-aAdd( _aCabec,	{"LQ_DESCONT"	, WSA->WSA_DESCON								, Nil })
+//aAdd( _aCabec,	{"LQ_DESCONT"	, WSA->WSA_DESCON								, Nil })
+aAdd( _aCabec,	{"LQ_DESCONT"	, 0             								, Nil })
 aAdd( _aCabec,	{"LQ_VLRLIQ"	, WSA->WSA_VALMER								, Nil })
 aAdd( _aCabec,	{"LQ_DTLIM"		, WSA->WSA_DTLIM 		    					, Nil })
 aAdd( _aCabec,	{"LQ_PDV"		, _cPDVWeb										, Nil })
@@ -376,7 +389,16 @@ If Len(_aCabec) > 0 .And. Len(_aItems) > 0 .And. Len(_aParcela) > 0
     //---------------+
     // Ajusta totais |
     //---------------+
-    //EcLoj12Tot(_aCabec,_aParcela)
+    EcLoj12Tot(_aCabec,_aParcela)
+
+    //-----------------------------+
+    // Ajusta Array com dicionario |
+    //-----------------------------+    
+    /*
+    _aCabec     := FWVetByDic( _aCabec, "SLQ" )
+    _aItems     := FWVetByDic( _aItems, "SLR", .T. )
+    _aParcela   := FWVetByDic( _aParcela, "SL4", .T. )
+    */
 
     MsExecAuto({|a,b,c,d,e,f,g,h| Loja701(a,b,c,d,e,f,g,h)},.F.,3,"","",{},_aCabec,_aItems,_aParcela)
     
@@ -600,6 +622,127 @@ If (_cAlias)->( Eof() )
     _lRet := .F.
 EndIf
 
+Return _lRet
+
+/*********************************************************************************/
+/*/{Protheus.doc} EcLoj012Res
+    @description Valida se existe reserva para o pedido eCommerce
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 13/06/2019
+    @version version
+/*/
+/*********************************************************************************/
+Static Function EcLoj012Res(_cOrderId,_cOrderCli,_cCodProd,_nQtdItem)
+Local _aArea        := GetArea()
+Local aOperacao		:= {}
+Local aLote			:= {}
+
+Local _cCodRes		:= ""
+Local _cClient		:= "ECOMM"
+Local _cTipo        := "LJ" 
+Local _cLocal		:= GetNewPar("EC_ARMVEND")
+
+Local _nTPedCli     := TamSx3("WSA_NUMECL")[1]
+Local _nTProd       := TamSx3("B1_COD")[1]
+Local _nSaldoSb2    := 0
+
+Local _dDtReser	    := GetNewPar("EC_DTVLDRE","01/01/2049")
+
+Local _lRet         := .T.
+Local _lGerou		:= .F.
+
+//-----------------------+
+// Identificador da LOJA | 
+//-----------------------+
+M->AUTRESERVA  := "000001"
+
+//--------------------------+
+// Valida se existe reserva |
+//--------------------------+
+dbSelectArea("SC0")
+SC0->( dbSetOrder(3) )
+If SC0->( dbSeek(xFilial("SC0") + _cTipo + PadR(_cOrderCli,_nTPedCli) + _cCodProd) )
+    RestArea(_aArea)
+    Return .T.
+EndIf
+
+//----------------------------------------+	
+// Valida se produto tem armzem de venda  |
+//----------------------------------------+
+_aAreaSB2 := SB2->( GetArea() )
+    dbSelectArea("SB2")
+    SB2->( dbSetOrder(1) )
+    If !SB2->( dbSeek(xFilial("SB2") + _cCodProd + _cLocal) )
+        CriaSb2(_cCodProd,_cLocal)
+    EndIf
+    //-------------------------+
+    // Valida saldo do produto | 
+    //-------------------------+
+    _nSaldoSb2 := SaldoSB2()
+
+    If _nSaldoSb2 <= 0
+        RestArea(_aArea)
+        Return .F.
+    EndIf
+RestArea(_aAreaSB2)
+
+
+//------------------------------+
+// Inicia a gravação da reserva |
+//------------------------------+
+aOperacao 	:= {1, _cTipo, _cOrderCli, _cClient, xFilial("SC0"), "Reserva eCommerce:" + _cOrderCli}
+aLote   	:= {"" , "" , "", ""}
+_cCodRes	:= GetSxeNum("SC0","C0_NUM")
+
+_lGerou		:= a430Reserv(	aOperacao						,;			// Array contendo dados da reserva
+                            _cCodRes						,;			// Numero da Reserva
+                            PadR(_cCodProd, _nTProd)		,;			// Produto 
+                            _cLocal							,;			// Armazem  
+                            _nQtdItem						,;			// Saldo
+                            aLote,,							)			// Lote 
+If _lGerou
+    //--------------------+
+    // Confirma numeração |
+    //--------------------+
+    ConfirmSx8()
+    
+    //-----------------------+
+    // Posiciona Pre Empenho |
+    //-----------------------+
+    SC0->( dbSetOrder(3) )
+    SC0->( dbSeek(xFilial("SC0") + _cTipo + PadR(_cOrderCli,_nTPedCli) + _cCodProd))
+        
+    //---------------------------------------------+
+    // Validas e Reserva foi realizada com sucesso |
+    //---------------------------------------------+
+    If ( SC0->C0_PRODUTO == Padr(RTrim(_cCodProd),_nTProd) ) .And. ( _cOrderCli $ SC0->C0_OBS ) .And. ( SC0->C0_NUM == _cCodRes )
+        RecLock("SC0",.F.)
+            SC0->C0_QUANT  -= _nQtdItem
+            SC0->C0_QTDPED += _nQtdItem
+            SC0->C0_VALIDA := IIF(ValType(_dDtReser) == "C",cTod(_dDtReser),_dDtReser)
+        SC0->(MsUnLock())
+
+        LogExec("RESERVA " + _cCodRes + " EFETUADA COM SUCESSO.")
+
+    Else
+        
+        //-----------------------------------+
+        // Desarma Transacao em caso de erro |
+        //-----------------------------------+
+        RollBackSx8()
+        LogExec("ERRO AO GERAR RESERVA " + _cCodRes + " .")	
+    EndIf
+Else
+    //-----------------------------------+
+    // Desarma Transacao em caso de erro |
+    //-----------------------------------+
+    RollBackSx8()
+    LogExec("ERRO AO GERAR RESERVA" + _cCodRes + " .")	
+       
+EndIf
+
+RestArea(_aArea)
 Return _lRet
 
 /*********************************************************************************/
