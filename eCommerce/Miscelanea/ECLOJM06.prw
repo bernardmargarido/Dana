@@ -146,7 +146,10 @@ While (_cAlias)->( !Eof() )
         // Envia e-Mail IBEX |
         //-------------------+
         If EcLojM06C(WSA->WSA_NUMECO,_cPDFDanfe)
-             CoNout("<< EcLojM06A >> - EMAIL ENVIADO COM SUCESSO.")
+            RecLock("WSA",.F.)
+                WSA->WSA_ENVLOG := "3"
+            WSA->(MsUnLocK() )
+            CoNout("<< EcLojM06A >> - EMAIL ENVIADO COM SUCESSO.")
         EndIf
     EndIf   
 
@@ -175,6 +178,7 @@ Local _cArqPDF  := ""
 
 Local _lRet     := .T.
 Local lEnd      := .F.
+Local lExistNFe := .F.
 
 Local oDanfe    := Nil
 
@@ -250,43 +254,55 @@ If !Empty(_cIdent) .And. !Empty(_cDoc) .And. !Empty(_cSerie)
     //-----------------------------------------+         
     // Chamando a impressão da danfe no RDMAKE |	        
     //-----------------------------------------+
-    StaticCall(DANFEII, DanfeProc, @oDanfe, @lEnd, _cIdent, , , .F.)
+    StaticCall(DANFEII, DanfeProc, @oDanfe, @lEnd, _cIdent, , , @lExistNFe)
     oDanfe:Print()
 
-    //--------------------------+
-    // Renomeia nome do arquivo |
-    //--------------------------+
-    _cArqPDF  := _cPasta + _cPDFDanfe + ".PD_" 
+    If lExistNFe
+        //--------------------------+
+        // Renomeia nome do arquivo |
+        //--------------------------+
+        _cArqPDF  := _cPasta + _cPDFDanfe + ".PD_" 
 
-    //-------------------------------+
-    // Emula uso do TotvsPrinter.exe |
-    //-------------------------------+
-     File2Printer( _cPasta + _cArqPDF, "PDF" )
-        
-    If File(_cPasta + _cPDFDanfe + ".pdf")
-        _lRet := .T.
-        _cPDFDanfe := _cPDFDanfe + ".pdf"
-        Conout("<< EcLojM06A >> - ARQUIVO PDF " + _cPasta + _cPDFDanfe + " GERADO COM SUCESSO.")
-    Else
-        
-        If File(_cPasta + _cArqPDF) 
-            File2Printer( _cPasta + _cArqPDF, "PDF" )
-        ElseIf File(_cPasta + _cArqPDF + ".rel")
-            File2Printer( _cPasta + _cArqPDF, "PDF" )
-        ElseIf File(_cPasta + _cArqPDF + ".pd_")
-            File2Printer( _cPasta + _cArqPDF, "PDF" )
-        EndIf
-        
+        //-------------------------------+
+        // Emula uso do TotvsPrinter.exe |
+        //-------------------------------+
+        File2Printer( _cPasta + _cArqPDF, "PDF" )
+            
         If File(_cPasta + _cPDFDanfe + ".pdf")
             _lRet := .T.
             _cPDFDanfe := _cPDFDanfe + ".pdf"
             Conout("<< EcLojM06A >> - ARQUIVO PDF " + _cPasta + _cPDFDanfe + " GERADO COM SUCESSO.")
         Else
-            _lRet 		:= .F.
-            _cPDFDanfe 	:= ""
-            Conout("<< EcLojM06A >> - NAO GEROU ARQUIVO DE NOTA FISCAL EM PDF  [" + _cPasta + _cPDFDanfe + "].")
-        EndIf	
-    EndIf
+            
+            If File(_cPasta + _cArqPDF) 
+                File2Printer( _cPasta + _cArqPDF, "PDF" )
+            ElseIf File(_cPasta + _cArqPDF + ".rel")
+                File2Printer( _cPasta + _cArqPDF, "PDF" )
+            ElseIf File(_cPasta + _cArqPDF + ".pd_")
+                File2Printer( _cPasta + _cArqPDF, "PDF" )
+            EndIf
+            
+            If File(_cPasta + _cPDFDanfe + ".pdf")
+                _lRet := .T.
+                _cPDFDanfe := _cPDFDanfe + ".pdf"
+                Conout("<< EcLojM06A >> - ARQUIVO PDF " + _cPasta + _cPDFDanfe + " GERADO COM SUCESSO.")
+            Else
+                _lRet 		:= .F.
+                _cPDFDanfe 	:= ""
+                Conout("<< EcLojM06A >> - NAO GEROU ARQUIVO DE NOTA FISCAL EM PDF  [" + _cPasta + _cPDFDanfe + "].")
+            EndIf	
+        EndIf
+    //-------------------+    
+    // Estorna PDF vazio |
+    //-------------------+    
+    Else
+        _lRet   := .F.
+        If File(_cPasta + _cPDFDanfe)
+            FErase(_cPasta + _cPDFDanfe)
+        ElseIf File(_cPasta + _cPDFDanfe + ".pdf")
+            FErase(_cPasta + _cPDFDanfe + ".pdf")
+        EndIf    
+    EndIf    
 EndIf
 
 RestArea(_aArea)
@@ -375,6 +391,7 @@ _cQuery += " WHERE " + CRLF
 _cQuery += "	WSA.WSA_FILIAL = '" + xFilial("WSA") + "' AND " + CRLF
 _cQuery += "	WSA.WSA_DOC <> '' AND " + CRLF
 _cQuery += "	WSA.WSA_SERIE <> '' AND " + CRLF
+_cQuery += "	WSA.WSA_ENVLOG = '2' AND " + CRLF
 _cQuery += "	WSA.WSA_CODSTA = '" + _cCodFat + "' AND " + CRLF 
 _cQuery += "	WSA.D_E_L_E_T_ = '' "
 
