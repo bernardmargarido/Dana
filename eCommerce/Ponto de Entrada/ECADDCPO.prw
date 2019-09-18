@@ -25,6 +25,7 @@ Local _cLeadFat := "2"
 Local _cRegEsp  := "2"
 Local _cClassif := "001"    
 Local _cAceSaldo:= "2"
+Local _cFimPPe  := "2"
 Local _nLeadTi  := 1
 Local _nFatorPr := 1
 
@@ -40,5 +41,6 @@ aAdd(aCliente , {"A1_XREGESP"   ,    _cRegEsp   ,    Nil })
 aAdd(aCliente , {"A1_CLASSIF"   ,    _cClassif  ,    Nil })
 aAdd(aCliente , {"A1_XACESAL"   ,    _cAceSaldo ,    Nil })
 aAdd(aCliente , {"A1_FATORPR"   ,    _nFatorPr  ,    Nil })
+aAdd(aCliente , {"A1_XFIMPPE"   ,    _cFimPPe  ,    Nil })
 
 Return aCliente
