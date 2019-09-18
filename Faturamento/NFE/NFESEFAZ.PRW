@@ -428,6 +428,12 @@ Local cSeekCDA	:= ""
 local lSemCbenef := .F.
 local lCodLan	:= .F.
 
+//--------------------------------+
+// Dana Tes e CFOP de armazenagem |
+//--------------------------------+
+Local _cTesArmaz	:= GetNewPar("DN_TESARMZ","600")
+Local _cCfopArmaz	:= GetNewPar("DN_CFOARMZ","5905/6905")
+
 //Declaração de Arrays
 Private aUF     	:= {}
 Private aCSTIPI 	:= {}
@@ -2087,7 +2093,7 @@ If cTipo == "1"
 						EndIf																				
 						
 					// Tratameno produto perigoso
-					If SB1->B1_INFLAMA == "1"
+					If SB1->B1_INFLAMA == "1" .And. Empty(SF2->F2_XNUMECO)
 						If !(cInflama $ cMensCli)
 							cMensCli += cInflama
 						EndIf
@@ -2130,11 +2136,15 @@ If cTipo == "1"
 					EndIf
 					
 					// Dana Mensagem nota
-					If !"Nao recebendo boleto bancario ate o vencimento ligar para (1" $ cMensCli
-						cMensCli += " Pedido: "+SC5->C5_NUM+" . Nao recebendo boleto bancario ate o vencimento ligar para (11) 2842-3246. "
-						cMensCli += " Telefones da administracao (11) 2842-3262 Vendas (11) 2842-3212. "
-						cMensCli += Iif(lVendedor," Telefones do vendedor: " +  Alltrim(SA3->A3_TEL) + ".","")
-                    EndIf
+					If Empty(SF2->F2_XNUMECO)
+						If !"Nao recebendo boleto bancario ate o vencimento ligar para (1" $ cMensCli
+							cMensCli += " Pedido: "+SC5->C5_NUM+" . Nao recebendo boleto bancario ate o vencimento ligar para (11) 2842-3246. "
+							cMensCli += " Telefones da administracao (11) 2842-3262 Vendas (11) 2842-3212. "
+							cMensCli += Iif(lVendedor," Telefones do vendedor: " +  Alltrim(SA3->A3_TEL) + ".","")
+						EndIf
+					Else
+						cMensCli += " Pedido: " + SC5->C5_NUM + " ."
+					EndIf	
 
 					If !Empty(SC5->C5_MENPAD) .And. !AllTrim(FORMULA(SC5->C5_MENPAD)) $ cMensFis
 						If Len(cMensFis) > 0 .And. SubStr(cMensFis, Len(cMensFis), 1) <> " "
@@ -2709,7 +2719,7 @@ If cTipo == "1"
 					//--------------------+	
 					// Pedidos e-Commerce |
 					//--------------------+	
-					If SF2->( FieldPos("F2_XNUMECO") ) > 0 .And. !Empty(SF2->F2_XNUMECO)
+					If SF2->( FieldPos("F2_XNUMECO") ) > 0 .And. !Empty(SF2->F2_XNUMECO) .Or. ( (cAliasSD2)->D2_TES $ _cTesArmaz .Or. (cAliasSD2)->D2_CF  $ _cCfopArmaz)
 						_cEANCX		:= Posicione("SB1", 1, xFilial("SB1") + (cAliasSD2)->D2_COD,"B1_EAN")
 						cDescProd	:= u_SyAcento(Posicione("SB5", 1, xFilial("SB5") + (cAliasSD2)->D2_COD,"B5_XNOMPRD"),.T.)
 						cUMedida	:= "UN"
