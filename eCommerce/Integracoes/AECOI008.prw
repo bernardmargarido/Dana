@@ -36,6 +36,8 @@ Private dDtaInt	:= Date()
 
 Private aMsgErro:= {}
 
+Private _lJob	:= IIF(Isincallstack("U_ECLOJM03"),.T.,.F.)
+
 //----------------------------------+
 // Grava Log inicio das Integrações | 
 //----------------------------------+
@@ -53,7 +55,11 @@ LogExec("INICIA INTEGRACAO DE ESTOQUE COM A VTEX - DATA/HORA: "+DTOC(DATE())+" A
 //----------------------------------+
 // Inicia processo de envio Estoque |
 //----------------------------------+
-Processa({|| AECOINT08() },"Aguarde...","Consultando Estoque.")
+If _lJob
+	AECOINT08()
+Else
+	Processa({|| AECOINT08() },"Aguarde...","Consultando Estoque.")
+EndIf
 
 LogExec("FINALIZA INTEGRACAO DE ESTOQUE COM A VTEX - DATA/HORA: "+DTOC(DATE())+" AS "+TIME())
 LogExec(Replicate("-",80))
@@ -111,14 +117,21 @@ EndIf
 //-------------------------+
 // Inicia o envio Estoques |
 //-------------------------+
-ProcRegua(nToReg)
+If !_lJob
+	ProcRegua(nToReg)
+EndIf
+
 While (cAlias)->( !Eof() )
 	
 	//-----------------------------------+
 	// Incrementa regua de processamento |
 	//-----------------------------------+
-	IncProc("Estoque " + Alltrim((cAlias)->CODSKU)  + " - " + Alltrim((cAlias)->DESCSKU) )
-		
+	If !_lJob
+		IncProc("Estoque " + Alltrim((cAlias)->CODSKU)  + " - " + Alltrim((cAlias)->DESCSKU) )
+	Endif	
+
+	LogExec("ESTOQUE " + Alltrim((cAlias)->CODSKU)  + " - " + Alltrim((cAlias)->DESCSKU) )
+
 	//--------------------+
 	// Posiciona registro |
 	//--------------------+
