@@ -464,9 +464,9 @@ aAdd( aSX2, { ;
 	'WS3', ; //X2_CHAVE
 	cPath, ; //X2_PATH
 	'WS3'+cEmpr	, ; //X2_ARQUIVO
-	'FORMAS DE PAGAMENTO ECOMMERCE'											, ; //X2_NOME
-	'FORMAS DE PAGAMENTO ECOMMERCE'											, ; //X2_NOMESPA
-	'FORMAS DE PAGAMENTO ECOMMERCE'											, ; //X2_NOMEENG
+	'FORMAS DE PAGAMENTO ECOMMERCE'		, ; //X2_NOME
+	'FORMAS DE PAGAMENTO ECOMMERCE'		, ; //X2_NOMESPA
+	'FORMAS DE PAGAMENTO ECOMMERCE'		, ; //X2_NOMEENG
 	'C'	, ; //X2_MODO
 	''	, ; //X2_TTS
 	''	, ; //X2_ROTINA
@@ -514,9 +514,9 @@ aAdd( aSX2, { ;
 	'WS5', ; //X2_CHAVE
 	cPath, ; //X2_PATH
 	'WS5'+cEmpr	, ; //X2_ARQUIVO
-	'Campos Especificos eCommerce'											, ; //X2_NOME
-	'Campos Especificos eCommerce'											, ; //X2_NOMESPA
-	'Campos Especificos eCommerce'											, ; //X2_NOMEENG
+	'Campos Especificos eCommerce'		, ; //X2_NOME
+	'Campos Especificos eCommerce'		, ; //X2_NOMESPA
+	'Campos Especificos eCommerce'		, ; //X2_NOMEENG
 	'C'	, ; //X2_MODO
 	''	, ; //X2_TTS
 	''	, ; //X2_ROTINA
@@ -3468,9 +3468,9 @@ aAdd( aSX3, { ;
 	''	, ; //X3_CONTEXT
 	''	, ; //X3_OBRIGAT
 	'pertence("HDSMA")', ; //X3_VLDUSER
-	'H=Horas;D=Dias;S=Semana;M=Mes;A=Ano'									, ; //X3_CBOX
-	'H=Horas;D=Dias;S=Semana;M=Mes;A=A±o'									, ; //X3_CBOXSPA
-	'H=Hours;D=Days;S=Week;M=Month;A=Year'									, ; //X3_CBOXENG
+	'H=Horas;D=Dias;S=Semana;M=Mes;A=Ano', ; //X3_CBOX
+	'H=Horas;D=Dias;S=Semana;M=Mes;A=A±o', ; //X3_CBOXSPA
+	'H=Hours;D=Days;S=Week;M=Month;A=Year', ; //X3_CBOXENG
 	''	, ; //X3_PICTVAR
 	''	, ; //X3_WHEN
 	''	, ; //X3_INIBRW
@@ -5188,7 +5188,7 @@ aAdd( aSX3, { ;
 	''	, ; //X3_VISUAL
 	''	, ; //X3_CONTEXT
 	''	, ; //X3_OBRIGAT
-	'pertence("0,7,12,17,18,25")'											, ; //X3_VLDUSER
+	'pertence("0,7,12,17,18,25")'		, ; //X3_VLDUSER
 	''	, ; //X3_CBOX
 	''	, ; //X3_CBOXSPA
 	''	, ; //X3_CBOXENG
@@ -7544,9 +7544,9 @@ aAdd( aSX3, { ;
 	''	, ; //X3_CONTEXT
 	''	, ; //X3_OBRIGAT
 	'pertence("SLG ")', ; //X3_VLDUSER
-	'S=Solido;L=Liquido;G=Gasoso'											, ; //X3_CBOX
-	'S=Solido;L=Liquido;G=Gaseoso'											, ; //X3_CBOXSPA
-	'S=Solid;L=Liquid;G=Gaseous'											, ; //X3_CBOXENG
+	'S=Solido;L=Liquido;G=Gasoso'		, ; //X3_CBOX
+	'S=Solido;L=Liquido;G=Gaseoso'		, ; //X3_CBOXSPA
+	'S=Solid;L=Liquid;G=Gaseous'		, ; //X3_CBOXENG
 	''	, ; //X3_PICTVAR
 	''	, ; //X3_WHEN
 	''	, ; //X3_INIBRW
@@ -10045,7 +10045,7 @@ aAdd( aSX3, { ;
 	''	, ; //X3_VISUAL
 	''	, ; //X3_CONTEXT
 	''	, ; //X3_OBRIGAT
-	'pertence("LB/VD/CL/PD/NF")'											, ; //X3_VLDUSER
+	'pertence("LB/VD/CL/PD/NF")'		, ; //X3_VLDUSER
 	''	, ; //X3_CBOX
 	''	, ; //X3_CBOXSPA
 	''	, ; //X3_CBOXENG
@@ -10294,7 +10294,7 @@ aAdd( aSX3, { ;
 	'R'	, ; //X3_CONTEXT
 	''	, ; //X3_OBRIGAT
 	'MaFisGet("NF_RECFAUT")', ; //X3_VLDUSER
-	'1=Emitente;2=Transportador'											, ; //X3_CBOX
+	'1=Emitente;2=Transportador'		, ; //X3_CBOX
 	'1=Emisor;2=Transportador', ; //X3_CBOXSPA
 	'1=Issuer;2=Carrier'	, ; //X3_CBOXENG
 	''	, ; //X3_PICTVAR
@@ -10771,7 +10771,7 @@ aAdd( aSX3, { ;
 	'Cod de Lista de Embarque', ; //X3_DESCSPA
 	'Packing List Code', ; //X3_DESCENG
 	'@!', ; //X3_PICTURE
-	'Vazio() .Or. ExistCpo("NPR")'											, ; //X3_VALID
+	'Vazio() .Or. ExistCpo("NPR")'		, ; //X3_VALID
 	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
 	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
 	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128)					, ; //X3_USADO
@@ -10786,7 +10786,7 @@ aAdd( aSX3, { ;
 	'A'	, ; //X3_VISUAL
 	'R'	, ; //X3_CONTEXT
 	''	, ; //X3_OBRIGAT
-	'Vazio() .Or. ExistCpo("NPR")'											, ; //X3_VLDUSER
+	'Vazio() .Or. ExistCpo("NPR")'		, ; //X3_VLDUSER
 	''	, ; //X3_CBOX
 	''	, ; //X3_CBOXSPA
 	''	, ; //X3_CBOXENG
@@ -10835,7 +10835,7 @@ aAdd( aSX3, { ;
 	'A'	, ; //X3_VISUAL
 	'R'	, ; //X3_CONTEXT
 	''	, ; //X3_OBRIGAT
-	'Vazio() .Or. ExistCpo("CTT")'											, ; //X3_VLDUSER
+	'Vazio() .Or. ExistCpo("CTT")'		, ; //X3_VLDUSER
 	''	, ; //X3_CBOX
 	''	, ; //X3_CBOXSPA
 	''	, ; //X3_CBOXENG
@@ -10988,7 +10988,7 @@ aAdd( aSX3, { ;
 	'A'	, ; //X3_VISUAL
 	'R'	, ; //X3_CONTEXT
 	''	, ; //X3_OBRIGAT
-	'Vazio() .Or. ExistCpo("NPR")'											, ; //X3_VLDUSER
+	'Vazio() .Or. ExistCpo("NPR")'		, ; //X3_VLDUSER
 	''	, ; //X3_CBOX
 	''	, ; //X3_CBOXSPA
 	''	, ; //X3_CBOXENG
@@ -11040,7 +11040,7 @@ aAdd( aSX3, { ;
 	''	, ; //X3_VISUAL
 	''	, ; //X3_CONTEXT
 	''	, ; //X3_OBRIGAT
-	'existcpo("FRV",M->E1_SITUACA)'											, ; //X3_VLDUSER
+	'existcpo("FRV",M->E1_SITUACA)'		, ; //X3_VLDUSER
 	''	, ; //X3_CBOX
 	''	, ; //X3_CBOXSPA
 	''	, ; //X3_CBOXENG
@@ -11240,7 +11240,7 @@ aAdd( aSX3, { ;
 	'R'	, ; //X3_CONTEXT
 	''	, ; //X3_OBRIGAT
 	'MaFisGet("NF_RECFAUT")', ; //X3_VLDUSER
-	'1=Emitente;2=Transportador'											, ; //X3_CBOX
+	'1=Emitente;2=Transportador'		, ; //X3_CBOX
 	'1=Emisor;2=Transportador', ; //X3_CBOXSPA
 	'1=Issuer;2=Transporter', ; //X3_CBOXENG
 	''	, ; //X3_PICTVAR
@@ -12911,7 +12911,7 @@ aAdd( aSX3, { ;
 	'V'	, ; //X3_VISUAL
 	''	, ; //X3_CONTEXT
 	''	, ; //X3_OBRIGAT
-	'pertence("1/2/3/4/5/6/7/8/9")'											, ; //X3_VLDUSER
+	'pertence("1/2/3/4/5/6/7/8/9")'		, ; //X3_VLDUSER
 	''	, ; //X3_CBOX
 	''	, ; //X3_CBOXSPA
 	''	, ; //X3_CBOXENG
@@ -14831,7 +14831,7 @@ aAdd( aSX3, { ;
 	'V'	, ; //X3_VISUAL
 	''	, ; //X3_CONTEXT
 	''	, ; //X3_OBRIGAT
-	'pertence("1/2/3/4/5/6/7/8/9")'											, ; //X3_VLDUSER
+	'pertence("1/2/3/4/5/6/7/8/9")'		, ; //X3_VLDUSER
 	''	, ; //X3_CBOX
 	''	, ; //X3_CBOXSPA
 	''	, ; //X3_CBOXENG
@@ -16798,7 +16798,7 @@ aAdd( aSX3, { ;
 	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
 	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
 	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(160)					, ; //X3_USADO
-	'GETSXENUM("WS5","WS5_CODIGO")'											, ; //X3_RELACAO
+	'GETSXENUM("WS5","WS5_CODIGO")'		, ; //X3_RELACAO
 	''	, ; //X3_F3
 	0	, ; //X3_NIVEL
 	Chr(254) + Chr(192), ; //X3_RESERV
@@ -23940,6 +23940,55 @@ aAdd( aSX3, { ;
 	''	, ; //X3_MODAL
 	''	} ) //X3_PYME
 
+aAdd( aSX3, { ;
+	'WSA', ; //X3_ARQUIVO
+	'D9', ; //X3_ORDEM
+	'WSA_ENVLOG'	, ; //X3_CAMPO
+	'C'	, ; //X3_TIPO
+	1	, ; //X3_TAMANHO
+	0	, ; //X3_DECIMAL
+	'Logistica', ; //X3_TITULO
+	'Logistica', ; //X3_TITSPA
+	'Logistica', ; //X3_TITENG
+	'Logistica', ; //X3_DESCRIC
+	'Logistica', ; //X3_DESCSPA
+	'Logistica', ; //X3_DESCENG
+	'@!', ; //X3_PICTURE
+	''	, ; //X3_VALID
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(160)					, ; //X3_USADO
+	''	, ; //X3_RELACAO
+	''	, ; //X3_F3
+	0	, ; //X3_NIVEL
+	Chr(254) + Chr(192), ; //X3_RESERV
+	''	, ; //X3_CHECK
+	''	, ; //X3_TRIGGER
+	'U'	, ; //X3_PROPRI
+	'N'	, ; //X3_BROWSE
+	'V'	, ; //X3_VISUAL
+	'R'	, ; //X3_CONTEXT
+	''	, ; //X3_OBRIGAT
+	''	, ; //X3_VLDUSER
+	'1=Pedido em separação;2=Danfe Enviado', ; //X3_CBOX
+	'1=Pedido em separação;2=Danfe Enviado', ; //X3_CBOXSPA
+	'1=Pedido em separação;2=Danfe Enviado', ; //X3_CBOXENG
+	''	, ; //X3_PICTVAR
+	''	, ; //X3_WHEN
+	''	, ; //X3_INIBRW
+	''	, ; //X3_GRPSXG
+	''	, ; //X3_FOLDER
+	''	, ; //X3_CONDSQL
+	''	, ; //X3_CHKSQL
+	''	, ; //X3_IDXSRV
+	'N'	, ; //X3_ORTOGRA
+	''	, ; //X3_TELA
+	''	, ; //X3_POSLGT
+	'N'	, ; //X3_IDXFLD
+	''	, ; //X3_AGRUP
+	''	, ; //X3_MODAL
+	''	} ) //X3_PYME
+
 //
 // Campos Tabela WSB
 //
@@ -30343,7 +30392,7 @@ aEstrut := { "INDICE" , "ORDEM" , "CHAVE", "DESCRICAO", "DESCSPA"  , ;
 aAdd( aSIX, { ;
 	'SC0', ; //INDICE
 	'3'	, ; //ORDEM
-	'C0_FILIAL+C0_TIPO+C0_DOCRES'											, ; //CHAVE
+	'C0_FILIAL+C0_TIPO+C0_DOCRES'		, ; //CHAVE
 	'Tipo Reserva+Doc. Reserva', ; //DESCRICAO
 	'Tipo Reserva+Doc. Reserva', ; //DESCSPA
 	'Tipo Reserva+Doc. Reserva', ; //DESCENG
@@ -30427,10 +30476,10 @@ aAdd( aSIX, { ;
 aAdd( aSIX, { ;
 	'WS0', ; //INDICE
 	'1'	, ; //ORDEM
-	'WS0_FILIAL+WS0_COD+WS0_THREAD'											, ; //CHAVE
-	'Interface+Trhead Id+Thread'											, ; //DESCRICAO
-	'Interface+Trhead Id+Thread'											, ; //DESCSPA
-	'Interface+Trhead Id+Thread'											, ; //DESCENG
+	'WS0_FILIAL+WS0_COD+WS0_THREAD'		, ; //CHAVE
+	'Interface+Trhead Id+Thread'		, ; //DESCRICAO
+	'Interface+Trhead Id+Thread'		, ; //DESCSPA
+	'Interface+Trhead Id+Thread'		, ; //DESCENG
 	'U'	, ; //PROPRI
 	''	, ; //F3
 	''	, ; //NICKNAME
@@ -30493,7 +30542,7 @@ aAdd( aSIX, { ;
 aAdd( aSIX, { ;
 	'WS2', ; //INDICE
 	'1'	, ; //ORDEM
-	'WS2_FILIAL+WS2_NUMECO+WS2_CODSTA'										, ; //CHAVE
+	'WS2_FILIAL+WS2_NUMECO+WS2_CODSTA'	, ; //CHAVE
 	'Num Ped Eco+Cod Status', ; //DESCRICAO
 	'Num Ped Eco+Cod Status', ; //DESCSPA
 	'Num Ped Eco+Cod Status', ; //DESCENG
@@ -30505,7 +30554,7 @@ aAdd( aSIX, { ;
 aAdd( aSIX, { ;
 	'WS2', ; //INDICE
 	'2'	, ; //ORDEM
-	'WS2_FILIAL+WS2_NUMSL1+WS2_CODSTA'										, ; //CHAVE
+	'WS2_FILIAL+WS2_NUMSL1+WS2_CODSTA'	, ; //CHAVE
 	'Codigo SL1+Cod Status'	, ; //DESCRICAO
 	'Codigo SL1+Cod Status'	, ; //DESCSPA
 	'Codigo SL1+Cod Status'	, ; //DESCENG
@@ -30535,7 +30584,7 @@ aAdd( aSIX, { ;
 aAdd( aSIX, { ;
 	'WS4', ; //INDICE
 	'1'	, ; //ORDEM
-	'WS4_FILIAL+WS4_CODIGO+WS4_TIPO'										, ; //CHAVE
+	'WS4_FILIAL+WS4_CODIGO+WS4_TIPO'	, ; //CHAVE
 	'Codigo Oper+Tipo de Oper', ; //DESCRICAO
 	'Codigo Oper+Tipo de Oper', ; //DESCSPA
 	'Codigo Oper+Tipo de Oper', ; //DESCENG
@@ -30577,7 +30626,7 @@ aAdd( aSIX, { ;
 aAdd( aSIX, { ;
 	'WS6', ; //INDICE
 	'1'	, ; //ORDEM
-	'WS6_FILIAL+WS6_CODPRD+WS6_CODIGO'										, ; //CHAVE
+	'WS6_FILIAL+WS6_CODPRD+WS6_CODIGO'	, ; //CHAVE
 	'Cod. Produto+Codigo Campo', ; //DESCRICAO
 	'Cod. Produto+Codigo Campo', ; //DESCSPA
 	'Cod. Produto+Codigo Campo', ; //DESCENG
@@ -30604,7 +30653,7 @@ aAdd( aSIX, { ;
 aAdd( aSIX, { ;
 	'WSA', ; //INDICE
 	'2'	, ; //ORDEM
-	'WSA_FILIAL+WSA_NUMECO+WSA_NUMECL'										, ; //CHAVE
+	'WSA_FILIAL+WSA_NUMECO+WSA_NUMECL'	, ; //CHAVE
 	'Cod. Pv eCom+Num Pv Cli', ; //DESCRICAO
 	'Cod. Pv eCom+Num Pv Cli', ; //DESCSPA
 	'Cod. Pv eCom+Num Pv Cli', ; //DESCENG
@@ -30620,9 +30669,9 @@ aAdd( aSIX, { ;
 	'WSB', ; //INDICE
 	'1'	, ; //ORDEM
 	'WSB_FILIAL+WSB_NUM+WSB_PRODUT+WSB_ITEM'								, ; //CHAVE
-	'No Orcamento+Produto+Nº Item'											, ; //DESCRICAO
-	'Nro. Presup.+Producto+Nº Item'											, ; //DESCSPA
-	'Budget No.+Producto+Nº Item'											, ; //DESCENG
+	'No Orcamento+Produto+Nº Item'		, ; //DESCRICAO
+	'Nro. Presup.+Producto+Nº Item'		, ; //DESCSPA
+	'Budget No.+Producto+Nº Item'		, ; //DESCENG
 	'U'	, ; //PROPRI
 	''	, ; //F3
 	''	, ; //NICKNAME
@@ -30646,7 +30695,7 @@ aAdd( aSIX, { ;
 aAdd( aSIX, { ;
 	'WSC', ; //INDICE
 	'2'	, ; //ORDEM
-	'WSC_FILIAL+WSC_NUMECO+WSC_NUMECL'										, ; //CHAVE
+	'WSC_FILIAL+WSC_NUMECO+WSC_NUMECL'	, ; //CHAVE
 	'Cod. Pv eCom+Num Pv Cli', ; //DESCRICAO
 	'Cod. Pv eCom+Num Pv Cli', ; //DESCSPA
 	'Cod. Pv eCom+Num Pv Cli', ; //DESCENG
@@ -30766,7 +30815,7 @@ aAdd( aSX6, { ;
 	'Codigo de Pais Bacen, para cadastros de clientes v'					, ; //X6_DESCRIC
 	''	, ; //X6_DSCSPA
 	''	, ; //X6_DSCENG
-	'indos do portal de cliente.'											, ; //X6_DESC1
+	'indos do portal de cliente.'		, ; //X6_DESC1
 	''	, ; //X6_DSCSPA1
 	''	, ; //X6_DSCENG1
 	''	, ; //X6_DESC2
@@ -30838,7 +30887,7 @@ aAdd( aSX6, { ;
 	'Define codigo do pais default para clientes cadast'					, ; //X6_DESCRIC
 	''	, ; //X6_DSCSPA
 	''	, ; //X6_DSCENG
-	'rados pelo Portal de Clientes.'										, ; //X6_DESC1
+	'rados pelo Portal de Clientes.'	, ; //X6_DESC1
 	''	, ; //X6_DSCSPA1
 	''	, ; //X6_DSCENG1
 	''	, ; //X6_DESC2
@@ -30886,7 +30935,7 @@ aAdd( aSX6, { ;
 	'Define quantidade de dias para nova data de vencim'					, ; //X6_DESCRIC
 	''	, ; //X6_DSCSPA
 	''	, ; //X6_DSCENG
-	'ento para 2 via de boleto.'											, ; //X6_DESC1
+	'ento para 2 via de boleto.'		, ; //X6_DESC1
 	''	, ; //X6_DSCSPA1
 	''	, ; //X6_DSCENG1
 	''	, ; //X6_DESC2
@@ -31204,7 +31253,7 @@ aAdd( aSX6, { ;
 	''	, ; //X6_DESC2
 	''	, ; //X6_DSCSPA2
 	''	, ; //X6_DSCENG2
-	'vtexappkey-danacosmeticos-UTFXVK'										, ; //X6_CONTEUD
+	'vtexappkey-danacosmeticos-UTFXVK'	, ; //X6_CONTEUD
 	'vtexappkey-vizcaya-JPOHOC', ; //X6_CONTSPA
 	'vtexappkey-vizcaya-JPOHOC', ; //X6_CONTENG
 	'U'	, ; //X6_PROPRI
@@ -31270,7 +31319,7 @@ aAdd( aSX6, { ;
 	'Armazem que sera realizada a movimentacao dos pedi'					, ; //X6_DESCRIC
 	''	, ; //X6_DSCSPA
 	''	, ; //X6_DSCENG
-	'dos realizados no e-Commerce.'											, ; //X6_DESC1
+	'dos realizados no e-Commerce.'		, ; //X6_DESC1
 	''	, ; //X6_DSCSPA1
 	''	, ; //X6_DSCENG1
 	''	, ; //X6_DESC2
@@ -31318,7 +31367,7 @@ aAdd( aSX6, { ;
 	'Informar o numero de dias para vencimento do bolet'					, ; //X6_DESCRIC
 	''	, ; //X6_DSCSPA
 	''	, ; //X6_DSCENG
-	'o bancario para titulos e-Commerce.'									, ; //X6_DESC1
+	'o bancario para titulos e-Commerce.', ; //X6_DESC1
 	''	, ; //X6_DSCSPA1
 	''	, ; //X6_DSCENG1
 	''	, ; //X6_DESC2
@@ -31348,7 +31397,7 @@ aAdd( aSX6, { ;
 	''	, ; //X6_DESC2
 	''	, ; //X6_DSCSPA2
 	''	, ; //X6_DSCENG2
-	'08a7e0b8-6cb5-487c-857f-e00e60c92a7d'									, ; //X6_CONTEUD
+	'08a7e0b8-6cb5-487c-857f-e00e60c92a7d', ; //X6_CONTEUD
 	''	, ; //X6_CONTSPA
 	''	, ; //X6_CONTENG
 	'U'	, ; //X6_PROPRI
@@ -31372,7 +31421,7 @@ aAdd( aSX6, { ;
 	''	, ; //X6_DESC2
 	''	, ; //X6_DSCSPA2
 	''	, ; //X6_DSCENG2
-	'0769e761-5193-4524-92b1-413961c21f1f'									, ; //X6_CONTEUD
+	'0769e761-5193-4524-92b1-413961c21f1f', ; //X6_CONTEUD
 	''	, ; //X6_CONTSPA
 	''	, ; //X6_CONTENG
 	'U'	, ; //X6_PROPRI
@@ -31654,15 +31703,15 @@ aAdd( aSX6, { ;
 	'Informa o(s) email(s) que receberao os log(s) com'						, ; //X6_DESCRIC
 	''	, ; //X6_DSCSPA
 	''	, ; //X6_DSCENG
-	'os erros de integracao ecommerce'										, ; //X6_DESC1
+	'os erros de integracao ecommerce'	, ; //X6_DESC1
 	''	, ; //X6_DSCSPA1
 	''	, ; //X6_DSCENG1
 	''	, ; //X6_DESC2
 	''	, ; //X6_DSCSPA2
 	''	, ; //X6_DSCENG2
-	'bernard.modesto@alfaerp.com.br'										, ; //X6_CONTEUD
-	'bernard.modesto@totvspartners.com.br'									, ; //X6_CONTSPA
-	'bernard.modesto@totvspartners.com.br'									, ; //X6_CONTENG
+	'bernard.modesto@alfaerp.com.br'	, ; //X6_CONTEUD
+	'bernard.modesto@totvspartners.com.br', ; //X6_CONTSPA
+	'bernard.modesto@totvspartners.com.br', ; //X6_CONTENG
 	'U'	, ; //X6_PROPRI
 	''	, ; //X6_VALID
 	''	, ; //X6_INIT
@@ -31894,7 +31943,7 @@ aAdd( aSX6, { ;
 	'Informar a serie a ser utilizada para as pre notas'					, ; //X6_DESCRIC
 	''	, ; //X6_DSCSPA
 	''	, ; //X6_DSCENG
-	'de transferencia eCommerce'											, ; //X6_DESC1
+	'de transferencia eCommerce'		, ; //X6_DESC1
 	''	, ; //X6_DSCSPA1
 	''	, ; //X6_DSCENG1
 	''	, ; //X6_DESC2
@@ -31996,9 +32045,9 @@ aAdd( aSX6, { ;
 	'or "/"'	, ; //X6_DESC2
 	''	, ; //X6_DSCSPA2
 	''	, ; //X6_DSCENG2
-	'001/004/005/006/008/017/092/099/108'									, ; //X6_CONTEUD
-	'001/004/005/006/008/017/092/099/108'									, ; //X6_CONTSPA
-	'001/004/005/006/008/017/092/099/108'									, ; //X6_CONTENG
+	'001/004/005/006/008/017/092/099/108', ; //X6_CONTEUD
+	'001/004/005/006/008/017/092/099/108', ; //X6_CONTSPA
+	'001/004/005/006/008/017/092/099/108', ; //X6_CONTENG
 	'U'	, ; //X6_PROPRI
 	''	, ; //X6_VALID
 	''	, ; //X6_INIT
@@ -32275,7 +32324,7 @@ aAdd( aSX6, { ;
 	'  ', ; //X6_FIL
 	'EC_URLRES2', ; //X6_VAR
 	'C'	, ; //X6_TIPO
-	'URL conexão com as API VTEX'											, ; //X6_DESCRIC
+	'URL conexão com as API VTEX'		, ; //X6_DESCRIC
 	''	, ; //X6_DSCSPA
 	''	, ; //X6_DSCENG
 	''	, ; //X6_DESC1
@@ -32284,9 +32333,9 @@ aAdd( aSX6, { ;
 	''	, ; //X6_DESC2
 	''	, ; //X6_DSCSPA2
 	''	, ; //X6_DSCENG2
-	'https://api.vtex.com/danacosmeticos'									, ; //X6_CONTEUD
-	'https://api.vtex.com/danacosmeticos'									, ; //X6_CONTSPA
-	'https://api.vtex.com/danacosmeticos'									, ; //X6_CONTENG
+	'https://api.vtex.com/danacosmeticos', ; //X6_CONTEUD
+	'https://api.vtex.com/danacosmeticos', ; //X6_CONTSPA
+	'https://api.vtex.com/danacosmeticos', ; //X6_CONTENG
 	'U'	, ; //X6_PROPRI
 	''	, ; //X6_VALID
 	''	, ; //X6_INIT
@@ -32323,7 +32372,7 @@ aAdd( aSX6, { ;
 	'  ', ; //X6_FIL
 	'EC_USAECO'	, ; //X6_VAR
 	'L'	, ; //X6_TIPO
-	'Está usando o template de e-Commerce.'									, ; //X6_DESCRIC
+	'Está usando o template de e-Commerce.', ; //X6_DESCRIC
 	''	, ; //X6_DSCSPA
 	''	, ; //X6_DSCENG
 	''	, ; //X6_DESC1
@@ -32380,7 +32429,7 @@ aAdd( aSX6, { ;
 	''	, ; //X6_DESC2
 	''	, ; //X6_DSCSPA2
 	''	, ; //X6_DSCENG2
-	'vtexappkey-danacosmeticos-UTFXVK'										, ; //X6_CONTEUD
+	'vtexappkey-danacosmeticos-UTFXVK'	, ; //X6_CONTEUD
 	'integracao', ; //X6_CONTSPA
 	'integracao', ; //X6_CONTENG
 	'U'	, ; //X6_PROPRI
@@ -32419,9 +32468,9 @@ aAdd( aSX6, { ;
 	'  ', ; //X6_FIL
 	'FS_GCTCOT'	, ; //X6_VAR
 	'C'	, ; //X6_TIPO
-	'Tipo Contrato para cotacao'											, ; //X6_DESCRIC
-	'Tipo Contrato para cotizacion'											, ; //X6_DSCSPA
-	'Contract type for quotation'											, ; //X6_DSCENG
+	'Tipo Contrato para cotacao'		, ; //X6_DESCRIC
+	'Tipo Contrato para cotizacion'		, ; //X6_DSCSPA
+	'Contract type for quotation'		, ; //X6_DSCENG
 	''	, ; //X6_DESC1
 	''	, ; //X6_DSCSPA1
 	''	, ; //X6_DSCENG1
@@ -32443,10 +32492,10 @@ aAdd( aSX6, { ;
 	'  ', ; //X6_FIL
 	'MV_ INSCRI', ; //X6_VAR
 	'C'	, ; //X6_TIPO
-	'Indica o numero da Inscricao'											, ; //X6_DESCRIC
+	'Indica o numero da Inscricao'		, ; //X6_DESCRIC
 	''	, ; //X6_DSCSPA
 	''	, ; //X6_DSCENG
-	'Municipal para contribuinte.'											, ; //X6_DESC1
+	'Municipal para contribuinte.'		, ; //X6_DESC1
 	''	, ; //X6_DSCSPA1
 	''	, ; //X6_DSCENG1
 	''	, ; //X6_DESC2
@@ -32644,9 +32693,9 @@ aAdd( aSX6, { ;
 	''	, ; //X6_DESC2
 	''	, ; //X6_DSCSPA2
 	''	, ; //X6_DSCENG2
-	'566/581/578/694/700/710/715/725'										, ; //X6_CONTEUD
-	'566/581/578/694/700/710/715/725'										, ; //X6_CONTSPA
-	'566/581/578/694/700/710/715/725'										, ; //X6_CONTENG
+	'566/581/578/694/700/710/715/725'	, ; //X6_CONTEUD
+	'566/581/578/694/700/710/715/725'	, ; //X6_CONTSPA
+	'566/581/578/694/700/710/715/725'	, ; //X6_CONTENG
 	'U'	, ; //X6_PROPRI
 	''	, ; //X6_VALID
 	''	, ; //X6_INIT
@@ -32707,7 +32756,7 @@ aAdd( aSX6, { ;
 	'  ', ; //X6_FIL
 	'MV_ESTBOL'	, ; //X6_VAR
 	'C'	, ; //X6_TIPO
-	'Estados para emissao do boleto'										, ; //X6_DESCRIC
+	'Estados para emissao do boleto'	, ; //X6_DESCRIC
 	''	, ; //X6_DSCSPA
 	''	, ; //X6_DSCENG
 	''	, ; //X6_DESC1
@@ -32755,7 +32804,7 @@ aAdd( aSX6, { ;
 	'  ', ; //X6_FIL
 	'MV_GFEBRF'	, ; //X6_VAR
 	'C'	, ; //X6_TIPO
-	'1 - Ativado / 2 - Desativado'											, ; //X6_DESCRIC
+	'1 - Ativado / 2 - Desativado'		, ; //X6_DESCRIC
 	''	, ; //X6_DSCSPA
 	''	, ; //X6_DSCENG
 	'Ativacao da performance na rotina de calculo de fr'					, ; //X6_DESC1
@@ -33076,7 +33125,7 @@ aAdd( aSX6, { ;
 	''	, ; //X6_DESC2
 	''	, ; //X6_DSCSPA2
 	''	, ; //X6_DSCENG2
-	'VE/ST/SU/VI/18/25/EX/CE/ZS/ZF/VS'										, ; //X6_CONTEUD
+	'VE/ST/SU/VI/18/25/EX/CE/ZS/ZF/VS'	, ; //X6_CONTEUD
 	''	, ; //X6_CONTSPA
 	''	, ; //X6_CONTENG
 	'U'	, ; //X6_PROPRI
@@ -33094,7 +33143,7 @@ aAdd( aSX6, { ;
 	'Determina a Tes Utilizada no Pedido de Venda de Ac'					, ; //X6_DESCRIC
 	''	, ; //X6_DSCSPA
 	''	, ; //X6_DSCENG
-	'ordo com o Estado do Cliente'											, ; //X6_DESC1
+	'ordo com o Estado do Cliente'		, ; //X6_DESC1
 	''	, ; //X6_DSCSPA1
 	''	, ; //X6_DSCENG1
 	''	, ; //X6_DESC2
@@ -33556,9 +33605,9 @@ aAdd( aSX6, { ;
 	''	, ; //X6_DESC2
 	''	, ; //X6_DSCSPA2
 	''	, ; //X6_DSCENG2
-	'000000;000004;000140;000158'											, ; //X6_CONTEUD
-	'000000;000004;000140;000158'											, ; //X6_CONTSPA
-	'000000;000004;000140;000158'											, ; //X6_CONTENG
+	'000000;000004;000140;000158'		, ; //X6_CONTEUD
+	'000000;000004;000140;000158'		, ; //X6_CONTSPA
+	'000000;000004;000140;000158'		, ; //X6_CONTENG
 	'U'	, ; //X6_PROPRI
 	''	, ; //X6_VALID
 	''	, ; //X6_INIT
@@ -33605,8 +33654,8 @@ aAdd( aSX6, { ;
 	''	, ; //X6_DSCSPA2
 	''	, ; //X6_DSCENG2
 	'milena.santos@danacosmeticos.com.br;marcelo.lopes@danacosmeticos.com.br'	, ; //X6_CONTEUD
-	'clayton.microsiga@gmail.com'											, ; //X6_CONTSPA
-	'clayton.microsiga@gmail.com'											, ; //X6_CONTENG
+	'clayton.microsiga@gmail.com'		, ; //X6_CONTSPA
+	'clayton.microsiga@gmail.com'		, ; //X6_CONTENG
 	'U'	, ; //X6_PROPRI
 	''	, ; //X6_VALID
 	''	, ; //X6_INIT
@@ -33623,7 +33672,7 @@ aAdd( aSX6, { ;
 	''	, ; //X6_DSCSPA
 	''	, ; //X6_DSCENG
 	''	, ; //X6_DESC1
-	'Departamento Fiscal/Financeiro'										, ; //X6_DSCSPA1
+	'Departamento Fiscal/Financeiro'	, ; //X6_DSCSPA1
 	''	, ; //X6_DSCENG1
 	''	, ; //X6_DESC2
 	''	, ; //X6_DSCSPA2
@@ -33694,7 +33743,7 @@ aAdd( aSX6, { ;
 	'Percentual aceitavel na diferenca da quantidade'						, ; //X6_DESCRIC
 	''	, ; //X6_DSCSPA
 	''	, ; //X6_DSCENG
-	'(Nota Fiscal x Pedido de Compra)'										, ; //X6_DESC1
+	'(Nota Fiscal x Pedido de Compra)'	, ; //X6_DESC1
 	''	, ; //X6_DSCSPA1
 	''	, ; //X6_DSCENG1
 	''	, ; //X6_DESC2
@@ -33748,9 +33797,9 @@ aAdd( aSX6, { ;
 	''	, ; //X6_DESC2
 	''	, ; //X6_DSCSPA2
 	''	, ; //X6_DSCENG2
-	'800000/09999/000770/000052/000528'										, ; //X6_CONTEUD
-	'800000/09999/000770/000052/000528'										, ; //X6_CONTSPA
-	'800000/09999/000770/000052/000528'										, ; //X6_CONTENG
+	'800000/09999/000770/000052/000528'	, ; //X6_CONTEUD
+	'800000/09999/000770/000052/000528'	, ; //X6_CONTSPA
+	'800000/09999/000770/000052/000528'	, ; //X6_CONTENG
 	'U'	, ; //X6_PROPRI
 	''	, ; //X6_VALID
 	''	, ; //X6_INIT
@@ -33790,7 +33839,7 @@ aAdd( aSX6, { ;
 	'Percentual aceitavel na diferenca da quantidade'						, ; //X6_DESCRIC
 	''	, ; //X6_DSCSPA
 	''	, ; //X6_DSCENG
-	'(Nota Fiscal x Pedido de Compra)'										, ; //X6_DESC1
+	'(Nota Fiscal x Pedido de Compra)'	, ; //X6_DESC1
 	''	, ; //X6_DSCSPA1
 	''	, ; //X6_DSCENG1
 	''	, ; //X6_DESC2
@@ -33820,9 +33869,9 @@ aAdd( aSX6, { ;
 	''	, ; //X6_DESC2
 	''	, ; //X6_DSCSPA2
 	''	, ; //X6_DSCENG2
-	'800000/09999/000770/000052/000528'										, ; //X6_CONTEUD
-	'800000/09999/000770/000052/000528'										, ; //X6_CONTSPA
-	'800000/09999/000770/000052/000528'										, ; //X6_CONTENG
+	'800000/09999/000770/000052/000528'	, ; //X6_CONTEUD
+	'800000/09999/000770/000052/000528'	, ; //X6_CONTSPA
+	'800000/09999/000770/000052/000528'	, ; //X6_CONTENG
 	'U'	, ; //X6_PROPRI
 	''	, ; //X6_VALID
 	''	, ; //X6_INIT
@@ -33868,9 +33917,9 @@ aAdd( aSX6, { ;
 	''	, ; //X6_DESC2
 	''	, ; //X6_DSCSPA2
 	''	, ; //X6_DSCENG2
-	'800000/09999/000770/000052/000528'										, ; //X6_CONTEUD
-	'800000/09999/000770/000052/000528'										, ; //X6_CONTSPA
-	'800000/09999/000770/000052/000528'										, ; //X6_CONTENG
+	'800000/09999/000770/000052/000528'	, ; //X6_CONTEUD
+	'800000/09999/000770/000052/000528'	, ; //X6_CONTSPA
+	'800000/09999/000770/000052/000528'	, ; //X6_CONTENG
 	'U'	, ; //X6_PROPRI
 	''	, ; //X6_VALID
 	''	, ; //X6_INIT
@@ -33980,7 +34029,7 @@ aAdd( aSX7, { ;
 	'S'	, ; //X7_SEEK
 	'WS5', ; //X7_ALIAS
 	1	, ; //X7_ORDEM
-	'XFILIAL("WS6")+M->WS6_CODIGO'											, ; //X7_CHAVE
+	'XFILIAL("WS6")+M->WS6_CODIGO'		, ; //X7_CHAVE
 	'U'	, ; //X7_PROPRI
 	''	} ) //X7_CONDIC
 
@@ -37604,7 +37653,7 @@ aAdd( aSXB, { ;
 	''	, ; //XB_DESCSPA
 	''	, ; //XB_DESCENG
 	''	, ; //XB_WCONTEM
-	'AY4->AY4_CODCAR == T_RETCARAC()'										} ) //XB_CONTEM
+	'AY4->AY4_CODCAR == T_RETCARAC()'	} ) //XB_CONTEM
 
 //
 // Consulta AYVDEP
