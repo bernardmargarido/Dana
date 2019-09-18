@@ -84,6 +84,8 @@ Local _nToReg       := 0
 
 Local _dDtaArq      := Date()
 
+Local _lFlag        := .F.    
+
 Private _cArqSc5    := ""
 Private _cArqSc6    := ""
 Private _cArqLog    := ""
@@ -110,11 +112,11 @@ EndIf
 dbSelectArea("SC5")
 SC5->( dbSetOrder(1) )
 
-//----------------------+
-// Cria arquivo pedidos |
-//----------------------+
-_cArqSc5    := "PEDIDO_CAB_"  + StrZero( Day( _dDtaArq ),2,0) + "_" + StrZero( Month( _dDtaArq),2,0) + "_" + StrZero( Year( _dDtaArq),4,0) + "_" + Left(_cTimeArq,2) + "_" + SubStr(_cTimeArq,4,2) + "_" + Right(_cTimeArq,2) + ".INF"
-_cArqSc6    := "PEDIDO_ITEM_" + StrZero( Day( _dDtaArq ),2,0) + "_" + StrZero( Month( _dDtaArq),2,0) + "_" + StrZero( Year( _dDtaArq),4,0) + "_" + Left(_cTimeArq,2) + "_" + SubStr(_cTimeArq,4,2) + "_" + Right(_cTimeArq,2) + ".IDT"
+//---------------------------------+
+// Posiciona Orçamentos e-Commerce |
+//---------------------------------+
+dbSelectArea("WSA")
+WSA->( dbSetOrder(2) )
 
 //-----------------------+
 // Cria diretorio Upload |
@@ -139,6 +141,12 @@ While (_cAlias)->( !Eof() )
     //------------------+
     SC5->( dbGoTo((_cAlias)->RECNOSC5) )
 
+    //----------------------+
+    // Cria arquivo pedidos |
+    //----------------------+
+    _cArqSc5    := "PEDIDO_CAB_" + RTrim(SC5->C5_NUM) + "_"  + StrZero( Day( _dDtaArq ),2,0) + "_" + StrZero( Month( _dDtaArq),2,0) + "_" + StrZero( Year( _dDtaArq),4,0) + "_" + Left(_cTimeArq,2) + "_" + SubStr(_cTimeArq,4,2) + "_" + Right(_cTimeArq,2) + ".INF"
+    _cArqSc6    := "PEDIDO_ITEM_" + RTrim(SC5->C5_NUM) + "_" + StrZero( Day( _dDtaArq ),2,0) + "_" + StrZero( Month( _dDtaArq),2,0) + "_" + StrZero( Year( _dDtaArq),4,0) + "_" + Left(_cTimeArq,2) + "_" + SubStr(_cTimeArq,4,2) + "_" + Right(_cTimeArq,2) + ".IDT"
+
     _cCfop      := (_cAlias)->CFOP
     _nTotItens  := (_cAlias)->ITENS
     _nVlrProd   := (_cAlias)->VALOR_ITENS
@@ -152,20 +160,29 @@ While (_cAlias)->( !Eof() )
     //---------------------------+
     // Gera arquivo do cabeçalho | 
     //---------------------------+
+    _lFlag  := .F.
     If IBFatM01Cab(_cCfop,_nTotItens,_nVlrProd)
         //------------------------+
         // Gera arquivo dos itens | 
         //------------------------+
-        IBFatM01It()
+        If IBFatM01It()
+            _lFlag  := .T.
+        EndIf
     EndIf    
+
+    //---------------------------------------------+
+    // Atualiza pedido como enviado para Logistica |
+    //---------------------------------------------+
+    If _lFlag
+        If WSA->( dbSeek(xFilial("WSA") + (_cAlias)->WSA_NUMECO) )
+            RecLock("WSA",.F.)
+                WSA->WSA_ENVLOG := "1"
+            WSA->( MsUnLock() )    
+        EndIf
+    EndIf
+
     (_cAlias)->( dbSkip() )
 EndDo
-
-//---------------+
-// Fecha Arquivo |
-//---------------+
-FClose(_nHdlCab)
-FClose(_nHdlIt)
 
 //--------------------+
 // Encerra temporario |
@@ -505,6 +522,11 @@ _cLinArq += CRLF
 
 FWrite(_nHdlCab, _cLinArq)
 
+//---------------+
+// Fecha Arquivo |
+//---------------+
+FClose(_nHdlCab)
+
 Return .T.
 
 /**********************************************************************/
@@ -667,11 +689,18 @@ While SC6->( !Eof() .And. xFilial("SC6") + SC5->C5_NUM == SC6->C6_FILIAL + SC6->
     _cLinArq += PadR(_cUM,6)                                // 036. Descrição Reduzida
     _cLinArq += CRLF
 
+    FWrite(_nHdlIt, _cLinArq)
+
     SC6->( dbSkip() )
 
 EndDo    
 
-FWrite(_nHdlIt, _cLinArq)
+//FWrite(_nHdlIt, _cLinArq)
+
+//---------------+
+// Fecha Arquivo |
+//---------------+
+FClose(_nHdlIt)
 
 Return .T.
 
@@ -716,6 +745,7 @@ _cQuery += " WHERE " + CRLF
 _cQuery += "	WSA.WSA_FILIAL = '" + xFilial("WSA") + "' AND " + CRLF 
 _cQuery += "	WSA.WSA_DOC = '' AND " + CRLF 
 _cQuery += "	WSA.WSA_SERIE = '' AND " + CRLF 
+_cQuery += "	WSA.WSA_ENVLOG = '' AND " + CRLF 
 _cQuery += "	WSA.D_E_L_E_T_ = '' " + CRLF
 _cQuery += " ORDER BY C5.C5_FILIAL,C5.C5_NUM "
 
