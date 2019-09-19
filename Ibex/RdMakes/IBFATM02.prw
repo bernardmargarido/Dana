@@ -45,7 +45,7 @@ If _lJob
     IBFatM02Con()
 
 Else
-    Processa({|| IBFatM02Con() },"Aguarde...","Conectando FTP IBEX.")
+    FWMsgRun(, {|| IBFatM02Con() },"Aguarde...","Conectando FTP IBEX.")
 EndIf
 
 LogExec("FINALIZA CONEXAO FTP IBEX - DATA/HORA: " + DTOC(DATE()) + " AS " + TIME())
@@ -85,14 +85,22 @@ EndIf
 // Realiza Updaload dos arquivos |
 //-------------------------------+
 LogExec("<< IBFATM02 >> - INICIO UPLOAD FTP.")
-    IbFatM02Upd()
+    If _lJob
+        IbFatM02Upd()
+    Else
+        Processa({|| IbFatM02Upd() },"Aguarde...","Enviando pedidos para separação.")
+    Endif
 LogExec("<< IBFATM02 >> - FIM UPLOAD FTP.")
 
 //-------------------------------+
 // Realiza Updaload dos arquivos |
 //-------------------------------+
 LogExec("<< IBFATM02 >> - INICIO DOWNLOAD FTP.")
-    IbFatM02Dow()
+    If _lJob
+        IbFatM02Dow()
+     Else
+        Processa({|| IbFatM02Dow() },"Aguarde...","Baixando pedidos separados.")
+    Endif
 LogExec("<< IBFATM02 >> - INICIO DOWNLOAD FTP.")
 
 //----------------+ 
@@ -100,12 +108,11 @@ LogExec("<< IBFATM02 >> - INICIO DOWNLOAD FTP.")
 //----------------+ 
 EcFtpConect(2)
 
-
 RestArea(_aArea)
 Return .T.
 
 /**********************************************************************************/
-/*/{Protheus.doc} nomeStaticFunction
+/*/{Protheus.doc} IbFatM02Upd
     @description Realiza o envio dos pedidos para IBEX 
     @type  Static Function
     @author Bernard M. Margarido
@@ -116,7 +123,7 @@ Static Function IbFatM02Upd()
 Local _aArea        := GetArea()
 
 Local _cArqUpd      := _cDirRaiz + _cDirArq + _cDirUpl + "/"
-Local _cArqIbxUpd   := "/hml/importacao/"
+Local _cArqIbxUpd   := "/prd/importacao/"
 Local _cArqBkp      := ""
 
 Local _lRet         := .T.
@@ -132,7 +139,15 @@ Local _aDirItem     := {}
 //-----------------------------+
 _aDirCab    := Directory(_cArqUpd + "*.inf")
 
+If !_lJob
+    ProcRegua(Len(_aDirCab))
+EndIf
+
 For _nX := 1 To Len(_aDirCab)
+
+    If !_lJob
+        IncProc("Enviando arquivo cabeçalho " + RTrim(_aDirCab[_nX,1]) )
+    EndIf
 
     //-------------------------------------+
     // Valida se arquivo esta no diretorio |
@@ -174,7 +189,15 @@ Next _nX
 //--------------------+
 _aDirItem   := Directory(_cArqUpd + "*.idt")
 
+If !_lJob
+    ProcRegua(Len(_aDirItem))
+EndIf
+
 For _nX := 1 To Len(_aDirItem)
+
+     If !_lJob
+        IncProc("Enviando arquivo itens " + RTrim(_aDirCab[_nX,1]) )
+    EndIf
 
     //-------------------------------------+
     // Valida se arquivo esta no diretorio |
@@ -215,7 +238,125 @@ RestArea(_aArea)
 Return _lRet 
 
 /**********************************************************************************/
-/*/{Protheus.doc} nomeStaticFunction
+/*/{Protheus.doc} IbFatM02Dow
+    @description Realiza o download dos arquivos IBEX
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 18/09/2019
+/*/
+/**********************************************************************************/
+Static Function IbFatM02Dow()
+Local _aArea        := GetArea()
+
+Local _cArqDow      := _cDirRaiz + _cDirArq + _cDirDow + "/"
+Local _cArqIbxDow   := "/prd/exportacao/"
+Local _cArqBkp      := ""
+
+Local _lRet         := .T.
+Local _lOk          := .T.
+
+Local _nVezes       := 0
+
+Local _aDirCab      := {}
+Local _aDirItem     := {}
+
+//----------------------+
+// Valida diretorio FTP |
+//----------------------+
+FTPDirChange(_cArqIbxDow)
+
+//-----------------------------+
+// Envia cabeçalho dos pedidos |
+//-----------------------------+
+_aDirCab    := FTPDirectory("*.rnc")
+
+If !_lJob
+    ProcRegua(Len(_aDirCab))
+EndIf
+
+For _nX := 1 To Len(_aDirCab)
+
+    If !_lJob
+        IncProc("Download arquivo cabeçalho " + RTrim(_aDirCab[_nX,1]) )
+    EndIf
+
+    //-------------------------------+
+    // Numero de tentativas de envio | 
+    //-------------------------------+
+    _nVezes := 1
+    
+    While _nVezes <= 3
+        
+        LogExec( "<< IBFATM02 >> - " + Dtoc(Date()) + " " + Time() + " Realizando DOWNLOAD do arquivo " + _aDirCab[_nX,1] + " - Tentativa No." + AllTrim(Str(_nVezes)))
+        
+        _lOk := FTPDownLoad(_cArqDow + _aDirCab[_nX,1], _aDirCab[_nX,1] )
+        
+        If _lOk
+            //----------------------------------------------------------------------------+
+            // Se conseguiu enviar, renomeia o arquivo do diretorio de envio do Protheus. |
+            //----------------------------------------------------------------------------+
+            _cArqBkp := StrTran(_aDirCab[_nX,1] , ".rdc", ".IMP" )
+            FTPRenameFile(_aDirCab[_nX,1], _cArqBkp)
+            LogExec( "<< IBFATM02 >> - " + Dtoc(Date()) + " " + Time() + " Arquivo " + _aDirCab[_nX,1] + " copiado com sucesso.")
+            Exit
+        Else
+            LogExec( "<< IBFATM02 >> - " + Dtoc(Date()) + " " + Time() + " Erro ao copiar o arquivo " + _aDirCab[_nX,1] + " - Tentativa No." + AllTrim(Str(_nVezes)))
+            _nVezes++
+            Inkey(5)
+        EndIf
+        
+    EndDo
+
+Next _nX
+
+//--------------------+
+// Envia itens pedido |
+//--------------------+
+_aDirItem   := FTPDirectory("*.rdc")
+
+If !_lJob
+    ProcRegua(Len(_aDirItem))
+EndIf
+
+For _nX := 1 To Len(_aDirItem)
+
+    If !_lJob
+        IncProc("Download arquivo itens " + RTrim(_aDirItem[_nX,1]) )
+    EndIf
+
+    //-------------------------------+
+    // Numero de tentativas de envio | 
+    //-------------------------------+
+    _nVezes := 1
+    
+    While _nVezes <= 3
+        
+        LogExec( "<< IBFATM02 >> - " + Dtoc(Date()) + " " + Time() + " Realizando DOWNLOAD do arquivo " + _aDirItem[_nX,1] + " - Tentativa No." + AllTrim(Str(_nVezes)))
+        
+        _lOk := FTPDownLoad(_cArqDow + _aDirItem[_nX,1], _aDirItem[_nX,1] )
+        
+        If _lOk
+            //----------------------------------------------------------------------------+
+            // Se conseguiu enviar, renomeia o arquivo do diretorio de envio do Protheus. |
+            //----------------------------------------------------------------------------+
+            _cArqBkp := StrTran(_aDirItem[_nX,1] , ".rnc", ".IMP" )
+            FTPRenameFile(_aDirItem[_nX,1], _cArqBkp)
+            LogExec( "<< IBFATM02 >> - " + Dtoc(Date()) + " " + Time() + " Arquivo " + _aDirItem[_nX,1] + " copiado com sucesso.")
+            Exit
+        Else
+            LogExec( "<< IBFATM02 >> - " + Dtoc(Date()) + " " + Time() + " Erro ao copiar o arquivo " + _aDirItem[_nX,1] + " - Tentativa No." + AllTrim(Str(_nVezes)))
+            _nVezes++
+            Inkey(5)
+        EndIf
+        
+    EndDo
+
+Next _nX
+
+Return _lRet
+
+/**********************************************************************************/
+/*/{Protheus.doc} EcFtpConect
     @description Conecta FTP IBEX Logistica
     @type  Static Function
     @author Bernard M. Margarido
