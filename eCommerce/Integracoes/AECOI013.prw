@@ -170,7 +170,7 @@ While WSB->( !Eof() .And. xFilial("WSB") + WSA->WSA_NUM == WSB->WSB_FILIAL + WSB
 	cQuant := Alltrim(Str(Int(WSB->WSB_QUANT)))
 	cPrcVen:= RetPrcUni(WSB->WSB_VRUNIT)
 
-	_oItens[#"id"]			:= 	Alltrim(Str(nIdSku)) 
+	_oItens[#"id"]			:= 	IIF(Empty(WSB->WSB_KIT),Alltrim(Str(nIdSku)),RTrim(WSB->WSB_KIT))
 	_oItens[#"quantity"]	:= 	cQuant
 	_oItens[#"price"]		:= 	cPrcVen
 		
