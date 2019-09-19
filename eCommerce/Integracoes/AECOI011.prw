@@ -1279,7 +1279,7 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDesconto,nP
 			//----------------------------+
 			// Grava itens do produto KIT |
 			//----------------------------+
-			aRet 	:= AEcoI11Kit(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDesconto,nPesoBruto,dDtaEmiss,oItems[nPrd]:Quantity,oItems[nPrd]:Components,oTransp,oRestPv,cProduto,nPrd,@cItem)
+			aRet 	:= AEcoI11Kit(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDesconto,nPesoBruto,dDtaEmiss,oItems[nPrd]:Quantity,oItems[nPrd]:ProductId,oItems[nPrd]:Components,oTransp,oRestPv,cProduto,nPrd,@cItem)
 			If !aRet[1]
 				RestArea(aArea)
 				Return aRet
@@ -1483,7 +1483,7 @@ Return aRet
 @type function
 /*/
 /**************************************************************************************/
-Static Function AEcoI11Kit(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDesconto,nPesoBruto,dDtaEmiss,nQtdKit,oItKit,oTransp,oRestPv,cCodKit,nItAtu,cItem)
+Static Function AEcoI11Kit(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDesconto,nPesoBruto,dDtaEmiss,nQtdKit,cRefKit,oItKit,oTransp,oRestPv,cCodKit,nItAtu,cItem)
 Local aArea	:= GetArea()
 
 Local aRet		:= {.T.,"",""}
@@ -1684,6 +1684,7 @@ For nPrd := 1 To Len(oItKit)
 		WSB->WSB_PRZENT		:= nPrzEntr
 		WSB->WSB_STATIT		:= "" 
 		WSB->WSB_DESTAT		:= ""
+		WSB->WSB_KIT		:= cRefKit
 	WSB->( MsUnLock() )
 	
 	//------------------------+
