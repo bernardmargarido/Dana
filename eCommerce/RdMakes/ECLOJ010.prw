@@ -188,7 +188,7 @@ Local _nX		:= 0
 _aCab	:= {"NOUSER","WSA_NUM","WSA_CLIENT","WSA_LOJA","WSA_NOMCLI",;
 			"WSA_EMISSA","WSA_VLRTOT","WSA_NUMECO","WSA_NUMECL",;
 			"WSA_DOC","WSA_SERIE","WSA_OBSECO","WSA_MTCANC","WSA_CODSTA",;
-			"WSA_DESTAT","WSA_VLBXPV"}
+			"WSA_DESTAT","WSA_VLBXPV","WSA_IDENDE","WSA_NUMSL1","WSA_NUMSC5","WSA_ENVLOG"}
 
 
 //---------------------------------+			
@@ -295,10 +295,12 @@ Return .T.
 /*/
 /************************************************************************************/
 Static Function MenuDef()
-Local aRotina := {}
-Local aRotFat := {}
-Local aRotTro := {}
-Local aRotIbx := {}
+Local aRotina 		:= {}
+Local aRotFat 		:= {}
+Local aRotTro 		:= {}
+Local aRotIbx 		:= {}
+
+Local _bIbxPvEnv	:= {|| (U_IBFATM01(),U_IBFATM02())}	
 
 //-----------------------+
 // Rotina de Faturamento | 
@@ -316,8 +318,9 @@ aAdd(aRotTro, {"Troca/Devolucao","U_ECLOJ105", 0, 4 } )	// Troca / Devolução
 //-------------------+
 // Pedidos para IBEX |
 //-------------------+
-aAdd(aRotIbx, {"Envia PV. IBEX","U_IBFATM01", 0, 4 } )	// Envia Pedidos Ibex Logistica
-aAdd(aRotIbx, {"Envia NF. IBEX","U_ECLOJM06", 0, 4 } )	// Envia Notas Ibex Logistica
+aAdd(aRotIbx, {"Envia PV. IBEX"		,_bIbxPvEnv		, 0, 4 } )	// Envia Pedidos Ibex Logistica
+aAdd(aRotIbx, {"Processa Separacao"	,"U_IBFATM03"	, 0, 4 } )	// Processa separação dos pedidos
+aAdd(aRotIbx, {"Envia NF. IBEX"		,"U_ECLOJM06"	, 0, 4 } )	// Envia Notas Ibex Logistica
 
 aAdd(aRotina, {"Pesquisa"   	, "AxPesqui"    , 0, 1 })  // Pesquisa
 aAdd(aRotina, {"Visualizar" 	, "U_ECLOJ10A"  , 0, 2 })  // Visualizar
