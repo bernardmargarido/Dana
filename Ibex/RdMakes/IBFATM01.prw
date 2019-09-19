@@ -101,7 +101,7 @@ Private _nHdlIt     := 0
 //-----------------------------------------------------+
 If !IBFatMQry(_cAlias,@_nToReg)
     (_cAlias)->( dbCloseArea() )
-    LogExec("NAO EXISTEM PEDIDOS PARA SEREM GERADOS.")
+    LogExec(" <<IBFATM01>> - NAO EXISTEM PEDIDOS PARA SEREM GERADOS.")
     RestArea(_aArea)
     Return .F.
 EndIf
@@ -152,10 +152,10 @@ While (_cAlias)->( !Eof() )
     _nVlrProd   := (_cAlias)->VALOR_ITENS
 
     If !_lJob
-        IncProc("<===> CRIANDO ARQUIVO PEDIDO " + SC5->C5_NUM + " .") 
+        IncProc("<<IBFATM01>> - CRIANDO ARQUIVO PEDIDO " + SC5->C5_NUM + " .") 
     EndIf
 
-    LogExec("<===> CRIANDO ARQUIVO PEDIDO " + SC5->C5_NUM + " ." )
+    LogExec("<<IBFATM01>> - CRIANDO ARQUIVO PEDIDO " + SC5->C5_NUM + " ." )
 
     //---------------------------+
     // Gera arquivo do cabeçalho | 
@@ -299,7 +299,7 @@ Local _nIdMovIbex   := 0
 If !File(_cDirSC5)
     _nHdlCab := MsFCreate( _cDirSC5,,,.F.)
     If _nHdlCab <= 0 
-        LogExec("ERRO AO CRIAR ARQUIVO.")
+        LogExec(" <<IBFATM01>> - ERRO AO CRIAR ARQUIVO.")
         Return .F.
     EndIf
 EndIf
@@ -578,7 +578,7 @@ Local _nTpMaterial:= 0
 If !File(_cDirSC6)
     _nHdlIt := MsFCreate( _cDirSC6,,,.F.)
     If _nHdlIt <= 0 
-        LogExec("ERRO AO CRIAR ARQUIVO.")
+        LogExec(" <<IBFATM01>> - ERRO AO CRIAR ARQUIVO.")
         Return .F.
     EndIf
 EndIf
@@ -601,7 +601,7 @@ SB5->( dbSetOrder(1) )
 dbSelectArea("SC6")
 SC6->( dbSetOrder(1) )
 If !SC6->( dbSeek(xFilial("SC6") + SC5->C5_NUM) )
-    LogExec("ITENS DO PEDIDO " + SC5->C5_NUM + " NAO LOCALIZADO.")
+    LogExec(" <<IBFATM01>> - ITENS DO PEDIDO " + SC5->C5_NUM + " NAO LOCALIZADO.")
     Return .F.
 EndIf
 
