@@ -304,7 +304,8 @@ Static Function DnaApi07A(cPedido,cDataHora,cTamPage,cPage)
 Local aArea		:= GetArea()
 Local aRet		:= {.F.,""}
 
-Local cAlias	:= GetNextAlias()	
+Local cAlias	:= GetNextAlias()
+Local cFilAux	:= ""	
 Local cFilAut	:= ""
 Local cRest		:= ""
 Local cPedVen 	:= ""
@@ -325,7 +326,7 @@ Local oItens	:= Nil
 Private nTotPag	:= 0
 Private nTotQry	:= 0
 
-Default cTamPage:= "50" 
+Default cTamPage:= "200" 
 Default cPage	:= "1" 
 
 If !DnaApiQry(cAlias,cPedido,cDataHora,cTamPage,cPage)
@@ -349,6 +350,18 @@ If !DnaApiQry(cAlias,cPedido,cDataHora,cTamPage,cPage)
 	Return aRet
 EndIf
 
+//---------------------------+
+// Posiciona itens do pedido |
+//---------------------------+
+dbSelectArea("SC6")
+SC6->( dbSetOrder(1) )
+
+//---------------------------+
+// Posiciona itens liberados |
+//---------------------------+
+dbSelectArea("SC9")
+SC9->( dbSetOrder(1) )
+
 //--------------------------+
 // Inicaliza Matriz HashMap |
 //--------------------------+
@@ -368,7 +381,7 @@ While (cAlias)->( !Eof() )
 	If Empty((cAlias)->SEQLIB)
 		cSeqLib := "01"
 	Else
-		cSeqLib := Soma1((cAlias)->SEQLIB)
+		cSeqLib := (cAlias)->SEQLIB
 	EndIf
 	
 	cFilAut		:= (cAlias)->FILIAL
@@ -398,30 +411,51 @@ While (cAlias)->( !Eof() )
 	//------------------------------------+
 	oPedido[#"itens"]				:= {}
 	
-	While (cAlias)->( !Eof() .And. cFilAut == (cAlias)->FILIAL .And.  cPedVen == (cAlias)->PEDIDO )
+	//------------------------+
+	// Posiciona filial atual |
+	//------------------------+
+	If cFilAnt <> cFilAut
+		cFilAux	:= cFilAnt
+		cFilAnt := cFilAut
+	EndIf
+
+	//---------------------------+
+	// Posiciona itens do pedido | 	
+	//---------------------------+
+	SC9->( dbSeek(xFilial("SC9") + cPedVen) )
+	While SC9->( !Eof() .And. xFilial("SC9") + cPedVen == SC9->C9_FILIAL + SC9->C9_PEDIDO )
 		
 		//-----------------+
 		// Itens do pedido |
 		//-----------------+
 		aAdd(oPedido[#"itens"],Array(#))
 		oItens := aTail(oPedido[#"itens"])
-		oItens[#"item"]			:= (cAlias)->ITEM 
-		oItens[#"produto"]		:= (cAlias)->PRODUTO 
-		oItens[#"quantidade"]	:= (cAlias)->QTDLIB
-		oItens[#"valor_unit"]	:= (cAlias)->PRCVEN
-		oItens[#"valor_total"]	:= (cAlias)->PRCTOTAL
-		oItens[#"um"]			:= (cAlias)->UM
-		oItens[#"lote"]			:= (cAlias)->LOTE
-		oItens[#"data_validade"]:= (cAlias)->DTVALID
-		oItens[#"armazem"]		:= (cAlias)->ARMAZEM
+		oItens[#"item"]			:= SC9->C9_ITEM
+		oItens[#"produto"]		:= SC9->C9_PRODUTO 
+		oItens[#"quantidade"]	:= SC9->C9_QTDLIB
+		oItens[#"valor_unit"]	:= SC9->C9_PRCVEN
+		oItens[#"valor_total"]	:= (SC9->C9_QTDLIB * SC9->C9_PRCVEN)
+		oItens[#"um"]			:= Posicione("SB1",1,xFilial("SB1") + SC9->C9_PRODUTO,"B1_UM")
+		oItens[#"lote"]			:= SC9->C9_LOTECTL
+		oItens[#"data_validade"]:= SC9->C9_DTVALID
+		oItens[#"armazem"]		:= SC9->C9_LOCAL
 		
 		//-----------------------+
 		// Atualiza item enviado |
 		//-----------------------+
-		DnApi07I(cFilAut,cPedVen,(cAlias)->ITEM,(cAlias)->PRODUTO)
+		DnApi07I(cFilAut,cPedVen,SC9->C9_ITEM,SC9->C9_PRODUTO )
 
-		(cAlias)->( dbSkip() )
+		SC9->( dbSkip() )
 	EndDo
+
+	//-----------------------+
+	// Restaura filial atual | 
+	//-----------------------+
+	If cFilAnt <> cFilAux
+		cFilAnt := cFilAux
+	EndIf
+	
+	(cAlias)->( dbSkip() )
 
 EndDo
 
@@ -737,7 +771,7 @@ If _lContinua
 		// Log processo da nota |
 		//----------------------+
 		LogExec(_cPedido + "DIVERGENCIA SEPARAÇÃO.")
-		aAdd(aMsgErro,{cFilAnt,_cPedido,.F.,"DIVERGENCIA SEPARAÇÃO."})
+		aAdd(aMsgErro,{cFilAnt,_cPedido,.T.,"DIVERGENCIA SEPARAÇÃO."})
 		
 	//------------------------------+	
 	// Libera faturamento do pedido |
@@ -908,6 +942,7 @@ SC9->( dbSeek(xFilial("SC9") + SC5->C5_NUM) )
 While SC9->( !Eof() .And. xFilial("SC9") + SC5->C5_NUM == SC9->C9_FILIAL + SC9->C9_PEDIDO)
 	If SC6->( dbSeeK(xFilial("SC9") + SC9->C9_PEDIDO + SC9->C9_ITEM + SC9->C9_PRODUTO) )
 		If !Empty(SC6->C6_XENVWMS) .And. !Empty(SC6->C6_XDTALT) .And.  !Empty(SC6->C6_XHRALT)
+
 			//------------------------+
 			// Atualiza item liberado |
 			//------------------------+
@@ -977,16 +1012,7 @@ cQuery += "		CODTRANSP, " + CRLF
 cQuery += "		EMISSAO, " + CRLF
 cQuery += "		TIPO, " + CRLF
 cQuery += "		SEQLIB, " + CRLF
-cQuery += "		RECNOSC5, " + CRLF
-cQuery += "		ITEM, " + CRLF
-cQuery += "		PRODUTO, " + CRLF
-cQuery += "		QTDLIB, " + CRLF
-cQuery += "		PRCVEN, " + CRLF
-cQuery += "		PRCTOTAL, " + CRLF
-cQuery += "		UM, " + CRLF
-cQuery += "		LOTE, " + CRLF
-cQuery += "		DTVALID, " + CRLF
-cQuery += "		ARMAZEM " + CRLF
+cQuery += "		RECNOSC5 " + CRLF
 cQuery += "	FROM ( " + CRLF
 cQuery += "			SELECT " + CRLF
 cQuery += "				ROW_NUMBER() OVER(ORDER BY C5.C5_NUM) RNUM, " + CRLF
@@ -998,20 +1024,12 @@ cQuery += "				C5.C5_TRANSP CODTRANSP, " + CRLF
 cQuery += "				C5.C5_EMISSAO EMISSAO, " + CRLF
 cQuery += "				C5.C5_TIPO TIPO, " + CRLF
 cQuery += "				C5.C5_XSEQLIB SEQLIB, " + CRLF
-cQuery += "				C5.R_E_C_N_O_ RECNOSC5, " + CRLF
-cQuery += "				C9.C9_ITEM ITEM, " + CRLF
-cQuery += "				C9.C9_PRODUTO PRODUTO, " + CRLF
-cQuery += "				C9.C9_QTDLIB QTDLIB, " + CRLF
-cQuery += "				C6.C6_PRCVEN PRCVEN, " + CRLF
-cQuery += "				C6.C6_VALOR PRCTOTAL, " + CRLF
-cQuery += "				C6.C6_UM UM, " + CRLF
-cQuery += "				C9.C9_LOTECTL LOTE, " + CRLF
-cQuery += "				C9.C9_DTVALID DTVALID, " + CRLF
-cQuery += "				C9.C9_LOCAL ARMAZEM " + CRLF
+cQuery += "				C5.R_E_C_N_O_ RECNOSC5
 cQuery += "			FROM " + CRLF
 cQuery += "				" + RetSqlName("SC5") + " C5 " + CRLF 
 
 cQuery += "				INNER JOIN " + RetSqlName("SC6") + " C6 ON C6.C6_FILIAL = C5.C5_FILIAL AND C6.C6_NUM = C5.C5_NUM AND C6.C6_NOTA = '' AND C6.C6_SERIE = '' AND C6.C6_BLQ <> 'R' AND C6.D_E_L_E_T_ = '' " + CRLF
+cQuery += "				INNER JOIN " + RetSqlName("SF4") + " F4 ON F4.F4_FILIAL = C6.C6_FILIAL AND F4.F4_CODIGO = C6.C6_TES AND F4.F4_ESTOQUE = 'S' AND F4.D_E_L_E_T_ = '' " + CRLF
 cQuery += "				INNER JOIN " + RetSqlName("SC9") + " C9 ON C9.C9_FILIAL = C6.C6_FILIAL AND C9.C9_PEDIDO = C6.C6_NUM AND C9.C9_PRODUTO = C6.C6_PRODUTO AND C9.C9_ITEM = C6.C6_ITEM AND C9.C9_BLEST = '' AND C9.C9_BLCRED = '' AND C9.C9_NFISCAL = '' AND C9.D_E_L_E_T_ = '' " + CRLF
 
 cQuery += "			WHERE " + CRLF
@@ -1036,11 +1054,10 @@ Else
 EndIf
 
 cQuery += "				C5.D_E_L_E_T_ = '' " + CRLF
+cQuery += "			GROUP BY C5.C5_FILIAL,C5.C5_NUM,C5.C5_CLIENTE,C5.C5_LOJACLI,C5.C5_TRANSP,C5.C5_EMISSAO,C5.C5_TIPO,C5.C5_XSEQLIB,C5.R_E_C_N_O_  " + CRLF
 cQuery += "	) PEDIDO  " + CRLF
 cQuery += "	WHERE RNUM > " + cTamPage + " * (" + cPage + " - 1) " + CRLF 
-cQuery += "	ORDER BY FILIAL,PEDIDO,ITEM"
-
-//LogExec(cQuery)
+cQuery += "	ORDER BY FILIAL,PEDIDO"
 
 dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
 
@@ -1077,13 +1094,20 @@ Local cHora		:= SubStr(cDataHora,At("T",cDataHora) + 1)
 nTotPag := 0
 nTotQry := 0
 
-cQuery := "	SELECT " + CRLF
-cQuery += "		COUNT(*) TOTREG " + CRLF
-cQuery += "	FROM " + CRLF 
-cQuery += "				" + RetSqlName("SC5") + " C5 " + CRLF 
 
-//cQuery += "				INNER JOIN " + RetSqlName("SC6") + " C6 ON C6.C6_FILIAL = C5.C5_FILIAL AND C6.C6_NUM = C5.C5_NUM AND C6.D_E_L_E_T_ = '' " + CRLF
-//cQuery += "				INNER JOIN " + RetSqlName("SC9") + " C9 ON C9.C9_FILIAL = C6.C6_FILIAL AND C9.C9_PEDIDO = C6.C6_NUM AND C9.C9_PRODUTO = C6.C6_PRODUTO AND C9.C9_ITEM = C6.C6_ITEM AND C9.C9_BLEST = '' AND C9.C9_BLCRED = '' AND C9.C9_NFISCAL = '' AND C9.D_E_L_E_T_ = '' " + CRLF
+cQuery := "	SELECT " + CRLF
+cQuery += "		COUNT(PEDIDO) TOTREG " + CRLF
+cQuery += "	FROM " + CRLF
+cQuery += " ( " + CRLF
+cQuery += "		SELECT " + CRLF 		
+cQuery += "			C5.C5_FILIAL, " + CRLF
+cQuery += "			C5.C5_NUM PEDIDO " + CRLF
+cQuery += "		FROM " + CRLF 
+cQuery += "			" + RetSqlName("SC5") + " C5 " + CRLF 
+
+cQuery += "				INNER JOIN " + RetSqlName("SC6") + " C6 ON C6.C6_FILIAL = C5.C5_FILIAL AND C6.C6_NUM = C5.C5_NUM AND C6.D_E_L_E_T_ = '' " + CRLF
+cQuery += "				INNER JOIN " + RetSqlName("SF4") + " F4 ON F4.F4_FILIAL = C6.C6_FILIAL AND F4.F4_CODIGO = C6.C6_TES AND F4.F4_ESTOQUE = 'S' AND F4.D_E_L_E_T_ = '' " + CRLF
+cQuery += "				INNER JOIN " + RetSqlName("SC9") + " C9 ON C9.C9_FILIAL = C6.C6_FILIAL AND C9.C9_PEDIDO = C6.C6_NUM AND C9.C9_PRODUTO = C6.C6_PRODUTO AND C9.C9_ITEM = C6.C6_ITEM AND C9.C9_BLEST = '' AND C9.C9_BLCRED = '' AND C9.C9_NFISCAL = '' AND C9.D_E_L_E_T_ = '' " + CRLF
 
 cQuery += "			WHERE " + CRLF
 
@@ -1105,8 +1129,8 @@ Else
 	cQuery += "				C5.C5_NUM = '" + cPedido + "' AND " + CRLF
 EndIf
 cQuery += "				C5.D_E_L_E_T_ = ''  " + CRLF
-//cQuery += "		GROUP BY C5.C5_NUM " + CRLF
-//cQuery += "		HAVING COUNT(C5.C5_NUM) > 0 "
+cQuery += "		GROUP BY C5.C5_FILIAL,C5.C5_NUM " + CRLF
+cQuery += ") PEDIDOS "
 
 dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
 
@@ -1200,7 +1224,7 @@ _cSaldo := SA1->A1_XACESAL
 //-------------------------------------------+
 RecLock("SC5",.F.)
 	SC5->C5_XRESIDU := IIF(_cSaldo == "1","2","1")
-	SC5->C5_XENVWMS := "2"
+	SC5->C5_XENVWMS := "3"
 	SC5->C5_XDTALT	:= Date()
 	SC5->C5_XHRALT	:= Time()
 SC5->( MsUnLock() )
@@ -1260,7 +1284,7 @@ Local _aArea		:= GetArea()
 Local _nQtdLib		:= 0
 
 Local _lCredito 	:= .F.
-Local _lEstoque		:= .F.
+Local _lEstoque		:= .T.
 Local _lLiber		:= .T.
 Local _lTransf   	:= .F.
 Local _lRet			:= .T.
@@ -1271,7 +1295,7 @@ Local _lRet			:= .T.
 dbSelectArea("SC5")
 SC5->( dbSetOrder(1) )
 RecLock("SC5",.F.)
-	SC5->C5_XENVWMS := "1"
+	SC5->C5_XENVWMS := "3"
 	SC5->C5_XDTALT	:= Date()
 	SC5->C5_XHRALT	:= Time()
 SC5->( MsUnLock() )
@@ -1286,16 +1310,16 @@ While SC6->( !Eof() .And. xFilial("SC6") + _cPedido == SC6->C6_FILIAL + SC6->C6_
 
 	_nQtdLib := SC6->C6_QTDVEN - ( SC6->C6_QTDEMP + SC6->C6_QTDENT + SC6->C6_QTDLIB + SC6->C6_XQTDRES )  
 	If _nQtdLib > 0
-		MaLibDoFat(SC6->(RecNo()),_nQtdLib,@_lCredito,@_lEstoque,.T.,.T.,_lLiber,_lTransf)
+		MaLibDoFat(SC6->(RecNo()),_nQtdLib,@_lCredito,@_lEstoque,.F.,.F.,_lLiber,_lTransf)
 	EndIf
 
 	//-------------------------+
 	// Atualiza flag dos itens |
 	//-------------------------+
 	RecLock("SC6",.F.)
-		SC6->C6_XENVWMS := ""
-		SC6->C6_XDTALT	:= dToc('')
-		SC6->C6_XHRALT	:= ""
+		SC6->C6_XENVWMS := "3"
+		SC6->C6_XDTALT	:= Date()
+		SC6->C6_XHRALT	:= Time()
 	SC6->( MsUnLock() )
 
 	SC6->( dbSkip() )

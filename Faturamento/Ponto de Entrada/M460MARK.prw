@@ -28,6 +28,7 @@ Local cNomCli	:= ""
 Local cMarca	:= ParamIXB[1]
 Local lInverte	:= ParamIXB[2]
 Local clQrb 	:= CHR(13) + CHR(10)
+Local cPedEco	:= ""
 
 //-----------------------------------------------+
 // Valida se o pedido foi confirmada a separação |
@@ -58,11 +59,12 @@ TCQuery cQuery NEW ALIAS (cAlias)
 
 While !(cAlias)->(Eof())
 	nTotPed	+= (cAlias)->C9_QTDLIB * (cAlias)->C9_PRCVEN
-
+	cPedEco	:= Posicione("SC5",1,(cAlias)->C9_FILIAL+(cAlias)->C9_PEDIDO,"C5_XNUMECO")
+	
 	If cFilCST == (cAlias)->C9_FILIAL
 		cUFCli	:= Posicione("SA1",1,xFilial("SA1")+(cAlias)->C9_CLIENTE + (cAlias)->C9_LOJA,"A1_EST")
 		cNomCli	:= Posicione("SA1",1,xFilial("SA1")+(cAlias)->C9_CLIENTE + (cAlias)->C9_LOJA,"A1_NOME")
-		If !Empty(cUFCli) .And. Alltrim(cUFCli) <> "SP"
+		If !Empty(cUFCli) .And. Alltrim(cUFCli) <> "SP" .And. Empty(cPedEco)
 			Msginfo("Não é permitido faturar pedidos, para clientes com UF: "+Alltrim(cUFCli)+", na Filial: "+cFilCST+"! Apenas clientes de SP podem faturar nessa filial. " + clQrb + "Pedido: "+ (cAlias)->C9_PEDIDO + clQrb + "Cliente: "+Alltrim((cAlias)->C9_CLIENTE) + clQrb + "Loja: " +  Alltrim((cAlias)->C9_LOJA) + clQrb + "Nome: " + Alltrim(cNomCli),"M460MARK - D A N A  C O S M É T I C O S")
 			lRet	:= .F.
 		Endif

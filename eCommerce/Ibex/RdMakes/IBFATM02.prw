@@ -295,7 +295,7 @@ For _nX := 1 To Len(_aDirCab)
             //----------------------------------------------------------------------------+
             // Se conseguiu enviar, renomeia o arquivo do diretorio de envio do Protheus. |
             //----------------------------------------------------------------------------+
-            _cArqBkp := StrTran(_aDirCab[_nX,1] , ".rdc", ".IMP" )
+            _cArqBkp := StrTran(_aDirCab[_nX,1] , ".rnc", ".imp" )
             FTPRenameFile(_aDirCab[_nX,1], _cArqBkp)
             LogExec( "<< IBFATM02 >> - " + Dtoc(Date()) + " " + Time() + " Arquivo " + _aDirCab[_nX,1] + " copiado com sucesso.")
             Exit
@@ -339,7 +339,7 @@ For _nX := 1 To Len(_aDirItem)
             //----------------------------------------------------------------------------+
             // Se conseguiu enviar, renomeia o arquivo do diretorio de envio do Protheus. |
             //----------------------------------------------------------------------------+
-            _cArqBkp := StrTran(_aDirItem[_nX,1] , ".rnc", ".IMP" )
+            _cArqBkp := StrTran(_aDirItem[_nX,1] , ".rdc", ".imp" )
             FTPRenameFile(_aDirItem[_nX,1], _cArqBkp)
             LogExec( "<< IBFATM02 >> - " + Dtoc(Date()) + " " + Time() + " Arquivo " + _aDirItem[_nX,1] + " copiado com sucesso.")
             Exit

@@ -308,14 +308,15 @@ Local aRet		:= {.F.,""}
 Local cAlias	:= GetNextAlias()	
 Local cRest		:= ""
 Local cDoc 		:= ""
-Local cSerie	:= ""
+Local cSerieNf	:= ""
 Local cCodForn	:= ""
 Local cLoja		:= ""
 Local cCnpj		:= ""
 Local cCodTransp:= ""
 Local cTpDoc	:= ""
 Local dDtaEmiss	:= ""
-	
+Local cFilAux	:= ""
+
 Local oJson		:= Nil
 Local oNFE		:= Nil
 Local oItens	:= Nil
@@ -323,7 +324,7 @@ Local oItens	:= Nil
 Private nTotPag	:= 0
 Private nTotQry	:= 0
 
-Default cTamPage:= "50" 
+Default cTamPage:= "200" 
 Default cPage	:= "1" 
 
 If !DnaApiQry(cAlias,cNota,cSerie,cDataHora,cTamPage,cPage)
@@ -347,6 +348,12 @@ If !DnaApiQry(cAlias,cNota,cSerie,cDataHora,cTamPage,cPage)
 	Return aRet
 EndIf
 
+//-------------------------+
+// Posiciona Itens da Nota |
+//-------------------------+
+dbSelectArea("SD1")
+SD1->( dbSetOrder(1) )
+
 //--------------------------+
 // Inicaliza Matriz HashMap |
 //--------------------------+
@@ -362,7 +369,7 @@ While (cAlias)->( !Eof() )
 	
 	cFilAtu		:= (cAlias)->FILIAL
 	cDoc 		:= (cAlias)->NOTA
-	cSerie		:= (cAlias)->SERIE
+	cSerieNf	:= (cAlias)->SERIE
 	cCodForn	:= (cAlias)->FORNECE
 	cLoja		:= (cAlias)->LOJA
 	cCnpj		:= (cAlias)->CNPJ
@@ -375,7 +382,7 @@ While (cAlias)->( !Eof() )
 	//-----------------------------+
 	oNFE[#"filial"]				:= cFilAtu
 	oNFE[#"nota"]				:= cDoc
-	oNFE[#"serie"]				:= cSerie
+	oNFE[#"serie"]				:= cSerieNf
 	oNFE[#"codigo_fornecedor"]	:= cCodForn
 	oNFE[#"loja"]				:= cLoja
 	oNFE[#"cnpj"]				:= cCnpj
@@ -388,23 +395,44 @@ While (cAlias)->( !Eof() )
 	//----------------------------------+
 	oNFE[#"itens"]				:= {}
 	
-	While (cAlias)->( !Eof() .And. cFilAtu == (cAlias)->FILIAL .And. cDoc + cSerie == (cAlias)->NOTA + (cAlias)->SERIE )
-		
-		//---------------+
-		// Itens da Nota |
-		//---------------+
-		aAdd(oNFE[#"itens"],Array(#))
-		oItens := aTail(oNFE[#"itens"])
-		oItens[#"item"]			:= (cAlias)->ITEM 
-		oItens[#"produto"]		:= (cAlias)->PRODUTO 
-		oItens[#"quantidade"]	:= (cAlias)->QUANTIDADE
-		oItens[#"um"]			:= (cAlias)->UM
-		oItens[#"lote"]			:= (cAlias)->LOTECTL
-		oItens[#"data_validade"]:= (cAlias)->DTA_VALIDADE
-		oItens[#"armazem"]		:= (cAlias)->ARMAZEM
-		
+	//------------------------+
+	// Posiciona filial atual |
+	//------------------------+
+	If cFilAnt <> cFilAtu
+		cFilAux	:= cFilAnt
+		cFilAnt := cFilAtu
+	EndIf
+
+	If SD1->( dbSeek(xFilial("SD1") + cDoc + cSerieNf + cCodForn + cLoja) )
+
+		While SD1->( !Eof() .And. xFilial("SD1") + cDoc + cSerieNf + cCodForn + cLoja == SD1->D1_FILIAL + SD1->D1_DOC + SD1->D1_SERIE + SD1->D1_FORNECE + SD1->D1_LOJA )
+			
+			//---------------+
+			// Itens da Nota |
+			//---------------+
+			aAdd(oNFE[#"itens"],Array(#))
+			oItens := aTail(oNFE[#"itens"])
+			oItens[#"item"]			:= SD1->D1_ITEM 
+			oItens[#"produto"]		:= SD1->D1_COD
+			oItens[#"quantidade"]	:= SD1->D1_QUANT
+			oItens[#"um"]			:= SD1->D1_UM
+			oItens[#"lote"]			:= SD1->D1_LOTECTL
+			oItens[#"data_validade"]:= SD1->D1_DTVALID
+			oItens[#"armazem"]		:= SD1->D1_LOCAL
+			
+			SD1->( dbSkip() )
+		EndDo
+
+		//-----------------------+
+		// Restaura filial atual | 
+		//-----------------------+
+		If cFilAnt <> cFilAux
+			cFilAnt := cFilAux
+		EndIf
+
 		(cAlias)->( dbSkip() )
-	EndDo
+
+	EndIf
 EndDo
 
 //-----------+
@@ -714,14 +742,7 @@ cQuery += "		CNPJ, " + CRLF
 cQuery += "		CODTRANSP, " + CRLF
 cQuery += "		EMISSAO, " + CRLF
 cQuery += "		TIPODOC, " + CRLF
-cQuery += "		RECNOSF1, " + CRLF
-cQuery += "		ITEM, " + CRLF 
-cQuery += "		PRODUTO, " + CRLF 
-cQuery += "		QUANTIDADE, " + CRLF
-cQuery += "		UM, " + CRLF
-cQuery += "		LOTECTL, " + CRLF
-cQuery += "		DTA_VALIDADE, " + CRLF
-cQuery += "		ARMAZEM " + CRLF
+cQuery += "		RECNOSF1 " + CRLF
 cQuery += "	FROM " + CRLF
 cQuery += "	( " + CRLF
 cQuery += "		SELECT " + CRLF 
@@ -735,14 +756,7 @@ cQuery += "			CNPJ, " + CRLF
 cQuery += "			CODTRANSP, " + CRLF
 cQuery += "			EMISSAO, " + CRLF
 cQuery += "			TIPODOC, " + CRLF
-cQuery += "			RECNOSF1, " + CRLF
-cQuery += "			ITEM, " + CRLF
-cQuery += "			PRODUTO, " + CRLF
-cQuery += "			QUANTIDADE, " + CRLF
-cQuery += "			UM, " + CRLF
-cQuery += "			LOTECTL, " + CRLF
-cQuery += "			DTA_VALIDADE, " + CRLF
-cQuery += "			ARMAZEM " + CRLF
+cQuery += "			RECNOSF1 " + CRLF
 cQuery += "		FROM " + CRLF
 cQuery += "		( " + CRLF
 cQuery += "			SELECT " + CRLF 
@@ -755,22 +769,12 @@ cQuery += "				A2.A2_CGC CNPJ, " + CRLF
 cQuery += "				F1.F1_TRANSP CODTRANSP, " + CRLF
 cQuery += "				F1.F1_DTDIGIT EMISSAO, " + CRLF
 cQuery += "				F1.F1_TIPO TIPODOC, " + CRLF
-cQuery += "				F1.R_E_C_N_O_ RECNOSF1, " + CRLF
-cQuery += "				D1.D1_ITEM ITEM, " + CRLF 
-cQuery += "				D1.D1_COD PRODUTO, " + CRLF 
-cQuery += "				D1.D1_QUANT QUANTIDADE, " + CRLF
-cQuery += "				D1.D1_UM UM, " + CRLF
-cQuery += "				D1.D1_LOTECTL LOTECTL, " + CRLF
-cQuery += "				D1.D1_DTVALID DTA_VALIDADE, " + CRLF
-cQuery += "				D1.D1_LOCAL ARMAZEM " + CRLF
+cQuery += "				F1.R_E_C_N_O_ RECNOSF1 " + CRLF
 cQuery += "			FROM " + CRLF
 cQuery += "				" + RetSqlName("SF1") + " F1 " + CRLF
-
 cQuery += "				INNER JOIN " + RetSqlName("SD1") + " D1 ON D1.D1_FILIAL = F1.F1_FILIAL AND D1.D1_DOC = F1.F1_DOC AND D1.D1_SERIE = F1.F1_SERIE AND D1.D1_FORNECE = F1.F1_FORNECE AND D1.D1_LOJA = F1.F1_LOJA AND D1.D1_PEDIDO <> '' AND D1.D1_ITEMPC <> '' AND D1.D_E_L_E_T_ = '' " + CRLF
-//cQuery += "				INNER JOIN " + RetSqlName("SF4") + " F4 ON F4.F4_FILIAL = '" + xFilial("SF4") + "' AND F4.F4_CODIGO = D1.D1_TES AND F4.F4_ESTOQUE = 'S' AND F4.D_E_L_E_T_ = '' " + CRLF 
+cQuery += "				INNER JOIN " + RetSqlName("SF4") + " F4 ON F4.F4_FILIAL = '" + xFilial("SF4") + "' AND F4.F4_CODIGO = D1.D1_TES AND F4.F4_ESTOQUE = 'S' AND F4.D_E_L_E_T_ = '' " + CRLF 
 cQuery += "				INNER JOIN " + RetSqlName("SA2") + " A2 ON A2.A2_FILIAL = F1.F1_FILIAL AND A2.A2_COD = F1.F1_FORNECE AND A2.A2_LOJA = F1.F1_LOJA AND A2.D_E_L_E_T_ = '' " + CRLF
- 
-
 cQuery += "			WHERE " + CRLF
 
 If _lSF1Comp
@@ -790,8 +794,8 @@ cQuery += "			F1.F1_XENVWMS IN (' ','1') AND " + CRLF
 cQuery += "			F1.F1_TIPO = 'N' AND " + CRLF
 cQuery += "			F1.F1_STATUS = '' AND " + CRLF
 cQuery += "			F1.D_E_L_E_T_ = '' " + CRLF
-
-cQuery += "			UNION ALL " + CRLF
+cQuery += "			GROUP BY F1.F1_FILIAL,F1.F1_DOC,F1.F1_SERIE,F1.F1_FORNECE,F1.F1_LOJA,A2.A2_CGC,F1.F1_TRANSP,F1.F1_DTDIGIT,F1.F1_TIPO,F1.R_E_C_N_O_ " + CRLF
+cQuery += "		UNION ALL " + CRLF
 
 cQuery += "			SELECT " + CRLF 
 cQuery += "				F1.F1_FILIAL FILIAL, " + CRLF
@@ -803,21 +807,12 @@ cQuery += "				A1.A1_CGC CNPJ, " + CRLF
 cQuery += "				F1.F1_TRANSP CODTRANSP, " + CRLF
 cQuery += "				F1.F1_DTDIGIT EMISSAO, " + CRLF
 cQuery += "				F1.F1_TIPO TIPODOC, " + CRLF
-cQuery += "				F1.R_E_C_N_O_ RECNOSF1, " + CRLF
-cQuery += "				D1.D1_ITEM ITEM, " + CRLF 
-cQuery += "				D1.D1_COD PRODUTO, " + CRLF 
-cQuery += "				D1.D1_QUANT QUANTIDADE, " + CRLF
-cQuery += "				D1.D1_UM UM, " + CRLF
-cQuery += "				D1.D1_LOTECTL LOTECTL, " + CRLF
-cQuery += "				D1.D1_DTVALID DTA_VALIDADE, " + CRLF
-cQuery += "				D1.D1_LOCAL ARMAZEM " + CRLF
+cQuery += "				F1.R_E_C_N_O_ RECNOSF1 " + CRLF
 cQuery += "			FROM " + CRLF
 cQuery += "				" + RetSqlName("SF1") + " F1 " + CRLF
-
 cQuery += "				INNER JOIN " + RetSqlName("SD1") + " D1 ON D1.D1_FILIAL = F1.F1_FILIAL AND D1.D1_DOC = F1.F1_DOC AND D1.D1_SERIE = F1.F1_SERIE AND D1.D1_FORNECE = F1.F1_FORNECE AND D1.D1_LOJA = F1.F1_LOJA AND D1.D_E_L_E_T_ = '' " + CRLF
-//cQuery += "				INNER JOIN " + RetSqlName("SF4") + " F4 ON F4.F4_FILIAL = '" + xFilial("SF4") + "' AND F4.F4_CODIGO = D1.D1_TES AND F4.F4_ESTOQUE = 'S' AND F4.D_E_L_E_T_ = '' " + CRLF 
+cQuery += "				INNER JOIN " + RetSqlName("SF4") + " F4 ON F4.F4_FILIAL = '" + xFilial("SF4") + "' AND F4.F4_CODIGO = D1.D1_TES AND F4.F4_ESTOQUE = 'S' AND F4.D_E_L_E_T_ = '' " + CRLF 
 cQuery += "				INNER JOIN " + RetSqlName("SA1") + " A1 ON A1.A1_FILIAL = '" + xFilial("SA1") + "' AND A1.A1_COD = F1.F1_FORNECE AND A1.A1_LOJA = F1.F1_LOJA AND A1.D_E_L_E_T_ = '' " + CRLF
-
 cQuery += "			WHERE " + CRLF
 
 If _lSF1Comp
@@ -837,6 +832,7 @@ EndIf
 cQuery += "			F1.F1_XENVWMS IN (' ','1') AND " + CRLF
 cQuery += "			F1.F1_TIPO IN ('D','B') AND " + CRLF
 cQuery += "			F1.D_E_L_E_T_ = '' " + CRLF
+cQuery += "			GROUP BY F1.F1_FILIAL,F1.F1_DOC,F1.F1_SERIE,F1.F1_FORNECE,F1.F1_LOJA,A1.A1_CGC,F1.F1_TRANSP,F1.F1_DTDIGIT,F1.F1_TIPO,F1.R_E_C_N_O_ " + CRLF
 cQuery += "		) NF_NORMAL_DEVOLUCAO " + CRLF
 cQuery += "	) NFENTRADA " + CRLF
 cQuery += "	WHERE RNUM > " + cTamPage + " * (" + cPage + " - 1) " 
@@ -879,34 +875,45 @@ nTotPag := 0
 nTotQry := 0
 
 cQuery := "	SELECT " + CRLF
-cQuery += "		COUNT(DISTINCT F1.F1_DOC) TOTREG " + CRLF
-cQuery += "	FROM " + CRLF 
+cQuery += "		COUNT(DOC) TOTREG " + CRLF
+cQuery += "	FROM " + CRLF
+cQuery += " ( " + CRLF
+cQuery += "		SELECT " + CRLF
+cQuery += "			F1.F1_FILIAL FILIAL, " + CRLF
+cQuery += "			F1.F1_DOC DOC, " + CRLF
+cQuery += "			F1.F1_SERIE SERIE, " + CRLF
+cQuery += "			F1.F1_FORNECE FORNECE, " + CRLF
+cQuery += "			F1.F1_LOJA LOJA " + CRLF
+cQuery += "		FROM " + CRLF 
 cQuery += "			" + RetSqlName("SF1") + " F1 " + CRLF
 
 cQuery += "			INNER JOIN " + RetSqlName("SD1") + " D1 ON D1.D1_FILIAL = F1.F1_FILIAL AND D1.D1_DOC = F1.F1_DOC AND D1.D1_SERIE = F1.F1_SERIE AND D1.D1_FORNECE = F1.F1_FORNECE AND D1.D1_LOJA = F1.F1_LOJA AND D1.D1_PEDIDO <> '' AND D1.D1_ITEMPC <> '' AND D1.D_E_L_E_T_ = '' " + CRLF 
+cQuery += "			INNER JOIN " + RetSqlName("SF4") + " F4 ON F4.F4_FILIAL = D1.D1_FILIAL AND F4.F4_CODIGO = D1.D1_TES AND F4.F4_ESTOQUE = 'S' AND F4.D_E_L_E_T_ = '' " + CRLF 
 cQuery += "			LEFT OUTER JOIN " + RetSqlName("SA1") + " A1 ON A1.A1_FILIAL = '" + xFilial("SA1") + "' AND A1.A1_COD = F1.F1_FORNECE AND A1.A1_LOJA = F1.F1_LOJA AND A1.D_E_L_E_T_ = '' " + CRLF    
 cQuery += "			LEFT OUTER JOIN " + RetSqlName("SA2") + " A2 ON A2.A2_FILIAL = D1.D1_FILIAL AND A2.A2_COD = F1.F1_FORNECE AND A2.A2_LOJA = F1.F1_LOJA AND A2.D_E_L_E_T_ = '' " + CRLF
 
 cQuery += "		WHERE " + CRLF
 
 If _lSF1Comp
-	cQuery += "				F1.F1_FILIAL = '" + xFilial("SF1") + "' AND " + CRLF
+	cQuery += "			F1.F1_FILIAL = '" + xFilial("SF1") + "' AND " + CRLF
 Else
-	cQuery += "				F1.F1_FILIAL IN" + _cFilWMS + " AND " + CRLF
+	cQuery += "			F1.F1_FILIAL IN" + _cFilWMS + " AND " + CRLF
 EndIf
 
 If Empty(cNota) .And. Empty(cSerie) 
-	cQuery += "			CAST((F1.F1_XDTALT + ' ' + F1.F1_XHRALT) AS DATETIME) >= CAST(('" + cData + "' + ' ' + '" + cHora + ".000') AS DATETIME) AND " + CRLF
-	cQuery += "			CAST((F1.F1_XDTALT + ' ' + F1.F1_XHRALT) AS DATETIME) <= CAST(('" + dTos(dDataBase) + "' + ' ' + '" + Time() + ".000') AS DATETIME) AND " + CRLF
+	cQuery += "		CAST((F1.F1_XDTALT + ' ' + F1.F1_XHRALT) AS DATETIME) >= CAST(('" + cData + "' + ' ' + '" + cHora + ".000') AS DATETIME) AND " + CRLF
+	cQuery += "		CAST((F1.F1_XDTALT + ' ' + F1.F1_XHRALT) AS DATETIME) <= CAST(('" + dTos(dDataBase) + "' + ' ' + '" + Time() + ".000') AS DATETIME) AND " + CRLF
 Else	 
-	cQuery += "			F1.F1_DOC = '" + cNota + "' AND " + CRLF
-	cQuery += "			F1.F1_SERIE = '" + cSerie + "' AND " + CRLF
+	cQuery += "		F1.F1_DOC = '" + cNota + "' AND " + CRLF
+	cQuery += "		F1.F1_SERIE = '" + cSerie + "' AND " + CRLF
 EndIf
  
 cQuery += "		F1.F1_XENVWMS IN (' ','1') AND " + CRLF
 cQuery += "		F1.F1_TIPO IN ('N','D','B') AND " + CRLF
 cQuery += "		F1.F1_STATUS = '' AND " + CRLF
 cQuery += "		F1.D_E_L_E_T_ = '' " + CRLF
+cQuery += "	GROUP BY F1.F1_FILIAL,F1.F1_DOC,F1.F1_SERIE,F1.F1_FORNECE,F1.F1_LOJA " + CRLF
+cQuery += ") NFENTRADA " + CRLF
 
 dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
 

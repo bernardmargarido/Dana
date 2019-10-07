@@ -60,7 +60,6 @@ Local cSerie		:= IIF(Empty(::SERIE),"",::SERIE)
 Local cDataHora		:= IIF(Empty(::DATAHORA),"1900-01-01T00:00",::DATAHORA)
 Local cTamPage		:= ::PERPAGE
 Local cPage			:= ::PAGE
-Local cFilAux		:= cFilAnt
 
 Local nLen			:= Len(::aUrlParms)
 
@@ -124,7 +123,7 @@ Local nLen		:= Len(::aUrlParms)
 Local _nX		:= 0
 
 Local oJson		:= Nil
-Local oNota		:= Nil
+Local oNotas	:= Nil
 
 Private cJsonRet:= ""
 	
@@ -218,19 +217,14 @@ Local _cSerie 	:= ""
 Local _cPedido	:= ""
 Local _cFiliAtu	:= ""
 Local _dDtaEmiss:= ""
-	
-Local nX		:= 0
-Local nPosNfe	:= 0
 
 Local oJson		:= Nil
 Local oNFS		:= Nil
 
-Private aRecSF2	:= {} 
-
 Private nTotPag	:= 0
 Private nTotQry	:= 0
 
-Default cTamPage:= "50" 
+Default cTamPage:= "200" 
 Default cPage	:= "1" 
 
 If !DnaApiQry(cAlias,cNota,cSerie,cDataHora,cTamPage,cPage)
@@ -461,6 +455,7 @@ cQuery += "			FROM " + CRLF
 cQuery += "				" + RetSqlName("SF2") + " F2 " + CRLF 
 
 cQuery += "				INNER JOIN " + RetSqlName("SD2") + " D2 ON D2.D2_FILIAL = F2.F2_FILIAL AND D2.D2_DOC = F2.F2_DOC AND D2.D2_SERIE = F2.F2_SERIE AND D2.D_E_L_E_T_ = '' " + CRLF
+cQuery += "				INNER JOIN " + RetSqlName("SF4") + " F4 ON F4.F4_FILIAL = D2.D2_FILIAL AND F4.F4_CODIGO = D2.D2_TES AND F4.F4_ESTOQUE = 'S' AND F4.D_E_L_E_T_ = '' " + CRLF
 //cQuery += "				INNER JOIN " + RetSqlName("SC5") + " C5 ON C5.C5_FILIAL = F2.F2_FILIAL AND C5.C5_NUM = D2.D2_PEDIDO AND C5.C5_XENVWMS = '3' AND C5.D_E_L_E_T_ = '' " + CRLF
 
 cQuery += "			WHERE " + CRLF
@@ -472,7 +467,7 @@ Else
 EndIf
 	
 cQuery += "				F2.F2_XENVWMS IN('1') AND " + CRLF
-	
+cQuery += "				F2.F2_XNUMECO = '' AND " + CRLF
 If Empty(cNota) .And. Empty(cSerie)
 	cQuery += "				CAST((F2.F2_XDTALT + ' ' + F2.F2_XHRALT) AS DATETIME) >= CAST(('" + cData + "' + ' ' + '" + cHora + ".000') AS DATETIME) AND " + CRLF
 	cQuery += "				CAST((F2.F2_XDTALT + ' ' + F2.F2_XHRALT) AS DATETIME) <= CAST(('" + dTos(dDataBase) + "' + ' ' + '" + Time() + ".000') AS DATETIME) AND " + CRLF
@@ -485,8 +480,6 @@ cQuery += "		GROUP BY F2.F2_FILIAL,F2.F2_DOC,F2.F2_SERIE,D2.D2_PEDIDO,F2.F2_EMIS
 cQuery += "	) PEDIDO  " + CRLF
 cQuery += "	WHERE RNUM > " + cTamPage + " * (" + cPage + " - 1) " + CRLF 
 cQuery += "	ORDER BY FILIAL,NOTA,SERIE "
-
-//LogExec(cQuery)
 
 dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
 
@@ -524,31 +517,40 @@ nTotPag := 0
 nTotQry := 0
 
 cQuery := "	SELECT " + CRLF
-cQuery += "		COUNT(*) TOTREG " + CRLF
-cQuery += "	FROM " + CRLF 
-cQuery += "		" + RetSqlName("SF2") + " F2 " + CRLF 
+cQuery += "		COUNT(DOC) TOTREG " + CRLF
+cQuery += "	FROM " + CRLF
+cQuery += " ( " + CRLF
+cQuery += "		SELECT " + CRLF
+cQuery += "			F2.F2_FILIAL FILIAL, " + CRLF
+cQuery += "			F2.F2_DOC DOC, " + CRLF
+cQuery += "			F2.F2_SERIE SERIE " + CRLF
+cQuery += "		FROM " + CRLF 
+cQuery += "			" + RetSqlName("SF2") + " F2 " + CRLF 
 
-//cQuery += "				INNER JOIN " + RetSqlName("SD2") + " D2 ON D2.D2_FILIAL = F2.F2_FILIAL AND D2.D2_DOC = F2.F2_DOC AND D2.D2_SERIE = F2.F2_SERIE AND D2.D_E_L_E_T_ = '' " + CRLF
+cQuery += "			INNER JOIN " + RetSqlName("SD2") + " D2 ON D2.D2_FILIAL = F2.F2_FILIAL AND D2.D2_DOC = F2.F2_DOC AND D2.D2_SERIE = F2.F2_SERIE AND D2.D_E_L_E_T_ = '' " + CRLF
+cQuery += "			INNER JOIN " + RetSqlName("SF4") + " F4 ON F4.F4_FILIAL = D2.D2_FILIAL AND F4.F4_CODIGO = D2.D2_TES AND F4.F4_ESTOQUE = 'S' AND F4.D_E_L_E_T_ = '' " + CRLF
 //cQuery += "				INNER JOIN " + RetSqlName("SC5") + " C5 ON C5.C5_FILIAL = F2.F2_FILIAL AND C5.C5_NUM = D2.D2_PEDIDO AND C5.C5_XENVWMS = '3' AND C5.D_E_L_E_T_ = '' " + CRLF
 
-cQuery += "	WHERE " + CRLF
+cQuery += "		WHERE " + CRLF
 
 If _lSF2Comp
-	cQuery += "				F2.F2_FILIAL = '" + xFilial("SF2") + "' AND " + CRLF
+	cQuery += "			F2.F2_FILIAL = '" + xFilial("SF2") + "' AND " + CRLF
 Else
-	cQuery += "				F2.F2_FILIAL IN" + _cFilWMS + " AND " + CRLF
+	cQuery += "			F2.F2_FILIAL IN" + _cFilWMS + " AND " + CRLF
 EndIf
 
-cQuery += "		F2.F2_XENVWMS IN('1') AND " + CRLF
-
+cQuery += "			F2.F2_XENVWMS IN('1') AND " + CRLF
+cQuery += "			F2.F2_XNUMECO = '' AND " + CRLF
 If Empty(cNota) .And. Empty(cSerie)
-	cQuery += "		CAST((F2.F2_XDTALT + ' ' + F2.F2_XHRALT) AS DATETIME) >= CAST(('" + cData + "' + ' ' + '" + cHora + ".000') AS DATETIME) AND " + CRLF
-	cQuery += "		CAST((F2.F2_XDTALT + ' ' + F2.F2_XHRALT) AS DATETIME) <= CAST(('" + dTos(dDataBase) + "' + ' ' + '" + Time() + ".000') AS DATETIME) AND " + CRLF
+	cQuery += "			CAST((F2.F2_XDTALT + ' ' + F2.F2_XHRALT) AS DATETIME) >= CAST(('" + cData + "' + ' ' + '" + cHora + ".000') AS DATETIME) AND " + CRLF
+	cQuery += "			CAST((F2.F2_XDTALT + ' ' + F2.F2_XHRALT) AS DATETIME) <= CAST(('" + dTos(dDataBase) + "' + ' ' + '" + Time() + ".000') AS DATETIME) AND " + CRLF
 Else
-	cQuery += "		F2.F2_DOC = '" + cNota + "' AND " + CRLF
-	cQuery += "		F2.F2_SERIE = '" + cSerie + "' AND " + CRLF
+	cQuery += "			F2.F2_DOC = '" + cNota + "' AND " + CRLF
+	cQuery += "			F2.F2_SERIE = '" + cSerie + "' AND " + CRLF
 EndIf
-cQuery += "		F2.D_E_L_E_T_ = '' " + CRLF
+cQuery += "			F2.D_E_L_E_T_ = '' " + CRLF
+cQuery += "		GROUP BY F2.F2_FILIAL,F2.F2_DOC,F2.F2_SERIE " + CRLF
+cQuery += ") NOTAS "
 
 dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
 

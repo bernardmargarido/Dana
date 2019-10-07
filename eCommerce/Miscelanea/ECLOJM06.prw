@@ -147,7 +147,7 @@ While (_cAlias)->( !Eof() )
         //-------------------+
         If EcLojM06C(WSA->WSA_NUMECO,_cPDFDanfe)
             RecLock("WSA",.F.)
-                WSA->WSA_ENVLOG := "3"
+                WSA->WSA_ENVLOG := "4"
             WSA->(MsUnLocK() )
             CoNout("<< EcLojM06A >> - EMAIL ENVIADO COM SUCESSO.")
         EndIf
@@ -391,7 +391,7 @@ _cQuery += " WHERE " + CRLF
 _cQuery += "	WSA.WSA_FILIAL = '" + xFilial("WSA") + "' AND " + CRLF
 _cQuery += "	WSA.WSA_DOC <> '' AND " + CRLF
 _cQuery += "	WSA.WSA_SERIE <> '' AND " + CRLF
-_cQuery += "	WSA.WSA_ENVLOG = '2' AND " + CRLF
+_cQuery += "	WSA.WSA_ENVLOG = '3' AND " + CRLF
 _cQuery += "	WSA.WSA_CODSTA = '" + _cCodFat + "' AND " + CRLF 
 _cQuery += "	WSA.D_E_L_E_T_ = '' "
 

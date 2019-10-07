@@ -202,7 +202,7 @@ User Function AEcoMail(cCodInt,cDescInt,aMsgErro,_cPDF)
 	Local cFrom		:= GetMv("MV_RELACNT")
 
 	Local cMail		:= GetNewPar("EC_LOGMAIL")
-	Local cMailIbex	:= GetNewPar("EC_MAILIBX","bernard.margarido@vitreoerp.com.br;agendamento@ibexlogisitica.com.br")
+	Local cMailIbex	:= GetNewPar("EC_MAILIBX","bernard.margarido@vitreoerp.com.br;agendamento@ibexlogistica.com.br")
 	Local cBody		:= ""	
 	Local cRgbCol	:= ""
 	Local cTitulo	:= "Dana Cosmeticos - Integrações e-Commerce"
@@ -858,11 +858,14 @@ Local _cCodSta	:= "005"
 //-------------------------------+
 dbSelectArea("SF2")
 SF2->( dbSetOrder(1) )
-If SF2->( dbSeek(xFilial("SF2") + _cDoc + _cSerie ) )
-	RecLock("SF2",.F.)
-		SF2->F2_XNUMECO := _cOrderId
-	SF2->( MsUnLock() )	 
+If !SF2->( dbSeek(xFilial("SF2") + _cDoc + _cSerie ) )
+	RestArea(_aArea)
+	Return .F.	
 EndIf
+
+RecLock("SF2",.F.)
+	SF2->F2_XNUMECO := _cOrderId
+SF2->( MsUnLock() )	 
 
 //-------------------------------+
 // Atualiza status para faturado | 
@@ -882,6 +885,7 @@ If WSA->( dbSeek(xFilial("WSA") +_cOrderId) )
 		WSA->WSA_SERIE	:= _cSerie
 		WSA->WSA_CODSTA	:= _cCodSta
 		WSA->WSA_DESTAT	:= WS1->WS1_DESCRI
+		WSA->WSA_ENVLOG	:= "3"
 	WSA->( MsUnlock() )
 EndIf
 
@@ -891,6 +895,62 @@ EndIf
 u_AEcoStaLog(_cCodSta,_cOrderId,WSA->WSA_NUM,dDataBase,Time())
 If WS1->WS1_ENVECO == "S"
 	U_AECOI013(_cOrderId)
+EndIf
+
+RestArea(_aArea)
+Return .T.
+
+/*********************************************************************************/
+/*/{Protheus.doc} EcLoj140
+
+@description Ponto de Entrada - Exlcusão orçamento/nota venda assistida
+
+@author Bernard M. Margarido    
+@since 23/04/2019
+@version 1.0
+@type function
+/*/
+/*********************************************************************************/
+User Function EcLoj140()
+Local _aArea    := GetArea()
+Local _cCodSta	:= GetNewPar("EC_STACANC","008")
+
+//-----------------------------+
+// Posiciona pedido e-Commerce |
+//-----------------------------+
+dbSelectArea("WSA")
+WSA->(dbSetOrder(2) )
+If WSA->(dbSeek(xFilial("WSA") + SL1->L1_XNUMECO) )
+    //---------------------------+
+    // Valida se é orçamento PAI | 
+    //---------------------------+
+    If WSA->WSA_NUMSL1 == SL1->L1_NUM 
+        
+		//-----------------------------+
+		// Posiciona tabela de status  |
+		//-----------------------------+
+		dbSelectArea("WS1")
+		WS1->( dbSetOrder(1) )
+		WS1->( dbSeek(xFilial("WS1") + _cCodSta) )
+
+		//---------------------------------+
+        // Atualiza dados do orçamento pai |
+        //---------------------------------+
+        RecLock("WSA",.F.)
+            WSA->WSA_NUMSL1 := ""
+            WSA->WSA_NUMSC5 := ""
+            WSA->WSA_CODSTA := WS1->WS1_CODIGO
+            WSA->WSA_DESTAT := WS1->WS1_DESCRI
+        WSA->( MsUnLock() )
+
+		//---------------------------+
+		// Grava historico do pedido | 
+		//---------------------------+
+        u_AEcoStaLog(_cCodSta,WS1->WS1_NUMECO,WSA->WSA_NUM,dDataBase,Time())
+		If WS1->WS1_ENVECO == "S"
+			U_AEcoStat(WSA->WSA_NUM)
+		EndIf
+    EndIF
 EndIf
 
 RestArea(_aArea)

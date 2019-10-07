@@ -77,7 +77,7 @@ Local _aArea        := GetArea()
 Local _cAlias       := GetNextAlias()
 Local _cTimeArq     := Time()
 Local _cCfop        := ""
-
+Local _cCodSta      := GetNewPar("EC_STASEP","010")
 Local _nTotItens    := 0
 Local _nVlrProd     := 0
 Local _nToReg       := 0
@@ -117,6 +117,12 @@ SC5->( dbSetOrder(1) )
 //---------------------------------+
 dbSelectArea("WSA")
 WSA->( dbSetOrder(2) )
+
+//-----------------------------+
+// Posiciona tabela de status  |
+//-----------------------------+
+dbSelectArea("WS1")
+WS1->( dbSetOrder(1) )
 
 //-----------------------+
 // Cria diretorio Upload |
@@ -174,10 +180,25 @@ While (_cAlias)->( !Eof() )
     // Atualiza pedido como enviado para Logistica |
     //---------------------------------------------+
     If _lFlag
+        
         If WSA->( dbSeek(xFilial("WSA") + (_cAlias)->WSA_NUMECO) )
+
+            //----------------------------+
+            // Posiciona status do pedido | 
+            //----------------------------+
+            WS1->( dbSeek(xFilial("WS1") + _cCodSta) )
+
             RecLock("WSA",.F.)
                 WSA->WSA_ENVLOG := "1"
+                WSA->WSA_CODSTA := _cCodSta
+                WSA->WSA_DESTAT := WS1->WS1_DESCRI
             WSA->( MsUnLock() )    
+
+            //---------------------------+
+            // Grava historico do pedido | 
+            //---------------------------+
+            u_AEcoStaLog(_cCodSta,WS1->WS1_NUMECO,WSA->WSA_NUM,dDataBase,Time())
+		
         EndIf
     EndIf
 

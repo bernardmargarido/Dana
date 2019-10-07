@@ -259,6 +259,7 @@ Local _aArea    := GetArea()
 Local _cArqPV   :=  _cDirRaiz + _cDirArq + _cDirDow + "/"
 Local _cLinha   := ""
 Local _cArqCab  := ""
+Local _cCodSta  := GetNewPar("EC_STAFAT","011")
 Local _cEspecie := GetNewPar("EC_ESPECIE","EMBALAGEM")
 
 Local _nPosArq  := 0
@@ -361,6 +362,11 @@ If _nBytes > 0
             SC5->C5_PBRUTO  := _nPesoBrut
         SC5->( MsUnLock() )
 
+         //----------------------------+
+        // Posiciona status do pedido | 
+        //----------------------------+
+        WS1->( dbSeek(xFilial("WS1") + _cCodSta) )
+
         //-------------------------------+
         // Posiciona Orçamento eCommerce |
         //-------------------------------+
@@ -376,8 +382,15 @@ If _nBytes > 0
         // Atualiza flag IBEX |
         //--------------------+
         RecLock("WSA",.F.)
-            WSA->WSA_ENVLOG := "3"
+            WSA->WSA_ENVLOG := "2"
+            WSA->WSA_CODSTA := _cCodSta
+            WSA->WSA_DESTAT := WS1->WS1_DESCRI
         WSA->( MsUnLock() ) 
+
+        //---------------------------+
+        // Grava historico do pedido | 
+        //---------------------------+
+        u_AEcoStaLog(_cCodSta,WSA->WSA_NUMECO,WSA->WSA_NUM,dDataBase,Time())
 
         Ft_FSkip()
 
