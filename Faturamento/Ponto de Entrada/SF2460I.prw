@@ -1,6 +1,7 @@
 #include "rwmake.ch"
 
 User Function SF2460I()
+Local _aArea	:= GetArea()
 
 Local cGerente	:= ""
 Local _cFilWMS	:= GetNewPar("DN_FILWMS","05,06")
@@ -17,6 +18,7 @@ Private nValBSF2	:= SF2->F2_VALBRUT
 Private dEmiSF2		:= SF2->F2_EMISSAO
 Private cCodCat		:= Space(03)
 Private lContinua2 	:= .T.
+Private cConvUN		:= ""
 
 aAreacps	:= GetArea()
 aAreaSE1	:= SE1->(GetArea())
@@ -24,11 +26,12 @@ _VEND		:= ""
 
 DBSelectArea("SF2")
 
-_XPEDIDO := POSICIONE("SD2",3,xFilial("SD2")+SF2->(F2_DOC+F2_SERIE+F2_CLIENTE+F2_LOJA),"D2_PEDIDO")
-_VEND    := POSICIONE("SC5",1,xFilial("SC5")+_XPEDIDO,"C5_VEND1")
+_XPEDIDO := POSICIONE("SD2",3,xFilial("SD2") + SF2->(F2_DOC+F2_SERIE+F2_CLIENTE+F2_LOJA),"D2_PEDIDO")
+_VEND    := POSICIONE("SC5",1,xFilial("SC5") + _XPEDIDO,"C5_VEND1")
+cConvUN	 := POSICIONE("SC5",1,xFilial("SC5") + _XPEDIDO,"C5_XCONVUN")
 
 IF EMPTY(_VEND)
-	_VEND := GetAdvFval("SA1","A1_VEND",xFilial("SA1")+SF2->(F2_CLIENTE+F2_LOJA),1)
+	_VEND := GetAdvFval("SA1","A1_VEND",xFilial("SA1") + SF2->F2_CLIENTE + SF2->F2_LOJA,1)
 ENDIF
 
 IF EMPTY(_VEND)
@@ -44,7 +47,8 @@ Reclock("SF2",.F.)
 		SF2->F2_PBRUTO:= SF2->F2_PLIQUI*1.05
 	Endif
 	
-	SF2->F2_VEND1 := _VEND
+	SF2->F2_VEND1	:= _VEND
+	SF2->F2_XXCONVU	:= cConvUN
 
 	If cFilAnt $ RTrim(_cFilWMS)
 		SF2->F2_XDTALT := Date()
@@ -60,10 +64,12 @@ If SF2->F2_TIPO <> 'D' .Or. SF2->F2_TIPO <> 'B'
 	DbSeek(xFilial("SE1") + SF2->F2_CLIENTE + SF2->F2_LOJA + SF2->F2_PREFIXO + SF2->F2_DOC)
 	If Found()
 		cGerente	:= Posicione("SA3",1,xFilial("SA3")+_VEND,"A3_GEREN")
-		While SE1->(!Eof()) .And. xFilial("SE1")+SF2->(F2_CLIENTE+F2_LOJA+F2_PREFIXO+F2_DOC) == SE1->(E1_FILIAL+E1_CLIENTE+E1_LOJA+E1_PREFIXO+E1_NUM)
+		While SE1->(!Eof() .And. xFilial("SE1")+SF2->(F2_CLIENTE+F2_LOJA+F2_PREFIXO+F2_DOC) == SE1->(E1_FILIAL+E1_CLIENTE+E1_LOJA+E1_PREFIXO+E1_NUM) )
+			
 			RecLock("SE1", .F.)
-			SE1->E1_XGERENT		:= cGerente
-			SE1->(MsUnlock())
+				SE1->E1_XGERENT		:= cGerente
+			SE1->( MsUnlock() )
+
 			SE1->(DbSkip())
 		EndDo
 	Endif
@@ -88,7 +94,7 @@ Endif
 
 RestArea(aAreaCps)
 RestArea(aAreaSE1)
-
+RestArea(_aArea)
 RETURN
 
 
