@@ -328,7 +328,7 @@ User Function AEcoMail(cCodInt,cDescInt,aMsgErro,_cPDF)
 
 	RestArea(aArea)
 
-Return .T.
+Return lEnviado
 
 /*****************************************************************************/
 /*/{Protheus.doc} SYACENTO
