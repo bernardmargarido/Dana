@@ -33,13 +33,11 @@ Local cPedEco	:= ""
 //-----------------------------------------------+
 // Valida se o pedido foi confirmada a separação |
 //-----------------------------------------------+
-/*
-If cFilAnt $ _cFilWMS //
+If cFilAnt $ _cFilWMS 
 	If !U_DnFatM01(cMarca,lInverte)
 		Return .F.
 	EndIf
 EndIf
-*/
 
 Pergunte("MT461A", .F.)
 

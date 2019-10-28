@@ -381,16 +381,17 @@ If _nBytes > 0
         //--------------------+
         // Atualiza flag IBEX |
         //--------------------+
-        RecLock("WSA",.F.)
-            WSA->WSA_ENVLOG := "2"
-            WSA->WSA_CODSTA := _cCodSta
-            WSA->WSA_DESTAT := WS1->WS1_DESCRI
-        WSA->( MsUnLock() ) 
-
+        If WSA->WSA_ENVLOG == "1"
+            RecLock("WSA",.F.)
+                WSA->WSA_ENVLOG := "2"
+                WSA->WSA_CODSTA := _cCodSta
+                WSA->WSA_DESTAT := WS1->WS1_DESCRI
+            WSA->( MsUnLock() ) 
+        EndIf
         //---------------------------+
         // Grava historico do pedido | 
         //---------------------------+
-        u_AEcoStaLog(_cCodSta,WSA->WSA_NUMECO,WSA->WSA_NUM,dDataBase,Time())
+        u_AEcoStaLog(_cCodSta,WSA->WSA_NUMECO,WSA->WSA_NUM,Date(),Time())
 
         Ft_FSkip()
 

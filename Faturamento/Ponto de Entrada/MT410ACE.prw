@@ -48,10 +48,10 @@ EndIf
 //--------------------------------------------+
 // Somente pedidos que não estão em separação |
 //--------------------------------------------+
-If SC5->C5_XENVWMS $ "2/3"
-	MsgAlert("Pedido aguardando separação AutoLog, não é permitido alteração.")
+If SC5->C5_XENVWMS $ "1/2/3"
+	//MsgAlert("Pedido aguardando separação AutoLog, não é permitido alteração.")
 	RestArea(_aArea)
-	Return .F.
+	Return .T.
 EndIf
 
 RestArea(_aArea)

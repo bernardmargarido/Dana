@@ -109,96 +109,6 @@ RestArea(aArea)
 Return .T.
 
 /************************************************************************************/
-/*/{Protheus.doc} POST
-
-@description Metodo POST - Retorna dados conferidos da separação.
-
-@author Bernard M. Margarido
-@since 20/11/2018
-@version 1.0
-
-@type function
-/*/
-/************************************************************************************/
-WSMETHOD POST WSSERVICE PEDIDO
-Local aArea		:= GetArea()
-
-Local nLen		:= Len(::aUrlParms)
-Local nPed		:= 0
-
-Local oJson		:= Nil
-Local oPedido	:= Nil
-
-Private cJsonRet:= ""
-	
-Private aMsgErro:= {}
-
-//------------------------------+
-// Inicializa Log de Integracao |
-//------------------------------+
-MakeDir(cDirRaiz)
-cArqLog := cDirRaiz + "PEDIDO_RETORNO" + cEmpAnt + cFilAnt + ".LOG"
-ConOut("")	
-LogExec(Replicate("-",80))
-LogExec("INICIA RETORNO SEPARACAO DOS PEDIDOS - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
-
-//--------------------+
-// Seta o contenttype |
-//--------------------+
-::SetContentType("application/json") 
-
-//---------------------+
-// Corpo da Requisição |
-//---------------------+
-cBody := ::GetContent()
-
-//-------------------+
-// Valida requisição |
-//-------------------+
-If Empty(cBody)
-	//----------------+
-	// Retorno da API |
-	//----------------+
-	HTTPSetStatus(400,"Arquivo POST não enviado.")
-	Return .T.
-EndIf
-
-//-----------------------------------+
-// Realiza a deserializacao via HASH |
-//-----------------------------------+
-oJson 	:= xFromJson(cBody)
-
-oPedido	:= oJson[#"pedidos"]
-
-//---------------------------------------------+
-// Inicia a Gravacao / Atualização dos Pedidos |
-//---------------------------------------------+
-For nPed := 1 To Len(oPedido)	
-	LogExec("INICIA VALIDACAO DA SEPARACAO DO PEDIDO " + LTrim(oPedido[nPed][#"pedido"]) )
-	DnaApi07B(oPedido[nPed])
-Next nPed	
-
-//----------------------+
-// Cria JSON de Retorno |
-//----------------------+	
-If Len(aMsgErro) > 0
-	DnaApi07E(aMsgErro,@cJsonRet)
-EndIf
-	
-//----------------+
-// Retorno da API |
-//----------------+
-::SetResponse(cJsonRet)
-HTTPSetStatus(200,"OK")
-
-LogExec("FINALIZA RETORNO SEPARACAO DOS PEDIDOS - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
-LogExec(Replicate("-",80))
-ConOut("")
-
-RestArea(aArea)
-Return .T.
-
-/************************************************************************************/
 /*/{Protheus.doc} PUT
 
 @description Metodo PUT - Retorna dados conferidos da separação.
@@ -282,6 +192,96 @@ EndIf
 HTTPSetStatus(200,"OK")
 
 LogExec("FINALIZA BAIXA DOS PEDIDOS - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
+LogExec(Replicate("-",80))
+ConOut("")
+
+RestArea(aArea)
+Return .T.
+
+/************************************************************************************/
+/*/{Protheus.doc} POST
+
+@description Metodo POST - Retorna dados conferidos da separação.
+
+@author Bernard M. Margarido
+@since 20/11/2018
+@version 1.0
+
+@type function
+/*/
+/************************************************************************************/
+WSMETHOD POST WSSERVICE PEDIDO
+Local aArea		:= GetArea()
+
+Local nLen		:= Len(::aUrlParms)
+Local nPed		:= 0
+
+Local oJson		:= Nil
+Local oPedido	:= Nil
+
+Private cJsonRet:= ""
+	
+Private aMsgErro:= {}
+
+//------------------------------+
+// Inicializa Log de Integracao |
+//------------------------------+
+MakeDir(cDirRaiz)
+cArqLog := cDirRaiz + "PEDIDO_RETORNO" + cEmpAnt + cFilAnt + ".LOG"
+ConOut("")	
+LogExec(Replicate("-",80))
+LogExec("INICIA RETORNO SEPARACAO DOS PEDIDOS - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
+
+//--------------------+
+// Seta o contenttype |
+//--------------------+
+::SetContentType("application/json") 
+
+//---------------------+
+// Corpo da Requisição |
+//---------------------+
+cBody := ::GetContent()
+
+//-------------------+
+// Valida requisição |
+//-------------------+
+If Empty(cBody)
+	//----------------+
+	// Retorno da API |
+	//----------------+
+	HTTPSetStatus(400,"Arquivo POST não enviado.")
+	Return .T.
+EndIf
+
+//-----------------------------------+
+// Realiza a deserializacao via HASH |
+//-----------------------------------+
+oJson 	:= xFromJson(cBody)
+
+oPedido	:= oJson[#"pedidos"]
+
+//---------------------------------------------+
+// Inicia a Gravacao / Atualização dos Pedidos |
+//---------------------------------------------+
+For nPed := 1 To Len(oPedido)	
+	LogExec("INICIA VALIDACAO DA SEPARACAO DO PEDIDO " + LTrim(oPedido[nPed][#"pedido"]) )
+	DnaApi07B(oPedido[nPed])
+Next nPed	
+
+//----------------------+
+// Cria JSON de Retorno |
+//----------------------+	
+If Len(aMsgErro) > 0
+	DnaApi07E(aMsgErro,@cJsonRet)
+EndIf
+	
+//----------------+
+// Retorno da API |
+//----------------+
+::SetResponse(cJsonRet)
+HTTPSetStatus(200,"OK")
+
+LogExec("FINALIZA RETORNO SEPARACAO DOS PEDIDOS - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
 LogExec(Replicate("-",80))
 ConOut("")
 
@@ -379,9 +379,7 @@ While (cAlias)->( !Eof() )
 	// Sequencia de envio ao WMS |
 	//---------------------------+
 	If Empty((cAlias)->SEQLIB)
-		cSeqLib := "01"
-	Else
-		cSeqLib := (cAlias)->SEQLIB
+		cSeqLib := IIF( Empty((cAlias)->SEQLIB),"01", (cAlias)->SEQLIB)
 	EndIf
 	
 	cFilAut		:= (cAlias)->FILIAL
@@ -390,6 +388,7 @@ While (cAlias)->( !Eof() )
 	cLoja		:= (cAlias)->LOJA
 	cCodTransp	:= (cAlias)->CODTRANSP
 	cTipoPV		:= (cAlias)->TIPO
+	cPedPai		:= (cAlias)->PEDPAI
 	dDtaEmiss	:= dToc(sTod((cAlias)->EMISSAO))
 	_nRecSC5	:= (cAlias)->RECNOSC5
 	_nTotalPv	:= DnApi07TPv(cFilAut,cPedVen,1)
@@ -406,6 +405,9 @@ While (cAlias)->( !Eof() )
 	oPedido[#"tipo_pedido"]			:= cTipoPV
 	oPedido[#"revisao"]				:= cSeqLib
 	oPedido[#"total_pedido"]		:= _nTotalPv	
+	oPedido[#"pedido_pai"]			:= cPedPai
+	oPedido[#"cancelado"]			:= "N"
+	
 	//------------------------------------+
 	// Cria array para os itens do pedido |
 	//------------------------------------+
@@ -600,13 +602,11 @@ Local _cFilAux	:= cFilAnt
 	
 Local _nQtdConf	:= 0
 Local _nPed		:= 0
-Local _nTotIt	:= 0
 
 Local _aDiverg	:= {}
 Local _aItensC	:= {}
 
 Local _lContinua:= .T.	
-Local _lLibParc	:= .F.
 
 Local _oItPed	:= Nil
 
@@ -652,11 +652,6 @@ EndIf
 dbSelectArea("SC6")
 SC6->( dbSetOrder(1) )
 
-//----------------+
-// Total de Itens |
-//----------------+
-_nTotIt := DnApi07TPv(xFilial("SC5"),_cPedido,2)
-
 //-----------------------------------+
 // Posiciona Itens Pedidos Liberados | 
 //-----------------------------------+
@@ -667,13 +662,6 @@ SC9->( dbSetOrder(1) )
 // Valida conferencia dos itens da Pre Nota de Entrada | 
 //-----------------------------------------------------+
 _oItPed 	:= _oPedido[#"itens"]
-
-//--------------------------+
-// Liberado com menos itens |
-//--------------------------+
-If _nTotIt <> Len(_oItPed)
-	_lLibParc := .T.
-EndIf
 
 _lContinua	:= .T.
 For _nPed := 1 To Len(_oItPed)
@@ -717,6 +705,7 @@ For _nPed := 1 To Len(_oItPed)
 		// Valida divergencia separação |
 		//------------------------------+
 		While SC9->( !Eof() .And. xFilial("SC9") + _cPedido + _cItem == SC9->C9_FILIAL + SC9->C9_PEDIDO + SC9->C9_ITEM )
+
 			If Empty(SC9->C9_NFISCAL) .And. Empty(SC9->C9_NFISCAL)
 				//------------------------------+
 				// Valida divergencia separação |
@@ -752,9 +741,10 @@ For _nPed := 1 To Len(_oItPed)
 Next _nPed
 
 If _lContinua
-	//-------------------------------------+
-	// Esorna liberação do pedido de venda | 
-	//-------------------------------------+
+
+	//--------------------------------------+
+	// Estorna liberação do pedido de venda | 
+	//--------------------------------------+
 	If Len(_aDiverg) > 0
 
 		//----------------------------------+
@@ -766,6 +756,16 @@ If _lContinua
 		// Libera pedido de venda novamente |
 		//----------------------------------+
 		DnaApi07L(_cPedido,_cCodCli,_cLoja)
+
+		//-----------------------+
+		// Elimina Residuo sobra |
+		//-----------------------+
+		//DnaApi07N(_cPedido,_cCodCli,_cLoja)
+
+		//--------------------------+
+		// Atualiza dados do pedido |
+		//--------------------------+
+		DnApi07O(_cPedido,_nPeso,_nVolume,_aItensC,_aDiverg)
 
 		//----------------------+	
 		// Log processo da nota |
@@ -781,80 +781,8 @@ If _lContinua
 		//--------------------------+
 		// Atualiza dados do pedido |
 		//--------------------------+
-		RecLock("SC5",.F.)
-			SC5->C5_XENVWMS := IIF(_lLibParc,"2","3")
-			SC5->C5_XDTALT	:= Date()
-			SC5->C5_XHRALT	:= Time()
-			SC5->C5_ESPECI1	:= "CAIXAS"
-			SC5->C5_PESOL	:= _nPeso
-			SC5->C5_PBRUTO	:= _nPeso
-			SC5->C5_VOLUME1	:= _nVolume
-		SC5->( MsUnLock() )
-
-		//------------------------+
-		// Tabela itens do pedido |
-		//------------------------+
-		dbSelectArea("SC6")
-		SC6->( dbSetOrder(1) )
-
-		//---------------------------+
-		// Posiciona Itens Liberados |
-		//---------------------------+
-		dbSelectArea("SC9")
-		SC9->( dbSetOrder(1) )
-		SC9->( dbSeek(xFilial("SC9") + SC5->C5_NUM) )
-		While SC9->( !Eof() .And. xFilial("SC9") + SC5->C5_NUM == SC9->C9_FILIAL + SC9->C9_PEDIDO)
-			/*
-			If SC6->( dbSeeK(xFilial("SC9") + SC9->C9_PEDIDO + SC9->C9_ITEM + SC9->C9_PRODUTO) )
-				If !Empty(SC6->C6_XENVWMS) .And. !Empty(SC6->C6_XDTALT) .And.  !Empty(SC6->C6_XHRALT)
-					//------------------------+
-					// Atualiza item liberado |
-					//------------------------+
-					RecLock("SC9",.F.)
-						SC9->C9_XENVWMS := "3"
-						SC9->C9_XDTALT	:= Date()
-						SC9->C9_XHRALT	:= Time()
-					SC9->( MsUnLock() )
-
-					//----------------------+
-					// Atualiza item pedido | 
-					//----------------------+
-					RecLock("SC6",.F.)
-						SC6->C6_XENVWMS := "3"
-						SC6->C6_XDTALT	:= Date()
-						SC6->C6_XHRALT	:= Time()
-					SC6->( MsUnLock() )
-				Else
-				*/
-					//------------------------------+
-					// Valida se items esta no JSON |
-					//------------------------------+
-					If aScan(_aItensC,{|x| RTrim(x[1]) + RTrim(x[2]) == RTrim(SC9->C9_ITEM) + RTrim(SC9->C9_PRODUTO) }) > 0
-						//------------------------+
-						// Atualiza item liberado |
-						//------------------------+
-						RecLock("SC9",.F.)
-							SC9->C9_XENVWMS := "3"
-							SC9->C9_XDTALT	:= Date()
-							SC9->C9_XHRALT	:= Time()
-						SC9->( MsUnLock() )
-						
-						If SC6->( dbSeeK(xFilial("SC9") + SC9->C9_PEDIDO + SC9->C9_ITEM + SC9->C9_PRODUTO) )
-							//----------------------+
-							// Atualiza item pedido | 
-							//----------------------+
-							RecLock("SC6",.F.)
-								SC6->C6_XENVWMS := "3"
-								SC6->C6_XDTALT	:= Date()
-								SC6->C6_XHRALT	:= Time()
-							SC6->( MsUnLock() )
-						EndIf
-					EndIf
-				//EndIf
-			//EndIf	
-			SC9->( dbSkip() )
-		EndDo	
-		
+		DnApi07O(_cPedido,_nPeso,_nVolume,_aItensC)
+	
 		//----------------------+	
 		// Log processo da nota |
 		//----------------------+
@@ -941,8 +869,8 @@ SC9->( dbSetOrder(1) )
 SC9->( dbSeek(xFilial("SC9") + SC5->C5_NUM) )
 While SC9->( !Eof() .And. xFilial("SC9") + SC5->C5_NUM == SC9->C9_FILIAL + SC9->C9_PEDIDO)
 	If SC6->( dbSeeK(xFilial("SC9") + SC9->C9_PEDIDO + SC9->C9_ITEM + SC9->C9_PRODUTO) )
-		If !Empty(SC6->C6_XENVWMS) .And. !Empty(SC6->C6_XDTALT) .And.  !Empty(SC6->C6_XHRALT)
 
+		If !Empty(SC6->C6_XENVWMS) .And. !Empty(SC6->C6_XDTALT) .And.  !Empty(SC6->C6_XHRALT)
 			//------------------------+
 			// Atualiza item liberado |
 			//------------------------+
@@ -1012,6 +940,9 @@ cQuery += "		CODTRANSP, " + CRLF
 cQuery += "		EMISSAO, " + CRLF
 cQuery += "		TIPO, " + CRLF
 cQuery += "		SEQLIB, " + CRLF
+cQuery += "		PEDPAI, " + CRLF
+cQuery += "		TOTAL_PV, " + CRLF
+cQuery += "		TOTAL_LIB, " + CRLF
 cQuery += "		RECNOSC5 " + CRLF
 cQuery += "	FROM ( " + CRLF
 cQuery += "			SELECT " + CRLF
@@ -1024,14 +955,40 @@ cQuery += "				C5.C5_TRANSP CODTRANSP, " + CRLF
 cQuery += "				C5.C5_EMISSAO EMISSAO, " + CRLF
 cQuery += "				C5.C5_TIPO TIPO, " + CRLF
 cQuery += "				C5.C5_XSEQLIB SEQLIB, " + CRLF
-cQuery += "				C5.R_E_C_N_O_ RECNOSC5
+cQuery += "				C5.C5_XPEDPAI PEDPAI, " + CRLF
+cQuery += "				PV.TOTAL TOTAL_PV, " + CRLF
+cQuery += "				LIB.TOTAL TOTAL_LIB, " + CRLF
+cQuery += "				C5.R_E_C_N_O_ RECNOSC5 " + CRLF
 cQuery += "			FROM " + CRLF
 cQuery += "				" + RetSqlName("SC5") + " C5 " + CRLF 
-
-cQuery += "				INNER JOIN " + RetSqlName("SC6") + " C6 ON C6.C6_FILIAL = C5.C5_FILIAL AND C6.C6_NUM = C5.C5_NUM AND C6.C6_NOTA = '' AND C6.C6_SERIE = '' AND C6.C6_BLQ <> 'R' AND C6.D_E_L_E_T_ = '' " + CRLF
-cQuery += "				INNER JOIN " + RetSqlName("SF4") + " F4 ON F4.F4_FILIAL = C6.C6_FILIAL AND F4.F4_CODIGO = C6.C6_TES AND F4.F4_ESTOQUE = 'S' AND F4.D_E_L_E_T_ = '' " + CRLF
-cQuery += "				INNER JOIN " + RetSqlName("SC9") + " C9 ON C9.C9_FILIAL = C6.C6_FILIAL AND C9.C9_PEDIDO = C6.C6_NUM AND C9.C9_PRODUTO = C6.C6_PRODUTO AND C9.C9_ITEM = C6.C6_ITEM AND C9.C9_BLEST = '' AND C9.C9_BLCRED = '' AND C9.C9_NFISCAL = '' AND C9.D_E_L_E_T_ = '' " + CRLF
-
+cQuery += "				CROSS APPLY ( " + CRLF
+cQuery += "								SELECT " + CRLF 
+cQuery += "									COUNT(C6.C6_ITEM) TOTAL " + CRLF
+cQuery += "								FROM " + CRLF
+cQuery += "									" + RetSqlName("SC6") + " C6 " + CRLF
+cQuery += "									INNER JOIN " + RetSqlName("SF4") + " F4 ON F4.F4_FILIAL = C6.C6_FILIAL AND F4.F4_CODIGO = C6.C6_TES AND F4.F4_ESTOQUE = 'S' AND F4.D_E_L_E_T_ = '' " + CRLF
+cQuery += "								WHERE " + CRLF
+cQuery += "									C6.C6_FILIAL = C5.C5_FILIAL AND " + CRLF
+cQuery += "									C6.C6_NUM = C5.C5_NUM AND " + CRLF
+cQuery += "									C6.C6_NOTA = '' AND " + CRLF
+cQuery += "									C6.C6_SERIE = '' AND " + CRLF
+cQuery += "									C6.C6_BLQ <> 'R' AND " + CRLF
+cQuery += "									C6.D_E_L_E_T_ = '' " + CRLF
+cQuery += "								GROUP BY C6.C6_FILIAL,C6.C6_NUM " + CRLF
+cQuery += "							) PV " + CRLF
+cQuery += "				CROSS APPLY ( " + CRLF
+cQuery += "								SELECT " + CRLF
+cQuery += "									COUNT(C9.C9_ITEM) TOTAL " + CRLF
+cQuery += "								FROM " + CRLF
+cQuery += "									" + RetSqlName("SC9") + " C9 " + CRLF 
+cQuery += "								WHERE " + CRLF
+cQuery += "									C9.C9_FILIAL = C5.C5_FILIAL AND " + CRLF
+cQuery += "									C9.C9_PEDIDO = C5.C5_NUM AND " + CRLF
+cQuery += "									C9.C9_BLCRED = '' AND " + CRLF
+cQuery += "									C9.C9_NFISCAL = '' AND " + CRLF
+cQuery += "									C9.D_E_L_E_T_ = '' " + CRLF
+cQuery += "								GROUP BY C9.C9_FILIAL,C9.C9_PEDIDO " + CRLF
+cQuery += "							) LIB " + CRLF
 cQuery += "			WHERE " + CRLF
 
 If _lSC5Comp
@@ -1040,7 +997,7 @@ Else
 	cQuery += "				C5.C5_FILIAL IN" + _cFilWMS + " AND " + CRLF
 EndIf
 	
-cQuery += "				C5.C5_XENVWMS IN('1') AND " + CRLF
+cQuery += "				C5.C5_XENVWMS = '1' AND " + CRLF
 cQuery += "				C5.C5_NOTA = '' AND " + CRLF
 cQuery += "				C5.C5_LIBEROK <> 'E' AND " + CRLF
 cQuery += "				C5.C5_BLQ = '' AND " + CRLF
@@ -1054,10 +1011,14 @@ Else
 EndIf
 
 cQuery += "				C5.D_E_L_E_T_ = '' " + CRLF
-cQuery += "			GROUP BY C5.C5_FILIAL,C5.C5_NUM,C5.C5_CLIENTE,C5.C5_LOJACLI,C5.C5_TRANSP,C5.C5_EMISSAO,C5.C5_TIPO,C5.C5_XSEQLIB,C5.R_E_C_N_O_  " + CRLF
+cQuery += "			GROUP BY C5.C5_FILIAL,C5.C5_NUM,C5.C5_CLIENTE,C5.C5_LOJACLI,C5.C5_TRANSP,C5.C5_EMISSAO,C5.C5_TIPO,C5.C5_XSEQLIB,C5.C5_XPEDPAI,PV.TOTAL,LIB.TOTAL,C5.R_E_C_N_O_  " + CRLF
 cQuery += "	) PEDIDO  " + CRLF
-cQuery += "	WHERE RNUM > " + cTamPage + " * (" + cPage + " - 1) " + CRLF 
-cQuery += "	ORDER BY FILIAL,PEDIDO"
+cQuery += "	WHERE " + CRLF
+cQuery += "		RNUM > " + cTamPage + " * (" + cPage + " - 1)  AND " + CRLF 
+cQuery += "		TOTAL_PV = TOTAL_LIB " + CRLF
+cQuery += "	ORDER BY FILIAL,PEDIDO "
+
+MemoWrite("/views/DNAPI007.txt",cQuery)
 
 dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
 
@@ -1094,43 +1055,76 @@ Local cHora		:= SubStr(cDataHora,At("T",cDataHora) + 1)
 nTotPag := 0
 nTotQry := 0
 
-
 cQuery := "	SELECT " + CRLF
 cQuery += "		COUNT(PEDIDO) TOTREG " + CRLF
 cQuery += "	FROM " + CRLF
 cQuery += " ( " + CRLF
-cQuery += "		SELECT " + CRLF 		
-cQuery += "			C5.C5_FILIAL, " + CRLF
-cQuery += "			C5.C5_NUM PEDIDO " + CRLF
-cQuery += "		FROM " + CRLF 
-cQuery += "			" + RetSqlName("SC5") + " C5 " + CRLF 
-
-cQuery += "				INNER JOIN " + RetSqlName("SC6") + " C6 ON C6.C6_FILIAL = C5.C5_FILIAL AND C6.C6_NUM = C5.C5_NUM AND C6.D_E_L_E_T_ = '' " + CRLF
-cQuery += "				INNER JOIN " + RetSqlName("SF4") + " F4 ON F4.F4_FILIAL = C6.C6_FILIAL AND F4.F4_CODIGO = C6.C6_TES AND F4.F4_ESTOQUE = 'S' AND F4.D_E_L_E_T_ = '' " + CRLF
-cQuery += "				INNER JOIN " + RetSqlName("SC9") + " C9 ON C9.C9_FILIAL = C6.C6_FILIAL AND C9.C9_PEDIDO = C6.C6_NUM AND C9.C9_PRODUTO = C6.C6_PRODUTO AND C9.C9_ITEM = C6.C6_ITEM AND C9.C9_BLEST = '' AND C9.C9_BLCRED = '' AND C9.C9_NFISCAL = '' AND C9.D_E_L_E_T_ = '' " + CRLF
-
-cQuery += "			WHERE " + CRLF
+cQuery += "		SELECT " + CRLF
+cQuery += "			PEDIDO, " + CRLF
+cQuery += "			TOTAL_PV, " + CRLF
+cQuery += "			TOTAL_LIB " + CRLF
+cQuery += "		FROM " + CRLF
+cQuery += " 	( " + CRLF
+cQuery += "			SELECT " + CRLF 		
+cQuery += "				C5.C5_FILIAL, " + CRLF
+cQuery += "				C5.C5_NUM PEDIDO, " + CRLF
+cQuery += "				PV.TOTAL TOTAL_PV, " + CRLF
+cQuery += "				LIB.TOTAL TOTAL_LIB " + CRLF
+cQuery += "			FROM " + CRLF 
+cQuery += "				" + RetSqlName("SC5") + " C5 " + CRLF 
+cQuery += "					CROSS APPLY ( " + CRLF
+cQuery += "									SELECT " + CRLF 
+cQuery += "										COUNT(C6.C6_ITEM) TOTAL " + CRLF
+cQuery += "									FROM " + CRLF
+cQuery += "										" + RetSqlName("SC6") + " C6 " + CRLF
+cQuery += "										INNER JOIN " + RetSqlName("SF4") + " F4 ON F4.F4_FILIAL = C6.C6_FILIAL AND F4.F4_CODIGO = C6.C6_TES AND F4.F4_ESTOQUE = 'S' AND F4.D_E_L_E_T_ = '' " + CRLF
+cQuery += "									WHERE " + CRLF
+cQuery += "										C6.C6_FILIAL = C5.C5_FILIAL AND " + CRLF
+cQuery += "										C6.C6_NUM = C5.C5_NUM AND " + CRLF
+cQuery += "										C6.C6_NOTA = '' AND " + CRLF
+cQuery += "										C6.C6_SERIE = '' AND " + CRLF
+cQuery += "										C6.C6_BLQ <> 'R' AND " + CRLF
+cQuery += "										C6.D_E_L_E_T_ = '' " + CRLF
+cQuery += "									GROUP BY C6.C6_FILIAL,C6.C6_NUM " + CRLF
+cQuery += "								) PV " + CRLF
+cQuery += "					CROSS APPLY ( " + CRLF
+cQuery += "									SELECT " + CRLF
+cQuery += "										COUNT(C9.C9_ITEM) TOTAL " + CRLF
+cQuery += "									FROM " + CRLF
+cQuery += "										" + RetSqlName("SC9") + " C9 " + CRLF 
+cQuery += "									WHERE " + CRLF
+cQuery += "										C9.C9_FILIAL = C5.C5_FILIAL AND " + CRLF
+cQuery += "										C9.C9_PEDIDO = C5.C5_NUM AND " + CRLF
+cQuery += "										C9.C9_BLCRED = '' AND " + CRLF
+cQuery += "										C9.C9_NFISCAL = '' AND " + CRLF
+cQuery += "										C9.D_E_L_E_T_ = '' " + CRLF
+cQuery += "									GROUP BY C9.C9_FILIAL,C9.C9_PEDIDO " + CRLF
+cQuery += "								) LIB " + CRLF
+cQuery += "				WHERE " + CRLF
 
 If _lSC5Comp
-	cQuery += "				C5.C5_FILIAL = '" + xFilial("SC5") + "' AND " + CRLF
+	cQuery += "					C5.C5_FILIAL = '" + xFilial("SC5") + "' AND " + CRLF
 Else
-	cQuery += "				C5.C5_FILIAL IN" + _cFilWMS + " AND " + CRLF
+	cQuery += "					C5.C5_FILIAL IN" + _cFilWMS + " AND " + CRLF
 EndIf
 
-cQuery += "				C5.C5_XENVWMS = '1' AND " + CRLF
-cQuery += "				C5.C5_NOTA = '' AND " + CRLF
-cQuery += "				C5.C5_LIBEROK <> 'E' AND " + CRLF
-cQuery += "				C5.C5_BLQ = '' AND " + CRLF
-cQuery += "				C5.C5_TIPO IN('N','D','B') AND " + CRLF
+cQuery += "					C5.C5_XENVWMS = '1' AND " + CRLF
+cQuery += "					C5.C5_NOTA = '' AND " + CRLF
+cQuery += "					C5.C5_LIBEROK <> 'E' AND " + CRLF
+cQuery += "					C5.C5_BLQ = '' AND " + CRLF
+cQuery += "					C5.C5_TIPO IN('N','D','B') AND " + CRLF
 If Empty(cPedido)
-	cQuery += "				CAST((C5.C5_XDTALT + ' ' + C5.C5_XHRALT) AS DATETIME) >= CAST(('" + cData + "' + ' ' + '" + cHora + ".000') AS DATETIME) AND " + CRLF
-	cQuery += "				CAST((C5.C5_XDTALT + ' ' + C5.C5_XHRALT) AS DATETIME) <= CAST(('" + dTos(dDataBase) + "' + ' ' + '" + Time() + ".000') AS DATETIME) AND " + CRLF
+	cQuery += "					CAST((C5.C5_XDTALT + ' ' + C5.C5_XHRALT) AS DATETIME) >= CAST(('" + cData + "' + ' ' + '" + cHora + ".000') AS DATETIME) AND " + CRLF
+	cQuery += "					CAST((C5.C5_XDTALT + ' ' + C5.C5_XHRALT) AS DATETIME) <= CAST(('" + dTos(dDataBase) + "' + ' ' + '" + Time() + ".000') AS DATETIME) AND " + CRLF
 Else
-	cQuery += "				C5.C5_NUM = '" + cPedido + "' AND " + CRLF
+	cQuery += "					C5.C5_NUM = '" + cPedido + "' AND " + CRLF
 EndIf
-cQuery += "				C5.D_E_L_E_T_ = ''  " + CRLF
-cQuery += "		GROUP BY C5.C5_FILIAL,C5.C5_NUM " + CRLF
-cQuery += ") PEDIDOS "
+cQuery += "					C5.D_E_L_E_T_ = ''  " + CRLF
+cQuery += "		) PEDIDOS " + CRLF
+cQuery += " 	WHERE " + CRLF
+cQuery += "			TOTAL_PV = TOTAL_LIB " + CRLF
+cQuery += " 	GROUP BY PEDIDO,TOTAL_PV,TOTAL_LIB " + CRLF
+cQuery += "	) TOTAL_PEDIDOS "
 
 dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
 
@@ -1179,7 +1173,7 @@ Local lRet			:= .T.
 //--------------+
 // Envia e-Mail |
 //--------------+
-DnApi07M(_cPedido,_cCodCli,_cLoja,_aDiverg)
+U_DnMailPV(_cPedido,_cCodCli,_cLoja,_aDiverg)
 
 //-------------------+
 // Posiciona Cliente |
@@ -1339,222 +1333,160 @@ RestArea(_aArea)
 Return _lRet
 
 /*************************************************************************************/
-/*/{Protheus.doc} DnApi07M
+/*/{Protheus.doc} DnApi07N
 
-@description Envia e-mail com a divergencia separação dos pedidos 
+@description Elimina residuo da sobra / cria novo pedido para cliente saldo
 
 @author Bernard M. Margarido
-@since 21/11/2018
+@since 15/10/2019
 @version 1.0
 @type function
 /*/
 /*************************************************************************************/
-Static Function DnApi07M(_cPedido,_cCodCli,_cLoja,_aDiverg)
-Local aArea		:= GetArea()
+Static Function DnaApi07N(_cPedido,_cCodCli,_cLoja)
+Local _aArea		:= GetArea()
 
-Local cServer	:= GetMv("MV_RELSERV")
-Local cUser		:= GetMv("MV_RELAUSR")
-Local cPassword := GetMv("MV_RELAPSW")
-Local cFrom		:= GetMv("MV_RELACNT")
-
-Local cMail		:= GetNewPar("DN_MAILWMS","bernard.modesto@alfaerp.com.br;bernard.margarido@gmail.com")
-Local cTitulo	:= "Dana - Divergencia separação."
-Local cHtml		:= ""
-
-Local _nX		:= 0
-
-Local lEnviado	:= .F.
-Local lOk		:= .F.
-Local lRelauth  := SuperGetMv("MV_RELAUTH",, .F.)
-
-//---------------------------------+
-// Posiciona Cabeçalho da Pre Nota |
-//---------------------------------+
+//---------------------------+
+// Posiciona Pedido de venda |
+//---------------------------+
 dbSelectArea("SC5")
 SC5->( dbSetOrder(1) )
+SC5->( dbSeek(xFilial("SC5") + _cPedido ) )
 
-//-----------------------------+
-// Posiciona Itens da Pre Nota | 
-//-----------------------------+
-//dbSelectArea("SC9")
-//SC9->( dbSetOrder(1) )
-
-//-------------------+
-// Posiciona Produto |
-//-------------------+
-dbSelectArea("SB1")
-SB1->( dbSetOrder(1) )
-
-//-----------------------------+
-// Adiciona dados do cabeçalho |
-//-----------------------------+
-If !SC5->( dbSeek(xFilial("SC5") + _cPedido) )
-	RestArea(aArea)
-	Return .F.
+//--------------+
+// Aceita Saldo |
+//--------------+ 
+If SC5->C5_XRESIDU == "2"
+	RestArea(_aArea)
+	Return .T.
 EndIf
 
-//---------------------+
-// Valida Tipo de Nota | 
-//---------------------+
-If SC5->C5_TIPO == "N"
-
-	dbSelectArea("SA1")
-	SA1->( dbSetOrder(1) )
-	SA1->( dbSeek(xFilial("SA1") + _cCodCli + _cLoja) )
-
-	_cCliFor	:= SA1->A1_COD
-	_cLoja		:= SA1->A1_LOJA
-	_cNReduz	:= SA1->A1_NREDUZ
-
-Else
-
-	dbSelectArea("SA2")
-	SA2->( dbSetOrder(1) )
-	SA2->( dbSeek(xFilial("SA2") + _cCodCli + _cLoja) )
-
-	_cCliFor	:= SA2->A2_COD
-	_cLoja		:= SA2->A2_LOJA
-	_cNReduz	:= SA2->A2_NREDUZ 
-
+//-----------------+
+// Elimina residuo | 
+//-----------------+
+If DnApi07R(_cPedido)
+	RecLock("SC5",.F.)
+		SC5->C5_XRESIDU := "3"
+	SC5->(MsUnLock())
 EndIf
 
-cHtml := '<html>'
-cHtml += '	<head>'
-cHtml += '		<title>Pedido de Venda</title>'
-cHtml += '		<style>'
-cHtml += '			body {font-family: arial, helvetica, sans-serif; font-size: 10pt}'
-cHtml += '			div {font-family: arial, helvetica, sans-serif; font-size: 10pt}'
-cHtml += '			table {font-family: arial, helvetica, sans-serif; font-size: 10pt}'
-cHtml += '			td {font-family:arial, helvetica, sans-serif; font-size: 10pt}'
-cHtml += '			.mini {font-family:arial, helvetica, sans-serif; font-size: 10px}'
-cHtml += '			form {margin: 0px}'
-cHtml += '			.s_a  {font-size: 28px; vertical-align: top; width: 100%; color: #ffffff; font-family: arial, helvetica, sans-serif; background-color: #6baccf; text-align: center}'
-cHtml += '			.s_b  {font-size: 12px; vertical-align: top; width: 05% ; color: #000000; font-family: arial, helvetica, sans-serif; background-color: #ffff99; text-align: left}'
-cHtml += '			.s_c  {font-size: 12px; vertical-align: top; width: 05% ; color: #ffffff; font-family: arial, helvetica, sans-serif; background-color: #6baccf; text-align: left}'
-cHtml += '			.s_d  {font-size: 12px; vertical-align: top; width: 05% ; color: #000000; font-family: arial, helvetica, sans-serif; background-color: #e8e8e8; text-align: left}'
-cHtml += '			.s_o  {font-size: 12px; vertical-align: top; width: 05% ; font-family: arial, helvetica, sans-serif; text-align: left}'
-cHtml += '			.s_t  {font-size: 16px; vertical-align: top; width: 100%; color: #000000; font-family: arial, helvetica, sans-serif; background-color: #e8e8e8; text-align: center}'
-cHtml += '			.s_u  {font-size: 12px; vertical-align: top; width: 05% ; color: #000000; font-family: arial, helvetica, sans-serif; text-align: left}'
-cHtml += '		</style>'
-cHtml += '	</head>'
-cHtml += '	<body>'
-cHtml += '		<table style="color: rgb(0,0,0)" width="100%" border=1>'
-cHtml += '			<tbody>'
-cHtml += '				<tr>'
-cHtml += '					<td class=s_a width="100%"><p align=center><b>Pedido de Venda - Divergência Separação WMS</b></p></td>'
-cHtml += '				</tr>'
-cHtml += '			</tbody>'
-cHtml += '		</table>'
-cHtml += '		<table style="color: rgb(0,0,0)" width="100%" cellspacing=0 border=0>'
-cHtml += '			<tbody>'
-cHtml += '				<tr>'
-cHtml += '					<td class=s_t width="100%"><p align=center><b>Dados Pedido de Venda</b></p></td>'
-cHtml += '				</tr>'
-cHtml += '			</tbody>'
-cHtml += '		</table>'
-cHtml += '		<table style="width: 100%; height: 26px" cellspacing=0 border=1>'
-cHtml += '			<tbody>'
-cHtml += '				<tr>'
-cHtml += '					<td class=s_u colspan = "2"><b>Numero:</b> ' + ' ' + SC5->C5_NUM + '</td>'
-cHtml += '					<td class=s_u colspan = "2"><b>Emissão:</b>' + ' ' + FsDateConv(SC5->C5_EMISSAO,"DDMMYYYY") + '</td>'
-cHtml += '				</tr>'
-cHtml += '				<tr>'
-cHtml += '					<td class=s_u colspan = "7"><b>Cliente:</b>' + ' ' + _cCliFor + ' - ' + _cLoja + ' '   + _cNReduz + '</td>'
-cHtml += '				</tr>'
-cHtml += '			</tbody>'
-cHtml += '		</table>'
-cHtml += '		<table style="color: rgb(0,0,0)" width="100%" cellspacing=0 border=0>'
-cHtml += '			<tbody>'
-cHtml += '				<tr>'
-cHtml += '					<td class=s_t width="100%"><p align=center><b>Itens Pedido</b></p></td>'
-cHtml += '				</tr>'
-cHtml += '			</tbody>'
-cHtml += '		</table>'
-cHtml += '		<table style="width: 100%; height: 26px" cellspacing=0 border=1>'
-cHtml += '			<tbody>'
-cHtml += '				<tr>'  					
-cHtml += '					<td class=s_u colspan = "1"><b>Item</b></td>'
-cHtml += '					<td class=s_u colspan = "3"><b>Produto</b></td>'
-cHtml += '					<td class=s_u colspan = "6"><b>Descricao</b></td>'
-cHtml += '					<td class=s_u colspan = "1"><b>Qtd. Nota</b></td>'
-cHtml += '					<td class=s_u colspan = "1"><b>Qtd. Conf.</b></td>'
-cHtml += '					<td class=s_u colspan = "1"><b>Armazem</b></td>'
-cHtml += '				</tr>'
+RestArea(_aArea)
+Return _lRet
 
-//-----------------+
-// Itens liberados | 
-//-----------------+
-dbSelectArea("SC9")
-SC9->( dbSetOrder(1) )
+/*************************************************************************************/
+/*/{Protheus.doc} DnaApi07O
 
+@description Atualiza dados do pedido separado 
+
+@author Bernard M. Margarido
+@since 20/11/2018
+@version 1.0
+
+@type function
+/*/
+/*************************************************************************************/
+Static Function DnApi07O(_cPedido,_nPeso,_nVolume,_aItensC,_aDiverg)
+Local _aArea	:= GetArea()
+
+Local _lRet		:= .T.
+
+Default _aDiverg:= {}
+
+//--------------------------+
+// Atualiza dados do pedido |
+//--------------------------+
+dbSelectArea("SC5")
+SC5->( dbSetOrder(1) )
+SC5->( dbSeek(xFilial("SC5") + _cPedido) )
+
+RecLock("SC5",.F.)
+	SC5->C5_XENVWMS := "3"
+	SC5->C5_XDTALT	:= Date()
+	SC5->C5_XHRALT	:= Time()
+	SC5->C5_ESPECI1	:= "CAIXAS"
+	SC5->C5_PESOL	:= _nPeso
+	SC5->C5_PBRUTO	:= _nPeso
+	SC5->C5_VOLUME1	:= _nVolume
+SC5->( MsUnLock() )
+
+//------------------------+
+// Tabela itens do pedido |
+//------------------------+
 dbSelectArea("SC6")
 SC6->( dbSetOrder(1) )
 
-For _nX := 1 To Len(_aDiverg)
-	
-	//------------------------+
-	// Posiciona Item da Nota | 
-	//------------------------+
-	SC9->( dbSeek(xFilial("SC9") + _cPedido + _aDiverg[_nX][1] ) )
+//---------------------------+
+// Posiciona Itens Liberados |
+//---------------------------+
+dbSelectArea("SC9")
+SC9->( dbSetOrder(1) )
+SC9->( dbSeek(xFilial("SC9") + SC5->C5_NUM) )
+While SC9->( !Eof() .And. xFilial("SC9") + SC5->C5_NUM == SC9->C9_FILIAL + SC9->C9_PEDIDO)
+	//------------------------------+
+	// Valida se items esta no JSON |
+	//------------------------------+
+	If  aScan(_aItensC,{|x| RTrim(x[1]) + RTrim(x[2]) == RTrim(SC9->C9_ITEM) + RTrim(SC9->C9_PRODUTO) }) > 0 .Or. ;
+		aScan(_aItensC,{|x| RTrim(x[1]) + RTrim(x[2]) == RTrim(SC9->C9_ITEM) + RTrim(SC9->C9_PRODUTO) }) > 0
+		//------------------------+
+		// Atualiza item liberado |
+		//------------------------+
+		RecLock("SC9",.F.)
+			SC9->C9_XENVWMS := "3"
+			SC9->C9_XDTALT	:= Date()
+			SC9->C9_XHRALT	:= Time()
+		SC9->( MsUnLock() )
 		
-	//-------------------+
-	// Posiciona Produto |
-	//-------------------+
-	SB1->( dbSeek(xFilial("SB1") + _aDiverg[_nX][2]) )
-	
-	cHtml += '				<tr>' + CRLF
-	cHtml += '					<td class=s_u colspan = "1"><b></b>' + SC9->C9_ITEM + '</td>'
-	cHtml += '					<td class=s_u colspan = "3"><b></b>' + SC9->C9_PRODUTO + '</td>'
-	cHtml += '					<td class=s_u colspan = "6"><b></b>' + SB1->B1_DESC + '</td>'
-	cHtml += '					<td class=s_u colspan = "1"><b></b>' + AllTrim(Str(SC9->C9_QTDLIB)) + '</td>'
-	cHtml += '					<td class=s_u colspan = "1"><b></b>' + AllTrim(Str(_aDiverg[_nX][3])) + '</td>'
-	cHtml += '					<td class=s_u colspan = "1"><b></b>' + SC9->C9_LOCAL + '</td>'
-	cHtml += '				</tr>'
-	
-Next _nX	
+		If SC6->( dbSeeK(xFilial("SC9") + SC9->C9_PEDIDO + SC9->C9_ITEM + SC9->C9_PRODUTO) )
+			//----------------------+
+			// Atualiza item pedido | 
+			//----------------------+
+			RecLock("SC6",.F.)
+				SC6->C6_XENVWMS := "3"
+				SC6->C6_XDTALT	:= Date()
+				SC6->C6_XHRALT	:= Time()
+			SC6->( MsUnLock() )
+		EndIf
+	EndIf
+	SC9->( dbSkip() )
+EndDo	
 
-cHtml += '			</tbody>'
-cHtml += '		</table>'
-cHtml += '		<p>Workflow enviado automaticamente pelo Protheus - Perfumes Dana</p>'
-cHtml += '	</body>'
-cHtml += '</html>'
+RestArea(_aArea)
+Return _lRet 
 
-//-------------------------------------------------------------+
-// Verifica usuario e senha para conectar no servidor de saida |
-//-------------------------------------------------------------+
-CONNECT SMTP SERVER cServer ACCOUNT cUser PASSWORD cPassword RESULT lOk
+/*************************************************************************************/
+/*/{Protheus.doc} DnApi07R
 
-//---------------------------+
-// Autentica usuario e senha |
-//---------------------------+
-If lRelauth
-	lOk := MailAuth(cUser,cPassword)
-EndIf	
+@description Elimina residuo dos pedidos 
 
-//--------------------------------------------------------------+
-// Verifica se conseguiu conectar no servidor de saida e valida |
-// se conseguiu atenticar para enviar o e-mail                  |
-//--------------------------------------------------------------+
-If lOk
-	SEND MAIL FROM cFrom TO cMail SUBJECT cTitulo BODY cHtml RESULT lEnviado 
-Else
-	Conout("Erro ao Conectar ! ")
-Endif			
+@author Bernard M. Margarido
+@since 20/11/2018
+@version 1.0
 
-If lEnviado
-	Conout("E-Mail Enviado com sucesso ")
-Else                            
-	GET MAIL ERROR cError
-	Conout("Erro ao enviar e-mail --> " + cError)	
-EndIf	
+@type function
+/*/
+/*************************************************************************************/
+Static Function DnApi07R(_cPedido)
+Local _aArea	:= GetArea()
+Local _lRet		:= .T.
 
-//---------------------------------+
-// Disconecta do servidor de saida |
-//---------------------------------+
-DISCONNECT SMTP SERVER
+//----------------------+
+// Cria Itens do Pedido | 
+//----------------------+
+dbSelectArea("SC6")
+SC6->( dbSetOrder(1) )
+If SC6->( dbSeek(xFilial("SC6") + SC5->C5_NUM) )
+	While SC6->( !Eof() .And. xFilial("SC6") + SC5->C5_NUM == SC6->C6_FILIAL + SC6->C6_NUM )
+		If (SC6->C6_QTDVEN - SC6->C6_QTDENT) > 0 .And. _lRet
+			Pergunte("MTA500",.F.)
+		    	_lRet := MaResDoFat(,.T.,.F.,,MV_PAR12 == 1,MV_PAR13 == 1)
+		    Pergunte("MTA410",.F.)
+		EndIf
+		SC6->( dbSkip() )
+	EndDo
+EndIf
 
-RestArea(aArea)
-Return .T.
+RestArea(_aArea)
+Return _lRet
 
 /*************************************************************************************/
 /*/{Protheus.doc} DnaApi07E

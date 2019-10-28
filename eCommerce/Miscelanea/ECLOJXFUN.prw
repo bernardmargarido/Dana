@@ -946,10 +946,12 @@ If WSA->(dbSeek(xFilial("WSA") + SL1->L1_XNUMECO) )
 		//---------------------------+
 		// Grava historico do pedido | 
 		//---------------------------+
-        u_AEcoStaLog(_cCodSta,WS1->WS1_NUMECO,WSA->WSA_NUM,dDataBase,Time())
+        u_AEcoStaLog(_cCodSta,WSA->WSA_NUMECO,WSA->WSA_NUM,dDataBase,Time())
+		/*
 		If WS1->WS1_ENVECO == "S"
-			U_AEcoStat(WSA->WSA_NUM)
+			U_AECOI11B(WSA->WSA_NUM)
 		EndIf
+		*/
     EndIF
 EndIf
 

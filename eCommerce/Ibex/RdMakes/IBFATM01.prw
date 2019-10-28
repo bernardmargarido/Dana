@@ -197,7 +197,7 @@ While (_cAlias)->( !Eof() )
             //---------------------------+
             // Grava historico do pedido | 
             //---------------------------+
-            u_AEcoStaLog(_cCodSta,WS1->WS1_NUMECO,WSA->WSA_NUM,dDataBase,Time())
+            u_AEcoStaLog(_cCodSta,WSA->WSA_NUMECO,WSA->WSA_NUM,Date(),Time())
 		
         EndIf
     EndIf

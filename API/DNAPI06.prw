@@ -600,12 +600,14 @@ If _lContinua
 	// Estorna pre nota envia e-mail com as divergencias | 
 	//---------------------------------------------------+
 	If Len(_aDiverg) > 0
+
 		DnaApi06P(_cNota,_cSerie,_cCodFor,_cLojafor,_aDiverg)
+
 		//----------------------+	
 		// Log processo da nota |
 		//----------------------+
 		LogExec(_cNota + " " + _cSerie + "DIVERGENCIA PRE NOTA.")
-		aAdd(aMsgErro,{cFilAnt,_cNota,_cSerie,.F.,"PRE NOTA COM DIVERGENCIA."})
+		aAdd(aMsgErro,{cFilAnt,_cNota,_cSerie,.T.,"PRE NOTA COM DIVERGENCIA."})
 		
 	//------------------------------+	
 	// Libera classificação da Nota |
@@ -795,6 +797,7 @@ cQuery += "			F1.F1_TIPO = 'N' AND " + CRLF
 cQuery += "			F1.F1_STATUS = '' AND " + CRLF
 cQuery += "			F1.D_E_L_E_T_ = '' " + CRLF
 cQuery += "			GROUP BY F1.F1_FILIAL,F1.F1_DOC,F1.F1_SERIE,F1.F1_FORNECE,F1.F1_LOJA,A2.A2_CGC,F1.F1_TRANSP,F1.F1_DTDIGIT,F1.F1_TIPO,F1.R_E_C_N_O_ " + CRLF
+
 cQuery += "		UNION ALL " + CRLF
 
 cQuery += "			SELECT " + CRLF 
@@ -832,7 +835,7 @@ EndIf
 cQuery += "			F1.F1_XENVWMS IN (' ','1') AND " + CRLF
 cQuery += "			F1.F1_TIPO IN ('D','B') AND " + CRLF
 cQuery += "			F1.D_E_L_E_T_ = '' " + CRLF
-cQuery += "			GROUP BY F1.F1_FILIAL,F1.F1_DOC,F1.F1_SERIE,F1.F1_FORNECE,F1.F1_LOJA,A1.A1_CGC,F1.F1_TRANSP,F1.F1_DTDIGIT,F1.F1_TIPO,F1.R_E_C_N_O_ " + CRLF
+cQuery += "			GROUP BY F1.F1_FILIAL, F1.F1_DOC, F1.F1_SERIE, F1.F1_FORNECE, F1.F1_LOJA, A1.A1_CGC, F1.F1_TRANSP, F1.F1_DTDIGIT, F1.F1_TIPO, F1.R_E_C_N_O_ " + CRLF
 cQuery += "		) NF_NORMAL_DEVOLUCAO " + CRLF
 cQuery += "	) NFENTRADA " + CRLF
 cQuery += "	WHERE RNUM > " + cTamPage + " * (" + cPage + " - 1) " 
@@ -970,7 +973,7 @@ Local lRet			:= .T.
 //--------------+
 // Envia e-Mail |
 //--------------+
-DnApi06M(_cNota,_cSerie,_cCodFor,_cLojafor,_aDiverg)
+U_DnMailNf(_cNota,_cSerie,_cCodFor,_cLojafor,_aDiverg)
 
 //---------------------------------+
 // Posiciona Cabeçalho da Pre Nota |
@@ -998,294 +1001,15 @@ If !SF1->( dbSeek(xFilial("SF1") + _cNota + _cSerie + _cCodFor + _cLojafor) )
 	Return .F.
 EndIf
 
-aAdd(aCabec,{"F1_DOC"       ,_cNota        		,NIL})
-aAdd(aCabec,{"F1_SERIE"     ,_cSerie      		,NIL})
-aAdd(aCabec,{"F1_FORNECE"   ,SA2->A2_COD   		,NIL})
-aAdd(aCabec,{"F1_LOJA"      ,SA2->A2_LOJA  		,NIL})
-
-//-------------------+
-// Itens da Pré Nota | 
-//-------------------+
-dbSelectArea("SD1")
-SD1->( dbSetOrder(1) )
-SD1->( dbSeek(xFilial("SD1") + _cNota + _cSerie + _cCodFor + _cLojafor))
-While SD1->( !Eof() .And. xFilial("SD1") + _cNota + _cSerie + _cCodFor + _cLojafor == SD1->D1_FILIAL + SD1->D1_DOC + SD1->D1_SERIE + SD1->D1_FORNECE + SD1->D1_LOJA )  	
-	//-------------------+
-	// Posiciona Produto |
-	//-------------------+
-	SB1->( dbSeek(xFilial("SB1") + SD1->D1_COD) )
-	
-	aAdd(aItem, {"D1_FILIAL"	,	xFilial("SD1")			, Nil })
-	aAdd(aItem, {"D1_COD"   	, 	SD1->D1_COD				, Nil })
-	aAdd(aItem, {"D1_QUANT" 	, 	SD1->D1_QUANT			, Nil })
-	aAdd(aItem, {"D1_VUNIT" 	, 	SD1->D1_VUNIT 			, Nil })
-	aAdd(aItem, {"D1_TOTAL" 	,   SD1->D1_TOTAL 			, Nil })
-	aAdd(aItem, {"D1_UM"    	, 	SD1->D1_UM				, Nil })
-	aAdd(aItem, {"D1_LOCAL" 	, 	SD1->D1_LOCAL			, Nil })
-	aAdd(aItem, {"D1_DOC" 		, 	SD1->D1_DOC				, Nil })
-	aAdd(aItem, {"D1_SERIE"		, 	SD1->D1_SERIE			, Nil })
-	
-	aAdd(aItems,aItem)
-	
-	SD1->( dbSkip() )	
-	
-EndDo
-
-If Len(aCabec) > 0 .And. Len(aItems) > 0
-	
-	lMsErroAuto := .F.
-	
-	MSExecAuto({|x,y,z| Mata140(x,y,z) }, aCabec, aItems, 5)
-	
-	If lMsErroAuto
-		MakeDir("\erros\")
-		cSD3Log := "DNAPI06" + RTrim(_cNota) + "_" + RTrim(_cSerie) + "_" + DToS(dDataBase) + Left(Time(),2) + SubStr(Time(),4,2) + Right(Time(),2) + ".LOG"
-		MostraErro("\erros\",cSD3Log)
-		
-		DisarmTransaction()
-		lRet := .F. 
-		
-		cMsgErro := ""
-		cLiArq	 := ""
-		nHndImp	 := 0	
-		nHndImp  := FT_FUSE("\erros\" + cSD3Log)
-		If nHndImp >= 1
-			//-----------------------------+
-			// Posiciona Inicio do Arquivo |
-			//-----------------------------+
-			FT_FGOTOP()
-			
-			While !FT_FEOF()
-				cLiArq := FT_FREADLN()
-				If Empty(cLiArq)
-					FT_FSKIP(1)
-					Loop
-				EndIf
-				cMsgErro += cLiArq + CRLF
-				FT_FSKIP(1)
-			EndDo
-			FT_FUSE()
-		EndIf  
-		
-		//---------------------+
-		// Variavel de retorno |
-		//---------------------+
-		LogExec(_cNota + " " + _cSerie + "ERRO AO ESTORNAR PRE NOTA : " +  cMsgErro)
-		aAdd(aMsgErro,{_cNota,_cSerie,.F.,"ERRO AO ESTORNAR PRE NOTA : " +  cMsgErro })
-	Else
-		lRet := .T.
-	EndIf
-EndIf
+//---------------------------------+
+// Permiti dar entrada na pre nota |
+//---------------------------------+
+RecLock("SF1",.F.)
+	SF1->F1_XENVWMS := "3"
+SF1->( MsUnLock() )
 
 RestArea(aArea)
 Return lRet 
-
-/*************************************************************************************/
-/*/{Protheus.doc} DnApi06M
-
-@description Envia e-mail com a divergencia da pré nota 
-
-@author Bernard M. Margarido
-@since 21/11/2018
-@version 1.0
-@type function
-/*/
-/*************************************************************************************/
-Static Function DnApi06M(_cNota,_cSerie,_cCodFor,_cLojafor,_aDiverg)
-Local aArea		:= GetArea()
-
-Local cServer	:= GetMv("MV_RELSERV")
-Local cUser		:= GetMv("MV_RELAUSR")
-Local cPassword := GetMv("MV_RELAPSW")
-Local cFrom		:= GetMv("MV_RELACNT")
-
-Local cMail		:= GetNewPar("DN_MAILWMS","bernard.modesto@alfaerp.com.br;bernard.margarido@gmail.com")
-Local cTitulo	:= "Dana - Divergencia recebimento."
-Local cHtml		:= ""
-
-Local lEnviado	:= .F.
-Local lOk		:= .F.
-Local lRelauth  := SuperGetMv("MV_RELAUTH",, .F.)
-
-//---------------------------------+
-// Posiciona Cabeçalho da Pre Nota |
-//---------------------------------+
-dbSelectArea("SF1")
-SF1->( dbSetOrder(1) )
-
-//-----------------------------+
-// Posiciona Itens da Pre Nota | 
-//-----------------------------+
-dbSelectArea("SD1")
-SD1->( dbSetOrder(1) )
-
-//-------------------+
-// Posiciona Produto |
-//-------------------+
-dbSelectArea("SB1")
-SB1->( dbSetOrder(1) )
-
-//-----------------------------+
-// Adiciona dados do cabeçalho |
-//-----------------------------+
-If !SF1->( dbSeek(xFilial("SF1") + _cNota + _cSerie + _cCodFor + _cLojafor) )
-	RestArea(aArea)
-	Return .F.
-EndIf
-
-//---------------------+
-// Valida Tipo de Nota | 
-//---------------------+
-If SF1->F1_TIPO == "N"
-	dbSelectArea("SA2")
-	SA2->( dbSetOrder(1) )
-	SA2->( dbSeek(xFilial("SA2") + SF1->F1_FORNECE + SF1->F1_LOJA) )
-	_cCliFor	:= SA2->A2_COD
-	_cLoja		:= SA2->A2_LOJA
-	_cNReduz	:= SA2->A2_NREDUZ
-Else
-	dbSelectArea("SA1")
-	SA1->( dbSetOrder(1) )
-	SA1->( dbSeek(xFilial("SA1") + SF1->F1_FORNECE + SF1->F1_LOJA) )
-	_cCliFor	:= SA1->A1_COD
-	_cLoja		:= SA1->A1_LOJA
-	_cNReduz	:= SA1->A1_NREDUZ 
-EndIf
-
-cHtml := '<html>' + CRLF
-cHtml += '	<head>' + CRLF
-cHtml += '		<title>Pre Nota</title>' + CRLF
-cHtml += '		<style>' + CRLF
-cHtml += '			body {font-family: arial, helvetica, sans-serif; font-size: 10pt}'
-cHtml += '			div {font-family: arial, helvetica, sans-serif; font-size: 10pt}'
-cHtml += '			table {font-family: arial, helvetica, sans-serif; font-size: 10pt}'
-cHtml += '			td {font-family:arial, helvetica, sans-serif; font-size: 10pt}'
-cHtml += '			.mini {font-family:arial, helvetica, sans-serif; font-size: 10px}'
-cHtml += '			form {margin: 0px}'
-cHtml += '			.s_a  {font-size: 28px; vertical-align: top; width: 100%; color: #ffffff; font-family: arial, helvetica, sans-serif; background-color: #6baccf; text-align: center}'
-cHtml += '			.s_b  {font-size: 12px; vertical-align: top; width: 05% ; color: #000000; font-family: arial, helvetica, sans-serif; background-color: #ffff99; text-align: left}'
-cHtml += '			.s_c  {font-size: 12px; vertical-align: top; width: 05% ; color: #ffffff; font-family: arial, helvetica, sans-serif; background-color: #6baccf; text-align: left}'
-cHtml += '			.s_d  {font-size: 12px; vertical-align: top; width: 05% ; color: #000000; font-family: arial, helvetica, sans-serif; background-color: #e8e8e8; text-align: left}'
-cHtml += '			.s_o  {font-size: 12px; vertical-align: top; width: 05% ; font-family: arial, helvetica, sans-serif; text-align: left}'
-cHtml += '			.s_t  {font-size: 16px; vertical-align: top; width: 100%; color: #000000; font-family: arial, helvetica, sans-serif; background-color: #e8e8e8; text-align: center}'
-cHtml += '			.s_u  {font-size: 12px; vertical-align: top; width: 05% ; color: #000000; font-family: arial, helvetica, sans-serif; text-align: left}'
-cHtml += '		</style>' + CRLF
-cHtml += '	</head>' + CRLF
-cHtml += '	<body>' + CRLF
-cHtml += '		<table style="color: rgb(0,0,0)" width="100%" border=1>' + CRLF
-cHtml += '			<tbody>' + CRLF
-cHtml += '				<tr>' + CRLF
-cHtml += '					<td class=s_a width="100%"><p align=center><b>Pré Nota de Entrada - Divergência WMS</b></p></td>' + CRLF
-cHtml += '				</tr>' + CRLF
-cHtml += '			</tbody>' + CRLF
-cHtml += '		</table>' + CRLF
-cHtml += '		<table style="color: rgb(0,0,0)" width="100%" cellspacing=0 border=0>' + CRLF
-cHtml += '			<tbody>' + CRLF
-cHtml += '				<tr>' + CRLF
-cHtml += '					<td class=s_t width="100%"><p align=center><b>Dados da Pré Nota</b></p></td>' + CRLF
-cHtml += '				</tr>' + CRLF
-cHtml += '			</tbody>' + CRLF
-cHtml += '		</table>' + CRLF
-cHtml += '		<table style="width: 100%; height: 26px" cellspacing=0 border=1>' + CRLF
-cHtml += '			<tbody>' + CRLF
-cHtml += '				<tr>' + CRLF
-cHtml += '					<td class=s_u colspan = "1"><b>Documento:</b> ' + ' ' + SF1->F1_DOC + '</td>' + CRLF
-cHtml += '					<td class=s_u colspan = "4"><b>Serie:</b> ' + ' ' + SF1->F1_SERIE +  '</td> ' + CRLF
-cHtml += '					<td class=s_u colspan = "2"><b>Emissão:</b>' + ' ' + FsDateConv(SF1->F1_EMISSAO,"DDMMYYYY") + '</td>' + CRLF
-cHtml += '				</tr>' + CRLF
-cHtml += '				<tr>' + CRLF
-cHtml += '					<td class=s_u colspan = "7"><b>Fornecedor:</b>' + ' ' + _cCliFor + ' - ' + _cLoja + ' '   + _cNReduz + '</td>' + CRLF
-cHtml += '				</tr>' + CRLF
-cHtml += '			</tbody>' + CRLF
-cHtml += '		</table>' + CRLF
-cHtml += '		<table style="color: rgb(0,0,0)" width="100%" cellspacing=0 border=0>' + CRLF
-cHtml += '			<tbody>' + CRLF
-cHtml += '				<tr>' + CRLF
-cHtml += '					<td class=s_t width="100%"><p align=center><b>Itens Pré Nota</b></p></td>' + CRLF
-cHtml += '				</tr>' + CRLF
-cHtml += '			</tbody>' + CRLF
-cHtml += '		</table>' + CRLF
-cHtml += '		<table style="width: 100%; height: 26px" cellspacing=0 border=1>' + CRLF
-cHtml += '			<tbody>' + CRLF
-cHtml += '				<tr>' + CRLF  					
-cHtml += '					<td class=s_u colspan = "1"><b>Item</b></td>' + CRLF
-cHtml += '					<td class=s_u colspan = "3"><b>Produto</b></td>' + CRLF
-cHtml += '					<td class=s_u colspan = "6"><b>Descricao</b></td>' + CRLF
-cHtml += '					<td class=s_u colspan = "1"><b>Qtd. Nota</b></td>' + CRLF
-cHtml += '					<td class=s_u colspan = "1"><b>Qtd. Conf.</b></td>' + CRLF
-cHtml += '					<td class=s_u colspan = "1"><b>Armazem</b></td>' + CRLF
-cHtml += '				</tr>' + CRLF
-//-------------------+
-// Itens da Pré Nota | 
-//-------------------+
-dbSelectArea("SD1")
-SD1->( dbSetOrder(1) )
-
-For _nX := 1 To Len(_aDiverg)
-	
-	//------------------------+
-	// Posiciona Item da Nota | 
-	//------------------------+
-	SD1->( dbSeek(xFilial("SD1") + _cNota + _cSerie + _cCodFor + _cLojafor +  _aDiverg[_nX][2] + _aDiverg[_nX][1] ))
-	
-	//-------------------+
-	// Posiciona Produto |
-	//-------------------+
-	SB1->( dbSeek(xFilial("SB1") + _aDiverg[_nX][2]) )
-	
-	cHtml += '				<tr>' + CRLF
-	cHtml += '					<td class=s_u colspan = "1"><b></b>' + SD1->D1_ITEM + '</td>' + CRLF
-	cHtml += '					<td class=s_u colspan = "3"><b></b>' + SD1->D1_COD + '</td>' + CRLF
-	cHtml += '					<td class=s_u colspan = "6"><b></b>' + SB1->B1_DESC + '</td>' + CRLF
-	cHtml += '					<td class=s_u colspan = "1"><b></b>' + AllTrim(Str(SD1->D1_QUANT)) + '</td>' + CRLF
-	cHtml += '					<td class=s_u colspan = "1"><b></b>' + AllTrim(Str(_aDiverg[_nX][3])) + '</td>' + CRLF
-	cHtml += '					<td class=s_u colspan = "1"><b></b>' + SD1->D1_LOCAL + '</td>' + CRLF
-	cHtml += '				</tr>' + CRLF
-	
-Next _nX	
-
-cHtml += '			</tbody>' + CRLF
-cHtml += '		</table>' + CRLF
-cHtml += '		<p>Workflow enviado automaticamente pelo Protheus - Perfumes Dana</p>' + CRLF
-cHtml += '	</body>' + CRLF
-cHtml += '</html>'
-
-//-------------------------------------------------------------+
-// Verifica usuario e senha para conectar no servidor de saida |
-//-------------------------------------------------------------+
-CONNECT SMTP SERVER cServer ACCOUNT cUser PASSWORD cPassword RESULT lOk
-
-//---------------------------+
-// Autentica usuario e senha |
-//---------------------------+
-If lRelauth
-	lOk := MailAuth(cUser,cPassword)
-EndIf	
-
-//--------------------------------------------------------------+
-// Verifica se conseguiu conectar no servidor de saida e valida |
-// se conseguiu atenticar para enviar o e-mail                  |
-//--------------------------------------------------------------+
-If lOk
-	SEND MAIL FROM cFrom TO cMail SUBJECT cTitulo BODY cHtml RESULT lEnviado 
-Else
-	Conout("Erro ao Conectar ! ")
-Endif			
-
-If lEnviado
-	Conout("E-Mail Enviado com sucesso ")
-Else                            
-	GET MAIL ERROR cError
-	Conout("Erro ao enviar e-mail --> " + cError)	
-EndIf	
-
-//---------------------------------+
-// Disconecta do servidor de saida |
-//---------------------------------+
-DISCONNECT SMTP SERVER
-
-RestArea(aArea)
-Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} DnaApi06E

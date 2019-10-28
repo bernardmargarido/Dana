@@ -44,7 +44,7 @@ If SC5->( FieldPos("C5_XENVWMS") ) > 0
 		For _nX := 1 To Len(_aPedidos)
 			If SC5->( dbSeek(xFilial("SC5") + _aPedidos[_nX]))
 				RecLock("SC5",.F.)
-					SC5->C5_XENVWMS := "1"
+					SC5->C5_XENVWMS := SC5->C5_XENVWMS
 					SC5->C5_XDTALT	:= Date()
 					SC5->C5_XHRALT	:= Time()
 				SC5->( MsUnLock() )	

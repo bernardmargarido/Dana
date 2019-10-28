@@ -28,7 +28,7 @@ EndIf
 // Valida se pedido já foi enviado ao WMS |
 //----------------------------------------+
 RecLock("SC5",.F.)
-	SC5->C5_XENVWMS := "1"
+	//SC5->C5_XENVWMS := "1"
 	SC5->C5_XDTALT	:= Date()
 	SC5->C5_XHRALT	:= Time()
 SC5->( MsUnLock() )
@@ -43,11 +43,14 @@ If SC6->( dbSeeK(xFilial("SC6") + SC5->C5_NUM ) )
 		//----------------------+
 		// Atualiza item pedido | 
 		//----------------------+
-		RecLock("SC6",.F.)
-			SC6->C6_XENVWMS := "1"
-			SC6->C6_XDTALT	:= Date()
-			SC6->C6_XHRALT	:= Time()
-		SC6->( MsUnLock() )
+		If !Empty( SC6->C6_XENVWMS)
+			RecLock("SC6",.F.)
+				//SC6->C6_XENVWMS := SC6->C6_XENVWMS
+				SC6->C6_XDTALT	:= Date()
+				SC6->C6_XHRALT	:= Time()
+			SC6->( MsUnLock() )
+		EndIf
+		
 		SC6->( dbSkip() )		
 	EndDo
 EndIf

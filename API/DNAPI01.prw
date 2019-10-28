@@ -280,7 +280,7 @@ If  _lSA1Comp
 // Exclusiva |
 //-----------+	
 Else
-	cQuery += "			A1.A1_FILIAL IN(" + _cFilWMS + ") AND " + CRLF
+	cQuery += "			A1.A1_FILIAL IN" + _cFilWMS + " AND " + CRLF
 EndIf
 
 If Empty(cCNPJ) .And. Empty(cCodigo) .And. Empty(cLoja)

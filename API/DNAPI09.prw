@@ -16,9 +16,9 @@ Static nTLote	:= TamSx3("B8_LOTECTL")[1]
 Static nTLocal	:= TamSx3("B2_LOCAL")[1]
 	
 /************************************************************************************/
-/*/{Protheus.doc} NFSAIDA
+/*/{Protheus.doc} TRANSFERENCIA
 
-@description API - Envia dados das notas fiscais Dana
+@description API - Movimentacao Interna
 
 @author Bernard M. Margarido
 @since 10/11/2018
