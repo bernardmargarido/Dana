@@ -289,7 +289,7 @@ RestArea(aArea)
 Return .T.
 
 /************************************************************************************/
-/*/{Protheus.doc} DnaApi07A
+/*/{Protheus.doc} 	
 
 @description Consulta pedidos de separacao e monta arquivo de envio
 
@@ -314,6 +314,7 @@ Local cLoja		:= ""
 Local cCodTransp:= ""
 Local cTipoPV	:= ""
 Local cSeqLib	:= ""
+Local cCancelado:= ""	
 Local dDtaEmiss	:= ""
 
 Local _nTotalPv	:= 0
@@ -389,6 +390,7 @@ While (cAlias)->( !Eof() )
 	cCodTransp	:= (cAlias)->CODTRANSP
 	cTipoPV		:= (cAlias)->TIPO
 	cPedPai		:= (cAlias)->PEDPAI
+	cCancelado	:= (cAlias)->CANCELADO
 	dDtaEmiss	:= dToc(sTod((cAlias)->EMISSAO))
 	_nRecSC5	:= (cAlias)->RECNOSC5
 	_nTotalPv	:= DnApi07TPv(cFilAut,cPedVen,1)
@@ -406,7 +408,7 @@ While (cAlias)->( !Eof() )
 	oPedido[#"revisao"]				:= cSeqLib
 	oPedido[#"total_pedido"]		:= _nTotalPv	
 	oPedido[#"pedido_pai"]			:= cPedPai
-	oPedido[#"cancelado"]			:= "N"
+	oPedido[#"cancelado"]			:= cCancelado
 	
 	//------------------------------------+
 	// Cria array para os itens do pedido |
@@ -421,34 +423,66 @@ While (cAlias)->( !Eof() )
 		cFilAnt := cFilAut
 	EndIf
 
-	//---------------------------+
-	// Posiciona itens do pedido | 	
-	//---------------------------+
-	SC9->( dbSeek(xFilial("SC9") + cPedVen) )
-	While SC9->( !Eof() .And. xFilial("SC9") + cPedVen == SC9->C9_FILIAL + SC9->C9_PEDIDO )
+	//------------------+
+	// Pedido cancelado | 
+	//------------------+
+	If cCancelado == "S"
+		SC6->( dbSeek(xFilial("SC6") + cPedVen) )
+		SET DELETED OFF
+		While SC6->( !Eof() .And. xFilial("SC6") + cPedVen == SC6->C6_FILIAL + SC6->C6_NUM )
 		
-		//-----------------+
-		// Itens do pedido |
-		//-----------------+
-		aAdd(oPedido[#"itens"],Array(#))
-		oItens := aTail(oPedido[#"itens"])
-		oItens[#"item"]			:= SC9->C9_ITEM
-		oItens[#"produto"]		:= SC9->C9_PRODUTO 
-		oItens[#"quantidade"]	:= SC9->C9_QTDLIB
-		oItens[#"valor_unit"]	:= SC9->C9_PRCVEN
-		oItens[#"valor_total"]	:= (SC9->C9_QTDLIB * SC9->C9_PRCVEN)
-		oItens[#"um"]			:= Posicione("SB1",1,xFilial("SB1") + SC9->C9_PRODUTO,"B1_UM")
-		oItens[#"lote"]			:= SC9->C9_LOTECTL
-		oItens[#"data_validade"]:= SC9->C9_DTVALID
-		oItens[#"armazem"]		:= SC9->C9_LOCAL
+			//-----------------+
+			// Itens do pedido |
+			//-----------------+
+			aAdd(oPedido[#"itens"],Array(#))
+			oItens := aTail(oPedido[#"itens"])
+			oItens[#"item"]			:= SC6->C6_ITEM
+			oItens[#"produto"]		:= SC6->C6_PRODUTO 
+			oItens[#"quantidade"]	:= SC6->C6_QTDVEN
+			oItens[#"valor_unit"]	:= SC6->C6_PRCVEN
+			oItens[#"valor_total"]	:= (SC6->C6_QTDVEN * SC6->C6_PRCVEN)
+			oItens[#"um"]			:= Posicione("SB1",1,xFilial("SB1") + SC6->C6_PRODUTO,"B1_UM")
+			oItens[#"lote"]			:= SC6->C6_LOTECTL
+			oItens[#"data_validade"]:= SC6->C6_DTVALID
+			oItens[#"armazem"]		:= SC6->C6_LOCAL
+			SC6->( dbSkip() )
+		EndDo
+		SET DELETED ON
+	//------------------+	
+	// Pedido separação |
+	//------------------+	
+	Else
+		//---------------------------+
+		// Posiciona itens do pedido | 	
+		//---------------------------+
+		SC9->( dbSeek(xFilial("SC9") + cPedVen) )
+		While SC9->( !Eof() .And. xFilial("SC9") + cPedVen == SC9->C9_FILIAL + SC9->C9_PEDIDO )
 		
-		//-----------------------+
-		// Atualiza item enviado |
-		//-----------------------+
-		DnApi07I(cFilAut,cPedVen,SC9->C9_ITEM,SC9->C9_PRODUTO )
+			//-----------------+
+			// Itens do pedido |
+			//-----------------+
+			aAdd(oPedido[#"itens"],Array(#))
+			oItens := aTail(oPedido[#"itens"])
+			oItens[#"item"]			:= SC9->C9_ITEM
+			oItens[#"produto"]		:= SC9->C9_PRODUTO 
+			oItens[#"quantidade"]	:= SC9->C9_QTDLIB
+			oItens[#"valor_unit"]	:= SC9->C9_PRCVEN
+			oItens[#"valor_total"]	:= (SC9->C9_QTDLIB * SC9->C9_PRCVEN)
+			oItens[#"um"]			:= Posicione("SB1",1,xFilial("SB1") + SC9->C9_PRODUTO,"B1_UM")
+			oItens[#"lote"]			:= SC9->C9_LOTECTL
+			oItens[#"data_validade"]:= SC9->C9_DTVALID
+			oItens[#"armazem"]		:= SC9->C9_LOCAL
+			
+			//-----------------------+
+			// Atualiza item enviado |
+			//-----------------------+
+			DnApi07I(cFilAut,cPedVen,SC9->C9_ITEM,SC9->C9_PRODUTO )
 
-		SC9->( dbSkip() )
-	EndDo
+			SC9->( dbSkip() )
+		EndDo
+	EndIf
+
+	
 
 	//-----------------------+
 	// Restaura filial atual | 
@@ -812,13 +846,14 @@ Return .T.
 /*/
 /************************************************************************************/
 Static Function DnaApi07C(_oPedido)
-Local _aArea	:= GetArea()
+Local _aArea		:= GetArea()
 
-Local _cFilAux	:= cFilAnt
-Local _cPedido	:= PadR(_oPedido[#"pedido"],nTPed)
-Local _cCodCli	:= PadR(_oPedido[#"codigo_cliente"],nTCodCli)
-Local _cLoja	:= PadR(_oPedido[#"loja"],nTLoja)
-Local _cSeqLib	:= RTrim(_oPedido[#"revisao"])
+Local _cFilAux		:= cFilAnt
+Local _cPedido		:= PadR(_oPedido[#"pedido"],nTPed)
+Local _cCodCli		:= PadR(_oPedido[#"codigo_cliente"],nTCodCli)
+Local _cLoja		:= PadR(_oPedido[#"loja"],nTLoja)
+Local _cSeqLib		:= RTrim(_oPedido[#"revisao"])
+Local _cCancelado	:= ""
 
 //------------------------+
 // Posiciona filial atual | 
@@ -830,16 +865,52 @@ cFilAnt := RTrim(_oPedido[#"filial"])
 //------------------+
 dbSelectArea("SC5")
 SC5->( dbSetOrder(1) )
+SET DELETED OFF
 If !SC5->( dbSeek(xFilial("SC5") + _cPedido + _cCodCli + _cLoja) )
 	aAdd(aMsgErro,{cFilAnt,_cPedido,.F.,"PEDIDO NAO ENCONTRADO."})
 	RestArea(_aArea)
 	Return .F.
 EndIf
 
+//------------------------------+
+// Valida se pedido e cancelado |
+//------------------------------+
+If SC5->C5_XENVWMS == "9"
+
+	//---------------------------+
+	// Atualiza Status do Pedido |
+	//---------------------------+
+	RecLock("SC5",.F.)
+		SC5->C5_XENVWMS := "X"
+		SC5->C5_XSEQLIB	:= SC5->C5_XSEQLIB
+		SC5->C5_XDTALT	:= Date()
+		SC5->C5_XHRALT	:= Time()
+	SC5->( MsUnLock() )
+
+	//-------------------------+
+	// Restaura a filial atual |
+	//-------------------------+
+	cFilAnt := _cFilAux
+
+	aAdd(aMsgErro,{cFilAnt,_cPedido,.T.,"PEDIDO BAIXADO COM SUCESSO."})
+
+	RestArea(_aArea)
+	Return .T.
+
+EndIf
+
+SET DELETED ON
+
 //----------------------------------+
 // Valida se Pedido já foi expedido | 
 //----------------------------------+
 If SC5->C5_XENVWMS == "3"
+
+	//-------------------------+
+	// Restaura a filial atual |
+	//-------------------------+
+	cFilAnt := _cFilAux
+
 	aAdd(aMsgErro,{cFilAnt,_cPedido,.F.,"PEDIDO JÁ SEPARADO."})
 	RestArea(_aArea)
 	Return .F.
@@ -849,7 +920,7 @@ EndIf
 // Atualiza Status do Pedido |
 //---------------------------+
 RecLock("SC5",.F.)
-	SC5->C5_XENVWMS := "2"
+	SC5->C5_XENVWMS := IIF(SC5->C5_XENVWMS == "9","X","2")
 	SC5->C5_XSEQLIB	:= _cSeqLib
 	SC5->C5_XDTALT	:= Date()
 	SC5->C5_XHRALT	:= Time()
@@ -943,10 +1014,26 @@ cQuery += "		SEQLIB, " + CRLF
 cQuery += "		PEDPAI, " + CRLF
 cQuery += "		TOTAL_PV, " + CRLF
 cQuery += "		TOTAL_LIB, " + CRLF
+cQuery += "		CANCELADO, " + CRLF
 cQuery += "		RECNOSC5 " + CRLF
 cQuery += "	FROM ( " + CRLF
+cQuery += "		SELECT " + CRLF
+cQuery += "			ROW_NUMBER() OVER(ORDER BY PEDIDO) RNUM, 
+cQuery += "			FILIAL, " + CRLF
+cQuery += "			PEDIDO, " + CRLF
+cQuery += "			CLIENTE, " + CRLF
+cQuery += "			LOJA, " + CRLF
+cQuery += "			CODTRANSP, " + CRLF
+cQuery += "			EMISSAO, " + CRLF
+cQuery += "			TIPO, " + CRLF
+cQuery += "			SEQLIB, " + CRLF
+cQuery += "			PEDPAI, " + CRLF
+cQuery += "			TOTAL_PV, " + CRLF
+cQuery += "			TOTAL_LIB, " + CRLF
+cQuery += "			CANCELADO, " + CRLF
+cQuery += "			RECNOSC5 " + CRLF
+cQuery += "		FROM ( " + CRLF
 cQuery += "			SELECT " + CRLF
-cQuery += "				ROW_NUMBER() OVER(ORDER BY C5.C5_NUM) RNUM, " + CRLF
 cQuery += "				C5.C5_FILIAL FILIAL, " + CRLF
 cQuery += "				C5.C5_NUM PEDIDO, " + CRLF
 cQuery += "				C5.C5_CLIENTE CLIENTE, " + CRLF
@@ -958,6 +1045,7 @@ cQuery += "				C5.C5_XSEQLIB SEQLIB, " + CRLF
 cQuery += "				C5.C5_XPEDPAI PEDPAI, " + CRLF
 cQuery += "				PV.TOTAL TOTAL_PV, " + CRLF
 cQuery += "				LIB.TOTAL TOTAL_LIB, " + CRLF
+cQuery += "				'N' CANCELADO, " + CRLF
 cQuery += "				C5.R_E_C_N_O_ RECNOSC5 " + CRLF
 cQuery += "			FROM " + CRLF
 cQuery += "				" + RetSqlName("SC5") + " C5 " + CRLF 
@@ -1012,10 +1100,78 @@ EndIf
 
 cQuery += "				C5.D_E_L_E_T_ = '' " + CRLF
 cQuery += "			GROUP BY C5.C5_FILIAL,C5.C5_NUM,C5.C5_CLIENTE,C5.C5_LOJACLI,C5.C5_TRANSP,C5.C5_EMISSAO,C5.C5_TIPO,C5.C5_XSEQLIB,C5.C5_XPEDPAI,PV.TOTAL,LIB.TOTAL,C5.R_E_C_N_O_  " + CRLF
-cQuery += "	) PEDIDO  " + CRLF
+cQuery += "			UNION ALL  " + CRLF
+cQuery += "			SELECT " + CRLF
+cQuery += "				C5.C5_FILIAL FILIAL, " + CRLF
+cQuery += "				C5.C5_NUM PEDIDO, " + CRLF
+cQuery += "				C5.C5_CLIENTE CLIENTE, " + CRLF
+cQuery += "				C5.C5_LOJACLI LOJA, " + CRLF
+cQuery += "				C5.C5_TRANSP CODTRANSP, " + CRLF
+cQuery += "				C5.C5_EMISSAO EMISSAO, " + CRLF
+cQuery += "				C5.C5_TIPO TIPO, " + CRLF
+cQuery += "				C5.C5_XSEQLIB SEQLIB, " + CRLF
+cQuery += "				C5.C5_XPEDPAI PEDPAI, " + CRLF
+cQuery += "				PV.TOTAL TOTAL_PV, " + CRLF
+cQuery += "				LIB.TOTAL TOTAL_LIB, " + CRLF
+cQuery += "				'S' CANCELADO, " + CRLF
+cQuery += "				C5.R_E_C_N_O_ RECNOSC5 " + CRLF
+cQuery += "			FROM " + CRLF
+cQuery += "				" + RetSqlName("SC5") + " C5 " + CRLF 
+cQuery += "				CROSS APPLY ( " + CRLF
+cQuery += "								SELECT " + CRLF 
+cQuery += "									COUNT(C6.C6_ITEM) TOTAL " + CRLF
+cQuery += "								FROM " + CRLF
+cQuery += "									" + RetSqlName("SC6") + " C6 " + CRLF
+cQuery += "									INNER JOIN " + RetSqlName("SF4") + " F4 ON F4.F4_FILIAL = C6.C6_FILIAL AND F4.F4_CODIGO = C6.C6_TES AND F4.F4_ESTOQUE = 'S' AND F4.D_E_L_E_T_ = '' " + CRLF
+cQuery += "								WHERE " + CRLF
+cQuery += "									C6.C6_FILIAL = C5.C5_FILIAL AND " + CRLF
+cQuery += "									C6.C6_NUM = C5.C5_NUM AND " + CRLF
+cQuery += "									C6.C6_NOTA = '' AND " + CRLF
+cQuery += "									C6.C6_SERIE = '' AND " + CRLF
+cQuery += "									C6.C6_BLQ <> 'R' AND " + CRLF
+cQuery += "									( C6.D_E_L_E_T_ = '' OR C6.D_E_L_E_T_ = '*' ) " + CRLF
+cQuery += "								GROUP BY C6.C6_FILIAL,C6.C6_NUM " + CRLF
+cQuery += "							) PV " + CRLF
+cQuery += "				CROSS APPLY ( " + CRLF
+cQuery += "								SELECT " + CRLF
+cQuery += "									COUNT(C9.C9_ITEM) TOTAL " + CRLF
+cQuery += "								FROM " + CRLF
+cQuery += "									" + RetSqlName("SC9") + " C9 " + CRLF 
+cQuery += "								WHERE " + CRLF
+cQuery += "									C9.C9_FILIAL = C5.C5_FILIAL AND " + CRLF
+cQuery += "									C9.C9_PEDIDO = C5.C5_NUM AND " + CRLF
+cQuery += "									C9.C9_BLCRED = '' AND " + CRLF
+cQuery += "									C9.C9_NFISCAL = '' AND " + CRLF
+cQuery += "									( C9.D_E_L_E_T_ = '' OR  C9.D_E_L_E_T_ = '*' ) " + CRLF
+cQuery += "								GROUP BY C9.C9_FILIAL,C9.C9_PEDIDO " + CRLF
+cQuery += "							) LIB " + CRLF
+cQuery += "			WHERE " + CRLF
+
+If _lSC5Comp
+	cQuery += "				C5.C5_FILIAL = '" + xFilial("SC5") + "' AND " + CRLF
+Else
+	cQuery += "				C5.C5_FILIAL IN" + _cFilWMS + " AND " + CRLF
+EndIf
+	
+cQuery += "				C5.C5_XENVWMS = '9' AND " + CRLF
+cQuery += "				( C5.C5_NOTA = '' OR C5.C5_NOTA = 'XXXXXX' ) AND " + CRLF
+cQuery += "				C5.C5_TIPO IN('N','D','B') AND " + CRLF
+
+If Empty(cPedido)
+	cQuery += "				CAST((C5.C5_XDTALT + ' ' + C5.C5_XHRALT) AS DATETIME) >= CAST(('" + cData + "' + ' ' + '" + cHora + ".000') AS DATETIME) AND " + CRLF
+	cQuery += "				CAST((C5.C5_XDTALT + ' ' + C5.C5_XHRALT) AS DATETIME) <= CAST(('" + dTos(dDataBase) + "' + ' ' + '" + Time() + ".000') AS DATETIME) AND " + CRLF
+Else
+	cQuery += "				C5.C5_NUM = '" + cPedido + "' AND " + CRLF
+EndIf
+
+cQuery += "				( C5.D_E_L_E_T_ = '*' OR C5.D_E_L_E_T_ = '' ) " + CRLF
+cQuery += "			GROUP BY C5.C5_FILIAL,C5.C5_NUM,C5.C5_CLIENTE,C5.C5_LOJACLI,C5.C5_TRANSP,C5.C5_EMISSAO,C5.C5_TIPO,C5.C5_XSEQLIB,C5.C5_XPEDPAI,PV.TOTAL,LIB.TOTAL,C5.R_E_C_N_O_  " + CRLF
+cQuery += "		) PEDIDOS  " + CRLF
+cQuery += "	) TOTAL_PEDIDO  " + CRLF
 cQuery += "	WHERE " + CRLF
 cQuery += "		RNUM > " + cTamPage + " * (" + cPage + " - 1)  AND " + CRLF 
-cQuery += "		TOTAL_PV = TOTAL_LIB " + CRLF
+cQuery += "		( CANCELADO = 'N' AND TOTAL_PV = TOTAL_LIB OR " + CRLF
+cQuery += "		  CANCELADO = 'S' AND TOTAL_PV = TOTAL_LIB OR TOTAL_PV <> TOTAL_LIB	) " + CRLF
 cQuery += "	ORDER BY FILIAL,PEDIDO "
 
 MemoWrite("/views/DNAPI007.txt",cQuery)
@@ -1327,7 +1483,7 @@ MsUnLockAll()
 //---------------------------+
 // Grava liberação do Pedido |
 //---------------------------+
-SC6->( MaLiberOk({_cPedido},.F.) )
+SC6->( MaLiberOk({_cPedido},.T.) )
 
 RestArea(_aArea)
 Return _lRet
