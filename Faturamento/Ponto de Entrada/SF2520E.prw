@@ -27,8 +27,8 @@ If SC5->( FieldPos("C5_XENVWMS") ) > 0
 	SD2->( dbSetOrder(1) )
 	If SD2->( dbSeek(xFilial("SD2") + SF2->F2_DOC + SF2->F2_SERIE + SF2->F2_CLIENTE + SF2->F2_LOJA) )
 		While SD2->( xFilial("SD2") + SF2->F2_DOC + SF2->F2_SERIE + SF2->F2_CLIENTE + SF2->F2_LOJA == SD2->D2_FILIAL + SD2->D2_DOC + SD2->D2_SERIE + SD2->D2_CLIENTE + SD2->D2_LOJA)
-			If aScan(_aPedido,{|x| x == SD2->D2_PEDIDO} ) == 0
-				aAdd(_aPedido,SD2->D2_PEDIDO)
+			If aScan(_aPedidos,{|x| x == SD2->D2_PEDIDO} ) == 0
+				aAdd(_aPedidos,SD2->D2_PEDIDO)
 			EndIf
 			SD2->( dbSkip() )
 		EndDo 

@@ -22,7 +22,7 @@ Local _aArea        := GetArea()
 
 Private _cArqLog    := ""
 
-Private _lJob       := IIF(ValType(aParam) == "A",.T.,.F.)
+Private _lJob       := IIF(Isincallstack("U_IBSCHM01"),.T.,.F.)
 
 //---------------------------------+
 // Cria diretorios caso nao exista |
@@ -39,8 +39,8 @@ LogExec("INICIA CONEXAO FTP IBEX - DATA/HORA: " + DTOC(DATE()) + " AS " + TIME()
 // Envia pedidos para IBEX |
 //-------------------------+
 If _lJob
-    RpcSetType(3)
-	RpcSetEnv(aParam[1], aParam[2],,,'FAT')
+    //RpcSetType(3)
+	//RpcSetEnv(aParam[1], aParam[2],,,'FAT')
     
     IBFatM02Con()
 
@@ -56,7 +56,7 @@ ConOut("")
 // Fecha empresa / filial |
 //------------------------+
 If _lJob
-    RpcClearEnv()
+    //RpcClearEnv()
 EndIf    
 
 RestArea(_aArea)

@@ -22,7 +22,7 @@ Local _aArea        := GetArea()
 
 Private _cArqLog    := ""
 
-Private _lJob       := IIF(ValType(aParam) == "A",.T.,.F.)
+Private _lJob       := IIF(Isincallstack("U_IBSCHM01"),.T.,.F.)
 
 //---------------------------------+
 // Cria diretorios caso nao exista |
@@ -39,8 +39,8 @@ LogExec("INICIA CRIACAO DOS ARQUIVOS PEDIDOS IBEX - DATA/HORA: " + DTOC(DATE()) 
 // Envia pedidos para IBEX |
 //-------------------------+
 If _lJob
-    RpcSetType(3)
-	RpcSetEnv(aParam[1], aParam[2],,,'FAT')
+    //RpcSetType(3)
+	//RpcSetEnv(aParam[1], aParam[2],,,'FAT')
     
     IBFatM01Proc()
 
@@ -56,7 +56,7 @@ ConOut("")
 // Fecha empresa / filial |
 //------------------------+
 If _lJob
-    RpcClearEnv()
+    //RpcClearEnv()
 EndIf    
 
 RestArea(_aArea)
@@ -286,6 +286,9 @@ Local _cF			:= ""
 Local _cCodSerTr	:= ""    
 Local _cClassPed	:= ""
 Local _cCompleDest  := ""    
+Local _cDay         := ""
+Local _cMonth       := ""
+Local _cYear        := ""
 
 Local _dDtaEmiss    := ""
 
@@ -350,8 +353,15 @@ _cCodCli    := RTrim(SA1->A1_COD) + RTrim(SA1->A1_LOJA)
 _cNome      := RTrim(SA1->A1_NOME)
 _cFantasia  := RTrim(SA1->A1_NREDUZ)
 _cCNPJDest  := RTrim(IIF(SA1->A1_PESSOA == "J",Transform(SA1->A1_CGC,"@R 99.999.999/9999-99"),Transform(SA1->A1_CGC,"@R 999.999.999-99")))
-_cEndDest   := RTrim(SubStr(SA1->A1_END,1,At(",",SA1->A1_END) - 1))
-_cNumDest   := AllTrim(SubStr(SA1->A1_END,At(",",SA1->A1_END) + 1))
+
+If At(",",SA1->A1_END) > 0
+    _cEndDest   := RTrim(SubStr(SA1->A1_END,1,At(",",SA1->A1_END) - 1))
+    _cNumDest   := AllTrim(SubStr(SA1->A1_END,At(",",SA1->A1_END) + 1))
+Else
+    _cEndDest   := RTrim(SA1->A1_END)
+    _cNumDest   := ""
+EndIf    
+
 _cEndEnt    := RTrim(SA1->A1_END)
 _cComplem   := RTrim(SA1->A1_COMPLEM)
 _cBairDest  := RTrim(SA1->A1_BAIRRO)
@@ -405,7 +415,17 @@ _cCodSerTr	:= ""
 _cClassPed	:= ""
 _cCompleDest:= ""    
 
-_dDtaEmiss  := dToc(SC5->C5_EMISSAO)
+If _lJob
+    
+    _cDay   := Day2Str(SC5->C5_EMISSAO)
+    _cMonth := Month2Str(SC5->C5_EMISSAO)
+    _cYear  := Year2Str(SC5->C5_EMISSAO)
+
+    _dDtaEmiss  := _cDay + "/" + _cMonth + "/" + _cYear
+
+Else    
+    _dDtaEmiss  := dToc(SC5->C5_EMISSAO)
+EndIf    
 
 _nBaseIcm   := Transform(StrZero(0,12,2),"@r 999999999,99")
 _nVlrIcm    := Transform(StrZero(0,12,2),"@e 999999999,99")

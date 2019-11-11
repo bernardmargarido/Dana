@@ -15,6 +15,13 @@
 User Function MT103PN()
 Local aArea		:= GetArea()
 
+Local _lAtvWMS	:= GetNewPar("DN_ATVWSM",.T.)
+
+If !_lAtvWMS
+	RestArea(aArea)
+	Return .T.
+EndIf
+
 If !INCLUI .And. SF1->F1_XENVWMS $ "1/2"
 	MsgStop("Não é possivel classificar a nota " + SF1->F1_DOC + " Serie " + SF1->F1_SERIE + ". Aguardando conferencia WMS." )
 	RestArea(aArea)

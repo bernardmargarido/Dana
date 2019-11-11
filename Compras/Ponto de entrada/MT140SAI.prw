@@ -15,13 +15,14 @@
 User Function MT140SAI()
 Local aArea		:= GetArea()
 
+Local nOpcA		:= ParamIxb[7]
 Local nOpcX		:= ParamIxb[1]
+
 Local cDoc		:= ParamIxb[2]
 Local cSerie	:= ParamIxb[3]
 Local cCodFor	:= ParamIxb[4]
 Local cLoja		:= ParamIxb[5]
 Local cTpNota	:= ParamIxb[6]
-Local nOpcA		:= ParamIxb[7]
 
 If nOpcX == 2 .Or. nOpcA <> 1 
 	RestArea(aArea)

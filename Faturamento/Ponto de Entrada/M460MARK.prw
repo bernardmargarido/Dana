@@ -30,6 +30,8 @@ Local lInverte	:= ParamIXB[2]
 Local clQrb 	:= CHR(13) + CHR(10)
 Local cPedEco	:= ""
 
+Pergunte("MT461A", .F.)
+
 //-----------------------------------------------+
 // Valida se o pedido foi confirmada a separação |
 //-----------------------------------------------+

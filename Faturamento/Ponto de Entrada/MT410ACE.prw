@@ -19,12 +19,18 @@ Local _cFilWMS	:= GetNewPar("DN_FILWMS","05,06")
 
 Local _nOpcA    := ParamIxb[1]
 
+Local _lAtvWMS	:= GetNewPar("DN_ATVWSM",.T.)
 Local _lRet     := .T.
+
+If !_lAtvWMS
+	RestArea(_aArea)
+	Return .T.
+EndIf
 
 //-------------------+
 // Rotina automatica |
 //-------------------+
-If l410Auto
+If Type("l410Auto") == "L" .And. l410Auto 
     RestArea(_aArea)
 	Return .T.
 EndIf

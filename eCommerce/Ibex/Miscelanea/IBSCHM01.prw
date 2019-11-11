@@ -44,9 +44,9 @@ CoNout("<< IBSCHM01 >> - INICIO CONECTA FTP IBEX " + dTos( Date() ) + " - " + Ti
     U_IBFATM02()
 CoNout("<< IBSCHM01 >> - FIM CONECTA FTP IBEX " + dTos( Date() ) + " - " + Time() )
 
-//-----------------------+
-// Integração de Estoque |
-//-----------------------+
+//--------------------+
+// Processa separação |
+//--------------------+
 CoNout("<< IBSCHM01 >> - INICIO PEDIDOS SEPARADOS " + dTos( Date() ) + " - " + Time() )
     U_IBFATM03()
 CoNout("<< IBSCHM01 >> - FIM PEDIDOS SEPARADOS " + dTos( Date() ) + " - " + Time() )

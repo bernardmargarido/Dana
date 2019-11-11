@@ -22,7 +22,7 @@ Local _aArea        := GetArea()
 
 Private _cArqLog    := ""
 
-Private _lJob       := IIF(ValType(aParam) == "A",.T.,.F.)
+Private _lJob       := IIF(Isincallstack("U_IBSCHM01"),.T.,.F.)
 
 Private _aDiverg    := {}
 
@@ -43,14 +43,10 @@ LogExec("INICIA LEITURA DOS PEDIDOS IBEX - DATA/HORA: " + DTOC(DATE()) + " AS " 
 // Envia pedidos para IBEX |
 //-------------------------+
 If _lJob
-    RpcSetType(3)
-	RpcSetEnv(aParam[1], aParam[2],,,'FAT')
-    
     IBFatM03Proc()
-
 Else
     _oProcess:= MsNewProcess():New( {|| IBFatM03Proc()},"Aguarde...","Validando separação de pedidos eCommerce." )
-	_oProcess:Activate()
+    _oProcess:Activate()
 EndIf
 
 //----------------------------------+
@@ -63,13 +59,6 @@ EndIf
 LogExec("FINALIZA LEITURA DOS PEDIDOS IBEX - DATA/HORA: " + DTOC(DATE()) + " AS " + TIME())
 LogExec(Replicate("-",80))
 ConOut("")
-
-//------------------------+
-// Fecha empresa / filial |
-//------------------------+
-If _lJob
-    RpcClearEnv()
-EndIf    
 
 RestArea(_aArea)
 Return Nil

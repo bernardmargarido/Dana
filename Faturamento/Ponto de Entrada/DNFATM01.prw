@@ -24,6 +24,13 @@ Local _cQuery	:= ""
 
 Local lRet		:= .T.
 
+Local _lAtvWMS	:= GetNewPar("DN_ATVWSM",.T.)
+
+If !_lAtvWMS
+	RestArea(aArea)
+	Return .T.
+EndIf
+
 If !cFilAnt $ _cFilWMS
 	RestArea(aArea)
 	Return .T.
@@ -43,8 +50,6 @@ If !SC5->C5_TIPO $ "N/D"
 	Return .T.
 EndIf
 
-Pergunte('MT461A',.F.)
-
 _cQuery := " SELECT " + CRLF
 _cQuery += "	C9.C9_ITEM," + CRLF
 _cQuery += "	C9.C9_PRODUTO," + CRLF
@@ -63,11 +68,11 @@ _cQuery += "   	C9.C9_NFISCAL  = '' AND " + CRLF
 _cQuery += "   	C9.C9_BLCRED  = '' AND " + CRLF
 _cQuery += "   	C9.C9_BLEST   = '' AND " + CRLF
 
-//If !lInverte
+If lInverte
 	_cQuery += " C9.C9_OK <> '" + cMarca + "' AND " + CRLF
-//Else
-	//_cQuery += " C9.C9_OK = '" + cMarca + "' AND " + CRLF
-//EndIf
+Else
+	_cQuery += " C9.C9_OK = '" + cMarca + "' AND " + CRLF
+EndIf
 
 _cQuery += "   	C9.D_E_L_E_T_  = '' "  + CRLF
 
