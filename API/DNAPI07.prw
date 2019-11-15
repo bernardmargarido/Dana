@@ -289,7 +289,7 @@ RestArea(aArea)
 Return .T.
 
 /************************************************************************************/
-/*/{Protheus.doc} 	
+/*/{Protheus.doc} DNAAPI07A	
 
 @description Consulta pedidos de separacao e monta arquivo de envio
 
@@ -457,32 +457,34 @@ While (cAlias)->( !Eof() )
 		//---------------------------+
 		SC9->( dbSeek(xFilial("SC9") + cPedVen) )
 		While SC9->( !Eof() .And. xFilial("SC9") + cPedVen == SC9->C9_FILIAL + SC9->C9_PEDIDO )
-		
-			//-----------------+
-			// Itens do pedido |
-			//-----------------+
-			aAdd(oPedido[#"itens"],Array(#))
-			oItens := aTail(oPedido[#"itens"])
-			oItens[#"item"]			:= SC9->C9_ITEM
-			oItens[#"produto"]		:= SC9->C9_PRODUTO 
-			oItens[#"quantidade"]	:= SC9->C9_QTDLIB
-			oItens[#"valor_unit"]	:= SC9->C9_PRCVEN
-			oItens[#"valor_total"]	:= (SC9->C9_QTDLIB * SC9->C9_PRCVEN)
-			oItens[#"um"]			:= Posicione("SB1",1,xFilial("SB1") + SC9->C9_PRODUTO,"B1_UM")
-			oItens[#"lote"]			:= SC9->C9_LOTECTL
-			oItens[#"data_validade"]:= SC9->C9_DTVALID
-			oItens[#"armazem"]		:= SC9->C9_LOCAL
+
+			If Empty(SC9->C9_NFISCAL) .And. Empty(SC9->C9_SERIENF)
+
+				//-----------------+
+				// Itens do pedido |
+				//-----------------+
+				aAdd(oPedido[#"itens"],Array(#))
+				oItens := aTail(oPedido[#"itens"])
+				oItens[#"item"]			:= SC9->C9_ITEM
+				oItens[#"produto"]		:= SC9->C9_PRODUTO 
+				oItens[#"quantidade"]	:= SC9->C9_QTDLIB
+				oItens[#"valor_unit"]	:= SC9->C9_PRCVEN
+				oItens[#"valor_total"]	:= (SC9->C9_QTDLIB * SC9->C9_PRCVEN)
+				oItens[#"um"]			:= Posicione("SB1",1,xFilial("SB1") + SC9->C9_PRODUTO,"B1_UM")
+				oItens[#"lote"]			:= SC9->C9_LOTECTL
+				oItens[#"data_validade"]:= SC9->C9_DTVALID
+				oItens[#"armazem"]		:= SC9->C9_LOCAL
 			
-			//-----------------------+
-			// Atualiza item enviado |
-			//-----------------------+
-			DnApi07I(cFilAut,cPedVen,SC9->C9_ITEM,SC9->C9_PRODUTO )
+				//-----------------------+
+				// Atualiza item enviado |
+				//-----------------------+
+				DnApi07I(cFilAut,cPedVen,SC9->C9_ITEM,SC9->C9_PRODUTO )
+
+			EndIf
 
 			SC9->( dbSkip() )
 		EndDo
 	EndIf
-
-	
 
 	//-----------------------+
 	// Restaura filial atual | 
@@ -1433,7 +1435,7 @@ Local _aArea		:= GetArea()
 
 Local _nQtdLib		:= 0
 
-Local _lCredito 	:= .F.
+Local _lCredito 	:= .T.
 Local _lEstoque		:= .T.
 Local _lLiber		:= .T.
 Local _lTransf   	:= .F.
