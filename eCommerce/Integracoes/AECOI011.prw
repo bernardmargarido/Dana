@@ -2184,11 +2184,9 @@ Static Function AEcoGrvCab(	cNumOrc,cOrderId,cCodCli,cLojaCli,cTipoCli,cVendedor
 	//------------------------------+
 	// Atualiza endereço de entrega |
 	//------------------------------+
-	/*
 	aEcoI011Entr(	cCodCli,cLojaCli,cNomDest,;
 					cEndDest,cNumDest,cBaiDest,;
 					cCepDest,cMunDest,cEstDest,cEndComp )
-	*/
 
 	RecLock("WSA",lGrava)
 		WSA->WSA_FILIAL		:= xFilial("WSA")
