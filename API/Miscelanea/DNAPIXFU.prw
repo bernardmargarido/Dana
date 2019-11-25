@@ -453,3 +453,216 @@ DISCONNECT SMTP SERVER
 
 RestArea(aArea)
 Return lEnviado
+
+/*************************************************************************************/
+/*/{Protheus.doc} DnApi07Q
+
+@description Cria novo pedido com saldo
+
+@author Bernard M. Margarido
+@since 20/11/2018
+@version 1.0
+
+@type function
+/*/
+/*************************************************************************************/
+User Function DnWmsM02(_cFilial,_cPedido,_cCodCli,_cLoja,_lTela)
+Local _aArea		:= GetArea()
+
+Local _cNumPV		:= ""
+Local _cFilAux		:= cFilAnt
+
+Local _aCpoCopy		:= {"C5_FILIAL","C5_NUM","C5_EMISSAO","C5_NOTA",;
+						"C5_SERIE","C5_OS","C5_PEDEXP","C5_DTLANC",;
+						"C5_LIBEROK","C5_PEDANT","C5_XENVWMS","C5_XDTALT",;
+						"C5_XHRALT","C5_XRESIDU","C5_XSEQLIB","C5_XPEDPAI",;
+						"C5_XTOTLIB","C5_XHORA","C5_VLRPED","C5_XPVSLD"}
+
+Local _nX			:= 0
+Local _nItem        := 1
+
+Local _lRet			:= .T.
+
+Local _dDtEntreg	:= Nil
+
+Local _aStrSC5		:= SC5->( DbStruct() )
+Local _aCabec		:= {}
+Local _aItem		:= {}
+Local _aItems		:= {}
+
+Private lMsErroAuto	:= .F.
+
+Default _lTela		:= .F.
+
+//------------------------+
+// Posiciona filial atual | 
+//------------------------+
+If _cFilial <> cFilAnt
+	cFilAnt := _cFilial
+EndIf
+
+//-------------------+
+// Posiciona Cliente |
+//-------------------+
+dbSelectArea("SA1")
+SA1->(dbSetOrder(1) )
+SA1->( dbSeek(xFilial("SA1") + _cCodCli + _cLoja) )
+_dDtEntreg := DaySum(Date(),SA1->A1_XDIASSL)
+_dDtEntreg := DataValida(_dDtEntreg,.T.)
+
+_cNumPV	:= CriaVar("C5_NUM",.T.)
+
+//----------------+
+// Cria cabeçalho |
+//----------------+
+aAdd(_aCabec,{"C5_NUM"		,	_cNumPV						,		Nil})
+aAdd(_aCabec,{"C5_TIPO"		, 	SC5->C5_TIPO				,		Nil})
+aAdd(_aCabec,{"C5_CLIENTE"	, 	SC5->C5_CLIENTE				,		Nil})
+aAdd(_aCabec,{"C5_LOJACLI"	, 	SC5->C5_LOJACLI				,		Nil})
+aAdd(_aCabec,{"C5_TIPOCLI"	, 	SC5->C5_TIPOCLI				,		Nil})
+aAdd(_aCabec,{"C5_CONDPAG"	, 	SC5->C5_CONDPAG				,		Nil})
+aAdd(_aCabec,{"C5_EMISSAO"	,	CriaVar("C5_EMISSAO",.T.)	,		Nil})
+aAdd(_aCabec,{"C5_XPVSLD"	,	_cPedido					,		Nil})
+aAdd(_aCabec,{"C5_XENVWMS"	,	"1"							,		Nil})
+aAdd(_aCabec,{"C5_XDTALT"	,	Date()						,		Nil})
+aAdd(_aCabec,{"C5_XHRALT"	,	Time()						,		Nil})
+aAdd(_aCabec,{"C5_XRESIDU"	,	"X"							,		Nil})
+aAdd(_aCabec,{"C5_XHORA"	,	Time()						,		Nil})
+aAdd(_aCabec,{"C5_ENTREG"	,	_dDtEntreg					,		Nil})
+
+//----------------------+
+// Cria Itens do Pedido | 
+//----------------------+
+dbSelectArea("SC6")
+SC6->( dbSetOrder(1) )
+If SC6->( dbSeek(xFilial("SC6") + SC5->C5_NUM) )
+	
+	While SC6->( !Eof() .And. xFilial("SC6") + SC5->C5_NUM == SC6->C6_FILIAL + SC6->C6_NUM )
+	
+		_aItem		:= {}
+		
+		//-------------------------+
+		// Somente itens com saldo | 
+		//-------------------------+
+		If SC6->C6_XQTDRES > 0 .And. Empty(SC6->C6_NOTA)
+
+		    aAdd(_aItem,{"C6_ITEM"	    ,	StrZero(_nItem,2)	,	Nil})    
+			aAdd(_aItem,{"C6_PRODUTO"	,	SC6->C6_PRODUTO	    ,	Nil})
+			aAdd(_aItem,{"C6_UM"		,	SC6->C6_UM		    ,	Nil})
+			aAdd(_aItem,{"C6_QTDVEN"	,	SC6->C6_XQTDRES	    ,	Nil})
+			aAdd(_aItem,{"C6_PRUNIT"	,	SC6->C6_PRUNIT	    ,	Nil})
+			If SC6->C6_DESCONT > 0
+				aAdd(_aItem,{"C6_PRCVEN"	,	SC6->C6_PRUNIT	,	Nil})
+			Else
+				aAdd(_aItem,{"C6_PRCVEN"	,	SC6->C6_PRCVEN	,	Nil})
+			EndIf	
+			aAdd(_aItem,{"C6_DESCONT"	,	SC6->C6_DESCONT	    ,	Nil})
+			aAdd(_aItem,{"C6_TES"		,	SC6->C6_TES		    ,	Nil})
+			aAdd(_aItem,{"C6_LOCAL"		,	SC6->C6_LOCAL	    ,	Nil})
+			aAdd(_aItem,{"C6_NATNOTA"	,	SC6->C6_NATNOTA	    ,	Nil})
+			
+            _nItem++
+			aAdd(_aItems,_aItem)
+
+		EndIf	
+
+		SC6->( dbSkip() )
+	EndDo
+EndIf
+
+//------------------+
+// Cria novo pedido |
+//------------------+
+CoNout("<< DNWMSM02 >> - GERANDO PEDIDO SALDO " + _cNumPV + " .")
+If Len(_aCabec) > 0 .And. Len(_aItems) > 0
+	lMsErroAuto := .F.
+
+	_aCabec	:= FWVetByDic( _aCabec, "SC5", .F. ) 
+	_aItems	:= FWVetByDic( _aItems, "SC6", .T. )
+
+	MSExecAuto({|x,y,z| MATA410(x,y,z)},_aCabec,_aItems,3)
+
+	If lMsErroAuto
+		RollBackSx8()
+		MakeDir("/wms/")
+		MakeDir("/wms/logs/")
+		_cArqLog	:= "SC5_SALDO" + _cNumPV + " " + DToS( Date() ) + Left(Time(),2) + SubStr(Time(),4,2) + Right(Time(),2)+".LOG"
+		_lRet		:= .F.	
+		If _lTela
+			MsgAlert("ERRO AO GERAR PEDIDO SALDO " + _cNumPV + " .")
+			MostraErro()
+		Else
+			MostraErro("/wms/logs/",_cArqLog)
+			DisarmTransaction()
+		Endif
+        CoNout("<< DNWMSM02 >> - ERRO AO GERAR PEDIDO SALDO " + _cNumPV + " .")
+		
+	Else
+        CoNout("<< DNWMSM02 >> - PEDIDO SALDO " + _cNumPV + " GERADO COM SUCESSO.")
+		_lRet := .T.	
+		
+		If _lTela
+			MsgAlert("PEDIDO SALDO " + _cNumPV + " GERADO COM SUCESSO.")
+		EndIf
+
+		ConfirmSx8()
+	EndIf
+EndIf
+
+//-----------------------+
+// Restaura Filial Atual | 
+//-----------------------+
+If _cFilAux <> cFilAnt 
+	cFilAnt := _cFilAux
+EndIf
+
+RestArea(_aArea)
+Return _lRet
+
+/*************************************************************************************/
+/*/{Protheus.doc} DnaApi07E
+
+@description Processa retorno da conferencia separação pedido de venda
+
+@author Bernard M. Margarido
+@since 20/11/2018
+@version 1.0
+
+@type function
+/*/
+/*************************************************************************************/
+User Function DnWmsM03(_cPedido)
+Local _aArea	:= GetArea()
+Local _lRet     := .T.
+
+//----------------------+
+// Cria Itens do Pedido | 
+//----------------------+
+dbSelectArea("SC6")
+SC6->( dbSetOrder(1) )
+If SC6->( dbSeek(xFilial("SC6") + _cPedido) )
+	While SC6->( !Eof() .And. xFilial("SC6") + _cPedido == SC6->C6_FILIAL + SC6->C6_NUM )
+
+		If ( SC6->C6_QTDVEN - SC6->C6_QTDENT ) > 0 
+            CoNout("<< DNWMSM03 >> - ELIMINANDO RESIDUO PEDIDO " + _cPedido + " ITEM " + SC6->C6_ITEM + " PRODUTO " + SC6->C6_PRODUTO + " .")
+			Pergunte("MTA500",.F.)
+		    	_lRet := MaResDoFat(,.T.,.F.,,MV_PAR12 == 1,MV_PAR13 == 1)
+		    Pergunte("MTA410",.F.)
+		EndIf
+		SC6->( dbSkip() )
+	EndDo
+EndIf
+
+SC6->( MaLiberOk({_cPedido},.T.) )
+
+//-----------------------+
+// Atualiza dados pedido |
+//-----------------------+
+If _lRet 
+	RecLock("SC5",.F.)
+		SC5->C5_XRESIDU := "3"
+	SC5->( MsUnLock() )
+EndIf
+
+RestArea(_aArea)
+Return _lRet

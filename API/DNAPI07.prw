@@ -641,7 +641,7 @@ Local _nPed		:= 0
 
 Local _aDiverg	:= {}
 Local _aItensC	:= {}
-
+Local _aProdu	:= {}
 Local _lContinua:= .T.	
 
 Local _oItPed	:= Nil
@@ -699,82 +699,90 @@ SC9->( dbSetOrder(1) )
 //-----------------------------------------------------+
 _oItPed 	:= _oPedido[#"itens"]
 
+//-----------------------------+
+// Valida produtos divergentes | 
+//-----------------------------+
+DnApi07Div(_oItPed,@_aProdu)
+
 _lContinua	:= .T.
-For _nPed := 1 To Len(_oItPed)
+
+If Len(_aProdu) > 0
+	For _nPed := 1 To Len(_aProdu)
+			
+		//-----------------+
+		// Dados dos Itens |
+		//-----------------+
+		_cItem		:= PadL(_aProdu[_nPed][1],nTItem,"0")
+		_cCodProd	:= PadR(_aProdu[_nPed][2],nTProd)
+		_cLote		:= PadR(_aProdu[_nPed][4],nTLote)	
+		_nQtdConf	:= _aProdu[_nPed][3]
 		
-	//-----------------+
-	// Dados dos Itens |
-	//-----------------+
-	_cCodProd	:= PadR(_oItPed[_nPed][#"produto"],nTProd)
-	_cItem		:= PadL(_oItPed[_nPed][#"item"],nTItem,"0")
-	_cLote		:= PadR(_oItPed[_nPed][#"lote"],nTLote)	
-	_nQtdConf	:= _oItPed[_nPed][#"quantidade"]
-	
-	//--------------------------+
-	// Posiciona Item da Pedido |
-	//--------------------------+
-	If !SC6->( dbSeek(xFilial("SC6") + _cPedido + _cItem + _cCodProd) )
-		LogExec(_cPedido + " ITEM/PRODUTO " + _cItem + "/" + _cCodProd + " NAO LOCALIZADO.")
-		aAdd(aMsgErro,{cFilAnt,_cPedido,.F.," ITEM/PRODUTO " + _cItem + "/" + _cCodProd + " NAO LOCALIZADO." })
-		_lContinua := .F.
-		Loop
-	EndIf
-	
-	//------------------------+
-	// Posiciona Item da Nota |
-	//------------------------+
-	If SC6->C6_QTDEMP > 0 .Or. SC6->C6_QTDLIB > 0  
-		If !SC9->( dbSeek(xFilial("SC9") + _cPedido + _cItem ) )
-			LogExec(_cPedido + " ITEM/PRODUTO " + _cItem + "/" + _cCodProd + " NAO LIBERADO.")
-			aAdd(aMsgErro,{cFilAnt,_cPedido,.F.," ITEM/PRODUTO " + _cItem + "/" + _cCodProd + " NAO LIBERADO." })
+		//--------------------------+
+		// Posiciona Item da Pedido |
+		//--------------------------+
+		If !SC6->( dbSeek(xFilial("SC6") + _cPedido + _cItem + _cCodProd) )
+			LogExec(_cPedido + " ITEM/PRODUTO " + _cItem + "/" + _cCodProd + " NAO LOCALIZADO.")
+			aAdd(aMsgErro,{cFilAnt,_cPedido,.F.," ITEM/PRODUTO " + _cItem + "/" + _cCodProd + " NAO LOCALIZADO." })
 			_lContinua := .F.
 			Loop
 		EndIf
-	EndIf	
 		
-	//--------------------+
-	// Valida conferencia |
-	//--------------------+
-	If _lContinua
-		
-		//------------------------------+
-		// Valida divergencia separação |
-		//------------------------------+
-		While SC9->( !Eof() .And. xFilial("SC9") + _cPedido + _cItem == SC9->C9_FILIAL + SC9->C9_PEDIDO + SC9->C9_ITEM )
+		//------------------------+
+		// Posiciona Item da Nota |
+		//------------------------+
+		If SC6->C6_QTDEMP > 0 .Or. SC6->C6_QTDLIB > 0  
+			If !SC9->( dbSeek(xFilial("SC9") + _cPedido + _cItem ) )
+				LogExec(_cPedido + " ITEM/PRODUTO " + _cItem + "/" + _cCodProd + " NAO LIBERADO.")
+				aAdd(aMsgErro,{cFilAnt,_cPedido,.F.," ITEM/PRODUTO " + _cItem + "/" + _cCodProd + " NAO LIBERADO." })
+				_lContinua := .F.
+				Loop
+			EndIf
+		EndIf	
+			
+		//--------------------+
+		// Valida conferencia |
+		//--------------------+
+		If _lContinua
+			
+			//------------------------------+
+			// Valida divergencia separação |
+			//------------------------------+
+			While SC9->( !Eof() .And. xFilial("SC9") + _cPedido + _cItem == SC9->C9_FILIAL + SC9->C9_PEDIDO + SC9->C9_ITEM )
 
-			If Empty(SC9->C9_NFISCAL) .And. Empty(SC9->C9_NFISCAL)
-				//------------------------------+
-				// Valida divergencia separação |
-				//------------------------------+
-				If _nQtdConf < SC9->C9_QTDLIB .Or. _nQtdConf > SC9->C9_QTDLIB
-					//-------------------+
-					// Array Divergencia |
-					//-------------------+
-				 	aAdd(_aDiverg,{ SC6->C6_ITEM		,;	// 1 - Item Pre Nota
-				 					SC6->C6_PRODUTO		,;	// 2 - Codigo do Produto
-									_nQtdConf			,;	// 3 - Quantidade Transferida
-									SC9->C9_QTDLIB		,;	// 4 - Quantidade Liberada
-									SC6->C6_LOTECTL		,;	// 4 - Lote Produto
-									SC6->C6_LOCAL		})	// 5 - Armazem 	
-				//------------------+					
-				// Itens conferidos |
-				//------------------+					
-				Else
-					aAdd(_aItensC,{ SC6->C6_ITEM		,;	// 1 - Item Pre Nota
-				 					SC6->C6_PRODUTO		,;	// 2 - Codigo do Produto
-									_nQtdConf			,;	// 3 - Quantidade Transferida
-									SC9->C9_QTDLIB		,;	// 4 - Quantidade Liberada
-									SC6->C6_LOTECTL		,;	// 4 - Lote Produto
-									SC6->C6_LOCAL		})	// 5 - Armazem 	
-				EndIf
+				If Empty(SC9->C9_NFISCAL) .And. Empty(SC9->C9_NFISCAL)
+					//------------------------------+
+					// Valida divergencia separação |
+					//------------------------------+
+					If _nQtdConf < SC9->C9_QTDLIB .Or. _nQtdConf > SC9->C9_QTDLIB
+						//-------------------+
+						// Array Divergencia |
+						//-------------------+
+						aAdd(_aDiverg,{ SC6->C6_ITEM		,;	// 1 - Item Pre Nota
+										SC6->C6_PRODUTO		,;	// 2 - Codigo do Produto
+										_nQtdConf			,;	// 3 - Quantidade Transferida
+										SC9->C9_QTDLIB		,;	// 4 - Quantidade Liberada
+										SC6->C6_LOTECTL		,;	// 4 - Lote Produto
+										SC6->C6_LOCAL		})	// 5 - Armazem 	
+					//------------------+					
+					// Itens conferidos |
+					//------------------+					
+					Else
+						aAdd(_aItensC,{ SC6->C6_ITEM		,;	// 1 - Item Pre Nota
+										SC6->C6_PRODUTO		,;	// 2 - Codigo do Produto
+										_nQtdConf			,;	// 3 - Quantidade Transferida
+										SC9->C9_QTDLIB		,;	// 4 - Quantidade Liberada
+										SC6->C6_LOTECTL		,;	// 4 - Lote Produto
+										SC6->C6_LOCAL		})	// 5 - Armazem 	
+					EndIf
 
-			EndIf 
-			SC9->( dbSkip() )
-		EndDo
-		
-	EndIf			
-		
-Next _nPed
+				EndIf 
+				SC9->( dbSkip() )
+			EndDo
+			
+		EndIf			
+			
+	Next _nPed
+EndIf
 
 If _lContinua
 
@@ -837,6 +845,60 @@ RestArea(aArea)
 Return .T.
 
 /************************************************************************************/
+/*/{Protheus.doc} DnApi07Div
+
+@description Realiza a baixa dos pedidos 
+
+@author Bernard M. Margarido
+@since 08/12/2018
+@version 1.0
+@type function
+/*/
+/************************************************************************************/
+Static Function DnApi07Div(_oItPed,_aProdu)
+
+Local _cCodProd	:= ""
+Local _cItem	:= ""
+Local _cLote	:= ""
+
+Local _nQtdConf	:= 0
+Local _nPosPrd	:= 0
+Local _nX		:= 0
+
+LogExec("    INICIO VALIDA ITENS DIVERGENTES")
+
+_aProdu := {}
+For _nX := 1 To Len(_oItPed)
+			
+	//-----------------+
+	// Dados dos Itens |
+	//-----------------+
+	_cCodProd	:= PadR(_oItPed[_nX][#"produto"],nTProd)
+	_cItem		:= PadL(_oItPed[_nX][#"item"],nTItem,"0")
+	_cLote		:= PadR(_oItPed[_nX][#"lote"],nTLote)	
+	_nQtdConf	:= _oItPed[_nX][#"quantidade"]
+
+	_nPosPrd	:= aScan(_aProdu,{|x| RTrim(x[1]) + RTrim(x[2]) == RTrim(_cItem) + RTrim(_cCodProd)})
+
+	//-----------------------+
+	// Algutina itens iguais |
+	//-----------------------+
+	If _nPosPrd == 0
+		aAdd(_aProdu, {	_cItem		,;
+						_cCodProd	,;
+						_nQtdConf	,;
+						_cLote		})
+		LogExec("    ITEM " + _aProdu[Len(_aProdu)][1] + "PRODUTO " + _aProdu[Len(_aProdu)][2] + " QUANTIDADE " + Alltrim(Str(_aProdu[Len(_aProdu)][3])) + " .")						
+	Else
+		_aProdu[_nPosPrd][3] += _nQtdConf
+		LogExec("    ITEM " + _aProdu[_nPosPrd][1] + "PRODUTO " + _aProdu[_nPosPrd][2] + " QUANTIDADE " + Alltrim(Str(_aProdu[_nPosPrd][3])) + " .")						
+	EndIf		
+	
+Next _nPed
+
+Return Nil
+
+/************************************************************************************/
 /*/{Protheus.doc} DnaApi07C
 
 @description Realiza a baixa dos pedidos 
@@ -855,7 +917,6 @@ Local _cPedido		:= PadR(_oPedido[#"pedido"],nTPed)
 Local _cCodCli		:= PadR(_oPedido[#"codigo_cliente"],nTCodCli)
 Local _cLoja		:= PadR(_oPedido[#"loja"],nTLoja)
 Local _cSeqLib		:= RTrim(_oPedido[#"revisao"])
-Local _cCancelado	:= ""
 
 //------------------------+
 // Posiciona filial atual | 
@@ -1074,7 +1135,7 @@ cQuery += "									" + RetSqlName("SC9") + " C9 " + CRLF
 cQuery += "								WHERE " + CRLF
 cQuery += "									C9.C9_FILIAL = C5.C5_FILIAL AND " + CRLF
 cQuery += "									C9.C9_PEDIDO = C5.C5_NUM AND " + CRLF
-cQuery += "									C9.C9_BLCRED = '' AND " + CRLF
+cQuery += "									C9.C9_BLCRED = '  ' AND " + CRLF
 cQuery += "									C9.C9_NFISCAL = '' AND " + CRLF
 cQuery += "									C9.D_E_L_E_T_ = '' " + CRLF
 cQuery += "								GROUP BY C9.C9_FILIAL,C9.C9_PEDIDO " + CRLF
@@ -1142,7 +1203,7 @@ cQuery += "									" + RetSqlName("SC9") + " C9 " + CRLF
 cQuery += "								WHERE " + CRLF
 cQuery += "									C9.C9_FILIAL = C5.C5_FILIAL AND " + CRLF
 cQuery += "									C9.C9_PEDIDO = C5.C5_NUM AND " + CRLF
-cQuery += "									C9.C9_BLCRED = '' AND " + CRLF
+cQuery += "									C9.C9_BLCRED = '  ' AND " + CRLF
 cQuery += "									C9.C9_NFISCAL = '' AND " + CRLF
 cQuery += "									( C9.D_E_L_E_T_ = '' OR  C9.D_E_L_E_T_ = '*' ) " + CRLF
 cQuery += "								GROUP BY C9.C9_FILIAL,C9.C9_PEDIDO " + CRLF
@@ -1253,7 +1314,7 @@ cQuery += "										" + RetSqlName("SC9") + " C9 " + CRLF
 cQuery += "									WHERE " + CRLF
 cQuery += "										C9.C9_FILIAL = C5.C5_FILIAL AND " + CRLF
 cQuery += "										C9.C9_PEDIDO = C5.C5_NUM AND " + CRLF
-cQuery += "										C9.C9_BLCRED = '' AND " + CRLF
+cQuery += "										C9.C9_BLCRED = '  ' AND " + CRLF
 cQuery += "										C9.C9_NFISCAL = '' AND " + CRLF
 cQuery += "										C9.D_E_L_E_T_ = '' " + CRLF
 cQuery += "									GROUP BY C9.C9_FILIAL,C9.C9_PEDIDO " + CRLF
@@ -1393,6 +1454,9 @@ While SC6->( !Eof() .And. xFilial("SC6") + _cPedido == SC6->C6_FILIAL + SC6->C6_
 		//-------------------------------------------------+
 		If _aDiverg[_nPosIt][3] < _aDiverg[_nPosIt][4]
 			RecLock("SC6",.F.)
+				SC6->C6_XENVWMS	:= "X"
+				SC6->C6_XDTALT	:= Date()
+				SC6->C6_XHRALT	:= Time()
 				SC6->C6_XQTDRES := _aDiverg[_nPosIt][4] - _aDiverg[_nPosIt][3]
 			SC6->( MsUnLock() )
 		EndIf
@@ -1463,16 +1527,17 @@ While SC6->( !Eof() .And. xFilial("SC6") + _cPedido == SC6->C6_FILIAL + SC6->C6_
 	_nQtdLib := SC6->C6_QTDVEN - ( SC6->C6_QTDEMP + SC6->C6_QTDENT + SC6->C6_QTDLIB + SC6->C6_XQTDRES )  
 	If _nQtdLib > 0
 		MaLibDoFat(SC6->(RecNo()),_nQtdLib,@_lCredito,@_lEstoque,.F.,.F.,_lLiber,_lTransf)
-	EndIf
 
-	//-------------------------+
-	// Atualiza flag dos itens |
-	//-------------------------+
-	RecLock("SC6",.F.)
-		SC6->C6_XENVWMS := "3"
-		SC6->C6_XDTALT	:= Date()
-		SC6->C6_XHRALT	:= Time()
-	SC6->( MsUnLock() )
+		//-------------------------+
+		// Atualiza flag dos itens |
+		//-------------------------+
+		RecLock("SC6",.F.)
+			SC6->C6_XENVWMS := "3"
+			SC6->C6_XDTALT	:= Date()
+			SC6->C6_XHRALT	:= Time()
+		SC6->( MsUnLock() )
+
+	EndIf
 
 	SC6->( dbSkip() )
 EndDo
@@ -1485,7 +1550,7 @@ MsUnLockAll()
 //---------------------------+
 // Grava liberação do Pedido |
 //---------------------------+
-SC6->( MaLiberOk({_cPedido},.T.) )
+MaLiberOk({_cPedido},.T.) 
 
 RestArea(_aArea)
 Return _lRet

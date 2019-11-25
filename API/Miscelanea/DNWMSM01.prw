@@ -47,7 +47,7 @@ CoNout("<< DNWMSM01 >> - INICIO PROCESSO PEDIDOS SALDO " + dTos( Date() ) + " - 
     If _lJob
         DnWmsM01a()
     Else
-        _oProcess:= MsNewProcess():New( {|| DnWmsM01a()},"Aguarde...","Validando Danfe IBEX" )
+        _oProcess:= MsNewProcess():New( {|| DnWmsM01a()},"Aguarde...","Criando pedidos saldos" )
 		_oProcess:Activate()
     EndIf
 CoNout("<< DNWMSM01 >> - FIM PROCESSO PEDIDOS SALDO " + dTos( Date() ) + " - " + Time() )
@@ -78,6 +78,10 @@ Static Function DnWmsM01a()
 Local _aArea    := GetArea()
 
 Local _cAlias   := GetNextAlias()
+Local _cFilAux	:= cFilAnt
+Local _cPedido  := ""
+Local _cCodCli  := ""
+Local _cLoja    := ""
 
 Local _nTotReg  := 0
 Local _nVlrSaldo:= 0
@@ -101,14 +105,33 @@ EndIf
 dbSelectArea("SC5")
 SC5->( dbSetOrder(1) )
 
+//------------------+
+// Processa pedidos |
+//------------------+
+If !_lJob
+    _oProcess:SetRegua1( _nTotReg )
+EndIf
+
 While (_cAlias)->( !Eof() )
+
+	//------------------------+
+	// Posiciona Filial atual |
+	//------------------------+
+	If cFilAnt <> (_cAlias)->C5_FILIAL 
+		cFilAnt 	:= (_cAlias)->C5_FILIAL
+		_cFilAux	:= cFilAnt
+	EndIf
 
     //------------------+
     // Posiciona pedido |
     //------------------+
     SC5->( dbGoTo((_cAlias)->RECNOSC5) )
 
-    CoNout("<< DNWMSM01 >> - VALIDANDO SALDO PEDIDO " + _cPedido + " .")
+	If !_lJob
+       _oProcess:IncRegua1("PEDIDO SALDO " + SC5->C5_NUM +  " .")
+    EndIf
+
+    CoNout("<< DNWMSM01 >> - VALIDANDO SALDO PEDIDO " + SC5->C5_NUM + " .")
 
     _cPedido    := SC5->C5_NUM
     _cCodCli    := SC5->C5_CLIENTE
@@ -136,6 +159,11 @@ While (_cAlias)->( !Eof() )
     EndIf 
     (_cAlias)->( dbSkip() )
 EndDo
+
+//-------------------------+
+// Restaura a filial atual |
+//-------------------------+
+cFilAnt := _cFilAux
 
 (_cAlias)->( dbCloseArea() )
 
@@ -167,7 +195,17 @@ Local _lRet		:= .F.
 dbSelectArea("SC6")
 SC6->( dbSetOrder(1) )
 If SC6->( dbSeek(xFilial("SC6") + SC5->C5_NUM) )
+	//------------------+
+	// Processa pedidos |
+	//------------------+
+	If !_lJob
+		_oProcess:SetRegua2( SC6->( RecCount()) )
+	EndIf
+
 	While SC6->( !Eof() .And. xFilial("SC6") + SC5->C5_NUM == SC6->C6_FILIAL + SC6->C6_NUM )
+		If !_lJob
+       		_oProcess:IncRegua2("VALIDANDO SALDO ITEM " + SC6->C6_ITEM +  " PRODUTO " + Rtrim(SC6->C6_PRODUTO) + " .")
+    	EndIf
 		_nVlrRes += ( SC6->C6_PRCVEN * SC6->C6_XQTDRES )
 		SC6->( dbSkip() )
 	EndDo
@@ -205,6 +243,8 @@ Local _aCpoCopy		:= {"C5_FILIAL","C5_NUM","C5_EMISSAO","C5_NOTA",;
 Local _nX			:= 0
 Local _nItem        := 1
 
+Local _lRet			:= .T.
+
 Local _dDtEntreg	:= Nil
 
 Local _aStrSC5		:= SC5->( DbStruct() )
@@ -213,15 +253,6 @@ Local _aItem		:= {}
 Local _aItems		:= {}
 
 Private lMsErroAuto	:= .F.
-
-//-------------------------+
-// Posiciona pedido atual  |
-//-------------------------+
-dbSelectArea("SC5")
-SC5->( dbSetOrder(1) )
-SC5->( dbSeek(xFilial("SC5") + _cPedido) )
-
-_cNumPV	:= CriaVar("C5_NUM",.T.)
 
 //-------------------+
 // Posiciona Cliente |
@@ -232,11 +263,22 @@ SA1->( dbSeek(xFilial("SA1") + _cCodCli + _cLoja) )
 _dDtEntreg := DaySum(Date(),SA1->A1_XDIASSL)
 _dDtEntreg := DataValida(_dDtEntreg,.T.)
 
+_cNumPV	:= CriaVar("C5_NUM",.T.)
+
+If !_lJob
+	_oProcess:IncRegua1("GERANDO PEDIDO SALDO " + _cNumPV +  " .")
+EndIf
+
 //----------------+
 // Cria cabeçalho |
 //----------------+
-aAdd(_aCabec,{"C5_FILIAL"	,	FwFilial()					,		Nil})
+//aAdd(_aCabec,{"C5_FILIAL"	,	xFilial("SC5")				,		Nil})
 aAdd(_aCabec,{"C5_NUM"		,	_cNumPV						,		Nil})
+aAdd(_aCabec,{"C5_TIPO"		, 	SC5->C5_TIPO				,		Nil})
+aAdd(_aCabec,{"C5_CLIENTE"	, 	SC5->C5_CLIENTE				,		Nil})
+aAdd(_aCabec,{"C5_LOJACLI"	, 	SC5->C5_LOJACLI				,		Nil})
+aAdd(_aCabec,{"C5_TIPOCLI"	, 	SC5->C5_TIPOCLI				,		Nil})
+aAdd(_aCabec,{"C5_CONDPAG"	, 	SC5->C5_CONDPAG				,		Nil})
 aAdd(_aCabec,{"C5_EMISSAO"	,	CriaVar("C5_EMISSAO",.T.)	,		Nil})
 aAdd(_aCabec,{"C5_XPVSLD"	,	_cPedido					,		Nil})
 aAdd(_aCabec,{"C5_XENVWMS"	,	"1"							,		Nil})
@@ -246,24 +288,30 @@ aAdd(_aCabec,{"C5_XRESIDU"	,	"X"							,		Nil})
 aAdd(_aCabec,{"C5_XHORA"	,	Time()						,		Nil})
 aAdd(_aCabec,{"C5_ENTREG"	,	_dDtEntreg					,		Nil})
 
-For _nX := 1 To SC5->( FCount() )
-	If aScan(_aCpoCopy,{|x| Rtrim(x) == RTrim(FieldName(_nX)) }) == 0 
-		aAdd(_aCabec,{Rtrim(FieldName(_nX)),	&('SC5->' + FieldName(_nX)),	Nil	})
-	EndIf
-Next _nX 
-
 //----------------------+
 // Cria Itens do Pedido | 
 //----------------------+
 dbSelectArea("SC6")
 SC6->( dbSetOrder(1) )
 If SC6->( dbSeek(xFilial("SC6") + SC5->C5_NUM) )
+	//------------------+
+	// Processa pedidos |
+	//------------------+
+	If !_lJob
+		_oProcess:SetRegua2( SC6->( RecCount()) )
+	EndIf
 	While SC6->( !Eof() .And. xFilial("SC6") + SC5->C5_NUM == SC6->C6_FILIAL + SC6->C6_NUM )
+	
 		_aItem		:= {}
+		
 		//-------------------------+
 		// Somente itens com saldo | 
 		//-------------------------+
-		If SC6->C6_XQTDRES > 0
+		If SC6->C6_XQTDRES > 0 .And. Empty(SC6->C6_NOTA)
+
+			If !_lJob
+       			_oProcess:IncRegua2("PEDIDO ITEM " + SC6->C6_ITEM +  " PRODUTO " + Rtrim(SC6->C6_PRODUTO) + " .")
+    		EndIf	
 
             aAdd(_aItem,{"C6_ITEM"	    ,	StrZero(_nItem,2)	,	Nil})    
 			aAdd(_aItem,{"C6_PRODUTO"	,	SC6->C6_PRODUTO	    ,	Nil})
@@ -305,18 +353,20 @@ If Len(_aCabec) > 0 .And. Len(_aItems) > 0
 		RollBackSx8()
 		MakeDir("/wms/")
 		MakeDir("/wms/logs/")
-		_cArqLog := "SC5_SALDO" + _cNumPV + " " + DToS( Date() ) + Left(Time(),2) + SubStr(Time(),4,2) + Right(Time(),2)+".LOG"
+		_cArqLog	:= "SC5_SALDO" + _cNumPV + " " + DToS( Date() ) + Left(Time(),2) + SubStr(Time(),4,2) + Right(Time(),2)+".LOG"
+		_lRet		:= .F.	
 		MostraErro("/wms/logs/",_cArqLog)
 		DisarmTransaction()
         CoNout("<< DNWMSM01 >> - ERRO AO GERAR PEDIDO SALDO " + _cNumPV + " .")
 	Else
         CoNout("<< DNWMSM01 >> - PEDIDO SALDO " + _cNumPV + " GERADO COM SUCESSO.")
+		_lRet := .T.	
 		ConfirmSx8()
 	EndIf
 EndIf
 
 RestArea(_aArea)
-Return Nil
+Return _lRet
 
 /*************************************************************************************/
 /*/{Protheus.doc} DnaApi07E
@@ -333,6 +383,14 @@ Return Nil
 Static Function DnApi07R(_cPedido)
 Local _aArea	:= GetArea()
 Local _lRet     := .T.
+
+//---------------------+
+// Regra processamento | 
+//---------------------+
+If !_lJob
+	_oProcess:IncRegua1("ELIMINANDO RESIDUO PEDIDO " + _cPedido +  " .")
+EndIf
+
 //----------------------+
 // Cria Itens do Pedido | 
 //----------------------+
@@ -340,14 +398,28 @@ dbSelectArea("SC6")
 SC6->( dbSetOrder(1) )
 If SC6->( dbSeek(xFilial("SC6") + _cPedido) )
 	While SC6->( !Eof() .And. xFilial("SC6") + _cPedido == SC6->C6_FILIAL + SC6->C6_NUM )
-		If (SC6->C6_QTDVEN - SC6->C6_QTDENT) > 0 .And. _lRet
+
+		//------------------+
+		// Processa pedidos |
+		//------------------+
+		If !_lJob
+			_oProcess:SetRegua2( SC6->( RecCount()) )
+		EndIf
+
+		If ( SC6->C6_QTDVEN - SC6->C6_QTDENT ) > 0 
             CoNout("<< DNWMSM01 >> - ELIMINANDO RESIDUO PEDIDO " + _cPedido + " ITEM " + SC6->C6_ITEM + " PRODUTO " + SC6->C6_PRODUTO + " .")
+			If !_lJob
+				_oProcess:IncRegua2("ELIMINANDO RESIDUO PEDIDO " + _cPedido + " ITEM " + SC6->C6_ITEM + " PRODUTO " + SC6->C6_PRODUTO + " .")
+			EndIf
 			Pergunte("MTA500",.F.)
 		    	_lRet := MaResDoFat(,.T.,.F.,,MV_PAR12 == 1,MV_PAR13 == 1)
 		    Pergunte("MTA410",.F.)
 		EndIf
 		SC6->( dbSkip() )
 	EndDo
+
+	SC6->( MaLiberOk({_cPedido},.T.) )
+
 EndIf
 
 RestArea(_aArea)
@@ -370,6 +442,7 @@ Local _cQuery   := ""
 Local _cFilWMS  := FormatIn(GetNewPar("DN_FILWMS","05,06"),",")
 
 _cQuery := " SELECT " + CRLF 
+_cQuery += "	TOP 1 " + CRLF 
 _cQuery += "    C5.C5_FILIAL, " + CRLF
 _cQuery += "	C5.C5_NUM, " + CRLF
 _cQuery += "	C5.C5_CLIENTE, " + CRLF
@@ -379,6 +452,9 @@ _cQuery += " FROM " + CRLF
 _cQuery += "	" + RetSqlName("SC5") + " C5 " + CRLF
 _cQuery += " WHERE " + CRLF
 _cQuery += "	C5.C5_FILIAL IN" + _cFilWMS + " AND " + CRLF
+_cQuery += "	C5.C5_XRESIDU = '2' AND " + CRLF
+_cQuery += "	C5.C5_XENVWMS = '3' AND " + CRLF
+_cQuery += "	C5.C5_XPVSLD = '' AND " + CRLF
 _cQuery += "	C5.C5_NUM NOT IN( " + CRLF
 _cQuery += "						SELECT " + CRLF
 _cQuery += "							SC5.C5_XPVSLD " + CRLF
@@ -386,10 +462,9 @@ _cQuery += "						FROM " + CRLF
 _cQuery += "							" + RetSqlName("SC5") + " SC5 " + CRLF 
 _cQuery += "						WHERE " + CRLF
 _cQuery += "							SC5.C5_FILIAL = C5.C5_FILIAL AND " + CRLF
-_cQuery += "							SC5.C5_XPVSLD = C5.C5_NUM AND " + CRLF
-_cQuery += "							SC5.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "							SC5.C5_CLIENTE = C5.C5_CLIENTE AND " + CRLF
+_cQuery += "							SC5.C5_LOJACLI = C5.C5_LOJACLI " + CRLF
 _cQuery += "					) AND " + CRLF
-_cQuery += "	C5.C5_XRESIDU = '2' AND " + CRLF
 _cQuery += "	C5.D_E_L_E_T_ = '' " + CRLF
 _cQuery += " ORDER BY C5.C5_FILIAL,C5.C5_NUM "	
 
