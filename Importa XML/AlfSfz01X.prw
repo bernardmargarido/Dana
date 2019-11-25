@@ -815,7 +815,7 @@ Local cQuery	:= ""
 Local cRet 		:= "000000000000000"
 
 cQuery := " SELECT "+ CRLF
-cQuery += " 	MAX(ZDG.ZDG_ULTNSU) ZDG_ULTNSU "+ CRLF
+cQuery += " 	COALESCE(MAX(ZDG.ZDG_ULTNSU),'000000000000000') ZDG_ULTNSU "+ CRLF
 cQuery += " FROM "+RetSqlName("ZDG")+" ZDG (NOLOCK) "+ CRLF
 cQuery += " WHERE "+ CRLF
 cQuery += " 	ZDG.ZDG_FILIAL = '"+xFilial("ZDG")+"' "+ CRLF
@@ -1252,9 +1252,9 @@ Static Function PsqFxCte( _cUf, _cCertif, _cPrivKey, _cPass, _cCNPJ, _ultNSU, cR
 	Private oXML	  := Nil
 	Default cResposta := ""
 
-	If Empty(_ultNSU)
+	//If Empty(_ultNSU)
 		_ultNSU := RUNSUCte(_cCNPJ)
-	EndIf
+	//EndIf
 
 /*
 	cSoap := '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:cted="http://www.portalfiscal.inf.br/cte/wsdl/CTeDistribuicaoDFe">'
@@ -1460,14 +1460,16 @@ Local aRtVCte := {}
 Local aAtuArea := GetArea()
 Local aZDIArea := ZDI->(GetArea())
 Local aRecZDI := {}
+
 Private oCte := Nil
 
-cQry := "SELECT ZDI.R_E_C_N_O_ AS ZDIRECNO "
-cQry += "FROM "+RetSqlName("ZDI")+ " ZDI WHERE ZDI.D_E_L_E_T_ = ' ' "
-cQry += "AND ZDI.ZDI_FILIAL = '"+xFilial("ZDI")+"' "
-cQry += "AND ZDI.ZDI_CONTA = '"+_cCNPJ+"' "
-cQry += "AND ZDI.ZDI_TPXML = 'CTEPROC                       ' "
-cQry += "AND ZDI.ZDI_STATUS = '                    ' "
+cQry := " SELECT "
+cQry += " 	ZDI.R_E_C_N_O_ AS ZDIRECNO "
+cQry += " FROM " + RetSqlName("ZDI") + " ZDI WHERE ZDI.D_E_L_E_T_ = ' ' "
+cQry += " 	AND ZDI.ZDI_FILIAL = '"+xFilial("ZDI")+"' "
+cQry += " 	AND ZDI.ZDI_CONTA = '"+_cCNPJ+"' "
+cQry += " 	AND ZDI.ZDI_TPXML = 'CTEPROC                       ' "
+cQry += " 	AND ZDI.ZDI_STATUS = '                    ' "
 cQry += "ORDER BY ZDI.R_E_C_N_O_"
 
 Iif(Select("WKXZDI")>0,WKXZDI->(dbCloseArea()),Nil)
@@ -1512,6 +1514,7 @@ If Len(aRecZDI) > 0
 					cStMon := "T"
 					cMsg := aRtVCte[1]
 			    EndIf
+
 				U_AtStCTe( oCTe:_CTEPROC:_PROTCTE:_INFPROT:_CHCTE:TEXT, cMsg, cStMon )
 
 				If cGrPNCTe == "S"
@@ -1530,6 +1533,7 @@ If Len(aRecZDI) > 0
 	                    cStMon := "Y"
 	                    cMsg := aRtVCte[2]
 				    EndIf
+
 				    U_AtStCTe( oCTe:_CTEPROC:_PROTCTE:_INFPROT:_CHCTE:TEXT, cMsg, cStMon )
 
 				EndIf
@@ -1544,8 +1548,6 @@ EndIf
 
 Return(Nil)
 
-
-
 Static Function RUNSUCte(cCNPJ)
 Local cQry := ""
 Local xRet := 0
@@ -1555,7 +1557,8 @@ cQry += "WHERE D_E_L_E_T_ = ' ' "
 cQry += "AND ZDG_FILIAL = '"+xFilial("ZDG")+"' "
 cQry += "AND ZDG_CONTA = '"+cCNPJ+"' "
 
-Iif(Select("WKXZDG")>0,WKXZDG->(dbCloseArea()),Nil)
+IIF(Select("WKXZDG")>0,WKXZDG->(dbCloseArea()),Nil)
+
 dbUseArea(.T.,"TOPCONN",TCGenQry(,,cQry),"WKXZDG",.T.,.T.)
 WKXZDG->(dbGoTop())
 
