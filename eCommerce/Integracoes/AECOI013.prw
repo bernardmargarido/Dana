@@ -29,6 +29,8 @@ User function AECOI013(cOrderId)
 Local aArea		:= GetArea()
 Local aRet		:= {.T.,"",""}
 
+Local _lBloqueio:= GetNewPar("EC_BLSMSG",.T.)
+
 Private cThread	:= Alltrim(Str(ThreadId()))
 Private cStaLog	:= "0"
 Private cArqLog	:= ""	
@@ -41,6 +43,11 @@ Private dDtaInt	:= Date()
 Private aMsgErro:= {}
 
 Private lJob 	:= .F.
+
+If _lBloqueio
+	RestArea(aArea)
+	Return aRet
+EndIf
 
 //----------------------------------+
 // Grava Log inicio das Integrações | 

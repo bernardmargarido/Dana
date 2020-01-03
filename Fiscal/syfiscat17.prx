@@ -1,0 +1,1100 @@
+#INCLUDE "Protheus.ch"
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบPrograma  ณFISCAT17  บAutor  ณAndreia dos Santos  บ Data ณ  13/03/01   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ                                                            บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ AP5                                                        บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿     
+*/
+                                                     
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFunction  ณFSCAT17INIบAutor  ณAndreia dos Santos  บ Data ณ  13/03/01   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณCria arquivo temporario para geracao dos dados referentes a บฑฑ
+ฑฑบ          ณPortaria CAT 17                                             บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ AP5                                                        บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/                           
+USER Function SYINICAT17(nModelo)
+
+Local aCampos	:={}   
+
+if nModelo == 1         
+	//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+	//ณControle de Estoqueณ
+	//ณModelo 3           ณ
+	//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+	AADD(aCampos,{"TMP_NUMSEQ"	,"C"	,006,0})	// Sequencial
+	AADD(aCampos,{"TMP_CONTRI"	,"C"	,040,0})	// Contribuinte
+	AADD(aCampos,{"TMP_INSCR"	,"C"	,014,0})	// Inscricao Estadual
+	AADD(aCampos,{"TMP_MERCAD"	,"C"	,015,0})	// Mercadoria
+	AADD(aCampos,{"TMP_MES"		,"C"	,002,0})	// Mes de referencia
+	AADD(aCampos,{"TMP_ANO"		,"C"	,004,0})	// Ano de referencia	
+	AADD(aCampos,{"TMP_ALIQ"	,"N"	,005,2})	// Aliquota interna do ICMS
+	AADD(aCampos,{"TMP_UNID"	,"C"	,002,0})	// Unidade de medida
+	AADD(aCampos,{"TMP_DATA"	,"D"	,008,0})	// Data de Entrada/Saida da mercadoria  
+	AADD(aCampos,{"TMP_TIPO"	,"C"	,001,0})	// Tipo da Nota Fiscal
+	AADD(aCampos,{"TMP_NFENTR"	,"C"	,TamSX3("F2_DOC")[1],0})	// Numero da NF de entrada
+	AADD(aCampos,{"TMP_SERENT"	,"C"	,003,0})	// Serie da NF de Entrada
+	AADD(aCampos,{"TMP_QTDENT"	,"N"	,017,2})	// Quantidade entrada
+	AADD(aCampos,{"TMP_VTENTR"	,"N"	,017,2})	// Valor total da base de calculo da retencao
+	AADD(aCampos,{"TMP_VTBPR"	,"N"	,017,2})	// Valor total da base de calculo da operacao propria
+	AADD(aCampos,{"TMP_NFSAID"	,"C"	,TamSX3("F2_DOC")[1],0})	// Numero da NF de saida
+	AADD(aCampos,{"TMP_SERSAI"	,"C"	,003,0})	// Serie da NF de Saida
+	AADD(aCampos,{"TMP_QTDSAI"	,"N"	,017,2})	// Quantidade da saida
+	AADD(aCampos,{"TMP_COL05"	,"N"	,017,2})	// BC da retencao
+	AADD(aCampos,{"TMP_COL09"	,"N"	,018,9})  	// Valor Unitario da saida
+	AADD(aCampos,{"TMP_COL10"	,"C"	,001,0})	// Saida a consumidor ou usuario final
+	AADD(aCampos,{"TMP_VAL10"	,"N"	,017,2})	// VALOR DA Saida a consumidor ou usuario final
+	AADD(aCampos,{"TMP_COL11"	,"C"	,001,0})	// Fato gerador nao realizado
+	AADD(aCampos,{"TMP_VAL11"	,"N"	,017,2})	// Valor do Fato gerador nao realizado
+	AADD(aCampos,{"TMP_COL12"	,"C"	,001,0})	// Saida com isencao ou nao incidencia
+	AADD(aCampos,{"TMP_VAL12"	,"N"	,017,2})	// VALOR DA Saida com isencao ou nao incidencia
+	AADD(aCampos,{"TMP_COL13"	,"C"	,001,0})	// Saida para outro estado
+	AADD(aCampos,{"TMP_VAL13"	,"N"	,017,2})	// VALOR DA Saida para outro estado
+	AADD(aCampos,{"TMP_COL14"	,"C"	,001,0})	// Saida para comercializacao subsequente
+	AADD(aCampos,{"TMP_VAL14"	,"N"	,017,2})	// VALOR DA Saida para comercializacao subsequente
+	AADD(aCampos,{"TMP_COL15"	,"N"	,018,9})	// Base de calculo efetiva na saida a consumidor ou usuario final
+	AADD(aCampos,{"TMP_COL16"	,"N"	,017,2})	// Base de calculo efetiva na entrada nas demais hipoteses
+	AADD(aCampos,{"TMP_COL17"	,"N"	,017,2})	// Quantidade( Saldo )
+	AADD(aCampos,{"TMP_COL18"	,"N"	,018,9})	// Valor unitario da base de calculo da retencao
+	AADD(aCampos,{"TMP_COL19"	,"N"	,017,2})	// Valor total da base de calculo da retencao
+	AADD(aCampos,{"TMP_COL20"	,"N"	,017,2})	// Valor unitario da base de calculo da operacao propria
+	AADD(aCampos,{"TMP_COL21"	,"N"	,017,2})	// Valor total da base de calculo da operacao propria
+	AADD(aCampos,{"TMP_VTBST"	,"N"	,017,2})	// Valor total da base de calculo da operacao ST
+	AADD(aCampos,{"TMP_ALIQS"	,"N"	,005,2})	// Aliquota interna do ICMS
+	AADD(aCampos,{"TMP_SLD17"	,"N"	,017,2})	// Quantidade( Saldo )
+	AADD(aCampos,{"TMP_SLD19"	,"N"	,018,9})	// Valor unitario da base de calculo da retencao
+	AADD(aCampos,{"TMP_SLD21"	,"N"	,017,2})	// Valor total da base de calculo da retencao
+	AADD(aCampos,{"TMP_SLDALQ"	,"N"	,005,2})	// Aliquota interna do ICMS
+	AADD(aCampos,{"TMP_MOVD1"	,"C"	,001,0})
+	AADD(aCampos,{"TMP_MOVD2"	,"C"	,001,0})
+	AADD(aCampos,{"TMP_MOVD3"	,"C"	,001,0})
+	AADD(aCampos,{"TMP_CFO"		,"C"	,004,0})	
+	AADD(aCampos,{"TMP_CLI"		,"C"	,006,0})
+	AADD(aCampos,{"TMP_FOR"		,"C"	,006,0})
+	AADD(aCampos,{"TMP_FILIAL"	,"C"	,002,0}) 
+	
+Else                                         
+
+	//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+	//ณControle de estoque - Veiculos e Motosณ
+	//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+	AADD(aCampos,{"TMP_CONTRI"	,"C"	,040,0})	// Contribuinte
+	AADD(aCampos,{"TMP_INSCR"	,"C"	,014,0})	// Inscricao Estadual
+	AADD(aCampos,{"TMP_MERCAD"	,"C"	,015,0})	// Mercadoria
+	AADD(aCampos,{"TMP_MES"		,"C"	,002,0})	// Mes de referencia
+	AADD(aCampos,{"TMP_ANO"		,"C"	,004,0})	// Ano de referencia	
+	AADD(aCampos,{"TMP_ALIQ"	,"N"	,005,2})	// Aliquota interna do ICMS
+	AADD(aCampos,{"TMP_DATA"	,"D"	,008,0})	// Data de Entrada da mercadoria  
+	AADD(aCampos,{"TMP_NUMSEQ"	,"C"	,006,0})	// Sequencial
+	AADD(aCampos,{"TMP_CHASSI"	,"C"	,025,0})	// CHASSI
+	AADD(aCampos,{"TMP_NFENTR"	,"C"	,TamSX3("F2_DOC")[1],0})	// Numero da NF de entrada
+	AADD(aCampos,{"TMP_SERENT"	,"C"	,003,0})	// Serie da NF de Entrada
+	AADD(aCampos,{"TMP_COL05"	,"N"	,017,2})	// BC Oper.Propria do substituto
+	AADD(aCampos,{"TMP_COL06"	,"N"	,017,2})	// BC da retencao
+	AADD(aCampos,{"TMP_DATSAI"	,"D"	,008,0})	// Data de Saida da mercadoria  
+	AADD(aCampos,{"TMP_NFSAID"	,"C"	,TamSX3("F2_DOC")[1],0})	// Numero da NF de saida     
+	AADD(aCampos,{"TMP_SERSAI"	,"C"	,003,0})	// Serie da NF de Saida
+	AADD(aCampos,{"TMP_COL10"	,"C"	,001,0})	// Saida a consumidor ou usuario final
+	AADD(aCampos,{"TMP_COL11"	,"C"	,001,0})	// Fato gerador nao realizado
+	AADD(aCampos,{"TMP_COL12"	,"C"	,001,0})	// Saida com isencao ou nao incidencia
+	AADD(aCampos,{"TMP_COL13"	,"C"	,001,0})	// Saida para outro estado
+	AADD(aCampos,{"TMP_COL14"	,"C"	,001,0})	// Saida para comercializacao subsequente
+	AADD(aCampos,{"TMP_COL15"	,"N"	,018,9})	// Base de calculo efetiva na saida a consumidor ou usuario final
+	AADD(aCampos,{"TMP_COL16"	,"N"	,017,2})	// Base de calculo efetiva na entrada nas demais hipoteses
+	AADD(aCampos,{"TMP_COL17"	,"N"	,017,2})	// Quantidade( Saldo )        
+	AADD(aCampos,{"TMP_ALIQS"	,"N"	,005,2})	// Aliquota interna do ICMS 
+	AADD(aCampos,{"TMP_VTBST"	,"N"	,017,2})	// Valor total da base de calculo da operacao ST
+	AADD(aCampos,{"TMP_SLD17"	,"N"	,017,2})	// Quantidade( Saldo )
+	AADD(aCampos,{"TMP_SLD19"	,"N"	,018,9})	// Valor unitario da base de calculo da retencao
+	AADD(aCampos,{"TMP_SLD21"	,"N"	,017,2})	// Valor total da base de calculo da retencao
+	AADD(aCampos,{"TMP_SLDALQ"	,"N"	,005,2})	// Aliquota interna do ICMS
+	AADD(aCampos,{"TMP_SERIE"	,"C"	,003,0})
+	AADD(aCampos,{"TMP_CFO"		,"C"	,004,0})  
+	AADD(aCampos,{"TMP_CLI"		,"C"	,006,0})
+	AADD(aCampos,{"TMP_FOR"		,"C"	,006,0})
+	AADD(aCampos,{"TMP_FILIAL"	,"C"	,002,0})
+EndIf	              
+
+cArqTMP	:=	CriaTrab(aCampos)
+dbUseArea(.T.,__LocalDriver,cArqTMP,"RCA")
+IndRegua("RCA",cArqTMP,"TMP_MERCAD+TMP_MES+TMP_ANO+dtos(TMP_DATA)",,,"Indexando Arquivo" ) //     
+		
+Return( cArqTMP )
+
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFunction  ณFSCAT17CALบAutor  ณAndreia dos Santos  บ Data ณ  13/03/01   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Incrementa o arquivo temporario com as notas fiscais de    บฑฑ
+ฑฑบ          ณ entrada e saida                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ AP5                                                        บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+USER Function SYCALCAT17(cArqTMP,dDtIni,dDtFim)
+
+LOCAL nPerICM	:= 0
+LOCAL MV_ESTICM := GetMv("MV_ESTICM")
+LOCAL MV_ESTADO := GetMv("MV_ESTADO")
+LOCAL lCliRel   := GetNewPar("MV_CLIREL",.F.)   // Parametro criado para verificar se o tipo do Cliente sera gerado a partir do cadastro ou do pedido de venda
+LOCAL lTabSB1   := GetNewPar("MV_TABSB1",.F.)   // Parametro criado para definir se a aliquota utilizada sera a do SB1 ou do SFK 
+Local lGeraD3   := GetNewPar("MV_GERSD3",.T.)   // Parametro criado para verificar se as movimentacoes internas serao contabilizadas no relatorio
+Local lConsFinal:= .F. 
+Local lQuery    := .F.
+Local cAliasSFK := "SFK"
+Local cAliasSD1 := "SD1"
+Local cAliasSD2 := "SD2"
+Local cAliasSD3 := "SD3"  
+Local aEstoque  := {}  
+Local nPos := 0  
+Local ncont := 0   
+Local cMes
+Local cAno
+Local nItem	:=	0      
+Local abase := {}
+
+#IFDEF TOP
+	Local nX        := 0
+	Local cQuery    := ""
+	Local aStruSFK  := {}
+	Local aStruSD1  := {}
+	Local aStruSD2  := {}
+	Local aStruSD3  := {}
+#ENDIF
+
+Default dDtIni := mv_par01
+Default dDtFim := mv_par02
+ 
+cMes := StrZero(month(dDtIni),2)
+cAno := StrZero(Year(dDtFim),4) 
+
+nPerIcm := Val(Subs(MV_ESTICM,AT(MV_ESTADO,MV_ESTICM)+2,2))
+
+#IFDEF TOP
+	lQuery := .T.
+	cAliasSFK := "AliasSFK"
+	aStruSFK  := SFK->(dbStruct())
+	cQuery := "SELECT FK_FILIAL,FK_PRODUTO,FK_DATA,"
+	cQuery += "FK_AICMS,FK_QTDE,FK_BRICMS,FK_BASEICM "
+	cQuery += "FROM "+RetSqlName("SFK")+" "
+	cQuery += "WHERE FK_FILIAL='"+xFilial("SFK")+"' AND "
+	cQuery += "FK_DATA>='"+Dtos(dDtIni)+"' AND "
+	cQuery += "FK_DATA<='"+Dtos(dDtFim)+"' AND "   
+	If Alltrim(Upper(FunName()))<>"MATR930" .And. Alltrim(Upper(FunName()))<>"MATA950"  //GERACAO DO ARQUIVO MAGNETICO
+		cQuery += "FK_PRODUTO>='"+MV_PAR03+"' AND "
+		cQuery += "FK_PRODUTO<='"+MV_PAR04+"' AND "    
+	EndIf
+	cQuery += "D_E_L_E_T_=' ' "
+	cQuery += "ORDER BY "+SqlOrder(SFK->(IndexKey()))
+	
+	cQuery := ChangeQuery(cQuery)
+	dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAliasSFK,.T.,.T.)
+	
+	For nX := 1 To Len(aStruSFK)
+		If aStruSFK[nX][2] <> "C" .And. FieldPos(aStruSFK[nX][1])<>0
+			TcSetField(cAliasSFK,aStruSFK[nX][1],aStruSFK[nX][2],aStruSFK[nX][3],aStruSFK[nX][4])
+		EndIf
+	Next nX
+	dbSelectArea(cAliasSFK)	
+#ELSE
+	SFK->(dbSeek(xFilial("SFK")+Padr(MV_PAR03,TamSx3("FK_PRODUTO")[1])+dtos(dDtIni),.T.))
+#ENDIF
+
+While (cAliasSFK)->(!Eof()) .and. (cAliasSFK)->FK_FILIAL == xFilial("SFK")
+         
+	SB1->(dbSeek(xFilial("SB1")+(cAliasSFK)->FK_PRODUTO))
+ 	
+	RECLOCK("RCA",.T.)
+		RCA->TMP_MERCAD	:=	(cAliasSFK)->FK_PRODUTO
+		RCA->TMP_MES	:=	cMes
+		RCA->TMP_ANO	:=	cAno
+		RCA->TMP_ALIQ	:=	if(!empty(SFK->FK_AICMS),(cAliasSFK)->FK_AICMS,nPerICM)
+		RCA->TMP_ALIQS	:=	if(!empty(SFK->FK_AICMS),(cAliasSFK)->FK_AICMS,nPerICM)
+		RCA->TMP_DATA	:=	(cAliasSFK)->FK_DATA	
+		RCA->TMP_NUMSEQ	:=	replicate("0",6)
+		RCA->TMP_CONTRI	:=	SM0->M0_NOMECOM
+		RCA->TMP_INSCR	:=	SM0->M0_INSC
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+		//ณColoca-se "saldo" na NF de entrada para saber queณ
+		//ณ este registro refere-se ao saldo inicial        ณ
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+		RCA->TMP_NFENTR	:=	"SALDO"	 
+	
+		RCA->TMP_COL17	:=	(cAliasSFK)->FK_QTDE					// Quantidade
+		RCA->TMP_COL18	:= 	noround((cAliasSFK)->FK_BRICMS/(cAliasSFK)->FK_QTDE,9)	// Valor Unitario ST
+		RCA->TMP_COL19	:=	(cAliasSFK)->FK_BRICMS		  						// Valor Total BC ST
+		RCA->TMP_COL20	:=	noround((cAliasSFK)->FK_BASEICM/(cAliasSFK)->FK_QTDE,9)   //Vl Unit. da BC Oper. Propria
+		RCA->TMP_COL21	:=	(cAliasSFK)->FK_BASEICM								//Valor total da BC oper. Propria
+	RCA->(MsUnlock())
+
+	SD1->(dbSetOrder(6))
+	#IFDEF TOP
+		lQuery := .T.
+		cAliasSD1 := "AliasSD1"
+		aStruSD1  := SD1->(dbStruct())
+		cQuery := "SELECT SD1.D1_FILIAL,SD1.D1_DTDIGIT,SD1.D1_COD,"
+		cQuery += "SD1.D1_NUMSEQ,SD1.D1_UM,SD1.D1_DOC,SD1.D1_SERIE,SD1.D1_QUANT,SD1.D1_BRICMS,SD1.D1_TIPO,SD1.D1_FORNECE,SD1.D1_LOJA,SD1.D1_TES,SD1.D1_BASEICM,SD1.D1_PICM, SD1.D1_CF "
+		cQuery += "FROM "+RetSqlName("SD1")+" SD1, "+ RetSqlName("SF4")+ " SF4 "
+		cQuery += "WHERE SD1.D1_FILIAL='"+xFilial("SD1")+"' AND "   
+		cQuery += "SF4.F4_FILIAL='"+xFilial("SF4")+"' AND "
+		cQuery += "SD1.D1_DTDIGIT>='"+Dtos(dDtIni)+"' AND "
+		cQuery += "SD1.D1_DTDIGIT<='"+Dtos(dDtFim)+"' AND "
+  		cQuery += "SD1.D1_COD = '"+(cAliasSFK)->FK_PRODUTO+"' AND "
+  		cQuery += "SD1.D1_TES = SF4.F4_CODIGO AND "
+  		cQuery += "SF4.F4_ESTOQUE = 'S' AND "
+    	cQuery += "SD1.D_E_L_E_T_=' ' AND "
+    	cQuery += "SF4.D_E_L_E_T_=' ' " 
+    	If ExistBlock("CAT17SD1")
+			cQuery := ExecBlock("CAT17SD1",.F.,.F.,cQuery)
+		EndIf
+
+		cQuery += "ORDER BY "+SqlOrder(SD1->(IndexKey()))
+		
+		cQuery := ChangeQuery(cQuery)
+		
+		dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAliasSD1,.T.,.T.)
+		
+		For nX := 1 To Len(aStruSD1)
+			If aStruSD1[nX][2] <> "C" .And. FieldPos(aStruSD1[nX][1])<>0
+				TcSetField(cAliasSD1,aStruSD1[nX][1],aStruSD1[nX][2],aStruSD1[nX][3],aStruSD1[nX][4])
+			EndIf
+		Next nX
+		dbSelectArea(cAliasSD1)	
+	#ELSE
+		SD1->(dbSeek(xFilial("SD1")+dtos(dDtIni),.T.))
+	#ENDIF   
+	RECLOCK("RCA",.F.)
+	If (cAliasSD1)->(!EOF()) .And. (cAliasSD1)->D1_FILIAL==xFilial("SD1") .And.(cAliasSD1)->D1_DTDIGIT <= dDtFim
+		RCA->TMP_MOVD1 := "S"
+   		RCA->TMP_SLD17	:= 	0
+		RCA->TMP_SLD19	:=	0
+		RCA->TMP_SLD21	:=	0		
+   		RCA->TMP_SLDALQ  := 	0   
+	Else	       
+		RCA->TMP_MOVD1 	:= "N"
+		RCA->TMP_SLD17	:= 	RCA->TMP_COL17
+		RCA->TMP_SLD19	:=	RCA->TMP_COL19
+		RCA->TMP_SLD21	:=	RCA->TMP_COL21
+		RCA->TMP_SLDALQ	:= 	RCA->TMP_ALIQ  
+	EndIf                
+	RCA->(MsUnlock())	
+
+	While (cAliasSD1)->(!EOF()) .And. (cAliasSD1)->D1_FILIAL==xFilial("SD1") .And.;
+		(cAliasSD1)->D1_DTDIGIT <= dDtFim
+	
+		if (cAliasSD1)->D1_COD <> (cAliasSFK)->FK_PRODUTO
+			(cAliasSD1)->(dbSkip())
+			Loop
+		Endif	
+
+		nAliqInt	:= 0    
+		cGrpTrib 	:= ""
+				
+		SB1->(dbSeek(xFilial("SB1")+(cAliasSD1)->D1_COD))
+		SF4->(dbSeek(xFilial("SF4")+(cAliasSD1)->D1_TES))	 
+		SF1->(dbSetOrder(1))
+	    SF1->(dbSeek(xFilial("SF1")+(cAliasSD1)->D1_DOC+(cAliasSD1)->D1_SERIE+(cAliasSD1)->D1_FORNECE+(cAliasSD1)->D1_LOJA))                                                                  
+	
+		If (cAliasSD1)->D1_TIPO $ "BD"
+		    SA1->(dbSeek(xFilial("SA1")+(cAliasSD1)->D1_FORNECE+(cAliasSD1)->D1_LOJA))
+		   	cGrpTrib 	:= SA1->A1_GRPTRIB
+		Else
+		    SA2->(dbSeek(xFilial("SA2")+(cAliasSD1)->D1_FORNECE+(cAliasSD1)->D1_LOJA))
+		   	cGrpTrib 	:= SA2->A2_GRPTRIB
+		EndIf			    
+	  	If !Empty(SB1->B1_GRTRIB)
+			dbSelectArea("SF7")
+			SF7->(dbSetOrder(1))
+			If SF7->(dbSeek(xFilial("SF7")+SB1->B1_GRTRIB+cGrpTrib))
+				While !SF7->(Eof()) .And. SF7->F7_FILIAL+SF7->F7_GRTRIB+SF7->F7_GRPCLI == xFilial("SF7")+SB1->B1_GRTRIB+cGrpTrib
+					If (MV_ESTADO == SF7->F7_EST .Or. SF7->F7_EST == "**")
+						nAliqInt	:= Iif(SF7->(FieldPos("F7_ALIQINT")) > 0,SF7->F7_ALIQINT,0)
+						Exit
+					Endif
+					SF7->(dbSkip())
+				End
+			EndIf
+		EndIf
+	
+		RECLOCK("RCA",.T.)
+		RCA->TMP_MERCAD	:=  (cAliasSD1)->D1_COD
+		RCA->TMP_MES		:=	cMes
+		RCA->TMP_ANO		:=	cAno                    
+		If lTabSB1
+			RCA->TMP_ALIQ		:= if( !empty(SB1->B1_PICM),SB1->B1_PICM,nPerICM)
+			RCA->TMP_ALIQS	:=	if(!empty(SFK->FK_AICMS),(cAliasSFK)->FK_AICMS,nPerICM)
+		Else
+			RCA->TMP_ALIQ 	:=	if(!empty(SFK->FK_AICMS),(cAliasSFK)->FK_AICMS,nPerICM)
+			RCA->TMP_ALIQS	:=	if(!empty(SFK->FK_AICMS),(cAliasSFK)->FK_AICMS,nPerICM)
+		EndIf
+		RCA->TMP_NUMSEQ	:=	(cAliasSD1)->D1_NUMSEQ
+		RCA->TMP_CONTRI	:=	SM0->M0_NOMECOM
+		RCA->TMP_INSCR	:=	SM0->M0_INSC
+		RCA->TMP_UNID		:=	(cAliasSD1)->D1_UM
+		RCA->TMP_DATA		:=	(cAliasSD1)->D1_DTDIGIT	
+		RCA->TMP_NFENTR	:=	(cAliasSD1)->D1_DOC
+		RCA->TMP_CFO	:=	(cAliasSD1)->D1_CF 
+		RCA->TMP_FOR	:=	(cAliasSD1)->D1_FORNECE 
+		RCA->TMP_FILIAL := 	(cAliasSD1)->D1_FILIAL
+		RCA->TMP_SERENT	:=	(cAliasSD1)->D1_SERIE
+		RCA->TMP_QTDENT	:=	(cAliasSD1)->D1_QUANT
+		RCA->TMP_VTENTR	:=	(cAliasSD1)->D1_BRICMS	// Valor total da base de calculo da retencao
+		RCA->TMP_VTBPR	:=	(cAliasSD1)->D1_BASEICM	// Valor total da base de calculo propria
+		
+		//Tratar NF de Devolucao e Retorno
+		IF (cAliasSD1)->D1_TIPO $ "BD"
+		    SA1->(dbSeek(xFilial("SA1")+(cAliasSD1)->D1_FORNECE+(cAliasSD1)->D1_LOJA))
+		    lConsFinal	:= if( SA1->A1_TIPO=="F", .T.,.F.)
+		   	cGrpTrib 	:= SA1->A1_GRPTRIB
+	
+			If (SF1->F1_EST <> MV_ESTADO) .AND. (SF1->F1_EST <> "EX")
+				RCA->TMP_COL13	:= 	"S"		//Saida para outro Estado
+		    ElseIf SF4->F4_LFICM $"IN"  .and. !lConsFinal  .And. !(RCA->TMP_COL11 == "S")
+				RCA->TMP_COL12	:=	"S"  	//Saida com Isencao/Nao incidencia
+				RCA->TMP_COL15	:=	(cAliasSD1)->D1_BASEICM *(-1)	// Base de calculo efetiva na saida a consumidor/usuario final ou saida isenta
+			ElseIf lConsFinal	.And. !(RCA->TMP_COL11 == "S")
+				RCA->TMP_COL10	:= 	"S" 	//Saida a Consumidor/ Usuario Final
+				RCA->TMP_COL15	:=	(cAliasSD1)->D1_BASEICM *(-1)	// Base de calculo efetiva na saida a consumidor/usuario final ou saida isenta
+			else
+				RCA->TMP_COL14	:=	"S"     //Saida para comercializacao subsequente
+			Endif	
+       	               
+			RCA->TMP_TIPO		:=	(cAliasSD1)->D1_TIPO
+		EndIf
+	    RCA->(MsUnlock())
+	
+		(cAliasSD1)->(dbSkip())
+	EndDo
+	If lQuery
+		dbSelectArea(cAliasSD1)
+		dbCloseArea()
+	EndIf
+	
+	
+	SD2->(dbSetOrder(5))
+	#IFDEF TOP
+		lQuery := .T.
+		cAliasSD2 := "AliasSD2"
+		aStruSD2  := SD2->(dbStruct())
+		cQuery := "SELECT SD2.D2_FILIAL,SD2.D2_EMISSAO,SD2.D2_COD,SD2.D2_CF, "
+		cQuery += "SD2.D2_NUMSEQ,SD2.D2_UM,SD2.D2_DOC,SD2.D2_SERIE,SD2.D2_QUANT,SD2.D2_BRICMS,SD2.D2_TIPO,SD2.D2_CLIENTE,SD2.D2_LOJA,SD2.D2_TES,SD2.D2_BASEICM,SD2.D2_PICM,SD2.D2_BRICMS  "
+		cQuery += "FROM "+RetSqlName("SD2")+" SD2, "+ RetSqlName("SF4")+ " SF4 "
+		cQuery += "WHERE SD2.D2_FILIAL='"+xFilial("SD2")+"' AND "   
+		cQuery += "SF4.F4_FILIAL='"+xFilial("SF4")+"' AND "
+		cQuery += "SD2.D2_EMISSAO>='"+Dtos(dDtIni)+"' AND "
+		cQuery += "SD2.D2_EMISSAO<='"+Dtos(dDtFim)+"' AND "
+  		cQuery += "SD2.D2_COD = '"+(cAliasSFK)->FK_PRODUTO+"' AND "     
+   		cQuery += "SD2.D2_TES = SF4.F4_CODIGO AND "
+  		cQuery += "SF4.F4_ESTOQUE = 'S' AND  "
+    	cQuery += "SD2.D_E_L_E_T_=' ' AND "
+    	cQuery += "SF4.D_E_L_E_T_=' ' "     
+		If ExistBlock("CAT17SD2")
+			cQuery := ExecBlock("CAT17SD2",.F.,.F.,cQuery)
+		EndIf
+
+		cQuery += "ORDER BY "+SqlOrder(SD2->(IndexKey()))
+		
+		cQuery := ChangeQuery(cQuery)
+
+		dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAliasSD2,.T.,.T.)
+		
+		For nX := 1 To Len(aStruSD2)
+			If aStruSD2[nX][2] <> "C" .And. FieldPos(aStruSD2[nX][1])<>0
+				TcSetField(cAliasSD2,aStruSD2[nX][1],aStruSD2[nX][2],aStruSD2[nX][3],aStruSD2[nX][4])
+			EndIf
+		Next nX
+		dbSelectArea(cAliasSD2)	
+	#ELSE
+		(cAliasSD2)->(dbSeek(xFilial("SD2")+dtos(dDtIni),.T.))
+	#ENDIF
+
+   	RECLOCK("RCA",.F.) 
+	If (cAliasSD2)->(!EOF()) .and. (cAliasSD2)->D2_EMISSAO <= dDtFim
+		RCA->TMP_MOVD2 		:= "S"
+  		RCA->TMP_SLD17		:= 	0
+		RCA->TMP_SLD19		:=	0
+		RCA->TMP_SLD21		:=	0		
+   		RCA->	TMP_SLDALQ  := 	0
+	Else	
+		RCA->TMP_MOVD2		:= "N"
+		RCA->TMP_SLD17		:= 	RCA->TMP_COL17
+		RCA->TMP_SLD19	:=	RCA->TMP_COL19
+		RCA->TMP_SLD21		:=	RCA->TMP_COL21
+		RCA->TMP_SLDALQ		:= 	RCA->TMP_ALIQ
+	EndIf     
+	RCA->(MsUnlock())
+	
+	While (cAliasSD2)->(!EOF()) .and. (cAliasSD2)->D2_EMISSAO <= dDtFim
+		nAliqInt	:= 0    
+		cGrpTrib 	:= ""
+		cUF		 	:= ""
+	
+		if (cAliasSD2)->D2_COD <> (cAliasSFK)->FK_PRODUTO
+			(cAliasSD2)->(dbSkip())
+			Loop
+		Endif	
+		
+	    if (cAliasSD2)->D2_TIPO $ "DB"  			
+		    SA2->(dbSeek(xFilial("SA2")+(cAliasSD2)->D2_CLIENTE+(cAliasSD2)->D2_LOJA))
+		    lConsFinal	:= if( SA2->A2_TIPO=="F", .T.,.F.)                              
+   			cGrpTrib 	:= SA2->A2_GRPTRIB
+			cUF			:= SA2->A2_EST
+	    else 
+	    	If lCliRel
+				SC6->(dbSetOrder(4))
+	   			SC5->(dbSetOrder(1))
+				If SC6->(dbSeek(xFilial("SC6")+(cAliasSD2)->D2_DOC+(cAliasSD2)->D2_SERIE))    
+	    			If SC5->(dbSeek(xFilial("SC5")+SC6->C6_NUM))
+		    		    lConsFinal	:= if( SC5->C5_TIPOCLI=="F", .T.,.F.)  
+		    		EndIf
+				Else  
+					SA1->(dbSeek(xFilial("SA1")+(cAliasSD2)->D2_CLIENTE+(cAliasSD2)->D2_LOJA))
+			    	lConsFinal	:= if( SA1->A1_TIPO=="F", .T.,.F.)  
+			       	cGrpTrib	:= SA1->A1_GRPTRIB
+		   			cUF			:= SA1->A1_EST
+				EndIf	
+		    Else
+		    	SA1->(dbSeek(xFilial("SA1")+(cAliasSD2)->D2_CLIENTE+(cAliasSD2)->D2_LOJA))
+		    	lConsFinal	:= if( SA1->A1_TIPO=="F", .T.,.F.)  
+		    	cGrpTrib	:= SA1->A1_GRPTRIB   
+		    	cUF			:= SA1->A1_EST
+		    EndIf
+		EndIf                                  
+		SB1->(dbSeek(xFilial("SB1")+(cAliasSD2)->D2_COD))
+	    SF4->(dbSeek(xFilial("SF4")+(cAliasSD2)->D2_TES))
+	    SF2->(dbSetOrder(4))
+	    SF2->(dbSeek(xFilial("SF2")+(cAliasSD2)->D2_SERIE+dtos((cAliasSD2)->D2_EMISSAO)+(cAliasSD2)->D2_DOC+(cAliasSD2)->D2_CLIENTE+(cAliasSD2)->D2_LOJA))
+	
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+		//ณTratamento implementado para utilizacao da Excecao Fiscalณ
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+
+      	If !Empty(SB1->B1_GRTRIB)
+			dbSelectArea("SF7")
+			SF7->(dbSetOrder(1))
+			If SF7->(dbSeek(xFilial("SF7")+SB1->B1_GRTRIB+cGrpTrib))
+				While !SF7->(Eof()) .And. SF7->F7_FILIAL+SF7->F7_GRTRIB+SF7->F7_GRPCLI == xFilial("SF7")+SB1->B1_GRTRIB+cGrpTrib
+					If (cUF == SF7->F7_EST .Or. SF7->F7_EST == "**")
+						nAliqInt	:= Iif(SF7->(FieldPos("F7_ALIQINT")) > 0,SF7->F7_ALIQINT,0)
+						Exit
+					Endif
+					SF7->(dbSkip())
+				End
+			EndIf
+		EndIf
+	
+		RECLOCK("RCA",.T.)                   
+		RCA->TMP_NUMSEQ	:=	(cAliasSD2)->D2_NUMSEQ
+		RCA->TMP_CONTRI	:=	SM0->M0_NOMECOM
+		RCA->TMP_INSCR	:=	SM0->M0_INSC
+		RCA->TMP_MERCAD	:=	(cAliasSD2)->D2_COD
+		RCA->TMP_MES		:=	cMes
+		RCA->TMP_ANO		:=	cAno 
+		If lTabSB1
+			RCA->TMP_ALIQ		:= if(!empty(SB1->B1_PICM),SB1->B1_PICM,nPerICM)  
+			RCA->TMP_ALIQS	:=	if(!empty(SFK->FK_AICMS),(cAliasSFK)->FK_AICMS,nPerICM)
+		Else                      
+			//RCA->TMP_ALIQ		:= 	Iif(nAliqInt>0, nAliqInt,Iif((cAliasSD2)->D2_PICM>0,(cAliasSD2)->D2_PICM,nPerICM ))	
+			RCA->TMP_ALIQ		:= 	Iif(!empty(SFK->FK_AICMS),(cAliasSFK)->FK_AICMS,nPerICM)
+			RCA->TMP_ALIQS	:=	Iif(!empty(SFK->FK_AICMS),(cAliasSFK)->FK_AICMS,nPerICM)
+		EndIf				
+		RCA->TMP_UNID	:=	(cAliasSD2)->D2_UM
+		RCA->TMP_DATA	:=	(cAliasSD2)->D2_EMISSAO	
+		RCA->TMP_NFSAID	:=	(cAliasSD2)->D2_DOC		// Numero da NF de saida
+		RCA->TMP_SERSAI	:=	(cAliasSD2)->D2_SERIE	// Serie da NF de Saida
+		RCA->TMP_QTDSAI	:=	(cAliasSD2)->D2_QUANT	// Quantidade da saida
+		RCA->TMP_CFO	:=	(cAliasSD2)->D2_CF
+		RCA->TMP_CLI	:=	(cAliasSD2)->D2_CLIENTE  
+		RCA->TMP_FILIAL := 	(cAliasSD2)->D2_FILIAL
+		RCA->TMP_VTBST	:=	(cAliasSD2)->D2_BRICMS	// Valor total da base de calculo propria ST  
+		RCA->TMP_VTBPR	:=  (cAliasSD2)->D2_BASEICM	    
+		RCA->TMP_TIPO	:=	(cAliasSD2)->D2_TIPO 
+		
+		If (SF2->F2_EST <> MV_ESTADO) .AND. (SF2->F2_EST <> "EX") .And.!((cAliasSD2)->D2_TIPO$ "BD")
+			RCA->TMP_COL13	:= 	"S"		//Saida para outro Estado
+	    ElseIf (SF4->F4_LFICM $"IN") .and. !lConsFinal .And. !(RCA->TMP_COL11 == "S").And. !((cAliasSD2)->D2_TIPO$ "BD")
+			RCA->TMP_COL12	:=	"S"  	//Saida com Isencao/Nao incidencia
+			RCA->TMP_COL15	:=	(cAliasSD2)->D2_BASEICM	// Base de calculo efetiva na saida a consumidor/usuario final ou saida isenta
+		ElseIf lConsFinal	.And. !(RCA->TMP_COL11 == "S") .And. !((cAliasSD2)->D2_TIPO$ "BD")
+			RCA->TMP_COL10	:= 	"S" 	//Saida a Consumidor/ Usuario Final
+			RCA->TMP_COL15	:=	(cAliasSD2)->D2_BASEICM	// Base de calculo efetiva na saida a consumidor/usuario final ou saida isenta
+		else
+			RCA->TMP_COL14	:=	"S"     //Saida para comercializacao subsequente
+		Endif		         
+		
+		
+		RCA->(MsUnlock())
+		(cAliasSD2)->(dbSkip())
+	endDo
+	If lQuery
+		dbSelectArea(cAliasSD2)
+		dbCloseArea()
+	EndIf
+
+	//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+	//ณMovimentacoes Internasณ
+	//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+	
+ 	If lGeraD3
+		SD3->(dbSetOrder(6))
+			#IFDEF TOP
+				lQuery := .T.
+				cAliasSD3 := "AliasSD3"
+				aStruSD3  := SD3->(dbStruct())
+				cQuery := "SELECT D3_FILIAL,D3_EMISSAO,D3_COD,"
+				cQuery += "D3_NUMSEQ,D3_UM,D3_DOC,D3_QUANT,D3_ESTORNO,D3_CF "
+				cQuery += "FROM "+RetSqlName("SD3")+" "
+				cQuery += "WHERE D3_FILIAL='"+xFilial("SD3")+"' AND "
+				cQuery += "D3_EMISSAO>='"+Dtos(dDtIni)+"' AND "
+				cQuery += "D3_EMISSAO<='"+Dtos(dDtFim)+"' AND "
+		  		cQuery += "D3_COD = '"+(cAliasSFK)->FK_PRODUTO+"' AND "
+		  		cQuery += "D3_ESTORNO = ' ' AND "  		
+		    	cQuery += "D_E_L_E_T_=' ' "
+				
+				cQuery := ChangeQuery(cQuery)
+				dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAliasSD3,.T.,.T.)
+				
+				For nX := 1 To Len(aStruSD3)                
+					If aStruSD3[nX][2] <> "C" .And. FieldPos(aStruSD3[nX][1])<>0
+						TcSetField(cAliasSD3,aStruSD3[nX][1],aStruSD3[nX][2],aStruSD3[nX][3],aStruSD3[nX][4])
+					EndIf
+				Next nX
+				dbSelectArea(cAliasSD3)	
+			#ELSE
+				(cAliasSD3)->(dbSeek(xFilial("SD3")+dtos(dDtIni),.T.))
+			#ENDIF
+		
+			RECLOCK("RCA",.F.)
+			If (cAliasSD3)->(!EOF()) .and. (cAliasSD3)->D3_EMISSAO <= dDtFim  
+				RCA->TMP_MOVD3 	:= "S"
+		  		RCA->TMP_SLD17	:= 0
+				RCA->TMP_SLD19	:=	0
+				RCA->TMP_SLD21	:=	0		
+			   	RCA->TMP_SLDALQ  :=	0
+			Else	 
+				RCA->TMP_MOVD3 	:= "N"
+				RCA->TMP_SLD17	:=	RCA->TMP_COL17
+				RCA->	TMP_SLD19	:=	RCA->TMP_COL19
+				RCA->TMP_SLD21	:=	RCA->TMP_COL21
+				RCA->TMP_SLDALQ	:=	RCA->TMP_ALIQ
+			EndIf     
+		
+		RCA->(MsUnlock()) 
+		
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+		//ณLoop para  verificar se possuo algum documento com mais        ณ
+		//ณde um Numero de Sequencia, pois para as notas de transferen    ณ
+		//ณcia de armazens sao geradas duas notas uma com RE4 e outra DE4.ณ
+		//ณE na impressao do relatorio nao devem ser apresentadas as notasณ
+		//ณde transferencia.                                              ณ
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+		
+		While (cAliasSD3)->(!EOF()) .and. (cAliasSD3)->D3_EMISSAO <= dDtFim
+				// Incluida a verificacao referente ao estorno por orientacao do analista Marcos - Estoque.	
+				If ((cAliasSD3)->D3_COD <> (cAliasSFK)->FK_PRODUTO) .Or. (!Empty((cAliasSD3)->D3_ESTORNO)) 
+					(cAliasSD3)->(dbSkip())
+					Loop
+				Endif	                                             
+				     
+				If Substr((cAliasSD3)->D3_CF,1,3) == "RE4" .Or. Substr((cAliasSD3)->D3_CF,1,3) == "DE4"
+			   		nPos 	:= Ascan(aEstoque,{ |x| x[1] == (cAliasSD3)->D3_NUMSEQ})
+					If nPos >0
+						nCont	:= nCont + 1  
+					EndIF
+		
+					If nPos == 0
+					nCont	:= 1
+				    	aAdd(aEstoque,{(cAliasSD3)->D3_NUMSEQ,nCont})          
+				 	Else
+				 		aEstoque[nPos,2]:=nCont
+				 	EndIF
+   				EndIf
+   				 
+   				(cAliasSD3)->(dbSkip())
+   				Loop
+   		EndDo		 
+       
+
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+		//ณFaco novamente o mesmo Looping,agora para gravar as notas que  ณ
+		//ณ sao de tranferencia mas nao de armazens e para as demais      ณ
+		//ณmovimentacoes Internas.                                        ณ
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+
+	  	(cAliasSD3)->(dbGotop())		    
+                                                     
+		While (cAliasSD3)->(!EOF()) .and. (cAliasSD3)->D3_EMISSAO <= dDtFim
+			// Incluida a verificacao referente ao estorno por orientacao do analista Marcos - Estoque.	
+			If ((cAliasSD3)->D3_COD <> (cAliasSFK)->FK_PRODUTO) .Or. (!Empty((cAliasSD3)->D3_ESTORNO)) 
+				(cAliasSD3)->(dbSkip())
+				Loop
+			Endif	
+
+            If Substr((cAliasSD3)->D3_CF,1,3) == "RE4" .Or. Substr((cAliasSD3)->D3_CF,1,3) == "DE4"
+		   		nPos 	:= Ascan(aEstoque,{ |x| x[1] == (cAliasSD3)->D3_NUMSEQ})
+				If nPos >0 
+					If aEstoque[nPos,2]>1
+						(cAliasSD3)->(dbSkip())
+						Loop
+					EndIf
+				EndIf
+			EndIf				   		                   
+			
+			SB1->(dbSeek(xFilial("SB1")+(cAliasSD3)->D3_COD))
+		
+			RECLOCK("RCA",.T.)    
+			RCA->TMP_CONTRI		:=	SM0->M0_NOMECOM
+			RCA->TMP_INSCR		:=	SM0->M0_INSC
+			RCA->TMP_MES		:=	cMes
+			RCA->TMP_ANO		:=	cAno		
+			RCA->TMP_NUMSEQ	:=	(cAliasSD3)->D3_NUMSEQ
+			RCA->TMP_MERCAD	:=	(cAliasSD3)->D3_COD 
+			If lTabSB1
+				RCA->TMP_ALIQ	:= if(!empty(SB1->B1_PICM),SB1->B1_PICM,nPerICM)  
+				RCA->TMP_ALIQS	:=	if(!empty(SFK->FK_AICMS),(cAliasSFK)->FK_AICMS,nPerICM)
+			Else                      
+				RCA->TMP_ALIQ	:= 	Iif(!empty(SFK->FK_AICMS),(cAliasSFK)->FK_AICMS,nPerICM)
+				RCA->TMP_ALIQS	:=	Iif(!empty(SFK->FK_AICMS),(cAliasSFK)->FK_AICMS,nPerICM)
+			EndIf				
+			RCA->TMP_UNID		:=	(cAliasSD3)->D3_UM
+			RCA->TMP_DATA		:=	(cAliasSD3)->D3_EMISSAO
+	
+			// Numero da NF de saida
+	
+			If Substr((cAliasSD3)->D3_CF,1,2) == "RE"  					// Se for uma requisi็ใo ้ considerado como saํda.
+				  RCA->TMP_NFSAID	:=	(cAliasSD3)->D3_DOC
+				  RCA->TMP_QTDSAI	:=	(cAliasSD3)->D3_QUANT		// Quantidade da saida
+			Else 
+				   RCA->TMP_NFENTR	:=	(cAliasSD3)->D3_DOC			//Se for uma produ็ใo ou uma devolu็ใo ้ considerado como entrada.
+				   RCA->TMP_QTDENT	:=	(cAliasSD3)->D3_QUANT		// Quantidade da entrada
+			Endif
+	
+			// Fato gerador nao realizado
+			RCA->TMP_COL11	:=	"S"
+	
+			RCA->(MsUnlock())
+			(cAliasSD3)->(dbSkip())	
+		EndDo
+			
+			If lQuery
+				dbSelectArea(cAliasSD3)
+				dbCloseArea()
+			EndIf   
+	Endif			
+	                                
+	(cAliasSFK)->(dbSkip())	
+EndDo
+If lQuery
+	dbSelectArea(cAliasSFK)
+	dbCloseArea()
+EndIf
+
+
+Return    
+               
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFunction  ณFSCAT17TOTบAutor  ณAndreia dos Santos  บ Data ณ  13/03/01   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณTotaliza os dados das notas fiscais e preenche as colunas   บฑฑ
+ฑฑบ          ณde apuracao dos valores                                     บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ AP5                                                        บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/
+USER Function SYTOTCAT17  (cArqTMP,aApurMod1)    
+
+Local dData			:= ctod("")
+Local cChave		:= ""
+Local nCol09Ant		:= 	0
+Local nCol17		:= 	0         
+Local nCol17Ant		:= 	0         
+Local nCol19		:=	0
+Local nCol19Ant		:= 	0
+Local nCol21Ant		:= 	0
+Local nQuant		:= 	0
+Local aTotais		:= 	array(15)  
+Local nColApur		:= 0
+Local i := 0
+Local nAliq := 0   
+Local nValor20 := 0 
+Local nValDev21 := 0 
+Local nValor21 := 0   
+Local z :=0 
+Local lPosic 	:= .F.
+Local axAliq 	:= {}
+Local nX		:= 0
+Local nY		:= 0    
+Local lBaseSaida:= GetNewPar("MV_ATSBOP",.F.)    //Parametro utilizado para identificar se a base normal sera alterada referente a cada saida, nao utlizando a a ideia da base de calculo normal que inicialmente era atualizada referente a uma entrada
+Local nSldCol17 	:= 0  
+Local nSldCol19 	:= 0
+Local nSldCol21 	:= 0
+Local nSldColAliq   := 0
+Local lMovSd1 := .F.
+Local lMovSd2 := .F.
+Local lMovSd3 := .F.
+
+Default aApurMod1 := array(15,5)
+
+afill(aTotais,0)
+Aeval(aApurMod1,{|x|aFill(x,0)})
+
+dbSelectArea("RCA")
+dbGoTop()
+While RCA->(!eof())
+	if alltrim(RCA->TMP_NFENTR)	==	"TOTAIS" 
+		RCA->(dbSkip())   
+		loop
+	endIf	
+
+   	cChave		:= RCA->TMP_MERCAD+RCA->TMP_MES+RCA->TMP_ANO
+    nSldCol17 	:= RCA->TMP_SLD17   
+    nSldCol19 	:= RCA->	TMP_SLD19
+    nSldCol21 	:= RCA->	TMP_SLD21
+    nSldColAliq := RCA->TMP_SLDALQ 
+    lMovSD1 :=  Iif(RCA->TMP_MOVD1 == "S", .T.,.F.)
+    lMovSD2 :=  Iif(RCA->TMP_MOVD2 == "S", .T.,.F.)
+    lMovSD3 :=  Iif(RCA->TMP_MOVD3 == "S", .T.,.F.)
+                                                                
+   	While RCA->(!eof()) .and. RCA->TMP_MERCAD+RCA->TMP_MES+RCA->TMP_ANO == cChave
+
+		If alltrim(RCA->TMP_NFENTR) == "SALDO"
+			nCol17Ant	:= 	RCA->TMP_COL17
+			nCol09Ant 	:= 	RCA->TMP_COL18
+			nCol19Ant	:=	RCA->TMP_COL19
+			nCol21Ant	:=	RCA->TMP_COL21
+			RCA->(dbSkip())
+			loop
+    	Endif
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+		//ณ Valor da Base de Calculo da Retencao ณ
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+	
+		Reclock("RCA",.F.)       
+		If !empty(RCA->TMP_NFENTR) .And. !nCol09Ant > 0
+				nCol09Ant := RCA->TMP_VTENTR /RCA->TMP_QTDENT    
+		EndIf	                                 
+		
+		RCA->TMP_COL09	:=	nCol09Ant
+		
+		If RCA->TMP_COL10 == "S" 
+			//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+			//ณCOL10 Saida a consumidor ou usuario finalณ
+			//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+			if RCA->TMP_TIPO $"BD" .and. !empty(RCA->TMP_NFENTR)
+				RCA->TMP_VAL10	:=	noround(RCA->TMP_QTDENT * nCol09Ant*(-1),9) 	
+			ElseIf RCA->TMP_TIPO $"BD" .And. !Empty(RCA->TMP_NFSAID)
+			 	RCA->TMP_VAL10	:= 0	
+   			else
+				RCA->TMP_VAL10	:=	noround(RCA->TMP_QTDSAI * nCol09Ant,9) 
+			Endif       
+		
+		Elseif RCA->TMP_COL11 == "S"
+			//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+			//ณCOL11 Fato gerador nao realizadoณ
+			//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+			if RCA->TMP_TIPO $"BD" .Or. !empty(RCA->TMP_NFENTR)
+				RCA->TMP_VAL11	:=	noround(RCA->TMP_QTDENT * nCol09Ant*(-1),9) 	
+			ElseIf RCA->TMP_TIPO $"BD" .And. !Empty(RCA->TMP_NFSAID)        
+				RCA->TMP_VAL11	:=	0
+   			else                                        
+				RCA->TMP_VAL11	:=	noround(RCA->TMP_QTDSAI * nCol09Ant,9)			
+            EndIf
+		
+		Elseif RCA->TMP_COL12 == "S"
+			//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+			//ณCOL12 Saida com isencao ou nao incidenciaณ
+			//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+			if RCA->TMP_TIPO $"BD" .and. !empty(RCA->TMP_NFENTR)
+				RCA->TMP_VAL12	:=	noround(RCA->TMP_QTDENT * nCol09Ant*(-1),9) 
+			ElseIf RCA->TMP_TIPO $"BD" .And. !Empty(RCA->TMP_NFSAID) 
+				RCA->TMP_VAL12	:= 0				
+   			else
+				RCA->TMP_VAL12	:= noround(RCA->TMP_QTDSAI * nCol09Ant,9)	
+			endIf
+		
+		Elseif RCA->TMP_COL13 == "S"
+			//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+			//ณCOL13 Saida para outro estadoณ
+			//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+			if RCA->TMP_TIPO $"BD" .and. !empty(RCA->TMP_NFENTR)
+				RCA->TMP_VAL13	:=	noround(RCA->TMP_QTDENT * nCol09Ant*(-1),9) 
+			ElseIf RCA->TMP_TIPO $"BD"  .And. !Empty(RCA->TMP_NFSAID)
+				RCA->TMP_VAL13	:=0
+   			else
+				RCA->TMP_VAL13	:=	noround(RCA->TMP_QTDSAI * nCol09Ant,9)	
+			EndIf
+    	Elseif RCA->TMP_COL14 == "S"
+			//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+			//ณCOL14 Saida para comercializacao subsequenteณ
+			//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+			If RCA->TMP_TIPO $"BD" .and. !empty(RCA->TMP_NFENTR)
+				RCA->TMP_VAL14	:=	noround(RCA->TMP_QTDENT * nCol09Ant*(-1),9) 	  
+			ElseIf RCA->TMP_TIPO $"BD" .And. !Empty(RCA->TMP_NFSAID)
+				RCA->TMP_VAL14	:=0
+   			else
+				RCA->TMP_VAL14	:=	noround(RCA->TMP_QTDSAI * nCol09Ant ,9)
+			Endif
+		EndIf
+		//ฺฤฤฤฤฤฤฤฤฤฟ
+		//ณ Saldos  ณ
+		//ภฤฤฤฤฤฤฤฤฤู     
+		RCA->TMP_COL17	:=	(nCol17Ant+RCA->TMP_QTDENT)- RCA->TMP_QTDSAI
+		RCA->TMP_COL19	:=	nCol19Ant+If(!RCA->TMP_TIPO$ "BD",RCA->TMP_VTENTR,0)-RCA->TMP_VAL10-RCA->TMP_VAL11-RCA->TMP_VAL12-RCA->TMP_VAL13-RCA->TMP_VAL14 -If(RCA->TMP_TIPO$ "BD" .And.!Empty(RCA->TMP_NFSAID) ,RCA->TMP_VTBST,0)
+		RCA->TMP_COL18	:=	noround(RCA->TMP_COL19/RCA->TMP_COL17,9)	// Valor unitario da base de calculo da retencao
+	
+		If RCA->TMP_TIPO $"BD" .and. !empty(RCA->TMP_NFENTR) //Devolucao de Compras (SD1)
+			nValor21 	:= noround(nCol21Ant,9)	
+		ElseIf RCA->TMP_TIPO $"BD".And.!Empty(RCA->TMP_NFSAID)  // Devolucao de Venda (SD2)
+   			nValor21 	:= noround(nCol21Ant+(RCA->TMP_VTBPR*(-1)),9) 
+   	Else
+   			nValor21 	:= noround(nCol21Ant+Iif(!Empty(RCA->TMP_NFENTR),RCA->TMP_VTBPR,0),9) //Agrega o valor da base de operacao propria nas movimentacoes de entrada 	     
+	   EndIF   	
+
+		nValor20	:= nValor21/Iif(nCol17Ant==0,1,nCol17Ant) // Valor unitario da base de calculo da operacao propria
+		 		
+		If (RCA->TMP_COL13 == "S" .And. !(RCA->TMP_COL14 == "S")) .Or. (!RCA->TMP_COL11 == "S" .And. !RCA->TMP_COL14 == "S") .And.!(RCA->TMP_COL10 == "S") .And. !(RCA->TMP_COL12 == "S")
+				If	RCA->TMP_TIPO $"BD"  .And. RCA->TMP_QTDENT>0  
+					RCA->TMP_COL16	:=noround((nValor20 * RCA->TMP_QTDENT *(-1)),2)   // BC efetiva da entrada nas demais hipoteses	
+				Elseif RCA->TMP_TIPO $"BD" .And.!Empty(RCA->TMP_NFSAID) 
+					RCA->TMP_COL16	:=0
+				Else  
+					RCA->TMP_COL16	:=noround((nValor20 * RCA->TMP_QTDSAI),2)   // BC efetiva da entrada nas demais hipoteses	
+				EndIf	                                                                                                                        
+	    EndIf
+
+	 	nCol09Ant	:= RCA->TMP_COL18                     
+	 	nCol17Ant	:= RCA->TMP_COL17
+	 	nCol19Ant	:=	RCA->TMP_COL19  
+	 	 
+	 	If lBaseSaida
+		 	If	RCA->TMP_TIPO $"BD"  .And. RCA->TMP_QTDENT>0    
+			 	nCol21Ant	:=	nValor21 - noround((nValor20 * RCA->TMP_QTDENT *(-1)),2)
+		 	Elseif RCA->TMP_TIPO $"BD" .And.!Empty(RCA->TMP_NFSAID) 
+		      nCol21Ant	:=	nValor21 
+			Else				                                                                                                            
+		 		nCol21Ant	:=	nValor21 -  noround((nValor20 * RCA->TMP_QTDSAI),2)
+			Endif 	
+	 	Else
+		 	nCol21Ant	:=	nValor21 - RCA->TMP_COL16
+		 EndIf   
+		 
+		RCA->TMP_COL21	:= nCol21Ant
+		
+	 	aTotais[01]	+= 	RCA->TMP_QTDENT  
+	  	If!RCA->TMP_TIPO$ "BD"
+	  		aTotais[02]	+=	RCA->TMP_VTENTR
+		ElseIf(RCA->TMP_TIPO $"BD".And.!Empty(RCA->TMP_NFSAID))
+			aTotais[02]	+= RCA->TMP_VTBST*(-1) 
+		Else		      
+			aTotais[02]	+= 0
+		Endif 
+		
+		aTotais[03]	+= 	RCA->TMP_QTDSAI
+		aTotais[04]	+=	RCA->TMP_COL09
+		aTotais[05]	+=	RCA->TMP_VAL10  
+		aTotais[06]	+=	RCA->TMP_VAL11
+		aTotais[07]	+=	RCA->TMP_VAL12
+		aTotais[08]	+=	RCA->TMP_VAL13
+		aTotais[09]	+=	RCA->TMP_VAL14
+		aTotais[10]	+=	RCA->TMP_COL15
+		aTotais[11]	+=	RCA->TMP_COL16
+		aTotais[12]	:=	nCol17Ant             //coluna 17 - quantidade
+		aTotais[13]	:=	nCol19Ant             // coluna 19 - Base de St
+		aTotais[14]	:=	nCol21Ant             // coluna 21 - Base OP
+		aTotais[15]	:= RCA->TMP_ALIQS
+	    MsUnlock() 
+	   	
+	    if RCA->TMP_ALIQ ==12
+			nColApur := 1 
+		elseif RCA->TMP_ALIQ ==18             		
+			nColApur := 2                           
+		elseif RCA->TMP_ALIQ ==25
+			nColApur := 3 
+		else 
+			nColApur := 4
+			nPos := Ascan(axAliq,{ |x| x[1] == RCA->TMP_ALIQ})
+			If nPos == 0
+				For nX := 1 to Len(aApurMod1)
+					aAdd(aApurMod1[nX],0)
+				Next
+				aAdd(axAliq,{RCA->TMP_ALIQ,Len(aApurMod1[1])})				            
+				nPos := Len(axAliq)
+			Endif
+			nColApur := axAliq[nPos,2]
+		Endif	               
+			   
+		
+	   	aApurMod1[01,nColApur]	+= 	RCA->TMP_VAL10  //Base de calculo da retencao nas saidas a consumidor final
+	   	aApurMod1[01,05]		+=	RCA->TMP_VAL10  
+	   	aApurMod1[02,nColApur]	+=	RCA->TMP_VAL11  //Base de calculo da retencao nas baixas de estoque/fato gerador nao realizado
+	   	aApurMod1[02,05]		+= 	RCA->TMP_VAL11
+	   	aApurMod1[03,nColApur]	+=	RCA->TMP_VAL12  //Base de calculo nas saidas com isencao
+	   	aApurMod1[03,05]		+=	RCA->TMP_VAL12
+	   	aApurMod1[04,nColApur]	+=	RCA->TMP_VAL13  //Base de calculo nas saidas para outro estado
+	   	aApurMod1[04,05]		+=	RCA->TMP_VAL13
+	   	aApurMod1[06,nColApur]	+=	RCA->TMP_COL15  //Base de calculo efetiva nas saidas destinadas a consumidor final
+	   	aApurMod1[06,05]		+=	RCA->TMP_COL15
+	   	aApurMod1[07,nColApur]	+=	RCA->TMP_COL16  //Base de calculo efetiva nas demais hipoteses
+	   	aApurMod1[07,05]		+=	RCA->TMP_COL16
+	
+	  	RCA->( dbSkip())
+	EndDo
+    
+	For i := 1 to Len(aApurMod1[1])
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+		//ณA coluna 4 nao deve ser somada pois sera utilizada para totalizar todas as aliquotasณ
+		//ณdiferentes de 12, 18 e 25                                                           ณ
+		//ณA coluna 5 nao deve ser somada pois apresenta o total do relatorio                  ณ
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+		If i <> 4  .And. i <> 5  
+	   		aApurMod1[05,i]	:=	aApurMod1[01,i]+aApurMod1[02,i]+aApurMod1[03,i]+aApurMod1[04,i]
+		   	aApurMod1[08,i]	:=	aApurMod1[06,i]+aApurMod1[07,i]
+		Endif
+    Next 	      
+
+   	aApurMod1[05,05]:=	aApurMod1[01,05]+aApurMod1[02,05]+aApurMod1[03,05]+aApurMod1[04,05]
+	aApurMod1[08,05]:=	aApurMod1[06,05]+aApurMod1[07,05]
+	aApurMod1[09,05]:= 0 
+	aApurMod1[10,05]:= 0	
+	aApurMod1[11,05]:= 0                           
+	
+	aApurMod1[12,05]:= 0 
+
+	For i := 1 to Len(aApurMod1[1])	
+		
+		//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+		//ณA coluna 4 nao deve ser somada pois sera utilizada para totalizar todas as aliquotasณ
+		//ณdiferentes de 12, 18 e 25                                                           ณ
+		//ณA coluna 5 nao deve ser somada pois apresenta o total do relatorio                  ณ
+		//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+		If i <> 4  .And. i <> 5  
+		    if i==1
+				nAliq := 12
+			elseif i ==2 
+				nAliq := 18
+			elseif i == 3
+				nAliq := 25
+			else
+				nPos 	:= Ascan(axAliq,{ |x| x[2] == i})
+				nAliq 	:= axAliq[nPos,1]
+			Endif		    
+		   	
+		   	aApurMod1[09,i]		:=	if(aApurMod1[08,i]-aApurMod1[05,i]>=0,aApurMod1[08,i]-aApurMod1[05,i],0)
+		   	aApurMod1[09,05]	+=	aApurMod1[09,i]
+		   	aApurMod1[10,i]		:=	if(aApurMod1[05,i]-aApurMod1[08,i]>=0,aApurMod1[05,i]-aApurMod1[08,i],0)
+			aApurMod1[10,05]	+=	aApurMod1[10,i]
+		   	aApurMod1[11,i]		:=	aApurMod1[09,i]*(nALIQ/100)
+			aApurMod1[11,05]	+=	aApurMod1[11,i]
+		   	aApurMod1[12,i]		:=	aApurMod1[10,i]*(nALIQ/100)
+		  	aApurMod1[12,05]    +=	aApurMod1[12,i]
+		 Endif
+	Next
+	
+   	aApurMod1[13,05]:= if(aApurMod1[11,05]-aApurMod1[12,05]>=0,aApurMod1[11,05]-aApurMod1[12,05],0)
+   	aApurMod1[14,05]:= if(aApurMod1[12,05]-aApurMod1[11,05]>=0,aApurMod1[12,05]-aApurMod1[11,05],0)
+	//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+	//ณArmazena todos os valores das colunas das aliquotas diferentes de 12, 18 e 25 na posicao 4 dp arrayณ
+	//ณque sera utilizada para a impressao do relatorio.                                                  ณ
+	//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+   	For nX := 1 to Len(aApurMod1)
+   		For nY := 6 to Len(aApurMod1[nX])
+	   		aApurMod1[nX,4] := aApurMod1[nX,nY]
+	   	Next
+   	Next
+		
+	RecLock( "RCA", .T.)              
+	RCA->TMP_MERCAD	:= substr(cChave,1,15)	  //mercadoria
+	RCA->TMP_MES		:=	substr(cChave,16,2)	
+	RCA->TMP_ANO		:=	substr(cChave,18,4)
+	RCA->TMP_ALIQ		:=	99.99
+	RCA->TMP_DATA		:= UltimoDia(ctod("01/"+substr(cChave,16,2)+"/"+substr(cChave,18,4)))
+	RCA->TMP_NUMSEQ	:=	replicate("9",6)
+	RCA->TMP_CONTRI	:=	SM0->M0_NOMECOM
+	RCA->TMP_INSCR	:=	SM0->M0_INSC
+	//ฺฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฟ
+	//ณColoca-se "TOTAIS" na NF de entrada para saber   ณ
+	//ณque este registro refere-se ao saldo FINAL       ณ
+	//ภฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤู
+	RCA->TMP_NFENTR	:=	"TOTAIS"	
+
+	RCA->TMP_QTDENT := 	aTotais[01]	
+	RCA->TMP_VTENTR	:=	aTotais[02]	
+	RCA->TMP_QTDSAI	:=	aTotais[03]	
+	RCA->TMP_COL09	:= 	aTotais[04]		
+	RCA->TMP_VAL10	:=	aTotais[05]	
+	RCA->TMP_VAL11	:=	aTotais[06]	
+	RCA->TMP_VAL12	:=	aTotais[07]	
+	RCA->TMP_VAL13	:=	aTotais[08]	
+	RCA->TMP_VAL14	:=	aTotais[09]	
+	RCA->TMP_COL15	:=	aTotais[10]	
+	RCA->TMP_COL16	:=	aTotais[11]
+	RCA->TMP_COL17	:=  Iif(lMovSD1 .Or. lMovSD2 .Or. lMovSD3,aTotais[12],nSldCol17)
+	RCA->TMP_COL19	:=  Iif(lMovSD1 .Or. lMovSD2 .Or. lMovSD3,aTotais[13],nSldCol19)
+	RCA->TMP_COL21	:=  Iif(lMovSD1 .Or. lMovSD2 .Or. lMovSD3,aTotais[14],nSldCol21)	
+	RCA->TMP_ALIQS	:=  Iif(lMovSD1 .Or. lMovSD2 .Or. lMovSD3,aTotais[15],nSldColAliq)
+	
+	MsUnlock()
+	afill(aTotais,0)
+EndDo  	 
+
+Return
+      
+
+/*
+ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+ฑฑษออออออออออัออออออออออหอออออออัออออออออออออออออออออหออออออัอออออออออออออปฑฑ
+ฑฑบFunction  ณFSCAT17FIMบAutor  ณAndreia dos Santos  บ Data ณ  13/03/01   บฑฑ
+ฑฑฬออออออออออุออออออออออสอออออออฯออออออออออออออออออออสออออออฯอออออออออออออนฑฑ
+ฑฑบDesc.     ณ Deleta os arquivos temporarios							  บฑฑ
+ฑฑบ          ณ                                                            บฑฑ
+ฑฑฬออออออออออุออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออนฑฑ
+ฑฑบUso       ณ AP5                                                        บฑฑ
+ฑฑศออออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผฑฑ
+ฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑฑ
+฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿฿
+*/                                                                      
+USER Function SYFIMCAT17(cArqTMP)
+/*
+If File(cArqTMP+".DBF")
+	dbSelectArea(cArqTMP)
+	dbCloseArea()
+	Ferase(cArqTMP+".DBF")
+	Ferase(cArqTMP+OrdBagExt())
+Endif
+ */
+ 
+If File(cArqTMP+GetDBExtension())
+	dbSelectArea("RCA")
+	dbCloseArea()
+	Ferase(cArqTMP+GetDBExtension())
+	Ferase(cArqTMP+OrdBagExt())
+Endif
+
+Return

@@ -375,6 +375,10 @@ If _nBytes > 0
                 WSA->WSA_ENVLOG := "2"
                 WSA->WSA_CODSTA := _cCodSta
                 WSA->WSA_DESTAT := WS1->WS1_DESCRI
+                WSA->WSA_ESPECI := _cEspecie 
+	            WSA->WSA_VOLUME := _nVolume
+	            WSA->WSA_PLIQUI := _nPesoLiq
+	            WSA->WSA_PBRUTO := _nPesoBrut
             WSA->( MsUnLock() ) 
         EndIf
         //---------------------------+

@@ -284,7 +284,10 @@ cQuery := "	SELECT " + CRLF
 cQuery += "		CODSKU, " + CRLF
 cQuery += "		DESCSKU, " + CRLF
 cQuery += "		IDSKU, " + CRLF
-cQuery += "		SALDO, " + CRLF
+cQuery += "		SALDOB2, " + CRLF
+cQuery += "		SALDOC6, " + CRLF
+cQuery += "		SALDOD2, " + CRLF
+cQuery += "		SALDOC0, " + CRLF
 cQuery += "		RECNOSB2 " + CRLF
 cQuery += "	FROM " + CRLF
 cQuery += "	( " + CRLF
@@ -292,12 +295,49 @@ cQuery += "		SELECT " + CRLF
 cQuery += "			B2.B2_COD CODSKU, " + CRLF
 cQuery += "			B1.B1_DESC DESCSKU, " + CRLF
 cQuery += "			B5.B5_XIDSKU IDSKU, " + CRLF
-cQuery += "			B2.B2_QATU SALDO, " + CRLF
+cQuery += "			B2.B2_QATU SALDOB2, " + CRLF
 cQuery += "			B2.R_E_C_N_O_ RECNOSB2 " + CRLF
 cQuery += "		FROM " + CRLF
 cQuery += "			" + RetSqlName("SB2") + " B2 " + CRLF
 cQuery += "			INNER JOIN " + RetSqlName("SB1") + " B1 ON B1.B1_FILIAL = '" + xFilial("SB1") + "' AND B1.B1_COD = B2.B2_COD AND B1.B1_MSBLQL <> '1' AND B1.D_E_L_E_T_ = '' " + CRLF 
 cQuery += "			INNER JOIN " + RetSqlName("SB5") + " B5 ON B5.B5_FILIAL = '" + xFilial("SB5") + "' AND B5.B5_COD = B2.B2_COD AND B5.B5_XENVECO = '2' AND B5.B5_XENVSKU = '2' AND B5.B5_XUSAECO = 'S' AND B5.D_E_L_E_T_ = '' " + CRLF
+cQuery += "			OUTER APPLY ( " + CRLF
+cQuery += "							SELECT " + CRLF
+cQuery += "								ISNULL(SUM(D2.D2_QUANT),0) SALDOD2 " + CRLF
+cQuery += "							FROM " + CRLF
+cQuery += "								SD2010 D2 " + CRLF 
+cQuery += "							WHERE " + CRLF
+cQuery += "								D2.D2_FILIAL = B2.B2_FILIAL AND " + CRLF 
+cQuery += "								D2.D2_COD = B2.B2_COD AND " + CRLF
+cQuery += "								D2.D2_LOCAL = B2.B2_LOCAL AND " + CRLF
+cQuery += "								D2.D_E_L_E_T_ = '' " + CRLF
+cQuery += "							GROUP BY D2.D2_FILIAL,D2.D2_COD " + CRLF
+cQuery += "						)SD2 " + CRLF
+cQuery += "			OUTER APPLY ( " + CRLF
+cQuery += "							SELECT " + CRLF 
+cQuery += "								ISNULL(SUM(C6.C6_QTDVEN),0) SALDOC6 " + CRLF
+cQuery += "							FROM " + CRLF
+cQuery += "								SC6010 C6 " + CRLF
+cQuery += "							WHERE 
+cQuery += "								C6.C6_FILIAL = B2.B2_FILIAL AND 
+cQuery += "								C6.C6_PRODUTO = B2.B2_COD AND 
+cQuery += "								C6.C6_LOCAL = B2.B2_LOCAL AND 
+cQuery += "								C6.C6_QTDVEN - C6.C6_QTDENT > 0 AND
+cQuery += "								C6.D_E_L_E_T_ = ''
+cQuery += "							GROUP BY C6.C6_FILIAL,C6.C6_PRODUTO
+cQuery += "						)SC6
+cQuery += "			OUTER APPLY (
+cQuery += "							SELECT 
+cQuery += "								ISNULL(SUM(C0.C0_QUANT),0) SALDOC0
+cQuery += "							FROM 
+cQuery += "								SC0010 C0 
+cQuery += "							WHERE 
+cQuery += "								C0.C0_FILIAL = B2.B2_FILIAL AND 
+cQuery += "								C0.C0_PRODUTO = B2.B2_COD AND 
+cQuery += "								C0.C0_LOCAL = B2.B2_LOCAL AND 
+cQuery += "								C0.D_E_L_E_T_ = ''
+cQuery += "							GROUP BY C0.C0_FILIAL,C0.C0_PRODUTO
+cQuery += "						)SC0
 cQuery += "		WHERE " + CRLF
 cQuery += "			B2.B2_FILIAL = '" + cFilEst  + "' AND " + CRLF 
 cQuery += "			B2.B2_LOCAL = '" + cLocal + "' AND " + CRLF

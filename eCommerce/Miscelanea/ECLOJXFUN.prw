@@ -853,6 +853,10 @@ Local _aArea	:= GetArea()
 
 Local _cCodSta	:= "005"
 
+Local _lSigep	:= GetNewPar("EC_SIGEP",.T.)
+
+Local _oSigWeb	:= Nil
+
 //-------------------------------+
 // Atualiza dados da nota fiscal |
 //-------------------------------+
@@ -887,6 +891,31 @@ If WSA->( dbSeek(xFilial("WSA") +_cOrderId) )
 		WSA->WSA_DESTAT	:= WS1->WS1_DESCRI
 		WSA->WSA_ENVLOG	:= "3"
 	WSA->( MsUnlock() )
+EndIf
+
+//-------------+
+// Grava Sigep |
+//-------------+
+If _lSigep
+	//------------------------+
+	// Instancia classe Sigep |
+	//------------------------+
+	_oSigWeb			:= SigepWeb():New
+	
+	//-------------------------+
+	// Dados para gravação PLP |
+	//-------------------------+
+	_oSigWeb:cNumOrc	:= WSA->WSA_NUM	 
+	_oSigWeb:cNumCli	:= WSA->WSA_NUMECL
+	_oSigWeb:cNumEco	:= WSA->WSA_NUMECO
+	_oSigWeb:cCodCli	:= WSA->WSA_CLIENTE
+	_oSigWeb:cLoja  	:= WSA->WSA_LOJA
+	
+	//-----------+
+	// Grava PLP |
+	//-----------+
+	_oSigWeb:GrvPLP()
+	
 EndIf
 
 //------------------------+

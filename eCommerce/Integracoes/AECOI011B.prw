@@ -29,6 +29,8 @@ User Function AECOI11B(cNumOrc,lCancel)
 Local aArea		:= GetArea()
 Local aRet		:= {.T.,"",""}
 
+Local _lBloqueio:= GetNewPar("EC_BLSMSG",.T.)	
+
 Private cThread	:= Alltrim(Str(ThreadId()))
 Private cStaLog	:= "0"
 Private cArqLog	:= ""	
@@ -43,6 +45,11 @@ Private aMsgErro:= {}
 Private lJob 	:= .F.
 
 Default lCancel	:= .F.
+
+If _lBloqueio
+	RestArea(aArea)
+	Return aRet
+EndIf
 
 //----------------------------------+
 // Grava Log inicio das Integrações | 
@@ -113,9 +120,16 @@ Local cRetPost  	:= ""
 
 Local nTimeOut		:= 240
 
+Local _lBloqueio	:= GetNewPar("EC_BLSMSG",.T.)
+
 Local oRestRet   	:= Nil 
 
 Default lCancel		:= .F.
+
+If _lBloqueio
+	RestArea(aArea)
+	Return aRet
+EndIf
 
 aAdd(aHeadOut,"Content-Type: application/json" )
 aAdd(aHeadOut,"X-VTEX-API-AppKey:" + cAppKey )
