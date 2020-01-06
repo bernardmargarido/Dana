@@ -268,7 +268,7 @@ CoNout("<< SIGEPWEB - GRVPLP >> - INICIO DATA " + dToc( Date() ) + " HORA " + Ti
 dbSelectArea("ZZ2")
 ZZ2->( dbSetOrder(1) )
 If ZZ2->( dbSeek(xFilial("ZZ2") + ::cIdPLP) )
-	::cError	:= "NOTA JA GRAVADA PARA GERAR PRE LISTA DE POSTAGEM."
+	::cError	:= "NOTA JA PERTENCE A PRE LISTA DE POSTAGEM " + ::cIdPLP +  ". "
 	RestArea(_aArea)
 	Return .F.
 EndIf
@@ -498,11 +498,6 @@ Private _oResp	:= Nil
 Private _aFaixa	:= {}
 
 CoNout("<< SIGEPWEB - SETPLP >> - INICIO DATA " + dToc( Date() ) + " HORA " + Time() + " .")
-
-//-------------------+
-// Retorna ID da PLP |
-//-------------------+
-::GetIdPLP()
 
 //--------------------------+
 // Instancia a classe SIGEP |

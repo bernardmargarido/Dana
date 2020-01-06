@@ -36,9 +36,9 @@ User Function AlfSfz01(cServico, aParam, oRet, _cEmp, _cFil)
 	Local   _cJusti   := ""
 	Local   cSubj     := ""
 	Local   cBody     := ""
-	Local   cToClNFe  := SuperGetMV("DN_MAILXML",,"")
+	Local   cToClNFe  := SuperGetMV("AF_MAILXML",,"")
 	Local   cPsqCTe   := SuperGetMV("AF_PXMLCTE",,"S")
-	Local   cPsqNFe   := SuperGetMV("DN_PXMLNFE",,"N")
+	Local   cPsqNFe   := SuperGetMV("AF_PXMLNFE",,"N")
 	Local   cDbgCte	  := SuperGetMV("AF_MDBGCTE",,"N")
 	
 	Default cServico  := ""
@@ -815,7 +815,7 @@ Local cQuery	:= ""
 Local cRet 		:= "000000000000000"
 
 cQuery := " SELECT "+ CRLF
-cQuery += " 	COALESCE(MAX(ZDG.ZDG_ULTNSU),'000000000000000') ZDG_ULTNSU "+ CRLF
+cQuery += " 	MAX(ZDG.ZDG_ULTNSU) ZDG_ULTNSU "+ CRLF
 cQuery += " FROM "+RetSqlName("ZDG")+" ZDG (NOLOCK) "+ CRLF
 cQuery += " WHERE "+ CRLF
 cQuery += " 	ZDG.ZDG_FILIAL = '"+xFilial("ZDG")+"' "+ CRLF
@@ -861,8 +861,8 @@ Local cBDErr := ""
 Local cSubj := ""
 Local cBody := ""
 Local cObs := DtoC(dDataBase)+ " - " +Time()+ ": registro incluido."
-Local cToClNFe := SuperGetMV("DN_MAILXML",,"")
-Local cMdGrv := SuperGetMv("DN_MDGZDI",,"I") // Modo de Gravacao: R=RecLock, I=Insert
+Local cToClNFe := SuperGetMV("AF_MAILXML",,"")
+Local cMdGrv := SuperGetMv("AF_MDGZDI",,"I") // Modo de Gravacao: R=RecLock, I=Insert
 Local nRet := 0
 Local nRecNo := 0
 
@@ -1105,7 +1105,7 @@ Return(cXmlToSign)
 User Function AlfAtStNF( cChvNFe, cStatus, cMsgObs, cOrigem )
 Local cAQry := ""
 Local cUpdt := "" 
-Local cMdGrv := SuperGetMv("DN_MDGSTE",,"U") // Modo de Gravacao: R=RecLock, I=Insert
+Local cMdGrv := SuperGetMv("AF_MDGSTE",,"U") // Modo de Gravacao: R=RecLock, I=Insert
 Local cObs := DtoC(dDataBase) +" - "+ Time()+ ": "
 Local aAtuArea := {}
 Local aZDIArea := {}
@@ -1234,7 +1234,7 @@ Return(Nil)
 
 
 Static Function PsqFxCte( _cUf, _cCertif, _cPrivKey, _cPass, _cCNPJ, _ultNSU, cResposta )
-	Local   cURL      := "https://www1.cte.fazenda.gov.br/CTeDistribuicaoDFe/CTeDistribuicaoDFe.asmx?wsdl"
+	Local   cURL      := "https://www1.cte.fazenda.gov.br/CTeDistribuicaoDFe/CTeDistribuicaoDFe.asmx"
 	Local   cAviso    := ""
 	Local   cSoap     := ""
 	Local   cError	  := ""
@@ -1247,56 +1247,52 @@ Static Function PsqFxCte( _cUf, _cCertif, _cPrivKey, _cPass, _cCNPJ, _ultNSU, cR
 	Local   aHeadOut  := {}
 	Local   aItens    := {}
 	Local   xRetWs    := Nil
+
+	Local 	nSSL2	  := 1
+	Local 	nSSL3	  := 1
+	Local 	nTLS1	  := 1
+	Local 	nHSM	  := 1
+	Local   lIsClient := .T.
+	Local   cCACert	  := GCPGetCert("000001_cert.pem",GetTempPath(.T.))
+	
 	Private nNNj	  := 0
 	Private oTmp      := Nil
 	Private oXML	  := Nil
 	Default cResposta := ""
 
-	//If Empty(_ultNSU)
+	//HTTPSSLClient( nSSL2, nSSL3, nTLS1, _cPass, _cCertif, _cPrivKey,  nHSM, lIsClient, 1, Nil, Nil, _cCertif )
+
+	If Empty(_ultNSU)
 		_ultNSU := RUNSUCte(_cCNPJ)
-	//EndIf
+	EndIf
 
-/*
+	cSoap := '<?xml version="1.0" encoding="UTF-8"?>'
 	cSoap := '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:cted="http://www.portalfiscal.inf.br/cte/wsdl/CTeDistribuicaoDFe">'
-	cSoap += 	'<soapenv:Header/>'
-	cSoap +=    	'<soapenv:Body>'
-	cSoap +=       		'<cted:cteDistDFeInteresse>'
-	cSoap +=          		'<cted:cteDadosMsg>'
-	cSoap += 					'<distDFeInt xmlns="http://www.portalfiscal.inf.br/cte" versao="1.00">'
-	cSoap += 						'<tpAmb>1</tpAmb>'
-	cSoap += 						'<cUFAutor>'+_cUf+'</cUFAutor>'
-	cSoap += 						'<CNPJ>'+_cCNPJ+'</CNPJ>'
-	cSoap += 						'<distNSU>'
-	cSoap += 							'<ultNSU>'+PadL(_ultNSU,15,"0")+'</ultNSU>'
-	cSoap += 						'</distNSU>'
-	cSoap += 					'</distDFeInt>'
-	cSoap +=          '</cted:cteDadosMsg>'
-	cSoap +=       '</cted:cteDistDFeInteresse>'
-	cSoap +=    '</soapenv:Body>'
-	cSoap += '/soapenv:Envelope>'
-
-*/
-
-	cSoap := '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:cted="http://www.portalfiscal.inf.br/cte/wsdl/CTeDistribuicaoDFe">'
-	cSoap += 	'<soapenv:Header/>'
-	cSoap += 		'<soapenv:Body>'
-	cSoap += 			'<cted:cteDistDFeInteresse xmlns="http://www.portalfiscal.inf.br/cte" versao="1.00">'
-	cSoap += 				'<cted:cteDadosMsg>'
-	cSoap += 					'<distDFeInt xmlns="http://www.portalfiscal.inf.br/cte" versao="1.00">'
-	cSoap += 						'<tpAmb>1</tpAmb>'
-	cSoap += 						'<cUFAutor>'+_cUf+'</cUFAutor>'
-	cSoap += 						'<CNPJ>'+_cCNPJ+'</CNPJ>'
-	cSoap += 						'<distNSU>'
-	cSoap += 							'<ultNSU>'+PadL(_ultNSU,15,"0")+'</ultNSU>'
-	cSoap += 						'</distNSU>'
-	cSoap += 					'</distDFeInt>'
-	cSoap += 				'</cted:cteDadosMsg>'
-	cSoap += 		'</cted:cteDistDFeInteresse>'
-	cSoap += 	'</soapenv:Body>'
+	cSoap += '<soapenv:Header/>'
+	cSoap += '<soapenv:Body>'
+	cSoap += '<cted:cteDistDFeInteresse>'
+	cSoap += '<cted:cteDadosMsg>'
+	cSoap += '<distDFeInt xmlns="http://www.portalfiscal.inf.br/cte" versao="1.00">'
+	cSoap += '<tpAmb>1</tpAmb>'
+	cSoap += '<cUFAutor>'+_cUf+'</cUFAutor>'
+	cSoap += '<CNPJ>'+_cCNPJ+'</CNPJ>'
+	cSoap += '<distNSU>'
+	cSoap += '<ultNSU>'+PadL(_ultNSU,15,"0")+'</ultNSU>'
+	cSoap += '</distNSU>'
+	cSoap += '</distDFeInt>'
+	cSoap += '</cted:cteDadosMsg>'
+	cSoap += '</cted:cteDistDFeInteresse>'
+	cSoap += '</soapenv:Body>'
 	cSoap += '</soapenv:Envelope>'
 
-	aadd(aHeadOut,'Content-Type: text/xml; charset=utf-8 ')
-	aadd(aHeadOut,'User-Agent: Mozilla/4.0 (compatible; Protheus '+GetBuild()+')') // Acrescenta o UserAgent na requisição ... '; '+WSDLCLIENT_VERSION+
+	aHeadOut := {}
+	AAdd( aHeadOut, "User-Agent: wsdlpull/2.0" )
+	AAdd( aHeadOut, "Accept-Encoding: deflate, gzip" )
+	AAdd( aHeadOut, 'SOAPAction: "http://www.portalfiscal.inf.br/cte/wsdl/CTeDistribuicaoDFe/cteDistDFeInteresse"' )
+	AAdd( aHeadOut, "Content-Type: text/xml; charset=UTF-8" )
+	
+	//aadd(aHeadOut,'Content-Type: text/xml; charset=utf-8 ')
+	//aadd(aHeadOut,'User-Agent: Mozilla/4.0 (compatible; Protheus '+GetBuild()+')') // Acrescenta o UserAgent na requisição ... '; '+WSDLCLIENT_VERSION+
 
 	While ( ( xRetWs == Nil ) .And. nTries < 10 )
 		nTries++
@@ -1460,16 +1456,14 @@ Local aRtVCte := {}
 Local aAtuArea := GetArea()
 Local aZDIArea := ZDI->(GetArea())
 Local aRecZDI := {}
-
 Private oCte := Nil
 
-cQry := " SELECT "
-cQry += " 	ZDI.R_E_C_N_O_ AS ZDIRECNO "
-cQry += " FROM " + RetSqlName("ZDI") + " ZDI WHERE ZDI.D_E_L_E_T_ = ' ' "
-cQry += " 	AND ZDI.ZDI_FILIAL = '"+xFilial("ZDI")+"' "
-cQry += " 	AND ZDI.ZDI_CONTA = '"+_cCNPJ+"' "
-cQry += " 	AND ZDI.ZDI_TPXML = 'CTEPROC                       ' "
-cQry += " 	AND ZDI.ZDI_STATUS = '                    ' "
+cQry := "SELECT ZDI.R_E_C_N_O_ AS ZDIRECNO "
+cQry += "FROM "+RetSqlName("ZDI")+ " ZDI WHERE ZDI.D_E_L_E_T_ = ' ' "
+cQry += "AND ZDI.ZDI_FILIAL = '"+xFilial("ZDI")+"' "
+cQry += "AND ZDI.ZDI_CONTA = '"+_cCNPJ+"' "
+cQry += "AND ZDI.ZDI_TPXML = 'CTEPROC                       ' "
+cQry += "AND ZDI.ZDI_STATUS = '                    ' "
 cQry += "ORDER BY ZDI.R_E_C_N_O_"
 
 Iif(Select("WKXZDI")>0,WKXZDI->(dbCloseArea()),Nil)
@@ -1514,7 +1508,6 @@ If Len(aRecZDI) > 0
 					cStMon := "T"
 					cMsg := aRtVCte[1]
 			    EndIf
-
 				U_AtStCTe( oCTe:_CTEPROC:_PROTCTE:_INFPROT:_CHCTE:TEXT, cMsg, cStMon )
 
 				If cGrPNCTe == "S"
@@ -1533,7 +1526,6 @@ If Len(aRecZDI) > 0
 	                    cStMon := "Y"
 	                    cMsg := aRtVCte[2]
 				    EndIf
-
 				    U_AtStCTe( oCTe:_CTEPROC:_PROTCTE:_INFPROT:_CHCTE:TEXT, cMsg, cStMon )
 
 				EndIf
@@ -1548,6 +1540,8 @@ EndIf
 
 Return(Nil)
 
+
+
 Static Function RUNSUCte(cCNPJ)
 Local cQry := ""
 Local xRet := 0
@@ -1557,8 +1551,7 @@ cQry += "WHERE D_E_L_E_T_ = ' ' "
 cQry += "AND ZDG_FILIAL = '"+xFilial("ZDG")+"' "
 cQry += "AND ZDG_CONTA = '"+cCNPJ+"' "
 
-IIF(Select("WKXZDG")>0,WKXZDG->(dbCloseArea()),Nil)
-
+Iif(Select("WKXZDG")>0,WKXZDG->(dbCloseArea()),Nil)
 dbUseArea(.T.,"TOPCONN",TCGenQry(,,cQry),"WKXZDG",.T.,.T.)
 WKXZDG->(dbGoTop())
 
