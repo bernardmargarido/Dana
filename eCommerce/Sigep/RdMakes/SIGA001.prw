@@ -84,18 +84,18 @@ _oModel:addFields('ZZ2MASTER',,_oStruZZ2)
 // Produto X Campos Especificos |
 //------------------------------+
 _oModel:AddGrid("ZZ4DETAIL", "ZZ2MASTER" /*cOwner*/, _oStruZZ4 , /*bLinePre*/ , /*bLinePost*/ , /*bPre*/ , /*bPost*/, /*{ |oGrid| LoadCores(oGrid) } bLoad*/)
-_oModel:SetRelation( "ZZ4DETAIL" , { { "ZZ4_FILIAL" , 'xFilial("ZZ4")' }, { "ZZ4_PLPID" , "ZZ2_PLPID" } } , ZZ4->( IndexKey( 1 ) ) )
+_oModel:SetRelation( "ZZ4DETAIL" , { { "ZZ4_FILIAL" , 'xFilial("ZZ4")' }, { "ZZ4_CODIGO" , "ZZ2_CODIGO" } } , ZZ4->( IndexKey( 1 ) ) )
 _oModel:GetModel("ZZ4DETAIL"):SetOptional(.T.)
 
 //-------------------------------------------+
 // Liga o controle de nao repeticao de linha |
 //-------------------------------------------+
-_oModel:GetModel( 'ZZ4DETAIL' ):SetUniqueLine( { "ZZ4_ITEM","ZZ4_NOTA","ZZ4_SERIE" } )
+_oModel:GetModel( 'ZZ4DETAIL' ):SetUniqueLine( { "ZZ4_ITEM","ZZ4_CODIGO","ZZ4_NOTA","ZZ4_SERIE" } )
 
 //------------------------+
 // Chave primaria produto | 
 //------------------------+
-_oModel:SetPrimaryKey({ "ZZ2_FILIAL" , "ZZ2_PLPID" })
+_oModel:SetPrimaryKey({ "ZZ2_FILIAL" , "ZZ2_CODIGO" })
 
 Return _oModel
 
@@ -312,14 +312,11 @@ Static Function MenuDef()
 										
 	ADD OPTION aRotina TITLE "Pesquisa"  			ACTION 'PesqBrw'            	OPERATION 1 ACCESS 0
 	ADD OPTION aRotina TITLE "Visualizar"          	ACTION "VIEWDEF.SIGA001" 		OPERATION 2 ACCESS 0 
-	ADD OPTION aRotina TITLE "Incluir"              ACTION "VIEWDEF.SIGA001" 		OPERATION 3 ACCESS 0 
+	ADD OPTION aRotina TITLE "Incluir" 	            ACTION "U_SIGM006" 				OPERATION 3 ACCESS 0 
 	ADD OPTION aRotina TITLE "Alterar"              ACTION "VIEWDEF.SIGA001" 		OPERATION 4 ACCESS 0 
 	ADD OPTION aRotina TITLE "Excluir"              ACTION "VIEWDEF.SIGA001" 		OPERATION 5 ACCESS 0 
-	ADD OPTION aRotina TITLE "Serviços Sigep"		ACTION 'U_SIGM001'		  		OPERATION 3 ACCESS 0
-	ADD OPTION aRotina TITLE "Etiquetas"			ACTION 'U_SIGM002'		  		OPERATION 4 ACCESS 0	
 	ADD OPTION aRotina TITLE "Envia PLP"			ACTION 'U_SIG01PLP'		  		OPERATION 4 ACCESS 0
 	ADD OPTION aRotina TITLE "Imprime PLP"			ACTION 'U_SIGR002'		  		OPERATION 6 ACCESS 0
 	ADD OPTION aRotina TITLE "Imprime ETQ"			ACTION 'U_SIGR001'		  		OPERATION 6 ACCESS 0
-	ADD OPTION aRotina TITLE "Legenda"				ACTION 'U_SIGA01LE'		  		OPERATION 6 ACCESS 0
-	
+		
 Return aRotina

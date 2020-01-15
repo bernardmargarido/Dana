@@ -203,11 +203,11 @@ If _lInclui .Or. _lAltera
     dbSelectArea("AY3")
     RecLock("AY3",_lGrava)
 
-        For nX := 1 To fCount()
-			IF FieldName(nX) # _cCpoAy3
-				FieldPut(nX, &('M->' + FieldName(nX)))
+        For _nX := 1 To fCount()
+			IF FieldName(_nX) # _cCpoAy3
+				FieldPut(_nX, &('M->' + FieldName(_nX)))
 			EndIF
-		Next nX
+		Next _nX
 
         //------------------------------+
         // Grava informações adicionais | 

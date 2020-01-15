@@ -93,11 +93,14 @@ Static Function AECOINT10()
 	Local cPais			:= GetNewPar("MV_WSPAIS","105")
 	Local cCodPais		:= GetNewPar("MV_WSCPAIS","01058")
 	Local cGrpTrib		:= GetNewPar("EC_GRPTRIB","CCF") 
+	
 	Local nDtaNasc		:= 0
 	Local nDtaInc		:= 0
 	Local nOpcA			:= 0
 	Local nOpcC			:= 0
 	Local nValorFixo	:= 0
+	Local nX1			:= 0
+
 	Local aContato		:= {}
 	Local aDtNasc		:= {}
 	Local aEndSa1		:= {}
@@ -445,7 +448,8 @@ Static Function GrvContat(cCodCli,cLoja,oCliente)
 	Local cCodU5	:= ""
 
 	Local nRecnoSU5	:= 0
-
+	Local nEnd		:= 0
+	
 	Local aEndCont	:= {}
 	Local aEndEnt	:= {}
 	Local aRetMun	:= {}
@@ -633,6 +637,7 @@ Return aEnd
 ***********************************************************************************/
 Static Function aEcI10Aga(cNumSU5,aEndereco)
 Local aArea	:= GetARea()
+Local nCont	:= 0
 
 	For nCont := 1 To Len(aEndereco)
 		lGrava := QryEnd(cNumSU5,aEndereco[nCont][1])
@@ -760,8 +765,12 @@ Return nRecno
 */
 Static Function GrvZa0(lGrava,nLinha,cCliente,cLoja)
 	Local aArea		:= GetArea()
+	
 	Local nDtaInc	:= 0
+	Local nY		:= 0
+
 	Local dDtInc	:= ""
+	
 	Local aRetEnd	:= {}
 
 	//旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴커

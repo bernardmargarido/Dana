@@ -130,6 +130,7 @@ Local _lRet         := .T.
 Local _lOk          := .T.
 
 Local _nVezes       := 0
+Local _nX           := 0
 
 Local _aDirCab      := {}
 Local _aDirItem     := {}
@@ -256,6 +257,7 @@ Local _lRet         := .T.
 Local _lOk          := .T.
 
 Local _nVezes       := 0
+Local _nX           := 0
 
 Local _aDirCab      := {}
 Local _aDirItem     := {}

@@ -199,6 +199,7 @@ Local cUsrVTex		:= GetNewPar("EC_USRVTEX")
 Local cPswVTex		:= GetNewPar("EC_PSWVTEX")
 
 Local nCatDepar		:= 0
+Local nId			:= 0
 
 Local lLjPri 		:= .F.
 

@@ -153,6 +153,7 @@ Local cWarning  	:= ""
 Local cRetPost  	:= ""
 
 Local nTimeOut		:= 240
+Local nList			:= 0
 
 Local oRestRet   	:= Nil 
 
@@ -241,6 +242,7 @@ Local cAppKey		:= GetNewPar("EC_APPKEY")
 Local cAppToken		:= GetNewPar("EC_APPTOKE")
 
 Local nTimeOut		:= 240
+Local nPed			:= 0
 
 Local aHeadPv	  	:= {}
 Local aRet			:= {.T.,"",""}
@@ -1787,6 +1789,7 @@ Local cLocal		:= GetNewPar("EC_ARMVEND")
 
 Local nQtdItem		:= 0
 Local _nSaldoSb2	:= 0
+Local nPrd			:= 0
 
 Local dDtVldRserv	:= GetNewPar("EC_DTVLDRE","01/01/2049")
 

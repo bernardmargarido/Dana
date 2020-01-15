@@ -18,6 +18,7 @@ Class SIGEPWEB
 	Data cIdUser		As String
 	Data cIdPass		As String
 	Data cIdPLP			As String
+	Data cIdPLPErp		As String
 	Data cCodAdm		As String
 	Data cUrlSigep		As String
 	Data cError			As String
@@ -36,6 +37,7 @@ Class SIGEPWEB
 	Data cXmlPLP		As String
 	Data cNumDoc		As String
 	Data cSerie			As String
+	Data cTracking		As String
 	Data cDestinatario	As String
 	Data cEndereco		As String
 	Data cNumEnd		As String
@@ -47,29 +49,49 @@ Class SIGEPWEB
 	Data cTel			As String
 	Data cHrIni			As String
 	Data cHrFim			As String
-	
+	Data cIdPostagem	As String
+	Data cEtqParc		As String
+	Data cSigla			As String
+	Data cItemPlp		As String
+	Data _cCACertPath	As String
+	Data _cPassword		As String
+	Data _cCertPath		As String 
+	Data _cKeyPath		As String
+
+	Data _nSSL2			As Integer 
+	Data _nSSL3			As Integer
+	Data _nTLS1			As Integer 
+	Data _nHSM			As Integer
+	Data _nVerbose		As Integer 
+	Data _nBugs			As Integer 
+	Data _nState		As Integer 
+	Data nQtdEtq		As Integer
+	Data nRecno 		As Integer
+
 	Data nAltura		As Double
 	Data nLargura 		As Double 
 	Data nComprimento	As Double
 	Data nPesoLiquido	As Double 
-	
-	Data nQtdEtq		As Integer
-	
+		
 	Data dDtIni			As Date
 	Data dDtFim			As Date
 	
+	Data lGeraDvEtq		As Boolean
+
 	Data aFaixaPlp		As Array
-	
+	Data aNotas			As Array
+
 	Data oSigWeb		As Object
 	
 	Method New() constructor
+	Method GetSSLCache()
 	Method GrvServico()
 	Method GrvPlp()
 	Method GrvCodEtq()
+	Method GetEtiqueta()
 	Method GetDigEtq()
 	Method GetXMLPlp()
 	Method GetIdPLP()
-	Method GetItemPLP()
 	Method SetPLP()
 		
 	CoNout("<< SIGEPWEB >> - FIM SIGEPWEB DATA " + dToc( Date() ) + " HORA " + Time() + " .")
@@ -121,7 +143,25 @@ Method New() Class SIGEPWEB
 	::cTel			:= ""
 	::cHrIni		:= ""
 	::cHrFim		:= ""
+	::cIdPostagem	:= ""
+	::cEtqParc		:= ""
+	::cSigla		:= ""
+	::cIdPLPErp		:= ""
+	::cItemPlp		:= ""
+	::_cPassword	:= ""
+	::_cCertPath	:= "" 
+	::_cKeyPath		:= "" 
+	::_cCACertPath	:= ""
+
+	::_nSSL2		:= 1
+	::_nSSL3		:= 1
+	::_nTLS1		:= 1
+	::_nHSM			:= 1
+	::_nVerbose		:= 1
+	::_nBugs		:= 1
+	::_nState		:= 1
 	
+	::nRecno		:= 0
 	::nAltura		:= 0
 	::nLargura 		:= 0 
 	::nComprimento	:= 0
@@ -132,13 +172,43 @@ Method New() Class SIGEPWEB
 	::dDtIni		:= Nil 
 	::dDtFim		:= Nil
 	
+	::lGeraDvEtq	:= .F.
+
 	::aFaixaPlp		:= {}
+	::aNotas		:= {}
 	
 	::oSigWeb		:= Nil
 	
 	CoNout("<< SIGEPWEB - NEW >> - FIM DATA " + dToc( Date() ) + " HORA " + Time() + " .")
 	
 Return Nil
+
+/****************************************************************************************/
+/*/{Protheus.doc} GetSSLCache
+@description Define o uso em memoria da configuração SSL para integrações SIGEP
+@author Bernard M. Margarido
+@since 06/12/2019
+@version 1.0
+@type function
+/*/
+/****************************************************************************************/
+Method GetSSLCache() Class SIGEPWEB
+Local _lRet 	:= .F.
+
+CoNout("<< SIGEPWEB - GETSSLCACHE >> - INICIO DATA " + dToc( Date() ) + " HORA " + Time() + " .")
+
+//-------------------------------------+
+// Utiliza configurações SSL via Cache |
+//-------------------------------------+
+If HTTPSSLClient( ::_nSSL2, ::_nSSL3, ::_nTLS1, ::_cPassword, ::_cCertPath, ::_cKeyPath, ::_nHSM, .F. , ::_nVerbose, ::_nBugs, ::_nState)
+	CoNout("<< SIGEPWEB - GETSSLCACHE >> - INICIADO COM SUCESSO.")
+	_lRet := .T.
+EndIf
+
+CoNout("<< SIGEPWEB - GETSSLCACHE >> - FIM DATA " + dToc( Date() ) + " HORA " + Time() + " .")
+
+Return _lRet 
+
 
 /****************************************************************************************/
 /*/{Protheus.doc} GrvServico
@@ -152,11 +222,15 @@ Return Nil
 Method GrvServico() Class SIGEPWEB
 Local _aArea	:= GetArea()
 
+Local _nX		:= 0
+
 Local _lRet		:= .T.
 
 Private _oResp	:= Nil
 
 CoNout("<< SIGEPWEB - GETSERVICO >> - INICIO DATA " + dToc( Date() ) + " HORA " + Time() + " .")
+
+::GetSSLCache()
 
 //--------------------------+
 // Instancia a classe SIGEP |
@@ -253,6 +327,8 @@ Return _lRet
 Method GrvPlp() Class SIGEPWEB
 Local _aArea	:= GetArea()
 
+Local _nX		:= 0
+
 Local _lRet		:= .T.
 
 CoNout("<< SIGEPWEB - GRVPLP >> - INICIO DATA " + dToc( Date() ) + " HORA " + Time() + " .")
@@ -262,22 +338,35 @@ CoNout("<< SIGEPWEB - GRVPLP >> - INICIO DATA " + dToc( Date() ) + " HORA " + Ti
 //-------------------+
 ::GetIdPLP()
 
+//-----------------------------+
+// Tabela Orcamentos eCommerce |
+//-----------------------------+
+dbSelectArea("WSA")
+WSA->( dbSetOrder(2) )
+
+//------------------+
+// Tabela Etiquetas |
+//------------------+
+dbSelectArea("ZZ1")
+ZZ1->( dbSetOrder(3) )
+
 //-------------+
 // Grava SIGEP |
 //-------------+
 dbSelectArea("ZZ2")
 ZZ2->( dbSetOrder(1) )
-If ZZ2->( dbSeek(xFilial("ZZ2") + ::cIdPLP) )
-	::cError	:= "NOTA JA PERTENCE A PRE LISTA DE POSTAGEM " + ::cIdPLP +  ". "
+If ZZ2->( dbSeek(xFilial("ZZ2") + ::cIdPLPErp) )
+	::cError	:= "NOTA JA PERTENCE A PRE LISTA DE POSTAGEM " + ZZ2->ZZ2_PLPID +  ". "
 	RestArea(_aArea)
 	Return .F.
 EndIf
 
-CoNout("<< SIGEPWEB - GRVPLP >> - GRAVANDO PRE LISTA DE POSTAGEM " + ::cIdPLP + " .")
+CoNout("<< SIGEPWEB - GRVPLP >> - GRAVANDO PRE LISTA DE POSTAGEM " + ::cIdPLPErp + " .")
 
 RecLock("ZZ2",.T.)
 	ZZ2->ZZ2_FILIAL	:= xFilial("ZZ2") 
-	ZZ2->ZZ2_PLPID  := ::cIdPLP
+	ZZ2->ZZ2_CODIGO	:= ::cIdPLPErp
+	ZZ2->ZZ2_PLPID  := ""
 	ZZ2->ZZ2_STATUS := "01"
 	ZZ2->ZZ2_DESC   := "PRE LISTA GERADA"
 	ZZ2->ZZ2_DTINC 	:= ::dDtIni
@@ -292,18 +381,14 @@ ZZ2->( MsunLock() )
 dbSelectArea("ZZ4")
 ZZ4->( dbSetOrder(1) )
 For _nX := 1 To Len(::aNotas)
-	If !ZZ4->( dbSeek(xFilial("ZZ4") + ::cIdPLP + ::aNotas[_nX][1] + ::aNotas[_nX][2]))
-		CoNout("<< SIGEPWEB - GRVPLP >> - GRAVANDO PRE LISTA DE POSTAGEM " + ::cIdPLP + " NOTA " + ::aNotas[_nX][1] + " SERIE " + ::aNotas[_nX][2] + "  .")
-		
-		//-----------------------------+
-		// Retorna proximo item da PLP |
-		//-----------------------------+
-		::GetItemPLP()
-		
+	If !ZZ4->( dbSeek(xFilial("ZZ4") + ::cIdPLPErp + ::aNotas[_nX][1] + ::aNotas[_nX][2]))
+		CoNout("<< SIGEPWEB - GRVPLP >> - GRAVANDO PRE LISTA DE POSTAGEM " + ::cIdPLPErp + " NOTA " + ::aNotas[_nX][1] + " SERIE " + ::aNotas[_nX][2] + "  .")
+				
 		RecLock("ZZ4",.T.)
-			ZZ4->ZZ4_FILIAL	:= xFilial("")
-			ZZ4->ZZ4_ITEM  	:= ::cItemPlp
-			ZZ4->ZZ4_PLPID 	:= ::cIdPLP
+			ZZ4->ZZ4_FILIAL	:= xFilial("ZZ4")
+			ZZ4->ZZ4_ITEM  	:= StrZero(_nX,3)
+			ZZ4->ZZ4_CODIGO	:= ::cIdPLPErp
+			ZZ4->ZZ4_PLPID 	:= ""
 			ZZ4->ZZ4_NOTA  	:= ::aNotas[_nX][1]
 			ZZ4->ZZ4_SERIE  := ::aNotas[_nX][2] 
 			ZZ4->ZZ4_CLIENT	:= ::aNotas[_nX][3]
@@ -317,6 +402,27 @@ For _nX := 1 To Len(::aNotas)
 			ZZ4->ZZ4_STATUS	:= "01"
 			ZZ4->ZZ4_DESC   := "AGUARDANDO ENVIO"	
 		ZZ4->( MsUnLock() )
+		
+		/*
+		//------------------------+
+		// Atualiza numero da PLP |
+		//------------------------+
+		If ZZ1->( dbSeek(xFilial("ZZ1") + ::aNotas[_nX][1] + ::aNotas[_nX][2]))
+			RecLock("ZZ1",.F.)
+				ZZ1->ZZ1_PLPID := ::cIdPLP
+			ZZ1->( MsUnLock() )
+		EndIf
+
+		//-----------------------------+
+		// Atualiza codigo de rastreio |
+		//-----------------------------+
+		If WSA->( dbSeek(xFilial("WSA") + ::aNotas[_nX][8]) )
+			RecLock("WSA",.F.)
+				WSA->WSA_TRACKI := ::aNotas[_nX][5]
+			WSA->( MsUnLock() )
+		EndIf
+		*/
+
 	EndIf
 Next _nX
 
@@ -345,6 +451,11 @@ Local _lRet		:= .T.
 Private _oResp	:= Nil
 
 CoNout("<< SIGEPWEB - GRVCODETQ >> - INICIO DATA " + dToc( Date() ) + " HORA " + Time() + " .")
+
+//-----------+
+// Cache SSL |
+//-----------+
+::GetSSLCache()
 
 //--------------------------+
 // Instancia a classe SIGEP |
@@ -399,7 +510,7 @@ While ZZ0->( !Eof() )
 						CoNout("<< SIGEPWEB - GRVCODETQ >> - GRAVA NOVAS ETIQUETAS " + _aEtq[_nX] + " .")
 						
 						RecLock("ZZ1",.T.)
-							ZZ1->ZZ1_FILIAL := xFilial("SZ1")
+							ZZ1->ZZ1_FILIAL := xFilial("ZZ1")
 							ZZ1->ZZ1_CODSER	:= ::cCodServ
 							ZZ1->ZZ1_IDSER  := ::cIdServ
 							ZZ1->ZZ1_CODETQ := SubStr(_aEtq[_nX],1,10)
@@ -427,6 +538,51 @@ RestArea(_aArea)
 Return _lRet
 
 /****************************************************************************************/
+/*/{Protheus.doc} GetEtiqueta
+@description Retorna etiqueta de acordo com o serviço de postagem
+@author Bernard M. Margarido
+@since 08/12/2019
+@version 1.0
+@type function
+/*/
+/****************************************************************************************/
+Method GetEtiqueta() Class SIGEPWEB
+Local _lRet			:= .F.
+Local _cEtqParc		:= ""
+Local _cSigla		:= ""
+
+Local _nRecno		:= 0	
+
+Local _lGeraDvEtq	:= .F.
+
+CoNout("<< SIGEPWEB - GETETIQUETA >> - INICIO DATA " + dToc( Date() ) + " HORA " + Time() + " .")
+
+//-----------------------------------------+
+// Busca etiqueta pelo Serviço de Postagem |
+//-----------------------------------------+
+If GetEtqQry(::cIdPostagem,@_cEtqParc,@_cSigla,@_nRecno,@_lGeraDvEtq)
+
+	::cEtqParc 	:= _cEtqParc
+	::cSigla	:= _cSigla
+	::nRecno 	:= _nRecno
+	::lGeraDvEtq:= _lGeraDvEtq
+
+	CoNout("<< SIGEPWEB - GETETIQUETA >> - ETIQUETA " + ::cEtqParc + " " + ::cSigla + " RETORNARDA COM SUCESSO.")
+	//----------------------------+	
+	// Calcula digito da Etiqueta |
+	//----------------------------+
+	If ::lGeraDvEtq
+		If ::GetDigEtq()
+			_lRet := .T.
+		EndIf
+	EndIf
+EndIf	
+
+CoNout("<< SIGEPWEB - GETETIQUETA >> - FIM DATA " + dToc( Date() ) + " HORA " + Time() + " .")
+
+Return _lRet
+
+/****************************************************************************************/
 /*/{Protheus.doc} GetDigEtq
 @description Solicita digito verificador etiquetas
 @author Bernard M. Margarido
@@ -444,6 +600,11 @@ Private _oResp	:= Nil
 
 CoNout("<< SIGEPWEB - GETDIGETQ >> - INICIO DATA " + dToc( Date() ) + " HORA " + Time() + " .")
 
+//-----------+
+// Cache SSL |
+//-----------+
+::GetSSLCache()
+
 //--------------------------+
 // Instancia a classe SIGEP |
 //--------------------------+
@@ -453,16 +614,19 @@ CoNout("<< SIGEPWEB - GETDIGETQ >> - INICIO DATA " + dToc( Date() ) + " HORA " +
 // Parametros BuscaCliente |
 //-------------------------+
 ::oSigWeb:_Url				:= ::cUrlSigep
-::oSigWeb:cEtiquetas		:= ::cEtiqueta
+::oSigWeb:cEtiquetas		:= ::cEtqParc + " " + ::cSigla
 ::oSigWeb:cUsuario 			:= ::cIdUser
 ::oSigWeb:cSenha 			:= ::cIdPass
-		
+
+CoNout("<< SIGEPWEB - GETDIGETQ >> - CALCULA DIGITO VERIFICADOR PARA ETIQUETA " + ::cEtqParc + " SIGLA " + ::cSigla + " .")
+
 WsdlDbgLevel(3)
 If ::oSigWeb:GeraDigitoVerificadorEtiquetas()
 	_lRet	:= .T.
-	If ValType(oResp) == "O"
+	If ValType(_oResp) == "O"
 		If ValType(_oResp:_Ns2_GeraDigitoVerificadorEtiquetasResponse:_Return:Text) == "C" .And. !Empty(_oResp:_Ns2_GeraDigitoVerificadorEtiquetasResponse:_Return:Text)
 			::cDigEtq := _oResp:_Ns2_GeraDigitoVerificadorEtiquetasResponse:_Return:Text
+			CoNout("<< SIGEPWEB - GETDIGETQ >> - DIGITO " + ::cDigEtq + " CALCULADO COM SUCESSO .")
 		Else
 			_lRet	:= .F.
 			::cError:= "NAO FORAM RETORANDAS ETIQUETAS"
@@ -492,12 +656,19 @@ Return _lRet
 Method SetPLP() Class SIGEPWEB
 Local _aArea	:= GetArea()
 
+Local _nX		:= 0
+
 Local _lRet		:= .T.
 
 Private _oResp	:= Nil
 Private _aFaixa	:= {}
 
 CoNout("<< SIGEPWEB - SETPLP >> - INICIO DATA " + dToc( Date() ) + " HORA " + Time() + " .")
+
+//-----------+
+// Cache SSL |
+//-----------+
+::GetSSLCache()
 
 //--------------------------+
 // Instancia a classe SIGEP |
@@ -604,15 +775,62 @@ If !lRet
 			ZZ2->( dbSetOrder(1))
 			If ZZ2->( dbSeek(xFilial("ZZ2") + ::aFaixaPlp[nFxEtq][2]) )
 				RecLock("ZZ2",.F.)
-					ZZ2->ZZ2_STATUS:= "03"
+					ZZ2->ZZ2_STATUS	:= "03"
+					ZZ2->ZZ2_DESC	:= "PLP ENVIADA COM SUCESSO"
 				ZZ2->( MsUnLock() )	
 			EndIf
 		Next _nX
 	EndIf
 EndIf
 
-RestArea(aArea)
+RestArea(_aArea)
 Return _lRet 
+
+/****************************************************************************************/
+/*/{Protheus.doc} GetEtqQry
+@description Retorna Etiqueta pelo id de postagem 
+@author Bernard M. Margarido
+@since 10/12/2019
+@version 1.0
+@type function
+/*/
+/****************************************************************************************/
+Static Function GetEtqQry(cIdPostagem,_cEtqParc,_cSigla,_nRecno,_lGeraDvEtq)
+Local _cAlias	:= GetNextAlias()
+Local _cQuery	:= ""
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	TOP 1 " + CRLF
+_cQuery += "	ZZ1.ZZ1_CODETQ, " + CRLF
+_cQuery += "	ZZ1.ZZ1_SIGLA, " + CRLF
+_cQuery += "	ZZ1.ZZ1_DVETQ, " + CRLF
+_cQuery += "	ZZ1.R_E_C_N_O_ RECNOZZ1" + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += "	" + RetSqlName("ZZ1") + " ZZ1 " + CRLF 
+_cQuery += " WHERE " + CRLF
+_cQuery += "	ZZ1.ZZ1_FILIAL = '" + xFilial("ZZ1") + "' AND " + CRLF 
+_cQuery += "	ZZ1.ZZ1_IDSER = '" + cIdPostagem + "' AND " + CRLF 
+_cQuery += "	ZZ1.ZZ1_NOTA = '' AND " + CRLF 
+_cQuery += "	ZZ1.ZZ1_SERIE = '' AND " + CRLF 
+_cQuery += "	ZZ1.ZZ1_PLPID = '' AND " + CRLF 
+_cQuery += "	ZZ1.ZZ1_NUMECO = '' AND " + CRLF 
+_cQuery += "	ZZ1.D_E_L_E_T_ = '' " + CRLF 
+_cQuery += " ORDER BY ZZ1.R_E_C_N_O_ ASC "
+
+dbUseArea(.T.,"TOPCONN",TcGenQry(,,_cQuery),_cAlias,.T.,.T.)
+
+If (_cAlias)->( Eof() )
+	(_cAlias)->( dbCloseArea() )
+	Return .F.
+EndIf
+
+_cEtqParc 	:= (_cAlias)->ZZ1_CODETQ
+_cSigla		:= (_cAlias)->ZZ1_SIGLA
+_nRecno 	:= (_cAlias)->RECNOZZ1
+_lGeraDvEtq	:= IIF(Empty((_cAlias)->ZZ1_DVETQ),.T.,.F.)
+
+(_cAlias)->( dbCloseArea() )
+Return .T.
 
 /****************************************************************************************/
 /*/{Protheus.doc} GetIdPLP
@@ -627,56 +845,20 @@ Method GetIdPLP() Class SIGEPWEB
 Local _cAlias 	:= GetNextAlias()
 Local _cQuery	:= ""
 
-If Empty(::cIdPLP)
-	
-	_cQuery	:= " SELECT " + CRLF
-	_cQuery	+= " 	COALESCE(MAX(ZZ2_PLPID),'0000000000') PLPID " + CRLF
-	_cQuery	+= " FROM " + CRLF
-	_cQuery	+= "	" + RetSqlName("ZZ2") + " ZZ2 " + CRLF
-	_cQuery	+= " WHERE " + CRLF
-	_cQuery	+= "	ZZ2.ZZ2_FILIAL = '" + xFilial("ZZ2") + "' AND " + CRLF
-	_cQuery	+= "	ZZ2.D_E_L_E_T = '' "
-	
-	dbUseArea(.T.,"TOPCONN",TcGenQry(,,_cQuery),_cAlias,.T.,.T.)
-	
-	::cIdPLP	:= Soma1((_cAlias)->PLPID)
-	
-	(_cAlias)->( dbCloseArea() )
-	
-EndIf
-
-Return Nil
-
-/****************************************************************************************/
-/*/{Protheus.doc} GetItemPLP
-@description Retorna item notas da PLP 
-@author Bernard M. Margarido
-@since 10/12/2019
-@version 1.0
-@type function
-/*/
-/****************************************************************************************/
-Method GetItemPLP() Class SIGEPWEB
-Local _cAlias	:= GetNextAlias()
-Local _cQuery 	:= ""
-
-Local _cAlias 	:= GetNextAlias()
-Local _cQuery	:= ""
-
 _cQuery	:= " SELECT " + CRLF
-_cQuery	+= " 	COALESCE(MAX(ZZ4_ITEM),'000') ITEMPLP " + CRLF
+_cQuery	+= " 	COALESCE(MAX(ZZ2_CODIGO),'000000') PLPERPID " + CRLF
 _cQuery	+= " FROM " + CRLF
-_cQuery	+= "	" + RetSqlName("ZZ4") + " ZZ4 " + CRLF
-_cQuery	+= " WHERE " + CRLF	
-_cQuery	+= "	ZZ4.ZZ4_FILIAL = '" + xFilial("ZZ4") + "' AND " + CRLF
-_cQuery	+= "	ZZ4.ZZ4_PLPID = '" + ::cIdPLP  + "' AND " + CRLF
-_cQuery	+= "	ZZ4.D_E_L_E_T = '' " 
+_cQuery	+= "	" + RetSqlName("ZZ2") + " ZZ2 " + CRLF
+_cQuery	+= " WHERE " + CRLF
+_cQuery	+= "	ZZ2.ZZ2_FILIAL = '" + xFilial("ZZ2") + "' AND " + CRLF
+_cQuery	+= "	ZZ2.D_E_L_E_T_ = '' "
 	
 dbUseArea(.T.,"TOPCONN",TcGenQry(,,_cQuery),_cAlias,.T.,.T.)
 	
-::cItemPlp	:= Soma1((_cAlias)->ITEMPLP)
+::cIdPLPErp	:= Soma1((_cAlias)->PLPERPID)
 	
 (_cAlias)->( dbCloseArea() )
+
 
 Return Nil
 
@@ -691,11 +873,7 @@ Return Nil
 /*/
 /****************************************************************************************/
 Method GetXMLPlp() Class SIGEPWEB
-Local _aArea	:= GetArea()
-
 Local _cXml		:= ""
-
-Local _lRet		:= .T.
 
 //---------------------------------+
 // Realiza a reserva das etiquetas |
@@ -791,7 +969,7 @@ _cXmlDest += TagXml("numero_etiqueta",RTrim(::cEtiqueta))
 _cXmlDest += TagXml("codigo_objeto_cliente")
 _cXmlDest += TagXml("codigo_servico_postagem",RTrim(::cIdServ))
 _cXmlDest += TagXml("cubagem","0,00")
-_cXmlDest += TagXml("peso",xConvCpo(::nPesoLiquido)
+_cXmlDest += TagXml("peso",xConvCpo(::nPesoLiquido))
 _cXmlDest += TagXml("rt1")
 _cXmlDest += TagXml("rt2")
 
@@ -808,7 +986,7 @@ _cXmlDest += TagXml("numero_end_destinatario",IIF(Empty(::cNumEnd),"S/N",RTrim(:
 _cXmlDest += '</destinatario>'
 
 _cXmlDest += '<nacional>'
-_cXmlDest += TagXml("bairro_destinatario",RTrim(::cBairro,.T.)
+_cXmlDest += TagXml("bairro_destinatario",RTrim(::cBairro),.T.)
 _cXmlDest += TagXml("cidade_destinatario",RTrim(::cMunicipio),.T.)
 _cXmlDest += TagXml("uf_destinatario",::cUF)
 _cXmlDest += TagXml("cep_destinatario",RTrim(::cCep),.T.)

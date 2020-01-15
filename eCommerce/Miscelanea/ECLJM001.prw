@@ -98,7 +98,9 @@ Static Function aEcoHead()
 
 	Local nHdlArq	:= 0
     Local _nPBitMap := 0
-
+	Local nHead		:= 0
+	Local nBmp		:= 0
+	
 	Local cLiArq	:= ""
 	
 	aHeaderBit		:= {}
@@ -163,6 +165,7 @@ Static Function aEcoCriaArq()
 	Local aStatus 	:= {}
 
 	Local nHdl		:= 0
+	Local nStat		:= 0
 
 	aAdd(aStatus,{"BR_VERDE","BR_VERDE"})
 	aAdd(aStatus,{"BR_AMARELO","BR_AMARELO"})
@@ -339,7 +342,9 @@ Static Function aNewBit()
 	Local aArea		:= GetArea()
 
 	Local nHdlArq	:= 0
-
+	Local nHead		:= 0
+	Local nBmp		:= 0
+	
 	Local cLiArq	:= ""
 
 	//--------------+

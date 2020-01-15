@@ -22,22 +22,13 @@ CoNout("<< SIGM006 >> - INICIO " + dTos( Date() ) + " - " + Time() )
 //--------------+
 // Processa PLP | 
 //--------------+
-If _lJob
-    _lRet := SigM006A()
-Else
-    Processa({|| _lRet := SigM006A()},"Aguarde...","Gerando Pre Lista de Postagem." )
-EndIf
-
-//------------------------------------+
-// Atualiza status pedidos e-Commerce | 
-//------------------------------------+
-If _lRet .And. Len(_aPLP) > 0
+Begin Transaction 
     If _lJob
-        SigM006B()
+        _lRet := SigM006A()
     Else
-        Processa({|| SigM006B()},"Aguarde...","Atualizando log dos dados." )
+        Processa({|| _lRet := SigM006A()},"Aguarde...","Gerando Pre Lista de Postagem." )
     EndIf
-EndIf
+End Transaction
 
 CoNout("<< SIGM006 >> - FIM " + dTos( Date() ) + " - " + Time() )
 
@@ -57,6 +48,7 @@ Local _aArea        := GetArea()
 
 Local _cAlias       := GetNextAlias()
 Local _cEtiqueta    := ""
+Local _cCodEmb      := ""
 
 Local _nToReg       := 0
 
@@ -70,6 +62,9 @@ CoNout("<< SIGM006A >> - INICIO GERACAO PRE LISTA DE POSTAGEM")
 // Consulta notas disponiveis |
 //----------------------------+
 If !SigM06Qry(_cAlias,@_nToReg)
+    If !_lJob
+        MsgInfo("Não existem dados para serem importados.","Dana - Avisos")
+    EndIf
     CoNout("<< SIGM006A >> - NAO EXISTEM DADOS PARA SEREM CRIADOS")
     RestArea(_aArea)
     Return .F.
@@ -101,7 +96,7 @@ EndIf
 While (_cAlias)->( !Eof() )
 
     If !_lJob
-        IncProc("Aguarde, criando PLP " + RTrim((_cAlias)->WSA_NUMSC5) )
+        IncProc("Aguarde, CRIANDO PLP PEDIDO " + RTrim((_cAlias)->WSA_NUMSC5) )
     EndIf 
 
     CoNout("<< SIGM006A >> - CRIANDO PLP PEDIDO " + RTrim((_cAlias)->WSA_NUMSC5) + " .")
@@ -114,12 +109,14 @@ While (_cAlias)->( !Eof() )
     //-----------------------------------------+
     // Solicita etiqueta de acordo com serviço |
     //-----------------------------------------+
-    SigM006Etq((_cAlias)->WSA_SERPOS,@_cEtiqueta)
+    _cEtiqueta := ""
+    SigM006C((_cAlias)->WSA_SERPOS,(_cAlias)->WSA_DOC,(_cAlias)->WSA_SERIE,(_cAlias)->WSA_NUMECO,@_cEtiqueta)
 
     //-----------------------------+
     // Retorna codigo da embalagem |
     //-----------------------------+
-    SigM006Etq((_cAlias)->WSA_SERPOS,@_cCodEmb)
+    _cCodEmb := ""
+    SigM006D(@_cCodEmb)
 
     //--------------------------------+
     // Array contendo os dados da PLP |
@@ -143,14 +140,14 @@ EndDo
 //-----------------------------+
 If _oSigepWeb:GrvPlp()
     If !_lJob
-        MsgAlert("PLP " + _oSigepWeb:cIdPLP + " Gravada com sucesso.")
+        MsgAlert("PLP " + _oSigepWeb:cIdPLPErp + " Gravada com sucesso.")
     EndIf 
-    CoNout("<< SIGM006A >> - PRE LISTA DE POSTAGEM " + _oSigepWeb:cIdPLP + " GRAVADA COM SUCESSO.")
+    CoNout("<< SIGM006A >> - PRE LISTA DE POSTAGEM " + _oSigepWeb:cIdPLPErp + " GRAVADA COM SUCESSO.")
 Else
     If !_lJob
-        MsgAlert("ERRO AO GERAR PLP " + _oSigepWeb:cIdPLP + ". ERROR " + _oSigepWeb:cError)
+        MsgAlert("ERRO AO GERAR PLP " + _oSigepWeb:cIdPLPErp + ". ERROR " + _oSigepWeb:cError)
     EndIf 
-    CoNout("<< SIGM006A >> - ERRO AO GERAR PRE LISTA DE POSTAGEM " + _oSigepWeb:cIdPLP + ". ERROR " + _oSigepWeb:cError)
+    CoNout("<< SIGM006A >> - ERRO AO GERAR PRE LISTA DE POSTAGEM " + _oSigepWeb:cIdPLPErp + ". ERROR " + _oSigepWeb:cError)
     _lRet   := .F.
 EndIf
 
@@ -162,7 +159,63 @@ RestArea(_aArea)
 Return _lRet 
 
 /**********************************************************************************/
-/*/{Protheus.doc} nomeStaticFunction
+/*/{Protheus.doc} SigM006C
+    @description Consulta etiquetas disponiveis
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since date
+    @version version
+/*/
+/**********************************************************************************/
+Static Function SigM006C(_cIdPos,_cDoc,_cSerie,_cNumEco,_cEtiqueta)
+Local _aArea    := GetArea()
+
+Local _oSigepWeb:= SigepWeb():New()
+
+CoNout("<< SIGM006A >> - CONSULTANDO ETIQUETA DISPONIVEL PARA O CODIGO DE SERVIÇO " + _cIdPos + " .")
+
+_oSigepWeb:cIdPostagem := _cIdPos
+
+//------------------------------------------------------------------+
+// Caso ocorra erro ao retornar a etiqueta solicita novas etiquetas |
+//------------------------------------------------------------------+
+If _oSigepWeb:GetEtiqueta()
+    CoNout("<< SIGM006A >> - ETIQUETA RETORNADA COM SUCESSO.")
+
+    _cEtiqueta := RTrim(_oSigepWeb:cEtqParc) + RTrim(_oSigepWeb:cDigEtq) + RTrim(_oSigepWeb:cSigla)
+    //---------------------------------------+
+    // Atualiza as informações na tabela ZZ1 |
+    //---------------------------------------+
+    dbSelectArea("ZZ1")
+    ZZ1->( dbSetOrder(1) )
+    ZZ1->( dbGoTo(_oSigepWeb:nRecno) )
+    RecLock("ZZ1",.F.)
+        ZZ1->ZZ1_DVETQ  := _oSigepWeb:cDigEtq
+        ZZ1->ZZ1_NOTA   := _cDoc
+        ZZ1->ZZ1_SERIE  := _cSerie
+        ZZ1->ZZ1_NUMECO := _cNumEco
+    ZZ1->( MsUnLock() )
+
+EndIf
+
+RestArea(_aArea)
+Return Nil
+
+/**********************************************************************************/
+/*/{Protheus.doc} SigM006D
+    @description Consulta codigo da embalagem
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since date
+    @version version
+/*/
+/**********************************************************************************/
+Static Function SigM006D(_cCodEmb)
+_cCodEmb := "001"
+Return Nil
+
+/**********************************************************************************/
+/*/{Protheus.doc} SigM06Qry
     @description Consulta novas notas para PLP 
     @type  Static Function
     @author Bernard M. Margarido
@@ -190,6 +243,7 @@ _cQuery += " WHERE " + CRLF
 _cQuery += "	WSA.WSA_FILIAL = '" + xFilial("WSA") + "' AND " + CRLF
 _cQuery += "	WSA.WSA_DOC <> '' AND " + CRLF 
 _cQuery += "	WSA.WSA_SERIE <> '' AND " + CRLF
+_cQuery += "	WSA.WSA_ENVLOG = '5' AND " + CRLF
 _cQuery += "	NOT EXISTS( " + CRLF
 _cQuery += "				SELECT " + CRLF
 _cQuery += "					ZZ4.ZZ4_NOTA, " + CRLF

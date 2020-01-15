@@ -279,6 +279,7 @@ Static Function PrtEtqDesp(aEtq,nArq)
 	Local nHandle	:= 0	
 	Local nCompl	:= 0
 	Local nLComp	:= 0
+	Local _nX		:= 0
 	
 	Local aComple	:= {}
 	
@@ -368,7 +369,7 @@ Static Function PrtEtqDesp(aEtq,nArq)
 	//-------------------------+
 	nVolume := IIF(SL1->L1_VOLUME == 0,1,SL1->L1_VOLUME)
 		
-	For nVol := 1 To nVolume
+	For _nX := 1 To nVolume
 		
 		//-----------------+
 		// Codigo etiqueta |
@@ -388,7 +389,7 @@ Static Function PrtEtqDesp(aEtq,nArq)
 		cEtq += '^FO40,450^GB730,400,2^FS' + CRLF
 		cEtq += '^FO40,450^GB165,30,30^FS' + CRLF
 		cEtq += '^FO47,457^ADN,26,10^FR^FDDESTINATARIO:^FS' + CRLF 
-		cEtq += '^FO440,457^ADN,26,10^FDVolume: ' + Alltrim(Str(nVol)) + "/" + Alltrim(Str(nVolume)) + '^FS' + CRLF
+		cEtq += '^FO440,457^ADN,26,10^FDVolume: ' + Alltrim(Str(_nX)) + "/" + Alltrim(Str(nVolume)) + '^FS' + CRLF
 		cEtq += '^FO87,487^ADN,26,10^FD' + Alltrim(SL1->L1_XNOMDEST) + '^FS' + CRLF
 		cEtq += '^FO87,517^ADN,26,10^FD' + Alltrim(SL1->L1_ENDENT) + ", " + Alltrim(SL1->L1_XENDNUM) + '^FS' + CRLF
 		cEtq += '^FO87,547^ADN,26,10^FD' + Alltrim(SL1->L1_BAIRROE)+ '^FS' + CRLF

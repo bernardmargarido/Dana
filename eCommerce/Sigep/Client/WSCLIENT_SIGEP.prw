@@ -637,7 +637,7 @@ Return .T.
 
 WSMETHOD fechaPlpVariosServicos WSSEND cxml,nidPlpCliente,ccartaoPostagem,clistaEtiquetas,cusuario,csenha WSRECEIVE nreturn WSCLIENT WSSigep
 Local cSoap := "" , oXmlRet
-
+Local _nX	:= 0
 BEGIN WSMETHOD
 
 //cSoap += '<cli:fechaPlpVariosServicos xmlns="http://cliente.bean.master.sigep.bsb.correios.com.br/">'

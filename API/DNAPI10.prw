@@ -356,6 +356,12 @@ If !DnaApiQry(cAlias,cFilNF,cNota,cSerie,cDataHora,cTamPage,cPage)
 	Return aRet
 EndIf
 
+//---------------------+
+// Nota Fiscal - Itens |
+//---------------------+
+dbSelectArea("SD2")
+SD2->( dbSetOrder(3) )
+
 //--------------------------+
 // Inicaliza Matriz HashMap |
 //--------------------------+
@@ -376,7 +382,7 @@ While (cAlias)->( !Eof() )
 	cLoja		:= (cAlias)->LOJA
 	cCodTransp	:= (cAlias)->CODTRANSP
 	cTipoPV		:= (cAlias)->TIPO
-	
+	cPedVen		:= (cAlias)->PEDIDO
 	_nTotalPv	:= (cAlias)->TOTALNF
 	
 	dDtaEmiss	:= dToc(sTod((cAlias)->EMISSAO))
@@ -385,6 +391,7 @@ While (cAlias)->( !Eof() )
 	// Cria cabeçalho do pedido JSON |
 	//-------------------------------+
 	oPedido[#"filial"]				:= cFilAut
+	oPedido[#"pedido"]				:= cPedVen
 	oPedido[#"nota"]				:= cNota
 	oPedido[#"serie"]				:= cSerie
 	oPedido[#"codigo_cliente"]		:= cCodCli
@@ -399,26 +406,31 @@ While (cAlias)->( !Eof() )
 	//------------------------------------+
 	oPedido[#"itens"]				:= {}
 	
-	While (cAlias)->( !Eof() .And. cFilAut + cNota + cSerie == (cAlias)->FILIAL + (cAlias)->NOTA + (cAlias)->SERIE )
+	If SD2->( dbSeek(cFilAut + cNota + cSerie + cCodCli + cLoja ) )
+
+		While SD2->( !Eof() .And. cFilAut + cNota + cSerie + cCodCli + cLoja == SD2->D2_FILIAL + SD2->D2_DOC + SD2->D2_SERIE + SD2->D2_CLIENTE + SD2->D2_LOJA )
 		
-		//-----------------+
-		// Itens do pedido |
-		//-----------------+
-		aAdd(oPedido[#"itens"],Array(#))
-		oItens := aTail(oPedido[#"itens"])
-		oItens[#"item"]			:= (cAlias)->ITEM 
-		oItens[#"produto"]		:= (cAlias)->PRODUTO 
-		oItens[#"quantidade"]	:= (cAlias)->QTDLIB
-		oItens[#"valor_unit"]	:= (cAlias)->PRCVEN
-		oItens[#"valor_total"]	:= (cAlias)->PRCTOTAL
-		oItens[#"um"]			:= (cAlias)->UM
-		oItens[#"lote"]			:= (cAlias)->LOTE
-		oItens[#"data_validade"]:= (cAlias)->DTVALID
-		oItens[#"armazem"]		:= (cAlias)->ARMAZEM
-		oItens[#"pedido"]		:= (cAlias)->PEDIDO
-		
-		(cAlias)->( dbSkip() )
-	EndDo
+			//-----------------+
+			// Itens do pedido |
+			//-----------------+
+			aAdd(oPedido[#"itens"],Array(#))
+			oItens := aTail(oPedido[#"itens"])
+			oItens[#"item"]			:= SD2->D2_ITEM 
+			oItens[#"produto"]		:= SD2->D2_COD
+			oItens[#"quantidade"]	:= SD2->D2_QUANT
+			oItens[#"valor_unit"]	:= SD2->D2_PRCVEN
+			oItens[#"valor_total"]	:= SD2->D2_TOTAL
+			oItens[#"um"]			:= SD2->D2_UM
+			oItens[#"lote"]			:= SD2->D2_LOTECTL
+			oItens[#"data_validade"]:= SD2->D2_DTVALID
+			oItens[#"armazem"]		:= SD2->D2_LOCAL
+					
+			SD2->( dbSkip() )
+		EndDo
+	EndIf
+
+	(cAlias)->( dbSkip() )
+
 EndDo
 
 //-----------+
@@ -549,7 +561,7 @@ For _nPed := 1 To Len(_oItPed)
 	// Valida conferencia |
 	//--------------------+
 	If _lContinua
-		If _nQtdConf <> SC9->C9_QTDLIB
+		If _nQtdConf <> SD2->D2_QUANT
 			//-------------------+
 			// Array Divergencia |
 			//-------------------+
@@ -584,7 +596,7 @@ If _lContinua
 		RecLock("SF2",.F.)
 			SF2->F2_XENVWMS := "3"
 			//SF2->F2_ESPECI1	:= "CAIXAS"
-			//SF2->F2_PESOL	:= _nPeso
+			//SF2->F2_PESOL		:= _nPeso
 			//SF2->F2_PBRUTO	:= _nPeso
 			//SF2->F2_VOLUME1	:= _nVolume
 		SF2->( MsUnLock() )
@@ -702,17 +714,8 @@ cQuery += "		CODTRANSP, " + CRLF
 cQuery += "		EMISSAO, " + CRLF
 cQuery += "		TIPO, " + CRLF
 cQuery += "		TOTALNF, " + CRLF
-cQuery += "		RECNOSF2, " + CRLF
-cQuery += "		ITEM, " + CRLF
-cQuery += "		PRODUTO, " + CRLF
-cQuery += "		QTDLIB, " + CRLF
-cQuery += "		PRCVEN, " + CRLF
-cQuery += "		PRCTOTAL, " + CRLF
-cQuery += "		UM, " + CRLF
-cQuery += "		LOTE, " + CRLF
-cQuery += "		DTVALID, " + CRLF
 cQuery += "		PEDIDO, " + CRLF
-cQuery += "		ARMAZEM " + CRLF
+cQuery += "		RECNOSF2 " + CRLF
 cQuery += "	FROM ( " + CRLF
 cQuery += "			SELECT " + CRLF
 cQuery += "				ROW_NUMBER() OVER(ORDER BY F2.F2_DOC) RNUM, " + CRLF
@@ -725,20 +728,24 @@ cQuery += "				F2.F2_TRANSP CODTRANSP, " + CRLF
 cQuery += "				F2.F2_EMISSAO EMISSAO, " + CRLF
 cQuery += "				F2.F2_TIPO TIPO, " + CRLF
 cQuery += "				F2.F2_VALFAT TOTALNF, " + CRLF
-cQuery += "				F2.R_E_C_N_O_ RECNOSF2, " + CRLF
-cQuery += "				D2.D2_ITEM ITEM, " + CRLF
-cQuery += "				D2.D2_COD PRODUTO, " + CRLF
-cQuery += "				D2.D2_QUANT QTDLIB, " + CRLF
-cQuery += "				D2.D2_PRCVEN PRCVEN, " + CRLF
-cQuery += "				D2.D2_TOTAL PRCTOTAL, " + CRLF
-cQuery += "				D2.D2_UM UM, " + CRLF
-cQuery += "				D2.D2_LOTECTL LOTE, " + CRLF
-cQuery += "				D2.D2_DTVALID DTVALID, " + CRLF
-cQuery += "				D2.D2_PEDIDO PEDIDO, " + CRLF
-cQuery += "				D2.D2_LOCAL ARMAZEM " + CRLF
+cQuery += "				PEDIDO_NOTA.PEDIDO PEDIDO, " + CRLF
+cQuery += "				F2.R_E_C_N_O_ RECNOSF2 " + CRLF
 cQuery += "			FROM " + CRLF
 cQuery += "				" + RetSqlName("SF2") + " F2 " + CRLF
-cQuery += "				INNER JOIN " + RetSqlName("SD2") + " D2 ON D2.D2_FILIAL = F2.F2_FILIAL AND D2.D2_DOC = F2.F2_DOC AND D2.D2_SERIE = F2.F2_SERIE AND D2.D2_CLIENTE = F2.F2_CLIENTE AND D2.D2_LOJA = F2.F2_LOJA AND D2.D_E_L_E_T_ = '' " + CRLF
+cQuery += "				CROSS APPLY( " + CRLF
+cQuery += "							SELECT " + CRLF
+cQuery += "								D2.D2_PEDIDO PEDIDO " + CRLF
+cQuery += "							FROM " + CRLF
+cQuery += "								SD2010 D2 " + CRLF
+cQuery += "							WHERE " + CRLF
+cQuery += "								D2.D2_FILIAL = F2.F2_FILIAL AND " + CRLF
+cQuery += "								D2.D2_DOC = F2.F2_DOC AND " + CRLF
+cQuery += "								D2.D2_SERIE = F2.F2_SERIE AND " + CRLF
+cQuery += "								D2.D2_CLIENTE = F2.F2_CLIENTE AND " + CRLF
+cQuery += "								D2.D2_LOJA = F2.F2_LOJA AND " + CRLF
+cQuery += "								D2.D_E_L_E_T_ = '' " + CRLF
+cQuery += "							GROUP BY D2.D2_PEDIDO " + CRLF
+cQuery += "				) PEDIDO_NOTA " + CRLF
 cQuery += "			WHERE " + CRLF
 
 If Empty(cFilNF)
@@ -759,12 +766,12 @@ Else
 	cQuery += "				F2.F2_SERIE = '" + cSerie + "' AND " + CRLF
 EndIf
 
-cQuery += "			F2.F2_XENVWMS IN('1') AND " + CRLF
+cQuery += "			F2.F2_XENVWMS = '1' AND " + CRLF
 cQuery += "			F2.F2_TIPO IN('N','D','B') AND " + CRLF
 cQuery += "			F2.D_E_L_E_T_ = ''  " + CRLF
 cQuery += "	) PEDIDO  " + CRLF
 cQuery += "	WHERE RNUM > " + cTamPage + " * (" + cPage + " - 1) " + CRLF 
-cQuery += "	ORDER BY FILIAL,PEDIDO"
+cQuery += "	ORDER BY FILIAL,NOTA,SERIE"
 
 dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
 
@@ -825,7 +832,7 @@ Else
 	cQuery += "				F2.F2_SERIE = '" + cSerie + "' AND " + CRLF
 EndIf
 
-cQuery += "				F2.F2_XENVWMS IN('1') AND " + CRLF
+cQuery += "				F2.F2_XENVWMS = '1' AND " + CRLF
 cQuery += "				F2.F2_TIPO IN('N','D','B') AND " + CRLF
 cQuery += "				F2.D_E_L_E_T_ = ''  " + CRLF
 
@@ -874,8 +881,9 @@ Local lRet			:= .T.
 //--------------+
 // Envia e-Mail |
 //--------------+
-DnApi10M(_cNota, _cSerie,_cCodCli,_cLoja,_aDiverg)
+u_DnMailNS(_cNota,_cSerie,_cCodCli,_cLoja,_aDiverg)
 
+/*
 //---------------------------------+
 // Posiciona Cabeçalho da Pre Nota |
 //---------------------------------+
@@ -895,6 +903,7 @@ EndIf
 
 //SF2->(MaDelNFS(aRegSD2,aRegSE1,aRegSE2,lMostraCtb,lAglCtb,lContab,lCarteira))
 
+
 //-------------------+
 // Itens da Pré Nota | 
 //-------------------+
@@ -910,217 +919,10 @@ While SC9->( !Eof() .And. xFilial("SC9") + _cPedido == SC9->C9_FILIAL + SC9->C9_
 	EndIf	
 	SC9->( dbSkip() )	
 EndDo
+*/
 
 RestArea(aArea)
 Return lRet 
-
-/*************************************************************************************/
-/*/{Protheus.doc} DnApi07M
-
-@description Envia e-mail com a divergencia separação dos pedidos 
-
-@author Bernard M. Margarido
-@since 21/11/2018
-@version 1.0
-@type function
-/*/
-/*************************************************************************************/
-Static Function DnApi10M(_cNota, _cSerie,_cCodCli,_cLoja,_aDiverg)
-Local aArea		:= GetArea()
-
-Local cServer	:= GetMv("MV_RELSERV")
-Local cUser		:= GetMv("MV_RELAUSR")
-Local cPassword := GetMv("MV_RELAPSW")
-Local cFrom		:= GetMv("MV_RELACNT")
-
-Local cMail		:= GetNewPar("DN_MAILWMS","bernard.modesto@alfaerp.com.br;bernard.margarido@gmail.com")
-Local cTitulo	:= "Dana - Divergencia separação."
-Local cHtml		:= ""
-
-Local _nX		:= 0
-
-Local lEnviado	:= .F.
-Local lOk		:= .F.
-Local lRelauth  := SuperGetMv("MV_RELAUTH",, .F.)
-
-//---------------------------------+
-// Posiciona Cabeçalho da Pre Nota |
-//---------------------------------+
-dbSelectArea("SF2")
-SF2->( dbSetOrder(1) )
-
-//-----------------------------+
-// Posiciona Itens da Pre Nota | 
-//-----------------------------+
-dbSelectArea("SD2")
-SD2->( dbSetOrder(3) )
-
-//-------------------+
-// Posiciona Produto |
-//-------------------+
-dbSelectArea("SB1")
-SB1->( dbSetOrder(1) )
-
-//-----------------------------+
-// Posiciona cabecalho da Nota |
-//-----------------------------+
-dbSelectArea("SF2")
-SF2->( dbSetOrder(1) )
-If !SF2->( dbSeek(xFilial("SF2") + _cNota + _cSerie + _cCodCli + _cLoja) )
-	RestArea(aArea)
-	Return .F.
-EndIf
-
-//---------------------+
-// Valida Tipo de Nota | 
-//---------------------+
-If SF2->F2_TIPO == "N"
-	dbSelectArea("SA1")
-	SA1->( dbSetOrder(1) )
-	SA1->( dbSeek(xFilial("SA1") + _cCodCli + _cLoja) )
-	_cCliFor	:= SA1->A1_COD
-	_cLoja		:= SA1->A1_LOJA
-	_cNReduz	:= SA1->A1_NREDUZ
-Else
-	dbSelectArea("SA2")
-	SA2->( dbSetOrder(1) )
-	SA2->( dbSeek(xFilial("SA2") + _cCodCli + _cLoja) )
-	_cCliFor	:= SA2->A2_COD
-	_cLoja		:= SA2->A2_LOJA
-	_cNReduz	:= SA2->A2_NREDUZ 
-EndIf
-
-cHtml := '<html>' + CRLF
-cHtml += '	<head>' + CRLF
-cHtml += '		<title>Pedido de Venda</title>' + CRLF
-cHtml += '		<style>' + CRLF
-cHtml += '			body {font-family: arial, helvetica, sans-serif; font-size: 10pt}'
-cHtml += '			div {font-family: arial, helvetica, sans-serif; font-size: 10pt}'
-cHtml += '			table {font-family: arial, helvetica, sans-serif; font-size: 10pt}'
-cHtml += '			td {font-family:arial, helvetica, sans-serif; font-size: 10pt}'
-cHtml += '			.mini {font-family:arial, helvetica, sans-serif; font-size: 10px}'
-cHtml += '			form {margin: 0px}'
-cHtml += '			.s_a  {font-size: 28px; vertical-align: top; width: 100%; color: #ffffff; font-family: arial, helvetica, sans-serif; background-color: #6baccf; text-align: center}'
-cHtml += '			.s_b  {font-size: 12px; vertical-align: top; width: 05% ; color: #000000; font-family: arial, helvetica, sans-serif; background-color: #ffff99; text-align: left}'
-cHtml += '			.s_c  {font-size: 12px; vertical-align: top; width: 05% ; color: #ffffff; font-family: arial, helvetica, sans-serif; background-color: #6baccf; text-align: left}'
-cHtml += '			.s_d  {font-size: 12px; vertical-align: top; width: 05% ; color: #000000; font-family: arial, helvetica, sans-serif; background-color: #e8e8e8; text-align: left}'
-cHtml += '			.s_o  {font-size: 12px; vertical-align: top; width: 05% ; font-family: arial, helvetica, sans-serif; text-align: left}'
-cHtml += '			.s_t  {font-size: 16px; vertical-align: top; width: 100%; color: #000000; font-family: arial, helvetica, sans-serif; background-color: #e8e8e8; text-align: center}'
-cHtml += '			.s_u  {font-size: 12px; vertical-align: top; width: 05% ; color: #000000; font-family: arial, helvetica, sans-serif; text-align: left}'
-cHtml += '		</style>' + CRLF
-cHtml += '	</head>' + CRLF
-cHtml += '	<body>' + CRLF
-cHtml += '		<table style="color: rgb(0,0,0)" width="100%" border=1>' + CRLF
-cHtml += '			<tbody>' + CRLF
-cHtml += '				<tr>' + CRLF
-cHtml += '					<td class=s_a width="100%"><p align=center><b>Pedido de Venda - Divergência Separação WMS</b></p></td>' + CRLF
-cHtml += '				</tr>' + CRLF
-cHtml += '			</tbody>' + CRLF
-cHtml += '		</table>' + CRLF
-cHtml += '		<table style="color: rgb(0,0,0)" width="100%" cellspacing=0 border=0>' + CRLF
-cHtml += '			<tbody>' + CRLF
-cHtml += '				<tr>' + CRLF
-cHtml += '					<td class=s_t width="100%"><p align=center><b>Dados Pedido de Venda</b></p></td>' + CRLF
-cHtml += '				</tr>' + CRLF
-cHtml += '			</tbody>' + CRLF
-cHtml += '		</table>' + CRLF
-cHtml += '		<table style="width: 100%; height: 26px" cellspacing=0 border=1>' + CRLF
-cHtml += '			<tbody>' + CRLF
-cHtml += '				<tr>' + CRLF
-cHtml += '					<td class=s_u colspan = "2"><b>Numero:</b> ' + ' ' + SC5->C5_NUM + '</td>' + CRLF
-cHtml += '					<td class=s_u colspan = "2"><b>Emissão:</b>' + ' ' + FsDateConv(SC5->C5_EMISSAO,"DDMMYYYY") + '</td>' + CRLF
-cHtml += '				</tr>' + CRLF
-cHtml += '				<tr>' + CRLF
-cHtml += '					<td class=s_u colspan = "7"><b>Cliente:</b>' + ' ' + _cCliFor + ' - ' + _cLoja + ' '   + _cNReduz + '</td>' + CRLF
-cHtml += '				</tr>' + CRLF
-cHtml += '			</tbody>' + CRLF
-cHtml += '		</table>' + CRLF
-cHtml += '		<table style="color: rgb(0,0,0)" width="100%" cellspacing=0 border=0>' + CRLF
-cHtml += '			<tbody>' + CRLF
-cHtml += '				<tr>' + CRLF
-cHtml += '					<td class=s_t width="100%"><p align=center><b>Itens Pedido</b></p></td>' + CRLF
-cHtml += '				</tr>' + CRLF
-cHtml += '			</tbody>' + CRLF
-cHtml += '		</table>' + CRLF
-cHtml += '		<table style="width: 100%; height: 26px" cellspacing=0 border=1>' + CRLF
-cHtml += '			<tbody>' + CRLF
-cHtml += '				<tr>' + CRLF  					
-cHtml += '					<td class=s_u colspan = "1"><b>Item</b></td>' + CRLF
-cHtml += '					<td class=s_u colspan = "3"><b>Produto</b></td>' + CRLF
-cHtml += '					<td class=s_u colspan = "6"><b>Descricao</b></td>' + CRLF
-cHtml += '					<td class=s_u colspan = "1"><b>Qtd. Nota</b></td>' + CRLF
-cHtml += '					<td class=s_u colspan = "1"><b>Qtd. Conf.</b></td>' + CRLF
-cHtml += '					<td class=s_u colspan = "1"><b>Armazem</b></td>' + CRLF
-cHtml += '				</tr>' + CRLF
-//-------------------+
-// Itens da Pré Nota | 
-//-------------------+
-
-For _nX := 1 To Len(_aDiverg)
-	
-	//------------------------+
-	// Posiciona Item da Nota | 
-	//------------------------+
-	SD2->( dbSeek(xFilial("SD2") + _cNota + _cSerie + _cCodCli  + _cLoja + _aDiverg[_nX][2] + _aDiverg[_nX][1]) )
-	
-	//-------------------+
-	// Posiciona Produto |
-	//-------------------+
-	SB1->( dbSeek(xFilial("SB1") + _aDiverg[_nX][2]) )
-	
-	cHtml += '				<tr>' + CRLF
-	cHtml += '					<td class=s_u colspan = "1"><b></b>' + SD2->D2_ITEM + '</td>' + CRLF
-	cHtml += '					<td class=s_u colspan = "3"><b></b>' + SD2->D2_COD + '</td>' + CRLF
-	cHtml += '					<td class=s_u colspan = "6"><b></b>' + SB1->B1_DESC + '</td>' + CRLF
-	cHtml += '					<td class=s_u colspan = "1"><b></b>' + AllTrim(Str(SD2->D2_QUANT)) + '</td>' + CRLF
-	cHtml += '					<td class=s_u colspan = "1"><b></b>' + AllTrim(Str(_aDiverg[_nX][3])) + '</td>' + CRLF
-	cHtml += '					<td class=s_u colspan = "1"><b></b>' + SD2->D2_LOCAL + '</td>' + CRLF
-	cHtml += '				</tr>' + CRLF
-	
-Next _nX	
-
-cHtml += '			</tbody>' + CRLF
-cHtml += '		</table>' + CRLF
-cHtml += '		<p>Workflow enviado automaticamente pelo Protheus - Perfumes Dana</p>' + CRLF
-cHtml += '	</body>' + CRLF
-cHtml += '</html>'
-
-//-------------------------------------------------------------+
-// Verifica usuario e senha para conectar no servidor de saida |
-//-------------------------------------------------------------+
-CONNECT SMTP SERVER cServer ACCOUNT cUser PASSWORD cPassword RESULT lOk
-
-//---------------------------+
-// Autentica usuario e senha |
-//---------------------------+
-If lRelauth
-	lOk := MailAuth(cUser,cPassword)
-EndIf	
-
-//--------------------------------------------------------------+
-// Verifica se conseguiu conectar no servidor de saida e valida |
-// se conseguiu atenticar para enviar o e-mail                  |
-//--------------------------------------------------------------+
-If lOk
-	SEND MAIL FROM cFrom TO cMail SUBJECT cTitulo BODY cHtml RESULT lEnviado 
-Else
-	Conout("Erro ao Conectar ! ")
-Endif			
-
-If lEnviado
-	Conout("E-Mail Enviado com sucesso ")
-Else                            
-	GET MAIL ERROR cError
-	Conout("Erro ao enviar e-mail --> " + cError)	
-EndIf	
-
-//---------------------------------+
-// Disconecta do servidor de saida |
-//---------------------------------+
-DISCONNECT SMTP SERVER
-
-RestArea(aArea)
-Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} DnaApi10E

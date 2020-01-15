@@ -241,9 +241,9 @@ WSB->( dbSetOrder(1) )
 If WSB->(dbSeek(xFilial("WSB") + WSA->WSA_NUM) )
 	While WSB->( !Eof() .And. xFilial("WSB") + WSA->WSA_NUM == WSB->WSB_FILIAL + WSB->WSB_NUM )
 		aAdd(_aColsIt,Array(Len(_aHeadIt)+1)) 
-		For nX:= 1 To Len(_aHeadIt)
-			_aColsIt[Len(_aColsIt)][nX] := FieldGet(FieldPos(_aHeadIt[nX][2]))
-		Next nX
+		For _nX:= 1 To Len(_aHeadIt)
+			_aColsIt[Len(_aColsIt)][_nX] := FieldGet(FieldPos(_aHeadIt[_nX][2]))
+		Next _nX
 		_aColsIt[Len(_aColsIt)][Len(_aHeadIt)+1]:= .F.
 		WSB->( dbSkip() )
 	EndDo
@@ -251,9 +251,9 @@ EndIf
 
 If Len(_aColsIt) <= 0
 	aAdd(_aColsIt,Array(Len(_aHeadIt)+1)) 
-	For nX:= 1 To Len(_aHeadIt)
-		_aColsIt[1][nX]:= CriaVar(_aHeadIt[nX][2],.T.)
-	Next nX
+	For _nX:= 1 To Len(_aHeadIt)
+		_aColsIt[1][_nX]:= CriaVar(_aHeadIt[_nX][2],.T.)
+	Next _nX
 	_aColsIt[1][Len(_aHeadIt)+1]:= .F.
 EndIf
 
