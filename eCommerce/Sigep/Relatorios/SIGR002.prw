@@ -6,6 +6,7 @@
 #INCLUDE "TOTVS.CH"
 
 #DEFINE CRLF CHR(13) + CHR(10)
+#DEFINE CLR_GRAY RGB(238,238,238)
 
 #DEFINE TAM_A4 9
 
@@ -30,7 +31,7 @@ Local _cPerg := "SIGR02"
 AjustaSx1(_cPerg)
 
 If Pergunte(_cPerg,.T.)
-	Processa({|| SigR02Prt() },"Aguarde ... Processando relatorio","Vizcaya - eCommerce")
+	Processa({|| SigR02Prt() },"Aguarde ... Processando relatorio","Dana Cosmeticos - eCommerce")
 EndIf
 	
 Return Nil
@@ -68,7 +69,11 @@ Private _oFont06		:= TFont():New("Arial",,06,,.F.,,,,,.F. )
 Private _oFont06N		:= TFont():New("Arial",,06,,.T.,,,,,.F. )
 Private _oFont08		:= TFont():New("Arial",,08,,.F.,,,,,.F. )
 Private _oFont08N		:= TFont():New("Arial",,08,,.T.,,,,,.F. )
-Private _oFont14		:= TFont():New("Arial",,14,,.T.,,,,,.F. )
+Private _oFont10N		:= TFont():New("Arial",,10,,.T.,,,,,.F. )
+Private _oFont10		:= TFont():New("Arial",,10,,.F.,,,,,.F. )
+Private _oFont12		:= TFont():New("Arial",,12,,.F.,,,,,.F. )
+Private _oFont12N		:= TFont():New("Arial",,12,,.T.,,,,,.F. )
+Private _oFont18N		:= TFont():New("Arial",,18,,.T.,,,,,.F. )
 
 //-----------------------------+
 // Consulta PLP a ser impressa |
@@ -91,7 +96,7 @@ _oPrint:cPathPdf 			:= _cDirRaiz
 _oPrint:setResolution(78)
 _oPrint:SetPortrait()
 _oPrint:setPaperSize(TAM_A4)
-_oPrint:SetMargin(10,10,10,10)
+//_oPrint:SetMargin(10,10,10,10)
 
 //---------------------------------------+
 // Coordendas para linha inicial e final |
@@ -105,8 +110,8 @@ While (_cAlias)->( !Eof() )
 	// Inicio da Impressao |
 	//---------------------+
 	SigR02Cabec(_oPrint,_cCodPlp)
-	_nLinI := 120
-	_nLinF := 145
+	_nLinI := 115
+	_nLinF := 142
 	While (_cAlias)->( !Eof() .And. _cCodPlp == (_cAlias)->ZZ2_CODIGO )
 							
 		If _nLinI >= 850
@@ -123,30 +128,40 @@ While (_cAlias)->( !Eof() )
 			//---------------------------------------+
 			// Coordendas para linha inicial e final |
 			//---------------------------------------+
-			_nLinI := 120
-			_nLinF := 145
+			_nLinI := 115
+			_nLinF := 142
 
 		EndIf 
 		
-		_oPrint:Box(_nLinI, 025, _nLinF, 600)
-		
-		_oPrint:Say(_nLinI + 7, 030, SZ8->Z8_TRACKIN											, _oFont06, 100 )
-		_oPrint:Say(_nLinI + 7, 087, SL1->L1_CEPE												, _oFont06, 100 )
-		_oPrint:Say(_nLinI + 7, 119, Alltrim(Str(SL1->L1_PBRUTO))								, _oFont06, 100 )
-		_oPrint:Say(_nLinI + 7, 150, "N"														, _oFont06, 100 )
-		_oPrint:Say(_nLinI + 7, 165, "N"														, _oFont06, 100 )
-		_oPrint:Say(_nLinI + 7, 180, "S"														, _oFont06, 100 )
-		_oPrint:Say(_nLinI + 7, 200, Alltrim(Str(SL1->L1_VLRTOT))								, _oFont06, 100 )
-		_oPrint:Say(_nLinI + 7, 260, Alltrim(SL1->L1_DOC)										, _oFont06, 100 )
-		_oPrint:Say(_nLinI + 7, 310, Alltrim(Str(SL1->L1_VOLUME))								, _oFont06, 100 )
-		_oPrint:Say(_nLinI + 7, 360, "A/C - " + Alltrim(SL1->L1_XNOMDES)						, _oFont06, 100 )
-		_oPrint:Say(_nLinI - 5, 030, "Serviço:"													, _oFont06N, 100 )
-		_oPrint:Say(_nLinI - 5, 060, Alltrim(SZ0->Z0_CODSERV) + " - " + Alltrim(SZ0->Z0_DESCRI)	, _oFont06, 100 )
-		_oPrint:Say(_nLinI - 5, 200, "Obserçoes:"												, _oFont06N, 100 )
-		_oPrint:Say(_nLinI - 5, 230, Alltrim(SL1->L1_XCOMPLE)									, _oFont06, 100 )
-		
+		//_oPrint:Box(_nLinI, 025, _nLinF, 600)
+		_oPrint:FillRect ( {_nLinI, 025, _nLinF - 2, 600}, TBrush():New2( , CLR_GRAY ) )
+
+		_oPrint:Say(_nLinI + 7, 030, RTrim((_cAlias)->ZZ4_CODETQ)											, _oFont08, 100 )
+		_oPrint:Say(_nLinI + 7, 100, (_cAlias)->WSA_CEPE													, _oFont08, 100 )
+		_oPrint:Say(_nLinI + 7, 160, cValToChar((_cAlias)->WSA_PBRUTO)										, _oFont08, 100 )
+		_oPrint:Say(_nLinI + 7, 192, "N"																	, _oFont08, 100 )
+		_oPrint:Say(_nLinI + 7, 212, "N"																	, _oFont08, 100 )
+		_oPrint:Say(_nLinI + 7, 232, "N"																	, _oFont08, 100 )
+		_oPrint:Say(_nLinI + 7, 252, "N"																	, _oFont08, 100 )
+		_oPrint:Say(_nLinI + 7, 272, "N"																	, _oFont08, 100 )
+		_oPrint:Say(_nLinI + 7, 290, cValToChar((_cAlias)->WSA_VLRTOT)										, _oFont08, 100 )
+		_oPrint:Say(_nLinI + 7, 370, RTrim((_cAlias)->WSA_DOC) + RTrim((_cAlias)->WSA_SERIE)				, _oFont08, 100 )
+		_oPrint:Say(_nLinI + 7, 430, RTrim((_cAlias)->ZZ0_CODSER) + " - " + RTrim((_cAlias)->ZZ0_DESCRI)	, _oFont08, 100 )
+
+		If !Empty((_cAlias)->WSA_NOMDES)
+			_nLinD	:= _nLinI + 16 
+			_oPrint:Say(_nLinD, 030, "Destinatário: "														, _oFont10N, 100 )
+			_oPrint:Say(_nLinD, 083, RTrim(Capital((_cAlias)->WSA_NOMDES))									, _oFont08 , 100 )
+		EndIf
+
+		If !Empty((_cAlias)->WSA_COMPLE)
+			_nLinD	:= _nLinI + 25 
+			_oPrint:Say(_nLinD, 030, "Obs.:"																, _oFont10N, 100 )
+			_oPrint:Say(_nLinD, 083, RTrim(Capital((_cAlias)->WSA_COMPLE))									, _oFont08 , 100 )		
+		EndIf
+
 		_nLinI 	:= _nLinF
-		_nLinF 	:= _nLinF + 25
+		_nLinF 	:= _nLinF + 31
 		_nTotPlp++ 
 	
 		(_cAlias)->( dbSkip() )
@@ -164,7 +179,6 @@ EndDo
 //-----------------+
 _oPrint:Preview()
 
-RestArea(aArea) 
 Return Nil
 
 /**********************************************************************************/
@@ -183,12 +197,14 @@ Return Nil
 /*/
 /**********************************************************************************/
 Static Function SigR02Cabec(_oPrint,_cCodPlp)
+Local _cTitCabec	:= "EMPRESA BRASILEIRA DE CORREIOS E TELÉGRAFOS"
 Local _cSubTit		:= "LISTA DE POSTAGEM"
 Local _cCodCont		:= GetNewPar("EC_CODCONT","9912208555")
 Local _cCodAdm		:= GetNewPar("EC_CODADM","08082650")
 Local _cIdCartao	:= GetNewPar("EC_IDCARTA","0057018901")
 Local _cBitMap		:= GetSrvProfString("Startpath","")+"\correios.bmp"
-Local _cEndereco 	:= ""
+Local _cEnd_01 		:= ""
+Local _cEnd_02 		:= ""
 
 //---------------------+
 // Inicio da Impressao |
@@ -203,46 +219,51 @@ _oPrint:SayBitmap(001, 025, _cBitMap, 100,025 )
 //-------------------+
 // Imprime Cabeçalho |
 //-------------------+
-_oPrint:Box(030, 025, 110, 600)
-_oPrint:Box(110, 025, 120, 600)
+_oPrint:Box(030, 025, 100, 600,"-9")
+_oPrint:Line(112, 025, 112, 600, 0, "-9")
 
 //-----------------+
 // Dados Cabecalho |
 //-----------------+
-_oPrint:Say(043, 222, _cSubTit 							, _oFont14 , 100 )
-_oPrint:Say(060, 030, "N° da Lista:"					, _oFont06N, 100 )
-_oPrint:Say(060, 070, _cCodPlp	 						, _oFont06 , 100 )
-_oPrint:Say(060, 160, "Remetente:" 						, _oFont06N, 100 )
-_oPrint:Say(060, 200, Alltrim(SM0->M0_NOMECOM)			, _oFont06 , 100 )
+_oPrint:Say(024, 165, _cTitCabec						, _oFont18N, 100 )
+_oPrint:Say(042, 260, _cSubTit 							, _oFont12N, 100 ) 
+_oPrint:Say(053, 030, "N° da Lista:"					, _oFont12N, 100 ) 
+_oPrint:Say(053, 090, _cCodPlp	 						, _oFont12 , 100 )
+_oPrint:Say(053, 190, "Remetente:" 						, _oFont12N, 100 )
+_oPrint:Say(053, 260, RTrim(Capital(SM0->M0_NOMECOM))	, _oFont12 , 100 )
 
-_oPrint:Say(075, 030, "Contrato:"	 					, _oFont06N, 100 )
-_oPrint:Say(075, 070, _cCodCont		 					, _oFont06, 100  )
-_oPrint:Say(075, 160, "Cliente:"	 					, _oFont06N, 100 )
-_oPrint:Say(075, 200, Alltrim(SM0->M0_NOMECOM)	 		, _oFont06, 100  )
-_oPrint:Say(090, 030, "Cod. Adm:"	 					, _oFont06N, 100 )
-_oPrint:Say(090, 070, _cCodAdm	 						, _oFont06, 100  )
-_oPrint:Say(090, 160, "Endereço:"	 					, _oFont06N, 100 )
+_oPrint:Say(068, 030, "Contrato:"	 					, _oFont12N, 100 ) 
+_oPrint:Say(068, 090, _cCodCont		 					, _oFont12 , 100 )
+_oPrint:Say(068, 190, "Cliente:"	 					, _oFont12N, 100 )
+_oPrint:Say(068, 260, RTrim(Capital(SM0->M0_NOMECOM))	, _oFont12 , 100 )
+_oPrint:Say(083, 030, "Cod. Adm:"	 					, _oFont12N, 100 ) 
+_oPrint:Say(083, 090, _cCodAdm	 						, _oFont12 , 100 )
+_oPrint:Say(083, 190, "Endereço:"	 					, _oFont12N, 100 )
 
-cEndereco := Alltrim(SM0->M0_ENDCOB) + " - " + Alltrim(SM0->M0_BAIRCOB) + " - " + Alltrim(SM0->M0_CIDCOB) + "/" + SM0->M0_ESTCOB + " - CEP:" + Alltrim(SM0->M0_CEPCOB)   
-_oPrint:Say(090, 200, _cEndereco	 					, _oFont06, 100  )
-_oPrint:Say(105, 030, "Cartão:"	 						, _oFont06N, 100 )
-_oPrint:Say(105, 070, _cIdCartao	 					, _oFont06, 100  )
-_oPrint:Say(105, 520, "Telefone:"	 					, _oFont06N, 100 )
-_oPrint:Say(105, 560, Alltrim(SM0->M0_TEL)				, _oFont06, 100  )
+_cEnd_01 := RTrim(Capital(SM0->M0_ENDCOB))
+_cEnd_02 := RTrim(Capital(SM0->M0_BAIRCOB)) + " - " + RTrim(Capital(SM0->M0_CIDCOB)) + "/" + SM0->M0_ESTCOB + " - CEP:" + RTrim(SM0->M0_CEPCOB)    	
+
+_oPrint:Say(083, 260, _cEnd_01		 					, _oFont12 , 100 )
+_oPrint:Say(098, 260, _cEnd_02		 					, _oFont12 , 100 ) 
+_oPrint:Say(098, 030, "Cartão:"	 						, _oFont12N, 100 )
+_oPrint:Say(098, 090, _cIdCartao	 					, _oFont12 , 100 )
+_oPrint:Say(053, 480, "Telefone:"	 					, _oFont12N, 100 ) 
+_oPrint:Say(053, 530, Alltrim(SM0->M0_TEL)				, _oFont12 , 100 )
 
 //------------------+
 // Titulo dos Itens |
 //------------------+
-_oPrint:Say(117, 030, "N° do Objeto"					, _oFont06N, 100 )
-_oPrint:Say(117, 090, "CEP"								, _oFont06N, 100 )
-_oPrint:Say(117, 120, "Peso"							, _oFont06N, 100 )
-_oPrint:Say(117, 150, "AR"								, _oFont06N, 100 )
-_oPrint:Say(117, 165, "MP"								, _oFont06N, 100 )
-_oPrint:Say(117, 180, "VD"								, _oFont06N, 100 )
-_oPrint:Say(117, 200, "Valor Declarado"					, _oFont06N, 100 )
-_oPrint:Say(117, 260, "Nota Fiscal"						, _oFont06N, 100 )
-_oPrint:Say(117, 310, "Volume"							, _oFont06N, 100 )
-_oPrint:Say(117, 360, "Destinatario"					, _oFont06N, 100 )
+_oPrint:Say(110, 030, "N° do Objeto"					, _oFont10N, 100 ) 
+_oPrint:Say(110, 100, "CEP"								, _oFont10N, 100 )
+_oPrint:Say(110, 160, "Peso"							, _oFont10N, 100 )
+_oPrint:Say(110, 190, "AR"								, _oFont10N, 100 )
+_oPrint:Say(110, 210, "MP"								, _oFont10N, 100 )
+_oPrint:Say(110, 230, "VD"								, _oFont10N, 100 )
+_oPrint:Say(110, 250, "EV"								, _oFont10N, 100 )
+_oPrint:Say(110, 270, "EL"								, _oFont10N, 100 )
+_oPrint:Say(110, 290, "V. Declarado"					, _oFont10N, 100 )
+_oPrint:Say(110, 370, "N. Fiscal"						, _oFont10N, 100 )
+_oPrint:Say(110, 430, "Serviço"							, _oFont10N, 100 )
 
 Return _oPrint
 
@@ -272,27 +293,27 @@ EndIf
 //------------+
 // Box Rodape |
 //------------+
-_oPrint:Box(_nLinR, 025, 840, 600)
-
-_nLinR := nLinR + 7
-_oPrint:Say(_nLinR , 030, "Totalizador: " + StrZero(nTotPlp,6)						, _oFont06N, 100 )
-_oPrint:Say(_nLinR , 430, "Carimbo e Assinatura / Matrícula dos Correios"			, _oFont06N, 100 )
-
-_nLinR := _nLinR + 25
-_oPrint:Say(_nLinR , 152, "APRESENTAR ESTA LISTA EM CASO DE PEDIDO DE INFORMAÇÕES"	, _oFont08N, 100 )
-
-_nLinR := _nLinR + 15
-_oPrint:Say(_nLinR , 152, "Estou ciente do disposto na cláusula terceira do contrato de prestação de Serviços."	, _oFont06N, 100 )
-
-_nLinR := _nLinR + 40
-_oPrint:Say(_nLinR , 210, Replicate("_",45)											, _oFont06N, 100 )
-
-_nLinR := _nLinR + 07
-_oPrint:Say(_nLinR , 235, "ASSINATURA DO REMETENTE"									, _oFont06N, 100 )
+_oPrint:Box(_nLinR, 025, 820, 600,"-9")
 
 _nLinR := _nLinR + 10
-_oPrint:Say(_nLinR 	, 215, "Obs: 1ª via Unidade de Postagem e 2ª via Cliente"		, _oFont06N, 100 )
-_oPrint:Say(850 	, 030, "Data de Emissao: " + dToc(Date())						, _oFont06, 100 )
+_oPrint:Say(_nLinR , 030, "Quantidade de Objetos: " + cValToChar(_nTotPlp)			, _oFont10N, 100 )
+_oPrint:Say(_nLinR , 400, "Carimbo e Assinatura / Matrícula dos Correios"			, _oFont10N, 100 )
+
+_nLinR := _nLinR + 20
+_oPrint:Say(_nLinR , 030, "APRESENTAR ESTA LISTA EM CASO DE PEDIDO DE INFORMAÇÕES"	, _oFont10N, 100 )
+
+_nLinR := _nLinR + 10
+_oPrint:Say(_nLinR , 030, "Estou ciente do disposto na cláusula terceira do contrato de prestação de Serviços."	, _oFont10N, 100 )
+
+_nLinR := _nLinR + 25
+_oPrint:Say(_nLinR , 040, Replicate("_",45)											, _oFont10N, 100 )
+
+_nLinR := _nLinR + 10
+_oPrint:Say(_nLinR , 085, "ASSINATURA DO REMETENTE"									, _oFont10N, 100 )
+
+_nLinR := _nLinR + 10
+_oPrint:Say(_nLinR 	, 048, "Obs: 1ª via Unidade de Postagem e 2ª via Cliente"		, _oFont10N, 100 )
+_oPrint:Say(830 	, 028, "Data de Emissao: " + dToc(Date())						, _oFont10N , 100 )
 
 //---------------------+
 // Encerra a Impressao |
@@ -331,7 +352,9 @@ _cQuery += "	WSA.WSA_DOC, " + CRLF
 _cQuery += "	WSA.WSA_SERIE, " + CRLF
 _cQuery += "	WSA.WSA_VOLUME, " + CRLF
 _cQuery += "	WSA.WSA_PBRUTO, " + CRLF
-_cQuery += "	WSA.WSA_VLRTOT " + CRLF	 
+_cQuery += "	WSA.WSA_VLRTOT, " + CRLF	 
+_cQuery += "	ZZ0.ZZ0_CODSER, " + CRLF	 
+_cQuery += "	ZZ0.ZZ0_DESCRI " + CRLF	 
 _cQuery += " FROM " + CRLF
 _cQuery += "	ZZ2010 ZZ2 " + CRLF 
 _cQuery += "	INNER JOIN ZZ4010 ZZ4 ON ZZ4.ZZ4_FILIAL = ZZ2.ZZ2_FILIAL AND ZZ4.ZZ4_CODIGO = ZZ2.ZZ2_CODIGO AND ZZ4.D_E_L_E_T_ = '' " + CRLF
@@ -368,6 +391,41 @@ Return .T.
 /*/
 /***************************************************************************************/
 Static Function AjustaSx1(_cPerg)
-	PutSx1(_cPerg, "01", "Pre Lista De ? "	, "Pre Lista De ? ", "Pre Lista De ? ", "mv_ch1", "C", TamSx3("ZZ2_CODIGO")[1],0,0,"G","","ZZ2","","","mv_par01","","","","","","","","","","","","","","","","",{},{},{})
-	PutSx1(_cPerg, "02", "Pre Lista Ate? "	, "Pre Lista Ate?" , "Pre Lista Ate?" , "mv_ch2", "C", TamSx3("ZZ2_CODIGO")[1],0,0,"G","","ZZ2","","","mv_par02","","","","","","","","","","","","","","","","",{},{},{})
+Local aArea 	:= GetArea()
+Local aPerg 	:= {}
+
+Local _nX		:= 0
+Local nTPerg    := Len( SX1->X1_GRUPO )
+Local nTSeq     := Len( SX1->X1_ORDEM )
+
+SX1->( dbSetOrder(1) )
+
+aAdd(aPerg, {_cPerg, "01", "Pre Lista De ?"     , "MV_CH1" , "C", TamSX3("ZZ2_CODIGO")[1]	, 0, "G", "MV_PAR01", "ZZ2" ,"",""	,"",""})
+aAdd(aPerg, {_cPerg, "02", "Pre Lista Ate?"     , "MV_CH2" , "C", TamSX3("ZZ2_CODIGO")[1]	, 0, "G", "MV_PAR02", "ZZ2" ,"",""	,"",""})
+
+For _nX := 1 To Len(aPerg)
+	
+	If  !SX1->( dbSeek(  PadR(aPerg[_nX][1], nTPerg) + PadR(aPerg[_nX][2],nTSeq) ) )		
+		RecLock("SX1",.T.)
+			Replace X1_GRUPO   with aPerg[_nX][01]
+			Replace X1_ORDEM   with aPerg[_nX][02]
+			Replace X1_PERGUNT with aPerg[_nX][03]
+			Replace X1_VARIAVL with aPerg[_nX][04]
+			Replace X1_TIPO	   with aPerg[_nX][05]
+			Replace X1_TAMANHO with aPerg[_nX][06]
+			Replace X1_PRESEL  with aPerg[_nX][07]
+			Replace X1_GSC	   with aPerg[_nX][08]
+			Replace X1_VAR01   with aPerg[_nX][09]
+			Replace X1_F3	   with aPerg[_nX][10]
+			Replace X1_DEF01   with aPerg[_nX][11]
+			Replace X1_DEF02   with aPerg[_nX][12]
+			Replace X1_DEF03   with aPerg[_nX][13]
+			Replace X1_DEF04   with aPerg[_nX][14]
+	
+		SX1->( MsUnlock() )
+	EndIf
+Next _nX
+
+RestArea( aArea )
+	
 Return Nil
