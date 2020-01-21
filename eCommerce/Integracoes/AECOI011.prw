@@ -60,7 +60,7 @@ Static nTamOper	:= TamSx3("WS4_CODIGO")[1]
 /*/
 /**************************************************************************************************/
 User Function AECOI011()
-	Local aArea		:= GetArea()
+	Local _aArea	:= GetArea()
 
 	Private cThread	:= Alltrim(Str(ThreadId()))
 	Private cStaLog	:= "0"
@@ -126,7 +126,8 @@ User Function AECOI011()
 	// Grava Log inicio das Integrações |
 	//----------------------------------+
 	u_AEcoGrvLog(cCodInt,cDescInt,dDtaInt,cHrIni,Time(),cStaLog,nQtdInt,aMsgErro,cThread,2)
-		
+
+	RestArea(_aArea)	
 Return .T.
 
 /**************************************************************************************************/
@@ -148,9 +149,6 @@ Local cAppKey		:= GetNewPar("EC_APPKEY")
 Local cAppToken		:= GetNewPar("EC_APPTOKE")
 Local cXmlHead 	 	:= ""
 Local cUrlParms		:= ""     
-Local cError    	:= ""
-Local cWarning  	:= ""
-Local cRetPost  	:= ""
 
 Local nTimeOut		:= 240
 Local nList			:= 0
@@ -162,7 +160,7 @@ aAdd(aHeadOut,"X-VTEX-API-AppKey:" + cAppKey )
 aAdd(aHeadOut,"X-VTEX-API-AppToken:" + cAppToken ) 
 
 //cUrlParms := "ready-for-handling"
-cUrlParms := "handling,payment-pending"
+cUrlParms := "handling"
 //cUrlParms := "canceled,invoiced" //handling,payment-pending,
 
 cHtmlPage := HttpGet(cUrl + "/api/oms/pvt/orders?f_status=" + cUrlParms , /*cUrlParms*/, nTimeOut, aHeadOut, @cXmlHead)
@@ -251,10 +249,6 @@ Local aEndCob		:= {}
 Local aEndEnt		:= {}
 
 Local cXmlRest 	 	:= ""
-Local cUrlParms		:= ""     
-Local cError    	:= ""
-Local cWarning  	:= ""
-Local cRetPost  	:= ""
 
 Local oRestPv   	:= Nil 
 
@@ -433,17 +427,17 @@ EndIf
 // Dados passados pela Vtex |
 //--------------------------+ 
 If oDadosCli:IsCorporate
-	cNomeCli	:= IIF(nOpcA == 3,	u_SyAcento(DecodeUtf8(oDadosCli:CorporateName),.T.)				, SA1->A1_NOME 		) 
-	cNReduz		:= IIF(nOpcA == 3,	u_SyAcento(DecodeUtf8(oDadosCli:TradeName),.T.)					, SA1->A1_NREDUZ	)
-	cContato	:= IIF(nOpcA == 3,	u_SyAcento(DecodeUtf8(oDadosCli:FirstName),.T.) + " " + u_SyAcento(DecodeUtf8(oDadosCli:LastName),.T.)	, SA1->A1_CONTATO	)	
+	cNomeCli	:= IIF(nOpcA == 3,	u_ECACENTO(DecodeUtf8(oDadosCli:CorporateName),.T.)				, SA1->A1_NOME 		) 
+	cNReduz		:= IIF(nOpcA == 3,	u_ECACENTO(DecodeUtf8(oDadosCli:TradeName),.T.)					, SA1->A1_NREDUZ	)
+	cContato	:= IIF(nOpcA == 3,	u_ECACENTO(DecodeUtf8(oDadosCli:FirstName),.T.) + " " + u_ECACENTO(DecodeUtf8(oDadosCli:LastName),.T.)	, SA1->A1_CONTATO	)	
 	cDdd01		:= IIF(nOpcA == 3,	SubStr(oDadosCli:CorporatePhone,5,2)							, SA1->A1_DDD		)
 	cTel01		:= IIF(nOpcA == 3,	StrTran(SubStr(oDadosCli:CorporatePhone,8,nTamTel)," ","")		, SA1->A1_TEL		)
 	cInscE		:= IIF(nOpcA == 3,	Upper(oDadosCli:StateInscription)								, SA1->A1_INSCR		)
 	cContrib	:= IIF(nOpcA == 3,	IIF(Alltrim(cInscE) == "ISENTO","2","1")						, SA1->A1_CONTRIB	)
 Else	
 	
-	cNomeCli	:= IIF(nOpcA == 3,	u_SyAcento(DecodeUtf8(oDadosCli:FirstName),.T.) + " " + u_SyAcento(DecodeUtf8(oDadosCli:LastName),.T.)	, SA1->A1_NOME 		)
-	cNReduz		:= IIF(nOpcA == 3,	u_SyAcento(DecodeUtf8(oDadosCli:FirstName),.T.) + " " + u_SyAcento(DecodeUtf8(oDadosCli:LastName),.T.)	, SA1->A1_NREDUZ	)
+	cNomeCli	:= IIF(nOpcA == 3,	u_ECACENTO(DecodeUtf8(oDadosCli:FirstName),.T.) + " " + u_ECACENTO(DecodeUtf8(oDadosCli:LastName),.T.)	, SA1->A1_NOME 		)
+	cNReduz		:= IIF(nOpcA == 3,	u_ECACENTO(DecodeUtf8(oDadosCli:FirstName),.T.) + " " + u_ECACENTO(DecodeUtf8(oDadosCli:LastName),.T.)	, SA1->A1_NREDUZ	)
 	cDdd01		:= IIF(nOpcA == 3,	SubStr(oDadosCli:Phone,4,2)										, SA1->A1_DDD		)
 	cTel01		:= IIF(nOpcA == 3,	SubStr(oDadosCli:Phone,6,nTamTel) 								, SA1->A1_TEL		)
 	cContrib	:= IIF(nOpcA == 3,	"2"																, SA1->A1_CONTRIB	)
@@ -784,18 +778,18 @@ Local cIdEnd		:= ""
 //------------------------------------+
 // Acerta endereço no padrao protheus |
 //------------------------------------+
-cMunicipio	:= IIF(ValType(oEndereco:City) <> "U", u_SyAcento(DecodeUtf8(oEndereco:City),.T.), "")
+cMunicipio	:= IIF(ValType(oEndereco:City) <> "U", u_ECACENTO(DecodeUtf8(oEndereco:City),.T.), "")
 cEstado		:= IIF(ValType(oEndereco:State) <> "U", Upper(oEndereco:State), "")
-cComplem	:= IIF(ValType(oEndereco:Complement) <> "U", u_SyAcento(DecodeUtf8(oEndereco:Complement),.T.), "")
+cComplem	:= IIF(ValType(oEndereco:Complement) <> "U", u_ECACENTO(DecodeUtf8(oEndereco:Complement),.T.), "")
 cPais		:= IIF(ValType(oEndereco:Country) <> "U", oEndereco:Country, "")
-cBairro		:= IIF(ValType(oEndereco:NeighBorhood) <> "U", u_SyAcento(DecodeUtf8(oEndereco:NeighBorhood),.T.), "")
+cBairro		:= IIF(ValType(oEndereco:NeighBorhood) <> "U", u_ECACENTO(DecodeUtf8(oEndereco:NeighBorhood),.T.), "")
 cNumero		:= IIF(ValType(oEndereco:Number) <> "U", oEndereco:Number, "")
-cCep		:= IIF(ValType(oEndereco:PostalCode) <> "U", u_SyFormat(oEndereco:PostalCode,"A1_CEP",.T.), "")
-cDesti		:= IIF(ValType(oEndereco:ReceiverName) <> "U", u_SyAcento(DecodeUtf8(oEndereco:ReceiverName),.T.), "")
-cReferen	:= IIF(ValType(oEndereco:Reference) <> "U", u_SyAcento(DecodeUtf8(oEndereco:Reference),.T.), "")
-cEnd		:= IIF(ValType(oEndereco:Street) <> "U", u_SyAcento(DecodeUtf8(oEndereco:Street),.T.), "")
+cCep		:= IIF(ValType(oEndereco:PostalCode) <> "U", u_ECFORMAT(oEndereco:PostalCode,"A1_CEP",.T.), "")
+cDesti		:= IIF(ValType(oEndereco:ReceiverName) <> "U", u_ECACENTO(DecodeUtf8(oEndereco:ReceiverName),.T.), "")
+cReferen	:= IIF(ValType(oEndereco:Reference) <> "U", u_ECACENTO(DecodeUtf8(oEndereco:Reference),.T.), "")
+cEnd		:= IIF(ValType(oEndereco:Street) <> "U", u_ECACENTO(DecodeUtf8(oEndereco:Street),.T.), "")
 cIdEnd		:= IIF(ValType(oEndereco:addressId) <> "U", oEndereco:addressId, "")
-cContato	:= IIF(ValType(oEndereco:receiverName) <> "U", u_SyAcento(DecodeUtf8(oEndereco:receiverName),.T.), "")
+cContato	:= IIF(ValType(oEndereco:receiverName) <> "U", u_ECACENTO(DecodeUtf8(oEndereco:receiverName),.T.), "")
 
 aRet 		:= Array(15) 
 
@@ -995,7 +989,8 @@ Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt)
 	Local cEndRef		:= ""
 	Local cCodTransp	:= ""
 	Local cCondPag		:= ""
-	
+	Local _cIdServ		:= ""
+
 	Local nDesconto		:= 0
 	Local nQtdParc		:= 0
 	Local nVlrFrete		:= 0
@@ -1090,7 +1085,7 @@ Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt)
 		cCodTransp 	:= ""
 		cIdPost		:= ""
 	Else
-		AEcoI11IP(oRestPv:ShippingData:LogisticsInfo[1]:DeliveryIds[1]:CourierId,cCodAfili,@cCodTransp,@cIdPost)
+		AEcoI11IP(oRestPv:ShippingData:LogisticsInfo[1]:DeliveryIds[1]:CourierId,cCodAfili,@cCodTransp,@cIdPost,@_cIdServ)
 	EndIf	 
 		
 	nDesconto	:= 0 
@@ -1135,7 +1130,8 @@ Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt)
 	aRet := AEcoGrvCab(	cNumOrc,cOrderId,cCodCli,cLojaCli,cTipoCli,cVendedor,cEndDest,cNumDest,;
 						cMunDest,cBaiDest,cCepDest,cEstDest,cNomDest,cDddCel,cDdd1,cTel01,cCelular,;
 						cIdEnd,cMotCancel,cPedCodCli,cPedCodInt,cHoraEmis,dDtaEmiss,cPedStatus,nVlrFrete,;
-						nVrSubTot,nVlrTotal,nQtdParc,nDesconto,nPesoBruto,cIdPost,cEndComp,cEndRef,cCodTransp)
+						nVrSubTot,nVlrTotal,nQtdParc,nDesconto,nPesoBruto,cIdPost,cEndComp,cEndRef,cCodTransp,_cIdServ)
+
 	//------------------------------+					
 	// Efetua a gravação da Reserva |
 	//------------------------------+
@@ -2122,7 +2118,7 @@ Return aRet
 Static Function AEcoGrvCab(	cNumOrc,cOrderId,cCodCli,cLojaCli,cTipoCli,cVendedor,cEndDest,cNumDest,;
 							cMunDest,cBaiDest,cCepDest,cEstDest,cNomDest,cDddCel,cDdd1,cTel01,cCelular,;
 							cIdEnd,cMotCancel,cPedCodCli,cPedCodInt,cHoraEmis,dDtaEmiss,cPedStatus,nVlrFrete,;
-							nVrSubTot,nVlrTotal,nQtdParc,nDesconto,nPesoBruto,cIdPost,cEndComp,cEndRef,cCodTransp)
+							nVrSubTot,nVlrTotal,nQtdParc,nDesconto,nPesoBruto,cIdPost,cEndComp,cEndRef,cCodTransp,_cIdServ)
 
 	Local aArea			:= GetArea()
 	Local aRet			:= {.T.,"",""}
@@ -2268,6 +2264,7 @@ Static Function AEcoGrvCab(	cNumOrc,cOrderId,cCodCli,cLojaCli,cTipoCli,cVendedor
 		WSA->WSA_COMPLE		:= cEndComp
 		WSA->WSA_REFEN		:= cEndRef 
 		WSA->WSA_IDENDE		:= cIdEnd
+		WSA->WSA_SERPOS		:= _cIdServ
 
 	WSA->( MsUnLock() )	
 			
@@ -3452,11 +3449,11 @@ Return nValor
 @type function
 /*/
 /*******************************************************************************/
-Static Function AEcoI11IP(cIdTran,cCodAfili,cCodTransp,cIdPost)
+Static Function AEcoI11IP(cIdTran,cCodAfili,cCodTransp,cIdPost,_cIdServ)
 Local aArea 	:= GetArea() 
 
 If Empty(cIdPost)
-	cCodTransp	:= AEcoI11TR(SubStr(cIdTran,1,6))
+	AEcoI11TR(SubStr(cIdTran,1,6),@cCodTransp,@_cIdServ)
 Else
 	cCodTransp	:= GetNewPar("EC_TRANSP","EC0001")
 EndIf	
@@ -3475,16 +3472,18 @@ Return .T.
 @type function
 /*/
 /***************************************************************/
-Static Function AEcoI11TR(cIdTran)
+Static Function AEcoI11TR(cIdTran,cCodTransp,_cIdServ)
 Local aArea 	:= GetArea() 
 Local cAlias	:= GetNextAlias()
 Local cQuery 	:= ""
 Local cIdPost	:= ""
 
 cQuery := "	SELECT " + CRLF  
-cQuery += "		A4.A4_COD " + CRLF
+cQuery += "		A4.A4_COD, " + CRLF
+cQuery += "		COALESCE(ZZ0.ZZ0_IDSER,'') ZZ0_IDSER " + CRLF
 cQuery += "	FROM " + CRLF
 cQuery += "		" + RetSqlName("SA4") + " A4 " + CRLF  
+cQuery += "		LEFT JOIN " + RetSqlName("ZZ0") + " ZZ0 ON ZZ0.ZZ0_FILIAL = '" + xFilial("ZZ0") + "' AND UPPER(ZZ0.ZZ0_CODECO) = '" + Upper(cIdTran) + "' AND ZZ0.D_E_L_E_T_ = '' " + CRLF 
 cQuery += "	WHERE " + CRLF 
 cQuery += "		A4.A4_FILIAL = '" + xFilial("SA4") + "' AND " + CRLF 
 cQuery += "		UPPER(A4.A4_ECSERVI) = '" + Upper(cIdTran) + "' AND " + CRLF
@@ -3493,18 +3492,20 @@ cQuery += "		A4.D_E_L_E_T_ = '' "
 dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
 
 If (cAlias)->( Eof() )
-	cIdPost	:= ""
+	cCodTransp	:= ""
+	_cIdServ	:= ""
 	(cAlias)->( dbCloseArea() )
 	RestArea(aArea)
 	Return cIdPost
 EndIf
 
-cIdPost := (cAlias)->A4_COD
+cCodTransp	:= (cAlias)->A4_COD
+_cIdServ	:= (cAlias)->ZZ0_IDSER
 
 (cAlias)->( dbCloseArea() )
 
 RestArea(aArea)
-Return cIdPost 
+Return .T. 
 
 /*******************************************************************************************/
 /*/{Protheus.doc} aEcoI011Entr

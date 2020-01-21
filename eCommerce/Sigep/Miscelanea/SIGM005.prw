@@ -40,7 +40,7 @@ CoNout("<< SIGM005 >> - FIM CRIA CRIA PRE LISTA DE POSTAGEM " + dTos( Date() ) +
 // Envia Lista de Postagem |
 //-------------------------+
 CoNout("<< SIGM005 >> - INICIO ENVIA PRE LISTA DE POSTAGEM " + dTos( Date() ) + " - " + Time() )
-    U_SIGM007()
+    U_SIGM004()
 CoNout("<< SIGM005 >> - FIM ENVIA PRE LISTA DE POSTAGEM " + dTos( Date() ) + " - " + Time() )
 
 //------------------------+

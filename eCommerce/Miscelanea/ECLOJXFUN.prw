@@ -893,31 +893,6 @@ If WSA->( dbSeek(xFilial("WSA") +_cOrderId) )
 	WSA->( MsUnlock() )
 EndIf
 
-//-------------+
-// Grava Sigep |
-//-------------+
-If _lSigep
-	//------------------------+
-	// Instancia classe Sigep |
-	//------------------------+
-	_oSigWeb			:= SigepWeb():New
-	
-	//-------------------------+
-	// Dados para gravação PLP |
-	//-------------------------+
-	_oSigWeb:cNumOrc	:= WSA->WSA_NUM	 
-	_oSigWeb:cNumCli	:= WSA->WSA_NUMECL
-	_oSigWeb:cNumEco	:= WSA->WSA_NUMECO
-	_oSigWeb:cCodCli	:= WSA->WSA_CLIENTE
-	_oSigWeb:cLoja  	:= WSA->WSA_LOJA
-	
-	//-----------+
-	// Grava PLP |
-	//-----------+
-	_oSigWeb:GrvPLP()
-	
-EndIf
-
 //------------------------+
 // Grava Status do Pedido |
 //------------------------+

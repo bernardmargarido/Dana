@@ -21,8 +21,8 @@
 Função de update de dicionários para compatibilização
 
 @author TOTVS Protheus
-@since  10/12/2019
-@obs    Gerado por EXPORDIC - V.5.4.1.2 EFS / Upd. V.4.21.17 EFS
+@since  21/01/2020
+@obs    Gerado por EXPORDIC - V.6.3.0.1 EFS / Upd. V.5.0.0 EFS
 @version 1.0
 /*/
 //--------------------------------------------------------------------
@@ -39,6 +39,7 @@ Local   cDesc4    := "BACKUP  dos DICIONÁRIOS  e da  BASE DE DADOS antes desta a
 Local   cDesc5    := "ocorram eventuais falhas, esse backup possa ser restaurado."
 Local   cDesc6    := ""
 Local   cDesc7    := ""
+Local   cMsg      := ""
 Local   lOk       := .F.
 Local   lAuto     := ( cEmpAmb <> NIL .or. cFilAmb <> NIL )
 
@@ -74,6 +75,28 @@ Else
 EndIf
 
 If lOk
+
+	If FindFunction( "MPDicInDB" ) .AND. MPDicInDB()
+		cMsg := "Este update NÃO PODE ser executado neste Ambiente." + CRLF + CRLF + ;
+				"Os arquivos de dicionários se encontram no Banco de Dados e este update está preparado " + ;
+				"para atualizar apenas ambientes com dicionários no formato ISAM (.dbf ou .dtc)."
+
+		If lAuto
+			AutoGrLog( Replicate( "-", 128 ) )
+			AutoGrLog( Replicate( " ", 128 ) )
+			AutoGrLog( "LOG DA ATUALIZAÇÃO DOS DICIONÁRIOS" )
+			AutoGrLog( Replicate( " ", 128 ) )
+			AutoGrLog( Replicate( "-", 128 ) )
+			AutoGrLog( Replicate( " ", 128 ) )
+			AutoGrLog( cMsg )
+			ConOut( DToC(Date()) + "|" + Time() + cMsg )
+		Else
+			MsgInfo( cMsg )
+		EndIf
+
+		Return NIL
+	EndIf
+
 	If lAuto
 		aMarcadas :={{ cEmpAmb, cFilAmb, "" }}
 	Else
@@ -125,8 +148,8 @@ Return NIL
 Função de processamento da gravação dos arquivos
 
 @author TOTVS Protheus
-@since  10/12/2019
-@obs    Gerado por EXPORDIC - V.5.4.1.2 EFS / Upd. V.4.21.17 EFS
+@since  21/01/2020
+@obs    Gerado por EXPORDIC - V.6.3.0.1 EFS / Upd. V.5.0.0 EFS
 @version 1.0
 /*/
 //--------------------------------------------------------------------
@@ -293,6 +316,12 @@ If ( lOpen := MyOpenSm0(.T.) )
 			oProcess:IncRegua1( "Dicionário de consultas padrão" + " - " + SM0->M0_CODIGO + " " + SM0->M0_NOME + " ..." )
 			FSAtuSXB()
 
+			//------------------------------------
+			// Atualiza os helps
+			//------------------------------------
+			oProcess:IncRegua1( "Helps de Campo" + " - " + SM0->M0_CODIGO + " " + SM0->M0_NOME + " ..." )
+			FSAtuHlp()
+
 			AutoGrLog( Replicate( "-", 128 ) )
 			AutoGrLog( " Data / Hora Final.: " + DtoC( Date() ) + " / " + Time() )
 			AutoGrLog( Replicate( "-", 128 ) )
@@ -337,8 +366,8 @@ Return lRet
 Função de processamento da gravação do SX2 - Arquivos
 
 @author TOTVS Protheus
-@since  10/12/2019
-@obs    Gerado por EXPORDIC - V.5.4.1.2 EFS / Upd. V.4.21.17 EFS
+@since  21/01/2020
+@obs    Gerado por EXPORDIC - V.6.3.0.1 EFS / Upd. V.5.0.0 EFS
 @version 1.0
 /*/
 //--------------------------------------------------------------------
@@ -426,7 +455,7 @@ aAdd( aSX2, { ;
 	'PRE LISTA DE POSTAGEM'													, ; //X2_NOME
 	'PRE LISTA DE POSTAGEM'													, ; //X2_NOMESPA
 	'PRE LISTA DE POSTAGEM'													, ; //X2_NOMEENG
-	'C'																		, ; //X2_MODO
+	'E'																		, ; //X2_MODO
 	''																		, ; //X2_TTS
 	''																		, ; //X2_ROTINA
 	''																		, ; //X2_PYME
@@ -437,8 +466,8 @@ aAdd( aSX2, { ;
 	''																		, ; //X2_POSLGT
 	''																		, ; //X2_CLOB
 	''																		, ; //X2_AUTREC
-	'C'																		, ; //X2_MODOEMP
-	'C'																		, ; //X2_MODOUN
+	'E'																		, ; //X2_MODOEMP
+	'E'																		, ; //X2_MODOUN
 	0																		} ) //X2_MODULO
 
 //
@@ -561,8 +590,8 @@ Return NIL
 Função de processamento da gravação do SX3 - Campos
 
 @author TOTVS Protheus
-@since  10/12/2019
-@obs    Gerado por EXPORDIC - V.5.4.1.2 EFS / Upd. V.4.21.17 EFS
+@since  21/01/2020
+@obs    Gerado por EXPORDIC - V.6.3.0.1 EFS / Upd. V.5.0.0 EFS
 @version 1.0
 /*/
 //--------------------------------------------------------------------
@@ -820,7 +849,7 @@ aAdd( aSX3, { ;
 	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
 	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(160)					, ; //X3_USADO
 	''																		, ; //X3_RELACAO
-	'SA4ECO'																, ; //X3_F3
+	'SA4SIG'																, ; //X3_F3
 	0																		, ; //X3_NIVEL
 	Chr(254) + Chr(192)														, ; //X3_RESERV
 	''																		, ; //X3_CHECK
@@ -857,12 +886,12 @@ aAdd( aSX3, { ;
 	'D'																		, ; //X3_TIPO
 	8																		, ; //X3_TAMANHO
 	0																		, ; //X3_DECIMAL
-	'DT Ini Sigep'															, ; //X3_TITULO
-	'DT Ini Sigep'															, ; //X3_TITSPA
-	'DT Ini Sigep'															, ; //X3_TITENG
-	'Data Inicio do Contrato'												, ; //X3_DESCRIC
-	'Data Inicio do Contrato'												, ; //X3_DESCSPA
-	'Data Inicio do Contrato'												, ; //X3_DESCENG
+	'Data Inicial'															, ; //X3_TITULO
+	'Data Inicial'															, ; //X3_TITSPA
+	'Data Inicial'															, ; //X3_TITENG
+	'Data Inicial do Contrato'												, ; //X3_DESCRIC
+	'Data Inicial do Contrato'												, ; //X3_DESCSPA
+	'Data Inicial do Contrato'												, ; //X3_DESCENG
 	''																		, ; //X3_PICTURE
 	''																		, ; //X3_VALID
 	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
@@ -875,7 +904,7 @@ aAdd( aSX3, { ;
 	''																		, ; //X3_CHECK
 	''																		, ; //X3_TRIGGER
 	'U'																		, ; //X3_PROPRI
-	'N'																		, ; //X3_BROWSE
+	'S'																		, ; //X3_BROWSE
 	'V'																		, ; //X3_VISUAL
 	'R'																		, ; //X3_CONTEXT
 	''																		, ; //X3_OBRIGAT
@@ -906,12 +935,12 @@ aAdd( aSX3, { ;
 	'D'																		, ; //X3_TIPO
 	8																		, ; //X3_TAMANHO
 	0																		, ; //X3_DECIMAL
-	'DT Fim Sigep'															, ; //X3_TITULO
-	'DT Fim Sigep'															, ; //X3_TITSPA
-	'DT Fim Sigep'															, ; //X3_TITENG
-	'Data Final do Contrato'												, ; //X3_DESCRIC
-	'Data Final do Contrato'												, ; //X3_DESCSPA
-	'Data Final do Contrato'												, ; //X3_DESCENG
+	'Data Final'															, ; //X3_TITULO
+	'Data Final'															, ; //X3_TITSPA
+	'Data Final'															, ; //X3_TITENG
+	'Data Final  do Contrato'												, ; //X3_DESCRIC
+	'Data Final  do Contrato'												, ; //X3_DESCSPA
+	'Data Final  do Contrato'												, ; //X3_DESCENG
 	''																		, ; //X3_PICTURE
 	''																		, ; //X3_VALID
 	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
@@ -924,7 +953,7 @@ aAdd( aSX3, { ;
 	''																		, ; //X3_CHECK
 	''																		, ; //X3_TRIGGER
 	'U'																		, ; //X3_PROPRI
-	'N'																		, ; //X3_BROWSE
+	'S'																		, ; //X3_BROWSE
 	'V'																		, ; //X3_VISUAL
 	'R'																		, ; //X3_CONTEXT
 	''																		, ; //X3_OBRIGAT
@@ -1397,7 +1426,7 @@ aAdd( aSX3, { ;
 	'10'																	, ; //X3_ORDEM
 	'ZZ1_NUMECO'															, ; //X3_CAMPO
 	'C'																		, ; //X3_TIPO
-	30																		, ; //X3_TAMANHO
+	20																		, ; //X3_TAMANHO
 	0																		, ; //X3_DECIMAL
 	'OrderID'																, ; //X3_TITULO
 	'OrderID'																, ; //X3_TITSPA
@@ -1417,7 +1446,7 @@ aAdd( aSX3, { ;
 	''																		, ; //X3_CHECK
 	''																		, ; //X3_TRIGGER
 	'U'																		, ; //X3_PROPRI
-	'N'																		, ; //X3_BROWSE
+	'S'																		, ; //X3_BROWSE
 	'V'																		, ; //X3_VISUAL
 	'R'																		, ; //X3_CONTEXT
 	''																		, ; //X3_OBRIGAT
@@ -1496,6 +1525,55 @@ aAdd( aSX3, { ;
 aAdd( aSX3, { ;
 	'ZZ2'																	, ; //X3_ARQUIVO
 	'02'																	, ; //X3_ORDEM
+	'ZZ2_CODIGO'															, ; //X3_CAMPO
+	'C'																		, ; //X3_TIPO
+	6																		, ; //X3_TAMANHO
+	0																		, ; //X3_DECIMAL
+	'Cod. PLP ERP'															, ; //X3_TITULO
+	'Cod. PLP ERP'															, ; //X3_TITSPA
+	'Cod. PLP ERP'															, ; //X3_TITENG
+	'Codigo PLP ERP'														, ; //X3_DESCRIC
+	'Codigo PLP ERP'														, ; //X3_DESCSPA
+	'Codigo PLP ERP'														, ; //X3_DESCENG
+	'@!'																	, ; //X3_PICTURE
+	''																		, ; //X3_VALID
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(160)					, ; //X3_USADO
+	''																		, ; //X3_RELACAO
+	''																		, ; //X3_F3
+	0																		, ; //X3_NIVEL
+	Chr(254) + Chr(192)														, ; //X3_RESERV
+	''																		, ; //X3_CHECK
+	''																		, ; //X3_TRIGGER
+	'U'																		, ; //X3_PROPRI
+	'S'																		, ; //X3_BROWSE
+	'V'																		, ; //X3_VISUAL
+	'R'																		, ; //X3_CONTEXT
+	''																		, ; //X3_OBRIGAT
+	''																		, ; //X3_VLDUSER
+	''																		, ; //X3_CBOX
+	''																		, ; //X3_CBOXSPA
+	''																		, ; //X3_CBOXENG
+	''																		, ; //X3_PICTVAR
+	''																		, ; //X3_WHEN
+	''																		, ; //X3_INIBRW
+	''																		, ; //X3_GRPSXG
+	''																		, ; //X3_FOLDER
+	''																		, ; //X3_CONDSQL
+	''																		, ; //X3_CHKSQL
+	''																		, ; //X3_IDXSRV
+	'N'																		, ; //X3_ORTOGRA
+	''																		, ; //X3_TELA
+	''																		, ; //X3_POSLGT
+	'N'																		, ; //X3_IDXFLD
+	''																		, ; //X3_AGRUP
+	''																		, ; //X3_MODAL
+	''																		} ) //X3_PYME
+
+aAdd( aSX3, { ;
+	'ZZ2'																	, ; //X3_ARQUIVO
+	'03'																	, ; //X3_ORDEM
 	'ZZ2_PLPID'																, ; //X3_CAMPO
 	'C'																		, ; //X3_TIPO
 	10																		, ; //X3_TAMANHO
@@ -1544,7 +1622,7 @@ aAdd( aSX3, { ;
 
 aAdd( aSX3, { ;
 	'ZZ2'																	, ; //X3_ARQUIVO
-	'03'																	, ; //X3_ORDEM
+	'04'																	, ; //X3_ORDEM
 	'ZZ2_STATUS'															, ; //X3_CAMPO
 	'C'																		, ; //X3_TIPO
 	2																		, ; //X3_TAMANHO
@@ -1559,7 +1637,7 @@ aAdd( aSX3, { ;
 	''																		, ; //X3_VALID
 	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
 	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
-	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(160)					, ; //X3_USADO
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128)					, ; //X3_USADO
 	''																		, ; //X3_RELACAO
 	''																		, ; //X3_F3
 	0																		, ; //X3_NIVEL
@@ -1567,7 +1645,7 @@ aAdd( aSX3, { ;
 	''																		, ; //X3_CHECK
 	''																		, ; //X3_TRIGGER
 	'U'																		, ; //X3_PROPRI
-	'S'																		, ; //X3_BROWSE
+	'N'																		, ; //X3_BROWSE
 	'V'																		, ; //X3_VISUAL
 	'R'																		, ; //X3_CONTEXT
 	''																		, ; //X3_OBRIGAT
@@ -1593,7 +1671,7 @@ aAdd( aSX3, { ;
 
 aAdd( aSX3, { ;
 	'ZZ2'																	, ; //X3_ARQUIVO
-	'12'																	, ; //X3_ORDEM
+	'05'																	, ; //X3_ORDEM
 	'ZZ2_DESC'																, ; //X3_CAMPO
 	'C'																		, ; //X3_TIPO
 	30																		, ; //X3_TAMANHO
@@ -1642,7 +1720,7 @@ aAdd( aSX3, { ;
 
 aAdd( aSX3, { ;
 	'ZZ2'																	, ; //X3_ARQUIVO
-	'13'																	, ; //X3_ORDEM
+	'06'																	, ; //X3_ORDEM
 	'ZZ2_DTINC'																, ; //X3_CAMPO
 	'D'																		, ; //X3_TIPO
 	8																		, ; //X3_TAMANHO
@@ -1691,7 +1769,7 @@ aAdd( aSX3, { ;
 
 aAdd( aSX3, { ;
 	'ZZ2'																	, ; //X3_ARQUIVO
-	'14'																	, ; //X3_ORDEM
+	'07'																	, ; //X3_ORDEM
 	'ZZ2_HRINC'																, ; //X3_CAMPO
 	'C'																		, ; //X3_TIPO
 	8																		, ; //X3_TAMANHO
@@ -1740,7 +1818,7 @@ aAdd( aSX3, { ;
 
 aAdd( aSX3, { ;
 	'ZZ2'																	, ; //X3_ARQUIVO
-	'15'																	, ; //X3_ORDEM
+	'08'																	, ; //X3_ORDEM
 	'ZZ2_DTALT'																, ; //X3_CAMPO
 	'D'																		, ; //X3_TIPO
 	8																		, ; //X3_TAMANHO
@@ -1789,7 +1867,7 @@ aAdd( aSX3, { ;
 
 aAdd( aSX3, { ;
 	'ZZ2'																	, ; //X3_ARQUIVO
-	'16'																	, ; //X3_ORDEM
+	'09'																	, ; //X3_ORDEM
 	'ZZ2_HRALT'																, ; //X3_CAMPO
 	'C'																		, ; //X3_TIPO
 	8																		, ; //X3_TAMANHO
@@ -2286,6 +2364,55 @@ aAdd( aSX3, { ;
 aAdd( aSX3, { ;
 	'ZZ4'																	, ; //X3_ARQUIVO
 	'03'																	, ; //X3_ORDEM
+	'ZZ4_CODIGO'															, ; //X3_CAMPO
+	'C'																		, ; //X3_TIPO
+	6																		, ; //X3_TAMANHO
+	0																		, ; //X3_DECIMAL
+	'Cod. PLP ERP'															, ; //X3_TITULO
+	'Cod. PLP ERP'															, ; //X3_TITSPA
+	'Cod. PLP ERP'															, ; //X3_TITENG
+	'Codigo PLP ERP'														, ; //X3_DESCRIC
+	'Codigo PLP ERP'														, ; //X3_DESCSPA
+	'Codigo PLP ERP'														, ; //X3_DESCENG
+	'@!'																	, ; //X3_PICTURE
+	''																		, ; //X3_VALID
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128)					, ; //X3_USADO
+	''																		, ; //X3_RELACAO
+	''																		, ; //X3_F3
+	0																		, ; //X3_NIVEL
+	Chr(254) + Chr(192)														, ; //X3_RESERV
+	''																		, ; //X3_CHECK
+	''																		, ; //X3_TRIGGER
+	'U'																		, ; //X3_PROPRI
+	'N'																		, ; //X3_BROWSE
+	'V'																		, ; //X3_VISUAL
+	'R'																		, ; //X3_CONTEXT
+	''																		, ; //X3_OBRIGAT
+	''																		, ; //X3_VLDUSER
+	''																		, ; //X3_CBOX
+	''																		, ; //X3_CBOXSPA
+	''																		, ; //X3_CBOXENG
+	''																		, ; //X3_PICTVAR
+	''																		, ; //X3_WHEN
+	''																		, ; //X3_INIBRW
+	''																		, ; //X3_GRPSXG
+	''																		, ; //X3_FOLDER
+	''																		, ; //X3_CONDSQL
+	''																		, ; //X3_CHKSQL
+	''																		, ; //X3_IDXSRV
+	'N'																		, ; //X3_ORTOGRA
+	''																		, ; //X3_TELA
+	''																		, ; //X3_POSLGT
+	'N'																		, ; //X3_IDXFLD
+	''																		, ; //X3_AGRUP
+	''																		, ; //X3_MODAL
+	''																		} ) //X3_PYME
+
+aAdd( aSX3, { ;
+	'ZZ4'																	, ; //X3_ARQUIVO
+	'04'																	, ; //X3_ORDEM
 	'ZZ4_PLPID'																, ; //X3_CAMPO
 	'C'																		, ; //X3_TIPO
 	10																		, ; //X3_TAMANHO
@@ -2334,7 +2461,7 @@ aAdd( aSX3, { ;
 
 aAdd( aSX3, { ;
 	'ZZ4'																	, ; //X3_ARQUIVO
-	'04'																	, ; //X3_ORDEM
+	'05'																	, ; //X3_ORDEM
 	'ZZ4_NOTA'																, ; //X3_CAMPO
 	'C'																		, ; //X3_TIPO
 	9																		, ; //X3_TAMANHO
@@ -2383,7 +2510,7 @@ aAdd( aSX3, { ;
 
 aAdd( aSX3, { ;
 	'ZZ4'																	, ; //X3_ARQUIVO
-	'05'																	, ; //X3_ORDEM
+	'06'																	, ; //X3_ORDEM
 	'ZZ4_SERIE'																, ; //X3_CAMPO
 	'C'																		, ; //X3_TIPO
 	3																		, ; //X3_TAMANHO
@@ -2432,7 +2559,7 @@ aAdd( aSX3, { ;
 
 aAdd( aSX3, { ;
 	'ZZ4'																	, ; //X3_ARQUIVO
-	'06'																	, ; //X3_ORDEM
+	'07'																	, ; //X3_ORDEM
 	'ZZ4_CLIENT'															, ; //X3_CAMPO
 	'C'																		, ; //X3_TIPO
 	6																		, ; //X3_TAMANHO
@@ -2481,7 +2608,7 @@ aAdd( aSX3, { ;
 
 aAdd( aSX3, { ;
 	'ZZ4'																	, ; //X3_ARQUIVO
-	'07'																	, ; //X3_ORDEM
+	'08'																	, ; //X3_ORDEM
 	'ZZ4_LOJA'																, ; //X3_CAMPO
 	'C'																		, ; //X3_TIPO
 	2																		, ; //X3_TAMANHO
@@ -2530,7 +2657,7 @@ aAdd( aSX3, { ;
 
 aAdd( aSX3, { ;
 	'ZZ4'																	, ; //X3_ARQUIVO
-	'08'																	, ; //X3_ORDEM
+	'09'																	, ; //X3_ORDEM
 	'ZZ4_CODETQ'															, ; //X3_CAMPO
 	'C'																		, ; //X3_TIPO
 	13																		, ; //X3_TAMANHO
@@ -2579,7 +2706,7 @@ aAdd( aSX3, { ;
 
 aAdd( aSX3, { ;
 	'ZZ4'																	, ; //X3_ARQUIVO
-	'09'																	, ; //X3_ORDEM
+	'10'																	, ; //X3_ORDEM
 	'ZZ4_CODSPO'															, ; //X3_CAMPO
 	'C'																		, ; //X3_TIPO
 	6																		, ; //X3_TAMANHO
@@ -2628,7 +2755,7 @@ aAdd( aSX3, { ;
 
 aAdd( aSX3, { ;
 	'ZZ4'																	, ; //X3_ARQUIVO
-	'10'																	, ; //X3_ORDEM
+	'11'																	, ; //X3_ORDEM
 	'ZZ4_CODEMB'															, ; //X3_CAMPO
 	'C'																		, ; //X3_TIPO
 	3																		, ; //X3_TAMANHO
@@ -2677,7 +2804,7 @@ aAdd( aSX3, { ;
 
 aAdd( aSX3, { ;
 	'ZZ4'																	, ; //X3_ARQUIVO
-	'11'																	, ; //X3_ORDEM
+	'12'																	, ; //X3_ORDEM
 	'ZZ4_NUMECO'															, ; //X3_CAMPO
 	'C'																		, ; //X3_TIPO
 	30																		, ; //X3_TAMANHO
@@ -2726,7 +2853,7 @@ aAdd( aSX3, { ;
 
 aAdd( aSX3, { ;
 	'ZZ4'																	, ; //X3_ARQUIVO
-	'12'																	, ; //X3_ORDEM
+	'13'																	, ; //X3_ORDEM
 	'ZZ4_NUMECL'															, ; //X3_CAMPO
 	'C'																		, ; //X3_TIPO
 	20																		, ; //X3_TAMANHO
@@ -2775,7 +2902,7 @@ aAdd( aSX3, { ;
 
 aAdd( aSX3, { ;
 	'ZZ4'																	, ; //X3_ARQUIVO
-	'13'																	, ; //X3_ORDEM
+	'14'																	, ; //X3_ORDEM
 	'ZZ4_NUMSC5'															, ; //X3_CAMPO
 	'C'																		, ; //X3_TIPO
 	6																		, ; //X3_TAMANHO
@@ -2800,6 +2927,104 @@ aAdd( aSX3, { ;
 	'U'																		, ; //X3_PROPRI
 	'N'																		, ; //X3_BROWSE
 	'A'																		, ; //X3_VISUAL
+	'R'																		, ; //X3_CONTEXT
+	''																		, ; //X3_OBRIGAT
+	''																		, ; //X3_VLDUSER
+	''																		, ; //X3_CBOX
+	''																		, ; //X3_CBOXSPA
+	''																		, ; //X3_CBOXENG
+	''																		, ; //X3_PICTVAR
+	''																		, ; //X3_WHEN
+	''																		, ; //X3_INIBRW
+	''																		, ; //X3_GRPSXG
+	''																		, ; //X3_FOLDER
+	''																		, ; //X3_CONDSQL
+	''																		, ; //X3_CHKSQL
+	''																		, ; //X3_IDXSRV
+	'N'																		, ; //X3_ORTOGRA
+	''																		, ; //X3_TELA
+	''																		, ; //X3_POSLGT
+	'N'																		, ; //X3_IDXFLD
+	''																		, ; //X3_AGRUP
+	''																		, ; //X3_MODAL
+	''																		} ) //X3_PYME
+
+aAdd( aSX3, { ;
+	'ZZ4'																	, ; //X3_ARQUIVO
+	'15'																	, ; //X3_ORDEM
+	'ZZ4_STATUS'															, ; //X3_CAMPO
+	'C'																		, ; //X3_TIPO
+	2																		, ; //X3_TAMANHO
+	0																		, ; //X3_DECIMAL
+	'Status'																, ; //X3_TITULO
+	'Status'																, ; //X3_TITSPA
+	'Status'																, ; //X3_TITENG
+	'Status Item PLP'														, ; //X3_DESCRIC
+	'Status Item PLP'														, ; //X3_DESCSPA
+	'Status Item PLP'														, ; //X3_DESCENG
+	'@!'																	, ; //X3_PICTURE
+	''																		, ; //X3_VALID
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(160)					, ; //X3_USADO
+	''																		, ; //X3_RELACAO
+	''																		, ; //X3_F3
+	0																		, ; //X3_NIVEL
+	Chr(254) + Chr(192)														, ; //X3_RESERV
+	''																		, ; //X3_CHECK
+	''																		, ; //X3_TRIGGER
+	'U'																		, ; //X3_PROPRI
+	'N'																		, ; //X3_BROWSE
+	'V'																		, ; //X3_VISUAL
+	'R'																		, ; //X3_CONTEXT
+	''																		, ; //X3_OBRIGAT
+	''																		, ; //X3_VLDUSER
+	''																		, ; //X3_CBOX
+	''																		, ; //X3_CBOXSPA
+	''																		, ; //X3_CBOXENG
+	''																		, ; //X3_PICTVAR
+	''																		, ; //X3_WHEN
+	''																		, ; //X3_INIBRW
+	''																		, ; //X3_GRPSXG
+	''																		, ; //X3_FOLDER
+	''																		, ; //X3_CONDSQL
+	''																		, ; //X3_CHKSQL
+	''																		, ; //X3_IDXSRV
+	'N'																		, ; //X3_ORTOGRA
+	''																		, ; //X3_TELA
+	''																		, ; //X3_POSLGT
+	'N'																		, ; //X3_IDXFLD
+	''																		, ; //X3_AGRUP
+	''																		, ; //X3_MODAL
+	''																		} ) //X3_PYME
+
+aAdd( aSX3, { ;
+	'ZZ4'																	, ; //X3_ARQUIVO
+	'16'																	, ; //X3_ORDEM
+	'ZZ4_DESC'																, ; //X3_CAMPO
+	'C'																		, ; //X3_TIPO
+	30																		, ; //X3_TAMANHO
+	0																		, ; //X3_DECIMAL
+	'Descricao'																, ; //X3_TITULO
+	'Descricao'																, ; //X3_TITSPA
+	'Descricao'																, ; //X3_TITENG
+	'Descricao Status'														, ; //X3_DESCRIC
+	'Descricao Status'														, ; //X3_DESCSPA
+	'Descricao Status'														, ; //X3_DESCENG
+	'@!'																	, ; //X3_PICTURE
+	''																		, ; //X3_VALID
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(160)					, ; //X3_USADO
+	''																		, ; //X3_RELACAO
+	''																		, ; //X3_F3
+	0																		, ; //X3_NIVEL
+	Chr(254) + Chr(192)														, ; //X3_RESERV
+	''																		, ; //X3_CHECK
+	''																		, ; //X3_TRIGGER
+	'U'																		, ; //X3_PROPRI
+	'N'																		, ; //X3_BROWSE
+	'V'																		, ; //X3_VISUAL
 	'R'																		, ; //X3_CONTEXT
 	''																		, ; //X3_OBRIGAT
 	''																		, ; //X3_VLDUSER
@@ -2920,8 +3145,8 @@ Return NIL
 Função de processamento da gravação do SIX - Indices
 
 @author TOTVS Protheus
-@since  10/12/2019
-@obs    Gerado por EXPORDIC - V.5.4.1.2 EFS / Upd. V.4.21.17 EFS
+@since  21/01/2020
+@obs    Gerado por EXPORDIC - V.6.3.0.1 EFS / Upd. V.5.0.0 EFS
 @version 1.0
 /*/
 //--------------------------------------------------------------------
@@ -3010,6 +3235,18 @@ aAdd( aSIX, { ;
 aAdd( aSIX, { ;
 	'ZZ2'																	, ; //INDICE
 	'1'																		, ; //ORDEM
+	'ZZ2_FILIAL+ZZ2_CODIGO'													, ; //CHAVE
+	'Cod. PLP ERP'															, ; //DESCRICAO
+	'Cod. PLP ERP'															, ; //DESCSPA
+	'Cod. PLP ERP'															, ; //DESCENG
+	'U'																		, ; //PROPRI
+	''																		, ; //F3
+	''																		, ; //NICKNAME
+	'S'																		} ) //SHOWPESQ
+
+aAdd( aSIX, { ;
+	'ZZ2'																	, ; //INDICE
+	'2'																		, ; //ORDEM
 	'ZZ2_FILIAL+ZZ2_PLPID'													, ; //CHAVE
 	'Numero PLP'															, ; //DESCRICAO
 	'Numero PLP'															, ; //DESCSPA
@@ -3040,6 +3277,18 @@ aAdd( aSIX, { ;
 aAdd( aSIX, { ;
 	'ZZ4'																	, ; //INDICE
 	'1'																		, ; //ORDEM
+	'ZZ4_FILIAL+ZZ4_CODIGO+ZZ4_NOTA+ZZ4_SERIE'								, ; //CHAVE
+	'Cod. PLP ERP+Nota+Serie'												, ; //DESCRICAO
+	'Cod. PLP ERP+Nota+Serie'												, ; //DESCSPA
+	'Cod. PLP ERP+Nota+Serie'												, ; //DESCENG
+	'U'																		, ; //PROPRI
+	''																		, ; //F3
+	''																		, ; //NICKNAME
+	'S'																		} ) //SHOWPESQ
+
+aAdd( aSIX, { ;
+	'ZZ4'																	, ; //INDICE
+	'2'																		, ; //ORDEM
 	'ZZ4_FILIAL+ZZ4_PLPID+ZZ4_NOTA+ZZ4_SERIE'								, ; //CHAVE
 	'Pre Lista ID+Nota+Serie'												, ; //DESCRICAO
 	'Pre Lista ID+Nota+Serie'												, ; //DESCSPA
@@ -3102,8 +3351,8 @@ Return NIL
 Função de processamento da gravação do SX6 - Parâmetros
 
 @author TOTVS Protheus
-@since  10/12/2019
-@obs    Gerado por EXPORDIC - V.5.4.1.2 EFS / Upd. V.4.21.17 EFS
+@since  21/01/2020
+@obs    Gerado por EXPORDIC - V.6.3.0.1 EFS / Upd. V.5.0.0 EFS
 @version 1.0
 /*/
 //--------------------------------------------------------------------
@@ -3133,31 +3382,7 @@ aAdd( aSX6, { ;
 	'  '																	, ; //X6_FIL
 	'EC_CNPJSIG'															, ; //X6_VAR
 	'C'																		, ; //X6_TIPO
-	'Define CNPJ identificador para solicitacao de etiq'					, ; //X6_DESCRIC
-	''																		, ; //X6_DSCSPA
-	''																		, ; //X6_DSCENG
-	'uetas SIGEP'															, ; //X6_DESC1
-	''																		, ; //X6_DSCSPA1
-	''																		, ; //X6_DSCENG1
-	''																		, ; //X6_DESC2
-	''																		, ; //X6_DSCSPA2
-	''																		, ; //X6_DSCENG2
-	'06194426000452'														, ; //X6_CONTEUD
-	'06194426000452'														, ; //X6_CONTSPA
-	'06194426000452'														, ; //X6_CONTENG
-	'U'																		, ; //X6_PROPRI
-	''																		, ; //X6_VALID
-	''																		, ; //X6_INIT
-	''																		, ; //X6_DEFPOR
-	''																		, ; //X6_DEFSPA
-	''																		, ; //X6_DEFENG
-	'S'																		} ) //X6_PYME
-
-aAdd( aSX6, { ;
-	'  '																	, ; //X6_FIL
-	'EC_CODADM'																, ; //X6_VAR
-	'C'																		, ; //X6_TIPO
-	'Informa codigo administrativo para o SIGEPWEB'							, ; //X6_DESCRIC
+	'CNPJ utilizado para integracoes com o SIGEP'							, ; //X6_DESCRIC
 	''																		, ; //X6_DSCSPA
 	''																		, ; //X6_DSCENG
 	''																		, ; //X6_DESC1
@@ -3166,16 +3391,40 @@ aAdd( aSX6, { ;
 	''																		, ; //X6_DESC2
 	''																		, ; //X6_DSCSPA2
 	''																		, ; //X6_DSCENG2
-	'13424386'																, ; //X6_CONTEUD
-	'13424386'																, ; //X6_CONTSPA
-	'13424386'																, ; //X6_CONTENG
+	'34028316000103'														, ; //X6_CONTEUD
+	'34028316000103'														, ; //X6_CONTSPA
+	'34028316000103'														, ; //X6_CONTENG
 	'U'																		, ; //X6_PROPRI
 	''																		, ; //X6_VALID
 	''																		, ; //X6_INIT
 	''																		, ; //X6_DEFPOR
 	''																		, ; //X6_DEFSPA
 	''																		, ; //X6_DEFENG
-	'S'																		} ) //X6_PYME
+	''																		} ) //X6_PYME
+
+aAdd( aSX6, { ;
+	'  '																	, ; //X6_FIL
+	'EC_CODADM'																, ; //X6_VAR
+	'C'																		, ; //X6_TIPO
+	'Informa codigo administrativo utilizado nas integr'					, ; //X6_DESCRIC
+	''																		, ; //X6_DSCSPA
+	''																		, ; //X6_DSCENG
+	'acoes SIGEP'															, ; //X6_DESC1
+	''																		, ; //X6_DSCSPA1
+	''																		, ; //X6_DSCENG1
+	''																		, ; //X6_DESC2
+	''																		, ; //X6_DSCSPA2
+	''																		, ; //X6_DSCENG2
+	'17000190'																, ; //X6_CONTEUD
+	'17000190'																, ; //X6_CONTSPA
+	'17000190'																, ; //X6_CONTENG
+	'U'																		, ; //X6_PROPRI
+	''																		, ; //X6_VALID
+	''																		, ; //X6_INIT
+	''																		, ; //X6_DEFPOR
+	''																		, ; //X6_DEFSPA
+	''																		, ; //X6_DEFENG
+	''																		} ) //X6_PYME
 
 aAdd( aSX6, { ;
 	'  '																	, ; //X6_FIL
@@ -3191,8 +3440,8 @@ aAdd( aSX6, { ;
 	''																		, ; //X6_DSCSPA2
 	''																		, ; //X6_DSCENG2
 	'9992157880'															, ; //X6_CONTEUD
-	'9912208555'															, ; //X6_CONTSPA
-	'9912208555'															, ; //X6_CONTENG
+	'9992157880'															, ; //X6_CONTSPA
+	'9992157880'															, ; //X6_CONTENG
 	'U'																		, ; //X6_PROPRI
 	''																		, ; //X6_VALID
 	''																		, ; //X6_INIT
@@ -3215,8 +3464,8 @@ aAdd( aSX6, { ;
 	''																		, ; //X6_DSCSPA2
 	''																		, ; //X6_DSCENG2
 	'0067599079'															, ; //X6_CONTEUD
-	'0057018901'															, ; //X6_CONTSPA
-	'0057018901'															, ; //X6_CONTENG
+	'0067599079'															, ; //X6_CONTSPA
+	'0067599079'															, ; //X6_CONTENG
 	'U'																		, ; //X6_PROPRI
 	''																		, ; //X6_VALID
 	''																		, ; //X6_INIT
@@ -3253,10 +3502,10 @@ aAdd( aSX6, { ;
 	'  '																	, ; //X6_FIL
 	'EC_QTDETQ'																, ; //X6_VAR
 	'N'																		, ; //X6_TIPO
-	'Define quanidade de etiquetas solicitadas por serv'					, ; //X6_DESCRIC
+	'Define quantidades de etiquetas sera solicitadas p'					, ; //X6_DESCRIC
 	''																		, ; //X6_DSCSPA
 	''																		, ; //X6_DSCENG
-	'ico no SigepWeb'														, ; //X6_DESC1
+	'or servico contratado.'												, ; //X6_DESC1
 	''																		, ; //X6_DSCSPA1
 	''																		, ; //X6_DSCENG1
 	''																		, ; //X6_DESC2
@@ -3271,7 +3520,7 @@ aAdd( aSX6, { ;
 	''																		, ; //X6_DEFPOR
 	''																		, ; //X6_DEFSPA
 	''																		, ; //X6_DEFENG
-	'S'																		} ) //X6_PYME
+	''																		} ) //X6_PYME
 
 aAdd( aSX6, { ;
 	'  '																	, ; //X6_FIL
@@ -3368,8 +3617,8 @@ Return NIL
 Função de processamento da gravação do SXB - Consultas Padrao
 
 @author TOTVS Protheus
-@since  10/12/2019
-@obs    Gerado por EXPORDIC - V.5.4.1.2 EFS / Upd. V.4.21.17 EFS
+@since  21/01/2020
+@obs    Gerado por EXPORDIC - V.6.3.0.1 EFS / Upd. V.5.0.0 EFS
 @version 1.0
 /*/
 //--------------------------------------------------------------------
@@ -3391,23 +3640,34 @@ aEstrut := { "XB_ALIAS"  , "XB_TIPO"   , "XB_SEQ"    , "XB_COLUNA" , "XB_DESCRI"
 
 
 //
-// Consulta SA4ECO
+// Consulta SA4SIG
 //
 aAdd( aSXB, { ;
-	'SA4ECO'																, ; //XB_ALIAS
+	'SA4SIG'																, ; //XB_ALIAS
 	'1'																		, ; //XB_TIPO
 	'01'																	, ; //XB_SEQ
 	'DB'																	, ; //XB_COLUNA
-	'Transp eCommerce'														, ; //XB_DESCRI
-	'Transp eCommerce'														, ; //XB_DESCSPA
-	'Transp eCommerce'														, ; //XB_DESCENG
+	'Transportado SIGEP'													, ; //XB_DESCRI
+	'Transportado SIGEP'													, ; //XB_DESCSPA
+	'Transportado SIGEP'													, ; //XB_DESCENG
 	''																		, ; //XB_WCONTEM
 	'SA4'																	} ) //XB_CONTEM
 
 aAdd( aSXB, { ;
-	'SA4ECO'																, ; //XB_ALIAS
+	'SA4SIG'																, ; //XB_ALIAS
 	'2'																		, ; //XB_TIPO
 	'01'																	, ; //XB_SEQ
+	'01'																	, ; //XB_COLUNA
+	'Codigo'																, ; //XB_DESCRI
+	'Codigo'																, ; //XB_DESCSPA
+	'Code'																	, ; //XB_DESCENG
+	''																		, ; //XB_WCONTEM
+	''																		} ) //XB_CONTEM
+
+aAdd( aSXB, { ;
+	'SA4SIG'																, ; //XB_ALIAS
+	'2'																		, ; //XB_TIPO
+	'02'																	, ; //XB_SEQ
 	'04'																	, ; //XB_COLUNA
 	'E-commerce'															, ; //XB_DESCRI
 	'E-commerce'															, ; //XB_DESCSPA
@@ -3416,21 +3676,21 @@ aAdd( aSXB, { ;
 	''																		} ) //XB_CONTEM
 
 aAdd( aSXB, { ;
-	'SA4ECO'																, ; //XB_ALIAS
+	'SA4SIG'																, ; //XB_ALIAS
+	'3'																		, ; //XB_TIPO
+	'01'																	, ; //XB_SEQ
+	'01'																	, ; //XB_COLUNA
+	'Cadastra Novo'															, ; //XB_DESCRI
+	'Incluye Nuevo'															, ; //XB_DESCSPA
+	'Add New'																, ; //XB_DESCENG
+	''																		, ; //XB_WCONTEM
+	'01'																	} ) //XB_CONTEM
+
+aAdd( aSXB, { ;
+	'SA4SIG'																, ; //XB_ALIAS
 	'4'																		, ; //XB_TIPO
 	'01'																	, ; //XB_SEQ
 	'01'																	, ; //XB_COLUNA
-	'Filial'																, ; //XB_DESCRI
-	'Sucursal'																, ; //XB_DESCSPA
-	'Branch'																, ; //XB_DESCENG
-	''																		, ; //XB_WCONTEM
-	'A4_FILIAL'																} ) //XB_CONTEM
-
-aAdd( aSXB, { ;
-	'SA4ECO'																, ; //XB_ALIAS
-	'4'																		, ; //XB_TIPO
-	'01'																	, ; //XB_SEQ
-	'02'																	, ; //XB_COLUNA
 	'Codigo'																, ; //XB_DESCRI
 	'Codigo'																, ; //XB_DESCSPA
 	'Code'																	, ; //XB_DESCENG
@@ -3438,10 +3698,10 @@ aAdd( aSXB, { ;
 	'A4_COD'																} ) //XB_CONTEM
 
 aAdd( aSXB, { ;
-	'SA4ECO'																, ; //XB_ALIAS
+	'SA4SIG'																, ; //XB_ALIAS
 	'4'																		, ; //XB_TIPO
 	'01'																	, ; //XB_SEQ
-	'03'																	, ; //XB_COLUNA
+	'02'																	, ; //XB_COLUNA
 	'Nome'																	, ; //XB_DESCRI
 	'Nombre'																, ; //XB_DESCSPA
 	'Name'																	, ; //XB_DESCENG
@@ -3449,10 +3709,10 @@ aAdd( aSXB, { ;
 	'A4_NOME'																} ) //XB_CONTEM
 
 aAdd( aSXB, { ;
-	'SA4ECO'																, ; //XB_ALIAS
+	'SA4SIG'																, ; //XB_ALIAS
 	'4'																		, ; //XB_TIPO
-	'01'																	, ; //XB_SEQ
-	'04'																	, ; //XB_COLUNA
+	'02'																	, ; //XB_SEQ
+	'01'																	, ; //XB_COLUNA
 	'E-Commerce'															, ; //XB_DESCRI
 	'E-Commerce'															, ; //XB_DESCSPA
 	'E-Commerce'															, ; //XB_DESCENG
@@ -3460,7 +3720,18 @@ aAdd( aSXB, { ;
 	'A4_ECSERVI'															} ) //XB_CONTEM
 
 aAdd( aSXB, { ;
-	'SA4ECO'																, ; //XB_ALIAS
+	'SA4SIG'																, ; //XB_ALIAS
+	'4'																		, ; //XB_TIPO
+	'02'																	, ; //XB_SEQ
+	'02'																	, ; //XB_COLUNA
+	'Nome'																	, ; //XB_DESCRI
+	'Nombre'																, ; //XB_DESCSPA
+	'Name'																	, ; //XB_DESCENG
+	''																		, ; //XB_WCONTEM
+	'A4_NOME'																} ) //XB_CONTEM
+
+aAdd( aSXB, { ;
+	'SA4SIG'																, ; //XB_ALIAS
 	'5'																		, ; //XB_TIPO
 	'01'																	, ; //XB_SEQ
 	''																		, ; //XB_COLUNA
@@ -3471,7 +3742,7 @@ aAdd( aSXB, { ;
 	'SA4->A4_ECSERVI'														} ) //XB_CONTEM
 
 aAdd( aSXB, { ;
-	'SA4ECO'																, ; //XB_ALIAS
+	'SA4SIG'																, ; //XB_ALIAS
 	'6'																		, ; //XB_TIPO
 	'01'																	, ; //XB_SEQ
 	''																		, ; //XB_COLUNA
@@ -3479,7 +3750,76 @@ aAdd( aSXB, { ;
 	''																		, ; //XB_DESCSPA
 	''																		, ; //XB_DESCENG
 	''																		, ; //XB_WCONTEM
-	'!Empty(A4_ECSERVI)'													} ) //XB_CONTEM
+	"SA4->A4_ECSERVI <> ''"													} ) //XB_CONTEM
+
+//
+// Consulta ZZ2
+//
+aAdd( aSXB, { ;
+	'ZZ2'																	, ; //XB_ALIAS
+	'1'																		, ; //XB_TIPO
+	'01'																	, ; //XB_SEQ
+	'DB'																	, ; //XB_COLUNA
+	'PLP SIGEP'																, ; //XB_DESCRI
+	'PLP SIGEP'																, ; //XB_DESCSPA
+	'PLP SIGEP'																, ; //XB_DESCENG
+	''																		, ; //XB_WCONTEM
+	'ZZ2'																	} ) //XB_CONTEM
+
+aAdd( aSXB, { ;
+	'ZZ2'																	, ; //XB_ALIAS
+	'2'																		, ; //XB_TIPO
+	'01'																	, ; //XB_SEQ
+	'01'																	, ; //XB_COLUNA
+	'Cod. Plp Erp'															, ; //XB_DESCRI
+	'Cod. Plp Erp'															, ; //XB_DESCSPA
+	'Cod. Plp Erp'															, ; //XB_DESCENG
+	''																		, ; //XB_WCONTEM
+	''																		} ) //XB_CONTEM
+
+aAdd( aSXB, { ;
+	'ZZ2'																	, ; //XB_ALIAS
+	'4'																		, ; //XB_TIPO
+	'01'																	, ; //XB_SEQ
+	'01'																	, ; //XB_COLUNA
+	'Filial'																, ; //XB_DESCRI
+	'Sucursal'																, ; //XB_DESCSPA
+	'Branch'																, ; //XB_DESCENG
+	''																		, ; //XB_WCONTEM
+	'ZZ2_FILIAL'															} ) //XB_CONTEM
+
+aAdd( aSXB, { ;
+	'ZZ2'																	, ; //XB_ALIAS
+	'4'																		, ; //XB_TIPO
+	'01'																	, ; //XB_SEQ
+	'02'																	, ; //XB_COLUNA
+	'Cod. PLP ERP'															, ; //XB_DESCRI
+	'Cod. PLP ERP'															, ; //XB_DESCSPA
+	'Cod. PLP ERP'															, ; //XB_DESCENG
+	''																		, ; //XB_WCONTEM
+	'ZZ2_CODIGO'															} ) //XB_CONTEM
+
+aAdd( aSXB, { ;
+	'ZZ2'																	, ; //XB_ALIAS
+	'4'																		, ; //XB_TIPO
+	'01'																	, ; //XB_SEQ
+	'03'																	, ; //XB_COLUNA
+	'Numero PLP'															, ; //XB_DESCRI
+	'Numero PLP'															, ; //XB_DESCSPA
+	'Numero PLP'															, ; //XB_DESCENG
+	''																		, ; //XB_WCONTEM
+	'ZZ2_PLPID'																} ) //XB_CONTEM
+
+aAdd( aSXB, { ;
+	'ZZ2'																	, ; //XB_ALIAS
+	'5'																		, ; //XB_TIPO
+	'01'																	, ; //XB_SEQ
+	''																		, ; //XB_COLUNA
+	''																		, ; //XB_DESCRI
+	''																		, ; //XB_DESCSPA
+	''																		, ; //XB_DESCENG
+	''																		, ; //XB_WCONTEM
+	'ZZ2->ZZ2_CODIGO'														} ) //XB_CONTEM
 
 //
 // Atualizando dicionário
@@ -3581,6 +3921,94 @@ Next nI
 AutoGrLog( CRLF + "Final da Atualização" + " SXB" + CRLF + Replicate( "-", 128 ) + CRLF )
 
 Return NIL
+
+
+//--------------------------------------------------------------------
+/*/{Protheus.doc} FSAtuHlp
+Função de processamento da gravação dos Helps de Campos
+
+@author TOTVS Protheus
+@since  21/01/2020
+@obs    Gerado por EXPORDIC - V.6.3.0.1 EFS / Upd. V.5.0.0 EFS
+@version 1.0
+/*/
+//--------------------------------------------------------------------
+Static Function FSAtuHlp()
+Local aHlpPor   := {}
+Local aHlpEng   := {}
+Local aHlpSpa   := {}
+
+AutoGrLog( "Ínicio da Atualização" + " " + "Helps de Campos" + CRLF )
+
+
+oProcess:IncRegua2( "Atualizando Helps de Campos ..." )
+
+//
+// Helps Tabela ZZ0
+//
+aHlpPor := {}
+aAdd( aHlpPor, 'Data Inicial do Contrato' )
+aHlpEng := {}
+aHlpSpa := {}
+
+PutHelp( "PZZ0_DTINI ", aHlpPor, aHlpEng, aHlpSpa, .T. )
+AutoGrLog( "Atualizado o Help do campo " + "ZZ0_DTINI" )
+
+aHlpPor := {}
+aAdd( aHlpPor, 'Data Final  do Contrato' )
+aHlpEng := {}
+aHlpSpa := {}
+
+PutHelp( "PZZ0_DTFIM ", aHlpPor, aHlpEng, aHlpSpa, .T. )
+AutoGrLog( "Atualizado o Help do campo " + "ZZ0_DTFIM" )
+
+//
+// Helps Tabela ZZ1
+//
+//
+// Helps Tabela ZZ2
+//
+aHlpPor := {}
+aAdd( aHlpPor, 'Codigo PLP ERP' )
+aHlpEng := {}
+aHlpSpa := {}
+
+PutHelp( "PZZ2_CODIGO", aHlpPor, aHlpEng, aHlpSpa, .T. )
+AutoGrLog( "Atualizado o Help do campo " + "ZZ2_CODIGO" )
+
+//
+// Helps Tabela ZZ3
+//
+//
+// Helps Tabela ZZ4
+//
+aHlpPor := {}
+aAdd( aHlpPor, 'Codigo PLP ERP' )
+aHlpEng := {}
+aHlpSpa := {}
+
+PutHelp( "PZZ4_CODIGO", aHlpPor, aHlpEng, aHlpSpa, .T. )
+AutoGrLog( "Atualizado o Help do campo " + "ZZ4_CODIGO" )
+
+aHlpPor := {}
+aAdd( aHlpPor, 'Status Item PLP' )
+aHlpEng := {}
+aHlpSpa := {}
+
+PutHelp( "PZZ4_STATUS", aHlpPor, aHlpEng, aHlpSpa, .T. )
+AutoGrLog( "Atualizado o Help do campo " + "ZZ4_STATUS" )
+
+aHlpPor := {}
+aAdd( aHlpPor, 'Descricao Status' )
+aHlpEng := {}
+aHlpSpa := {}
+
+PutHelp( "PZZ4_DESC  ", aHlpPor, aHlpEng, aHlpSpa, .T. )
+AutoGrLog( "Atualizado o Help do campo " + "ZZ4_DESC" )
+
+AutoGrLog( CRLF + "Final da Atualização" + " " + "Helps de Campos" + CRLF + Replicate( "-", 128 ) + CRLF )
+
+Return {}
 
 
 //--------------------------------------------------------------------
@@ -3836,8 +4264,8 @@ Return NIL
 Função de processamento abertura do SM0 modo exclusivo
 
 @author TOTVS Protheus
-@since  10/12/2019
-@obs    Gerado por EXPORDIC - V.5.4.1.2 EFS / Upd. V.4.21.17 EFS
+@since  21/01/2020
+@obs    Gerado por EXPORDIC - V.6.3.0.1 EFS / Upd. V.5.0.0 EFS
 @version 1.0
 /*/
 //--------------------------------------------------------------------
@@ -3845,18 +4273,26 @@ Static Function MyOpenSM0(lShared)
 Local lOpen := .F.
 Local nLoop := 0
 
-For nLoop := 1 To 20
-	dbUseArea( .T., , "SIGAMAT.EMP", "SM0", lShared, .F. )
+If FindFunction( "OpenSM0Excl" )
+	For nLoop := 1 To 20
+		If OpenSM0Excl(,.F.)
+			lOpen := .T.
+			Exit
+		EndIf
+		Sleep( 500 )
+	Next nLoop
+Else
+	For nLoop := 1 To 20
+		dbUseArea( .T., , "SIGAMAT.EMP", "SM0", lShared, .F. )
 
-	If !Empty( Select( "SM0" ) )
-		lOpen := .T.
-		dbSetIndex( "SIGAMAT.IND" )
-		Exit
-	EndIf
-
-	Sleep( 500 )
-
-Next nLoop
+		If !Empty( Select( "SM0" ) )
+			lOpen := .T.
+			dbSetIndex( "SIGAMAT.IND" )
+			Exit
+		EndIf
+		Sleep( 500 )
+	Next nLoop
+EndIf
 
 If !lOpen
 	MsgStop( "Não foi possível a abertura da tabela " + ;
@@ -3871,8 +4307,8 @@ Return lOpen
 Função de leitura do LOG gerado com limitacao de string
 
 @author TOTVS Protheus
-@since  10/12/2019
-@obs    Gerado por EXPORDIC - V.5.4.1.2 EFS / Upd. V.4.21.17 EFS
+@since  21/01/2020
+@obs    Gerado por EXPORDIC - V.6.3.0.1 EFS / Upd. V.5.0.0 EFS
 @version 1.0
 /*/
 //--------------------------------------------------------------------

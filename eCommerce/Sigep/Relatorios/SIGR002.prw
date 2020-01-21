@@ -23,8 +23,9 @@
 /*/
 /**********************************************************************************/
 User Function SIGR002()
-Local _cPerg := "SIGR02"
+Local _cPerg 	:= "SIGR02"
 
+Private _lJob	:= .F.
 //------------------------------+
 // Cria Parametros do relatorio |
 //------------------------------+
@@ -54,6 +55,7 @@ Local _cDirRaiz			:= GetTempPath()
 Local _cFile			:= "PLP_" + DToS(dDataBase) + Left(Time(),2) + SubStr(Time(),4,2) + Right(Time(),2) + ".PD_"
 Local _cDirExp			:= "\spool\"
 Local _cCodPlp			:= ""
+Local _cIDPlp			:= ""
 
 Local _nToReg			:= 0
 Local _nTotPlp			:= 0
@@ -101,19 +103,23 @@ _oPrint:setPaperSize(TAM_A4)
 //---------------------------------------+
 // Coordendas para linha inicial e final |
 //---------------------------------------+
+ProcRegua(_nToReg)
 While (_cAlias)->( !Eof() )
 	
 	_cCodPlp := (_cAlias)->ZZ2_CODIGO
+	_cIDPlp	 := (_cAlias)->ZZ2_PLPID
 	_nTotPlp := 0
 
 	//---------------------+
 	// Inicio da Impressao |
 	//---------------------+
-	SigR02Cabec(_oPrint,_cCodPlp)
+	SigR02Cabec(_oPrint,_cIDPlp)
 	_nLinI := 115
 	_nLinF := 142
 	While (_cAlias)->( !Eof() .And. _cCodPlp == (_cAlias)->ZZ2_CODIGO )
-							
+
+		IncProc("PLP " + (_cAlias)->ZZ2_CODIGO)
+
 		If _nLinI >= 850
 			//------------------------+
 			// Encerra a pagina atual |
@@ -123,7 +129,7 @@ While (_cAlias)->( !Eof() )
 			//-------------------+
 			// Imprime cabeçalho |
 			//-------------------+
-			SigR02Cabec(_oPrint,_cCodPlp)
+			SigR02Cabec(_oPrint,_cIDPlp)
 
 			//---------------------------------------+
 			// Coordendas para linha inicial e final |
@@ -138,7 +144,7 @@ While (_cAlias)->( !Eof() )
 
 		_oPrint:Say(_nLinI + 7, 030, RTrim((_cAlias)->ZZ4_CODETQ)											, _oFont08, 100 )
 		_oPrint:Say(_nLinI + 7, 100, (_cAlias)->WSA_CEPE													, _oFont08, 100 )
-		_oPrint:Say(_nLinI + 7, 160, cValToChar((_cAlias)->WSA_PBRUTO)										, _oFont08, 100 )
+		_oPrint:Say(_nLinI + 7, 160, cValToChar((_cAlias)->C5_PBRUTO)										, _oFont08, 100 )
 		_oPrint:Say(_nLinI + 7, 192, "N"																	, _oFont08, 100 )
 		_oPrint:Say(_nLinI + 7, 212, "N"																	, _oFont08, 100 )
 		_oPrint:Say(_nLinI + 7, 232, "N"																	, _oFont08, 100 )
@@ -196,12 +202,12 @@ Return Nil
 @type function
 /*/
 /**********************************************************************************/
-Static Function SigR02Cabec(_oPrint,_cCodPlp)
+Static Function SigR02Cabec(_oPrint,_cIDPlp)
 Local _cTitCabec	:= "EMPRESA BRASILEIRA DE CORREIOS E TELÉGRAFOS"
 Local _cSubTit		:= "LISTA DE POSTAGEM"
-Local _cCodCont		:= GetNewPar("EC_CODCONT","9912208555")
-Local _cCodAdm		:= GetNewPar("EC_CODADM","08082650")
-Local _cIdCartao	:= GetNewPar("EC_IDCARTA","0057018901")
+Local _cCodCont		:= GetNewPar("EC_CODCONT")
+Local _cCodAdm		:= GetNewPar("EC_CODADM")
+Local _cIdCartao	:= GetNewPar("EC_IDCARTA")
 Local _cBitMap		:= GetSrvProfString("Startpath","")+"\correios.bmp"
 Local _cEnd_01 		:= ""
 Local _cEnd_02 		:= ""
@@ -228,7 +234,7 @@ _oPrint:Line(112, 025, 112, 600, 0, "-9")
 _oPrint:Say(024, 165, _cTitCabec						, _oFont18N, 100 )
 _oPrint:Say(042, 260, _cSubTit 							, _oFont12N, 100 ) 
 _oPrint:Say(053, 030, "N° da Lista:"					, _oFont12N, 100 ) 
-_oPrint:Say(053, 090, _cCodPlp	 						, _oFont12 , 100 )
+_oPrint:Say(053, 090, _cIDPlp	 						, _oFont12 , 100 )
 _oPrint:Say(053, 190, "Remetente:" 						, _oFont12N, 100 )
 _oPrint:Say(053, 260, RTrim(Capital(SM0->M0_NOMECOM))	, _oFont12 , 100 )
 
@@ -346,23 +352,29 @@ _cQuery += "	ZZ2.ZZ2_CODIGO, " + CRLF
 _cQuery += "	ZZ2.ZZ2_PLPID, " + CRLF
 _cQuery += "	ZZ4.ZZ4_CODETQ, " + CRLF
 _cQuery += "	WSA.WSA_NOMDES, " + CRLF
+_cQuery += "	WSA.WSA_ENDENT, " + CRLF
+_cQuery += "	WSA.WSA_BAIRRE, " + CRLF
+_cQuery += "	WSA.WSA_MUNE, " + CRLF
 _cQuery += "	WSA.WSA_CEPE, " + CRLF
+_cQuery += "	WSA.WSA_ESTE, " + CRLF
 _cQuery += "	WSA.WSA_COMPLE, " + CRLF
 _cQuery += "	WSA.WSA_DOC, " + CRLF
 _cQuery += "	WSA.WSA_SERIE, " + CRLF
-_cQuery += "	WSA.WSA_VOLUME, " + CRLF
-_cQuery += "	WSA.WSA_PBRUTO, " + CRLF
+_cQuery += "	SC5.C5_VOLUME1, " + CRLF
+_cQuery += "	SC5.C5_PBRUTO, " + CRLF
 _cQuery += "	WSA.WSA_VLRTOT, " + CRLF	 
 _cQuery += "	ZZ0.ZZ0_CODSER, " + CRLF	 
 _cQuery += "	ZZ0.ZZ0_DESCRI " + CRLF	 
 _cQuery += " FROM " + CRLF
-_cQuery += "	ZZ2010 ZZ2 " + CRLF 
-_cQuery += "	INNER JOIN ZZ4010 ZZ4 ON ZZ4.ZZ4_FILIAL = ZZ2.ZZ2_FILIAL AND ZZ4.ZZ4_CODIGO = ZZ2.ZZ2_CODIGO AND ZZ4.D_E_L_E_T_ = '' " + CRLF
-_cQuery += "	INNER JOIN WSA010 WSA ON WSA.WSA_FILIAL = ZZ4.ZZ4_FILIAL AND WSA.WSA_NUMECO = ZZ4.ZZ4_NUMECO AND WSA.D_E_L_E_T_ = '' " + CRLF
-_cQuery += "	INNER JOIN ZZ0010 ZZ0 ON ZZ0.ZZ0_FILIAL = ZZ2.ZZ2_FILIAL AND ZZ0.ZZ0_IDSER = ZZ4.ZZ4_CODSPO AND ZZ0.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "	" + RetSqlName("ZZ2") + " ZZ2 " + CRLF 
+_cQuery += "	INNER JOIN " + RetSqlName("ZZ4") + " ZZ4 ON ZZ4.ZZ4_FILIAL = ZZ2.ZZ2_FILIAL AND ZZ4.ZZ4_CODIGO = ZZ2.ZZ2_CODIGO AND ZZ4.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "	INNER JOIN " + RetSqlName("WSA") + " WSA ON WSA.WSA_FILIAL = ZZ4.ZZ4_FILIAL AND WSA.WSA_NUMECO = ZZ4.ZZ4_NUMECO AND WSA.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "	INNER JOIN " + RetSqlName("ZZ0") + " ZZ0 ON ZZ0.ZZ0_FILIAL = ZZ2.ZZ2_FILIAL AND ZZ0.ZZ0_IDSER = ZZ4.ZZ4_CODSPO AND ZZ0.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "	INNER JOIN " + RetSqlName("SC5") + " SC5 ON SC5.C5_FILIAL = WSA.WSA_FILIAL AND SC5.C5_NUM = WSA.WSA_NUMSC5 AND SC5.D_E_L_E_T_ = '' " + CRLF
 _cQuery += " WHERE " + CRLF
-_cQuery += "	ZZ2.ZZ2_FILIAL = '06' AND " + CRLF
-_cQuery += "	ZZ2.ZZ2_CODIGO BETWEEN '' AND 'ZZZZZZ' AND " + CRLF
+_cQuery += "	ZZ2.ZZ2_FILIAL = '" + xFilial("ZZ2") + "' AND " + CRLF
+_cQuery += "	ZZ2.ZZ2_CODIGO BETWEEN '" + mv_par01 + "' AND '" + mv_par02 + "' AND " + CRLF
+_cQuery += "	ZZ2.ZZ2_STATUS = '04' AND " + CRLF
 _cQuery += "	ZZ2.D_E_L_E_T_= '' " + CRLF
 _cQuery += " ORDER BY ZZ2.ZZ2_CODIGO "
  

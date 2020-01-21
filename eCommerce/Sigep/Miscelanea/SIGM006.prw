@@ -170,16 +170,30 @@ Return _lRet
 Static Function SigM006C(_cIdPos,_cDoc,_cSerie,_cNumEco,_cEtiqueta)
 Local _aArea    := GetArea()
 
-Local _oSigepWeb:= SigepWeb():New()
+Local _oSigepWeb:= Nil
 
 CoNout("<< SIGM006A >> - CONSULTANDO ETIQUETA DISPONIVEL PARA O CODIGO DE SERVIÇO " + _cIdPos + " .")
 
+//---------------------------------------+
+// Valida se existe etiquetas dispniveis | 
+//---------------------------------------+
+SigM006E(_cIdPos)
+
+//-----------------------+
+// Instacia Classe SIGEP |
+//-----------------------+
+_oSigepWeb:= SigepWeb():New()
+
+//-------------------+
+// Parametros Método | 
+//-------------------+
 _oSigepWeb:cIdPostagem := _cIdPos
 
 //------------------------------------------------------------------+
 // Caso ocorra erro ao retornar a etiqueta solicita novas etiquetas |
 //------------------------------------------------------------------+
 If _oSigepWeb:GetEtiqueta()
+
     CoNout("<< SIGM006A >> - ETIQUETA RETORNADA COM SUCESSO.")
 
     _cEtiqueta := RTrim(_oSigepWeb:cEtqParc) + RTrim(_oSigepWeb:cDigEtq) + RTrim(_oSigepWeb:cSigla)
@@ -198,6 +212,8 @@ If _oSigepWeb:GetEtiqueta()
 
 EndIf
 
+FreeObj(_oSigepWeb)
+
 RestArea(_aArea)
 Return Nil
 
@@ -213,6 +229,84 @@ Return Nil
 Static Function SigM006D(_cCodEmb)
 _cCodEmb := "001"
 Return Nil
+
+/**********************************************************************************/
+/*/{Protheus.doc} SigM006E
+    @description Consulta etiquetas disponiveis
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since date
+    @version version
+/*/
+/**********************************************************************************/
+Static Function SigM006E(_cIdPos)
+Local _lRet     := .T.
+
+Local _oSigepWeb:= Nil
+
+CoNout("<< SIGM006E >> - CONSULTANDO ETIQUETA DISPONIVEL PARA O CODIGO DE SERVIÇO " + _cIdPos + " .")
+
+If !SigM06EQry(_cIdPos)
+
+    CoNout("<< SIGM006E >> - SOLICITANDO NOVAS ETIQUETAS PARA O CODIGO DE SERVIÇO " + _cIdPos + " .")
+
+    _oSigepWeb:= SigepWeb():New()
+
+    _oSigepWeb:cIdServ := _cIdPos
+    If _oSigepWeb:GrvCodEtq()
+        CoNout("<< SIGM006E >> - NOVAS ETIQUETAS PARA O CODIGO DE SERVIÇO " + _cIdPos + " GERADAS COM SUCESSO.")
+        _lRet := .T. 
+    Else
+        CoNout("<< SIGM006E >> - ERRO AO GERAR NOVAS ETIQUETAS PARA O CODIGO DE SERVIÇO " + _cIdPos + " .")
+        _lRet := .F. 
+    EndIf
+
+    FreeObj(_oSigepWeb)
+
+EndIf
+
+Return _lRet
+
+/****************************************************************************************/
+/*/{Protheus.doc} GetEtqQry
+@description Retorna Etiqueta pelo id de postagem 
+@author Bernard M. Margarido
+@since 10/12/2019
+@version 1.0
+@type function
+/*/
+/****************************************************************************************/
+Static Function SigM06EQry(_cIdPos)
+Local _cAlias	:= GetNextAlias()
+Local _cQuery	:= ""
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	TOP 1 " + CRLF
+_cQuery += "	ZZ1.ZZ1_CODETQ, " + CRLF
+_cQuery += "	ZZ1.ZZ1_SIGLA, " + CRLF
+_cQuery += "	ZZ1.ZZ1_DVETQ, " + CRLF
+_cQuery += "	ZZ1.R_E_C_N_O_ RECNOZZ1" + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += "	" + RetSqlName("ZZ1") + " ZZ1 " + CRLF 
+_cQuery += " WHERE " + CRLF
+_cQuery += "	ZZ1.ZZ1_FILIAL = '" + xFilial("ZZ1") + "' AND " + CRLF 
+_cQuery += "	ZZ1.ZZ1_IDSER = '" + _cIdPos + "' AND " + CRLF 
+_cQuery += "	ZZ1.ZZ1_NOTA = '' AND " + CRLF 
+_cQuery += "	ZZ1.ZZ1_SERIE = '' AND " + CRLF 
+_cQuery += "	ZZ1.ZZ1_PLPID = '' AND " + CRLF 
+_cQuery += "	ZZ1.ZZ1_NUMECO = '' AND " + CRLF 
+_cQuery += "	ZZ1.D_E_L_E_T_ = '' " + CRLF 
+_cQuery += " ORDER BY ZZ1.R_E_C_N_O_ ASC "
+
+dbUseArea(.T.,"TOPCONN",TcGenQry(,,_cQuery),_cAlias,.T.,.T.)
+
+If (_cAlias)->( Eof() )
+	(_cAlias)->( dbCloseArea() )
+	Return .F.
+EndIf
+
+(_cAlias)->( dbCloseArea() )
+Return .T.
 
 /**********************************************************************************/
 /*/{Protheus.doc} SigM06Qry
@@ -243,7 +337,7 @@ _cQuery += " WHERE " + CRLF
 _cQuery += "	WSA.WSA_FILIAL = '" + xFilial("WSA") + "' AND " + CRLF
 _cQuery += "	WSA.WSA_DOC <> '' AND " + CRLF 
 _cQuery += "	WSA.WSA_SERIE <> '' AND " + CRLF
-_cQuery += "	WSA.WSA_ENVLOG = '5' AND " + CRLF
+_cQuery += "	WSA.WSA_ENVLOG = '3' AND " + CRLF
 _cQuery += "	NOT EXISTS( " + CRLF
 _cQuery += "				SELECT " + CRLF
 _cQuery += "					ZZ4.ZZ4_NOTA, " + CRLF

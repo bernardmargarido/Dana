@@ -77,9 +77,10 @@ Class SIGEPWEB
 	Data dDtFim			As Date
 	
 	Data lGeraDvEtq		As Boolean
-
-	Data aFaixaPlp		As Array
+	
 	Data aNotas			As Array
+	Data aPlpDest		As Array
+	Data aFaixaEtq		As Array
 
 	Data oSigWeb		As Object
 	
@@ -173,10 +174,11 @@ Method New() Class SIGEPWEB
 	::dDtFim		:= Nil
 	
 	::lGeraDvEtq	:= .F.
-
-	::aFaixaPlp		:= {}
-	::aNotas		:= {}
 	
+	::aNotas		:= {}
+	::aPlpDest		:= {}
+	::aFaixaEtq		:= {}
+
 	::oSigWeb		:= Nil
 	
 	CoNout("<< SIGEPWEB - NEW >> - FIM DATA " + dToc( Date() ) + " HORA " + Time() + " .")
@@ -309,6 +311,13 @@ Else
 	::cError := "ERRO AO RETORNAR SERVICOS CONTRATADOS " + GetWscError()
 EndIf
 
+//---------------+
+// Reseta Objeto | 
+//---------------+
+If ValType(::oSigWeb) == "O"
+	FreeObj(::oSigWeb)
+EndIf
+
 CoNout("<< SIGEPWEB - GETSERVICO >> - FIM DATA " + dToc( Date() ) + " HORA " + Time() + " .")
 
 RestArea(_aArea)
@@ -402,27 +411,6 @@ For _nX := 1 To Len(::aNotas)
 			ZZ4->ZZ4_STATUS	:= "01"
 			ZZ4->ZZ4_DESC   := "AGUARDANDO ENVIO"	
 		ZZ4->( MsUnLock() )
-		
-		/*
-		//------------------------+
-		// Atualiza numero da PLP |
-		//------------------------+
-		If ZZ1->( dbSeek(xFilial("ZZ1") + ::aNotas[_nX][1] + ::aNotas[_nX][2]))
-			RecLock("ZZ1",.F.)
-				ZZ1->ZZ1_PLPID := ::cIdPLP
-			ZZ1->( MsUnLock() )
-		EndIf
-
-		//-----------------------------+
-		// Atualiza codigo de rastreio |
-		//-----------------------------+
-		If WSA->( dbSeek(xFilial("WSA") + ::aNotas[_nX][8]) )
-			RecLock("WSA",.F.)
-				WSA->WSA_TRACKI := ::aNotas[_nX][5]
-			WSA->( MsUnLock() )
-		EndIf
-		*/
-
 	EndIf
 Next _nX
 
@@ -443,6 +431,7 @@ Return _lRet
 Method GrvCodEtq() Class SIGEPWEB
 Local _aArea	:= GetArea()
 Local _aEtq		:= {}
+Local _aServ	:= {}
 
 Local _nX		:= 0
 
@@ -468,70 +457,99 @@ CoNout("<< SIGEPWEB - GRVCODETQ >> - INICIO DATA " + dToc( Date() ) + " HORA " +
 dbSelectArea("ZZ1")
 ZZ1->( dbSetOrder(1) )
 
-//------------------------------+
-// Seleciona tabela de servicos |
-//------------------------------+
-dbSelectArea("ZZ0")
-ZZ0->( dbSetOrder(1) )
-ZZ0->( dbGoTop() )
+//-------------------------------------------------------------------+
+// Valida se solicita para novas etiquetas para serviços especificos
+//-------------------------------------------------------------------+
+If Empty(::cIdServ)
+	//------------------------------+
+	// Seleciona tabela de servicos |
+	//------------------------------+
+	dbSelectArea("ZZ0")
+	ZZ0->( dbSetOrder(1) )
+	ZZ0->( dbGoTop() )
 
-While ZZ0->( !Eof() )
-	
-	If !Empty(ZZ0->ZZ0_CODECO)	
-	
-		CoNout("<< SIGEPWEB - GRVCODETQ >> - SOLICITA EIQUETA SERVIï¿½O  " + RTrim(ZZ0->ZZ0_DESCRI) + " .")
-		
-		//-------------------------+
-		// Parametros BuscaCliente |
-		//-------------------------+
-		::cIdServ					:= ZZ0->ZZ0_IDSER
-		::cCodServ					:= ZZ0->ZZ0_CODSER
-		
-		//-------------------------+
-		// Parametros BuscaCliente |
-		//-------------------------+
-		::oSigWeb:_Url				:= ::cUrlSigep
-		::oSigWeb:cTipoDestinatario	:= ::cTipoEtq
-		::oSigWeb:cIdentificador	:= ::cCNPJId
-		::oSigWeb:nIdServico		:= Val(::cIdServ)
-		::oSigWeb:nQtdEtiquetas		:= ::nQtdEtq
-		::oSigWeb:cUsuario 			:= ::cIdUser
-		::oSigWeb:cSenha 			:= ::cIdPass
-				
-		WsdlDbgLevel(3)
-		If ::oSigWeb:SolicitaEtiquetas()
-			If ValType(_oResp) == "O"
-				If ValType(_oResp:_Ns2_SolicitaEtiquetasResponse:_Return:Text) == "C" .And. !Empty(_oResp:_Ns2_SolicitaEtiquetasResponse:_Return:Text)
-					
-					CoNout("<< SIGEPWEB - GRVCODETQ >> - ETIQUETAS SOLICITADAS COM SUCESSO .")
-					
-					_aEtq := Separa(_oResp:_Ns2_SolicitaEtiquetasResponse:_Return:Text,",")
-					For _nX := 1 To Len(_aEtq)
-						CoNout("<< SIGEPWEB - GRVCODETQ >> - GRAVA NOVAS ETIQUETAS " + _aEtq[_nX] + " .")
-						
-						RecLock("ZZ1",.T.)
-							ZZ1->ZZ1_FILIAL := xFilial("ZZ1")
-							ZZ1->ZZ1_CODSER	:= ::cCodServ
-							ZZ1->ZZ1_IDSER  := ::cIdServ
-							ZZ1->ZZ1_CODETQ := SubStr(_aEtq[_nX],1,10)
-							ZZ1->ZZ1_SIGLA  := SubStr(_aEtq[_nX],12)
-						ZZ1->( MsUnLock() )
-					Next _nX 
-				Else
-					CoNout("<< SIGEPWEB - GRVCODETQ >> - ERRO NA SOLICITACAO DE NOVAS ETIQUETAS.")
-					::cError:= "ERRO NA SOLICITACAO DE NOVAS ETIQUETAS."
-					_lRet	:= .F.
-					
-				EndIf				
-			EndIf
-		Else
-			_lRet	:= .F.
-			::cError:= "ERRO NA SOLICITACAO DE NOVAS ETIQUETAS. " + CRLF + GetWscError()
-			CoNout("<< SIGEPWEB - GRVCODETQ >> - ERRO NA SOLICITACAO DE NOVAS ETIQUETAS." + GetWscError() )
+	While ZZ0->( !Eof() )
+		If !Empty(ZZ0->ZZ0_CODECO)
+			aAdd(_aServ,{ZZ0->ZZ0_IDSER,ZZ0->ZZ0_CODSER,ZZ0->(Recno())})
 		EndIf
+		ZZ0->( dbSkip() )
+	EndDo
+
+Else
+	//------------------------------+
+	// Seleciona tabela de servicos |
+	//------------------------------+
+	dbSelectArea("ZZ0")
+	ZZ0->( dbSetOrder(2) )
+	ZZ0->( dbSeek(xFilial("ZZ0") + ::cIdServ) )
+	aAdd(_aServ,{ZZ0->ZZ0_IDSER,ZZ0->ZZ0_CODSER,ZZ0->ZZ0_DESCRI,ZZ0->(Recno())})
+EndIf
+
+//-----------------------------------+
+// Processa solicitação de etiquetas |
+//-----------------------------------+
+For _nX := 1 To Len(_aServ)
+	
+	CoNout("<< SIGEPWEB - GRVCODETQ >> - SOLICITA EIQUETA SERVICO  " + RTrim(_aServ[_nX][3]) + " .")
+		
+	//-------------------------+
+	// Parametros BuscaCliente |
+	//-------------------------+
+	::cIdServ					:= _aServ[_nX][1]
+	::cCodServ					:= _aServ[_nX][2]
+	
+	//-------------------------+
+	// Parametros BuscaCliente |
+	//-------------------------+
+	::oSigWeb:_Url				:= ::cUrlSigep
+	::oSigWeb:cTipoDestinatario	:= ::cTipoEtq
+	::oSigWeb:cIdentificador	:= ::cCNPJId
+	::oSigWeb:nIdServico		:= Val(::cIdServ)
+	::oSigWeb:nQtdEtiquetas		:= ::nQtdEtq
+	::oSigWeb:cUsuario 			:= ::cIdUser
+	::oSigWeb:cSenha 			:= ::cIdPass
+			
+	WsdlDbgLevel(3)
+	If ::oSigWeb:SolicitaEtiquetas()
+		If ValType(_oResp) == "O"
+			If ValType(_oResp:_Ns2_SolicitaEtiquetasResponse:_Return:Text) == "C" .And. !Empty(_oResp:_Ns2_SolicitaEtiquetasResponse:_Return:Text)
+				
+				CoNout("<< SIGEPWEB - GRVCODETQ >> - ETIQUETAS SOLICITADAS COM SUCESSO .")
+				
+				_aEtq := Separa(_oResp:_Ns2_SolicitaEtiquetasResponse:_Return:Text,",")
+				For _nX := 1 To Len(_aEtq)
+
+					CoNout("<< SIGEPWEB - GRVCODETQ >> - GRAVA NOVAS ETIQUETAS " + _aEtq[_nX] + " .")
+					
+					RecLock("ZZ1",.T.)
+						ZZ1->ZZ1_FILIAL := xFilial("ZZ1")
+						ZZ1->ZZ1_CODSER	:= ::cCodServ
+						ZZ1->ZZ1_IDSER  := ::cIdServ
+						ZZ1->ZZ1_CODETQ := SubStr(_aEtq[_nX],1,10)
+						ZZ1->ZZ1_SIGLA  := SubStr(_aEtq[_nX],12)
+					ZZ1->( MsUnLock() )
+
+				Next _nX 
+			Else
+				CoNout("<< SIGEPWEB - GRVCODETQ >> - ERRO NA SOLICITACAO DE NOVAS ETIQUETAS.")
+				::cError:= "ERRO NA SOLICITACAO DE NOVAS ETIQUETAS."
+				_lRet	:= .F.
+				
+			EndIf				
+		EndIf
+	Else
+		_lRet	:= .F.
+		::cError:= "ERRO NA SOLICITACAO DE NOVAS ETIQUETAS. " + CRLF + GetWscError()
+		CoNout("<< SIGEPWEB - GRVCODETQ >> - ERRO NA SOLICITACAO DE NOVAS ETIQUETAS." + GetWscError() )
 	EndIf
-	ZZ0->( dbSkip() )
-EndDo
+Next _nX
+
+//---------------+
+// Reseta Objeto | 
+//---------------+
+If ValType(::oSigWeb) == "O"
+	FreeObj(::oSigWeb)
+EndIf
 
 CoNout("<< SIGEPWEB - GRVCODETQ >> - FIM DATA " + dToc( Date() ) + " HORA " + Time() + " .")
 RestArea(_aArea)
@@ -547,36 +565,39 @@ Return _lRet
 /*/
 /****************************************************************************************/
 Method GetEtiqueta() Class SIGEPWEB
-Local _lRet			:= .F.
+Local _lRet			:= .T.
 Local _cEtqParc		:= ""
 Local _cSigla		:= ""
-
+Local _cDigETQ		:= ""
 Local _nRecno		:= 0	
 
 Local _lGeraDvEtq	:= .F.
+
+Default _lContinua	:= .T.
 
 CoNout("<< SIGEPWEB - GETETIQUETA >> - INICIO DATA " + dToc( Date() ) + " HORA " + Time() + " .")
 
 //-----------------------------------------+
 // Busca etiqueta pelo Serviço de Postagem |
 //-----------------------------------------+
-If GetEtqQry(::cIdPostagem,@_cEtqParc,@_cSigla,@_nRecno,@_lGeraDvEtq)
+GetEtqQry(::cIdPostagem,@_cEtqParc,@_cSigla,@_cDigETQ,@_nRecno,@_lGeraDvEtq)
 
-	::cEtqParc 	:= _cEtqParc
-	::cSigla	:= _cSigla
-	::nRecno 	:= _nRecno
-	::lGeraDvEtq:= _lGeraDvEtq
+::cEtqParc 	:= _cEtqParc
+::cSigla	:= _cSigla
+::cDigEtq	:= IIF(_lGeraDvEtq,"",_cDigETQ)
+::nRecno 	:= _nRecno
+::lGeraDvEtq:= _lGeraDvEtq
 
-	CoNout("<< SIGEPWEB - GETETIQUETA >> - ETIQUETA " + ::cEtqParc + " " + ::cSigla + " RETORNARDA COM SUCESSO.")
-	//----------------------------+	
-	// Calcula digito da Etiqueta |
-	//----------------------------+
-	If ::lGeraDvEtq
-		If ::GetDigEtq()
-			_lRet := .T.
-		EndIf
+CoNout("<< SIGEPWEB - GETETIQUETA >> - ETIQUETA " + ::cEtqParc + " " + ::cSigla + " RETORNARDA COM SUCESSO.")
+
+//----------------------------+	
+// Calcula digito da Etiqueta |
+//----------------------------+
+If ::lGeraDvEtq
+	If ::GetDigEtq()
+		_lRet := .T.
 	EndIf
-EndIf	
+EndIf
 
 CoNout("<< SIGEPWEB - GETETIQUETA >> - FIM DATA " + dToc( Date() ) + " HORA " + Time() + " .")
 
@@ -641,6 +662,13 @@ EndIf
 
 CoNout("<< SIGEPWEB - GETDIGETQ >> - FIM DATA " + dToc( Date() ) + " HORA " + Time() + " .")
 
+//---------------+
+// Reseta Objeto | 
+//---------------+
+If ValType(::oSigWeb) == "O"
+	FreeObj(::oSigWeb)
+EndIf
+
 RestArea(_aArea)
 Return _lRet
 
@@ -656,8 +684,6 @@ Return _lRet
 Method SetPLP() Class SIGEPWEB
 Local _aArea	:= GetArea()
 
-Local _nX		:= 0
-
 Local _lRet		:= .T.
 
 Private _oResp	:= Nil
@@ -670,6 +696,11 @@ CoNout("<< SIGEPWEB - SETPLP >> - INICIO DATA " + dToc( Date() ) + " HORA " + Ti
 //-----------+
 ::GetSSLCache()
 
+//-------------------------+
+// Cria XML para envio PLP |
+//-------------------------+
+::GetXMLPlp()
+
 //--------------------------+
 // Instancia a classe SIGEP |
 //--------------------------+
@@ -680,33 +711,12 @@ CoNout("<< SIGEPWEB - SETPLP >> - INICIO DATA " + dToc( Date() ) + " HORA " + Ti
 //-------------------------+
 ::oSigWeb:_Url				:= ::cUrlSigep
 ::oSigWeb:cXml				:= ::cXmlPLP
-::oSigWeb:nIdPlpCliente		:= ::cIdPLP
+::oSigWeb:nIdPlpCliente		:= Val(::cIdPLPErp)
 ::oSigWeb:cCartaoPostagem	:= ::cIdCartao
 ::oSigWeb:cUsuario 			:= ::cIdUser
 ::oSigWeb:cSenha 			:= ::cIdPass
 
-//---------------------------------------+
-// Faixa de etiquetas para envio SIGEWEB |
-//---------------------------------------+
-_aFaixa						:= aClone(::aFaixaPlp)
-
-//----------------------------------------------+
-// Posiciona tabela de faixa de etiquetas SIGEP |
-//----------------------------------------------+ 
-dbSelectArea("ZZ1")
-ZZ1->( dbSetOrder(3))
-
-//----------------------------+
-// Posiciona tabela PLP SIGEP |
-//----------------------------+
-dbSelectArea("ZZ2")
-ZZ2->( dbSetOrder(1))
-
-//---------------------+
-// Posiciona Orcamento |
-//---------------------+
-dbSelectArea("WSA")
-WSA->( dbSetOrder(1) )
+_aFaixa						:= aClone(::aFaixaEtq)
 
 //------------------------------------+
 // Envia registro de PLP para o SIGEP |
@@ -718,69 +728,29 @@ If ::oSigWeb:fechaPlpVariosServicos()
 	//------------------------------------------+
 	If ValType(_oResp) == "O"
 		If ValType(_oResp:_NS2_FechaPlpVariosServicosResponse:_Return:Text) == "C" .And. !Empty(_oResp:_NS2_FechaPlpVariosServicosResponse:_Return:Text)
-			CoNout("<< SIGEPWEB - SETPLP >> - PLP ENVIADA COM SUCESSO .")	
-			//---------------------+
-			// Atualiza Tabela PLP |
-			//---------------------+
-			If Len(::aFaixaPlp) > 0
-				For _nX := 1 To Len(::aFaixaPlp)
-					
-					CoNout("<< SIGEPWEB - SETPLP >> - ATUALIZANDO STATUS PLP.")
-					
-					If ZZ2->( dbSeek(xFilial("ZZ2") + ::aFaixaPlp[_nX][2]) )
-						RecLock("ZZ2",.F.)
-							ZZ2->ZZ2_PLPID := _oResp:_NS2_FechaPlpVariosServicosResponse:_Return:Text
-							ZZ2->ZZ2_STATUS:= "04"
-						ZZ2->( MsUnLock() )	
-					EndIf
-					
-					//---------------------+
-					// Posiciona Orcamento |
-					//---------------------+					
-					WSA->( dbSeek(xFilial("WSA") + ZZ2->ZZ2_NUMECO) )
-					
-					//-----------------------------+
-					// Atualiza faixa de etiquetas |
-					//-----------------------------+
-					If ZZ1->( dbSeek(xFilial("ZZ1") + WSA->WSA_DOC + WSA->WSA_SERIE) )
-						RecLock("ZZ1",.F.)
-							ZZ1->ZZ1_PLPID := oResp:_NS2_FechaPlpVariosServicosResponse:_Return:Text
-						ZZ1->( MsUnLock() )	
-					EndIf
-					
-				Next _nX
-			EndIf
+			CoNout("<< SIGEPWEB - SETPLP >> - PLP ENVIADA COM SUCESSO .")
+			::cIdPLP := _oResp:_NS2_FechaPlpVariosServicosResponse:_Return:Text
 		Else
 			CoNout("<< SIGEPWEB - SETPLP >> - ERRO AO GERAR PLP .")
+			::cError:= "ERRO AO GERAR PLP "
 			_lRet	:= .F.
 		EndIf
 	Else
 		_lRet	:= .F.
+		::cError:= "ERRO AO GERAR PLP " + GetWscError()
 		CoNout("<< SIGEPWEB - SETPLP >> - ERRO AO GERAR PLP " + GetWscError() + " .")
 	EndIf
 Else
+	::cError:= "ERRO AO GERAR PLP " + GetWscError()
 	CoNout("<< SIGEPWEB - SETPLP >> - ERRO AO GERAR PLP " + GetWscError() + " .")
 	_lRet := .F.
 EndIf
 
-//------------------------------+
-// Caso de erro no envio da PLP |
-//------------------------------+
-If !lRet 
-	//---------------------+
-	// Atualiza Tabela PLP |
-	//---------------------+
-	If Len(::aFaixaPlp) > 0
-		For _nX := 1 To Len(::aFaixaPlp)
-			ZZ2->( dbSetOrder(1))
-			If ZZ2->( dbSeek(xFilial("ZZ2") + ::aFaixaPlp[nFxEtq][2]) )
-				RecLock("ZZ2",.F.)
-					ZZ2->ZZ2_STATUS	:= "03"
-					ZZ2->ZZ2_DESC	:= "PLP ENVIADA COM SUCESSO"
-				ZZ2->( MsUnLock() )	
-			EndIf
-		Next _nX
-	EndIf
+//---------------+
+// Reseta Objeto | 
+//---------------+
+If ValType(::oSigWeb) == "O"
+	FreeObj(::oSigWeb)
 EndIf
 
 RestArea(_aArea)
@@ -795,7 +765,7 @@ Return _lRet
 @type function
 /*/
 /****************************************************************************************/
-Static Function GetEtqQry(cIdPostagem,_cEtqParc,_cSigla,_nRecno,_lGeraDvEtq)
+Static Function GetEtqQry(cIdPostagem,_cEtqParc,_cSigla,_cDigETQ,_nRecno,_lGeraDvEtq)
 Local _cAlias	:= GetNextAlias()
 Local _cQuery	:= ""
 
@@ -826,6 +796,7 @@ EndIf
 
 _cEtqParc 	:= (_cAlias)->ZZ1_CODETQ
 _cSigla		:= (_cAlias)->ZZ1_SIGLA
+_cDigETQ	:= (_cAlias)->ZZ1_DVETQ
 _nRecno 	:= (_cAlias)->RECNOZZ1
 _lGeraDvEtq	:= IIF(Empty((_cAlias)->ZZ1_DVETQ),.T.,.F.)
 
@@ -875,6 +846,8 @@ Return Nil
 Method GetXMLPlp() Class SIGEPWEB
 Local _cXml		:= ""
 
+::cIdCartao		:= GetNewPar("EC_IDCARTA")
+
 //---------------------------------+
 // Realiza a reserva das etiquetas |
 //---------------------------------+
@@ -884,12 +857,12 @@ _cXml += '<correioslog>'
 //--------------------+
 // Dados do Remetente | 
 //--------------------+
-_cXml	+= XmlPlpRem()
+_cXml	+= XmlPlpRem(::cIdCartao,::cIdContrato,::cCodAdm)
 
 //--------------------+
 // Dados Destinatario |
 //--------------------+
-_cXml	+= XmlPlpDes()
+_cXml	+= XmlPlpDes(::aPlpDest)
 
 _cXml += '</correioslog>'
 
@@ -910,7 +883,7 @@ Return .T.
 @type function
 /*/
 /****************************************************************************************/
-Static Function XmlPlpRem()
+Static Function XmlPlpRem(cIdCartao,cIdContrato,cCodAdm)
 Local _cXmlRem		:= ""
 
 _cXmlRem += TagXml("tipo_arquivo","Postagem")
@@ -921,13 +894,13 @@ _cXmlRem += TagXml("id_plp")
 _cXmlRem += TagXml("valor_global")
 _cXmlRem += TagXml("mcu_unidade_postagem")
 _cXmlRem += TagXml("nome_unidade_postagem")
-_cXmlRem += TagXml("cartao_postagem",::cIdCartao)
+_cXmlRem += TagXml("cartao_postagem",cIdCartao)
 _cXmlRem += '</plp>'
 
 _cXmlRem += '<remetente>'
-_cXmlRem += TagXml("numero_contrato",RTrim(::cIdContrato))
+_cXmlRem += TagXml("numero_contrato",RTrim(cIdContrato))
 _cXmlRem += TagXml("numero_diretoria","14")
-_cXmlRem += TagXml("codigo_administrativo",::cCodAdm)
+_cXmlRem += TagXml("codigo_administrativo",cCodAdm)
 _cXmlRem += TagXml("nome_remetente",SubStr(RTrim(SM0->M0_NOMECOM),1,50),.T.)
 If At(",",SM0->M0_ENDCOB) > 0 
 	_cXmlRem += TagXml("logradouro_remetente",SubStr(RTrim(SM0->M0_ENDCOB),1,At(",",SM0->M0_ENDCOB) - 1),.T.)
@@ -961,60 +934,64 @@ Return _cXmlRem
 @type function
 /*/
 /****************************************************************************************/
-Static Function XmlPlpDes()
+Static Function XmlPlpDes(aPlpDest)
 Local _cXmlDest		:= ""
 
-_cXmlDest += '<objeto_postal>'
-_cXmlDest += TagXml("numero_etiqueta",RTrim(::cEtiqueta))
-_cXmlDest += TagXml("codigo_objeto_cliente")
-_cXmlDest += TagXml("codigo_servico_postagem",RTrim(::cIdServ))
-_cXmlDest += TagXml("cubagem","0,00")
-_cXmlDest += TagXml("peso",xConvCpo(::nPesoLiquido))
-_cXmlDest += TagXml("rt1")
-_cXmlDest += TagXml("rt2")
+Local _nX			:= 0
 
-_cXmlDest += '<destinatario>'
-_cXmlDest += TagXml("nome_destinatario",SubStr(::cDestinatario,1,50),.T.)
-_cXmlDest += TagXml("telefone_destinatario",RTrim(WSA->WSA_DDD01) + RTrim(WSA->WSA_TEL01),.T.)
-_cXmlDest += TagXml("celular_destinatario")
-_cXmlDest += TagXml("email_destinatario")
+For _nX := 1 To Len(aPlpDest)
 
-_cXmlDest += TagXml("logradouro_destinatario",SubStr(::cEndereco,1,50),.T.)
-_cXmlDest += TagXml("complemento_destinatario")
-_cXmlDest += TagXml("numero_end_destinatario",IIF(Empty(::cNumEnd),"S/N",RTrim(::cNumEnd)),.T.)
+	_cXmlDest += '<objeto_postal>'
+	_cXmlDest += TagXml("numero_etiqueta",RTrim(aPlpDest[_nX][1]))
+	_cXmlDest += TagXml("codigo_objeto_cliente","")
+	_cXmlDest += TagXml("codigo_servico_postagem",RTrim(aPlpDest[_nX][2]))
+	_cXmlDest += TagXml("cubagem","0,00")
+	_cXmlDest += TagXml("peso",xConvCpo(aPlpDest[_nX][3]))
+	_cXmlDest += TagXml("rt1")
+	_cXmlDest += TagXml("rt2")
 
-_cXmlDest += '</destinatario>'
+	_cXmlDest += '<destinatario>'
+	_cXmlDest += TagXml("nome_destinatario",SubStr(aPlpDest[_nX][4],1,50),.T.)
+	_cXmlDest += TagXml("telefone_destinatario",RTrim(aPlpDest[_nX][5]) + RTrim(aPlpDest[_nX][6]),.T.)
+	_cXmlDest += TagXml("celular_destinatario")
+	_cXmlDest += TagXml("email_destinatario")
+	_cXmlDest += TagXml("logradouro_destinatario",SubStr(aPlpDest[_nX][8],1,50),.T.)
+	_cXmlDest += TagXml("complemento_destinatario",RTrim(aPlpDest[_nX][9]))
+	_cXmlDest += TagXml("numero_end_destinatario",IIF(At(",",aPlpDest[_nX][8]) > 0,RTrim(aPlpDest[_nX][8]),"S/N"),.T.)
+	_cXmlDest += TagXml("cpf_cnpj_destinatario",aPlpDest[_nX][10],.T.)
+	_cXmlDest += '</destinatario>'
 
-_cXmlDest += '<nacional>'
-_cXmlDest += TagXml("bairro_destinatario",RTrim(::cBairro),.T.)
-_cXmlDest += TagXml("cidade_destinatario",RTrim(::cMunicipio),.T.)
-_cXmlDest += TagXml("uf_destinatario",::cUF)
-_cXmlDest += TagXml("cep_destinatario",RTrim(::cCep),.T.)
-_cXmlDest += TagXml("codigo_usuario_postal")
-_cXmlDest += TagXml("centro_custo_cliente")
-_cXmlDest += TagXml("numero_nota_fiscal",RTrim(Str(Val(::cNumDoc))))
-_cXmlDest += TagXml("serie_nota_fiscal",::cSerie)
-_cXmlDest += TagXml("valor_nota_fiscal")
-_cXmlDest += TagXml("natureza_nota_fiscal")
-_cXmlDest += TagXml("descricao_objeto","",.T.)
-_cXmlDest += TagXml("valor_a_cobrar","0,00")
-_cXmlDest += '</nacional>'
-_cXmlDest += '<servico_adicional>'
-_cXmlDest += TagXml("codigo_servico_adicional","025")
-_cXmlDest += TagXml("valor_declarado")
-_cXmlDest += "</servico_adicional>"
-_cXmlDest += "<dimensao_objeto>"
-_cXmlDest += TagXml("tipo_objeto","002")
-_cXmlDest += TagXml("dimensao_altura",xConvCpo(::nAltura))
-_cXmlDest += TagXml("dimensao_largura",xConvCpo(::nLargura))
-_cXmlDest += TagXml("dimensao_comprimento",xConvCpo(::nComprimento))
-_cXmlDest += TagXml("dimensao_diametro","0")
-_cXmlDest += '</dimensao_objeto>'
-_cXmlDest += TagXml("data_postagem_sara")
-_cXmlDest += TagXml("status_processamento","0")
-_cXmlDest += TagXml("numero_comprovante_postagem")
-_cXmlDest += TagXml("valor_cobrado")
-_cXmlDest += '</objeto_postal>'
+	_cXmlDest += '<nacional>'
+	_cXmlDest += TagXml("bairro_destinatario",RTrim(aPlpDest[_nX][11]),.T.)
+	_cXmlDest += TagXml("cidade_destinatario",RTrim(aPlpDest[_nX][12]),.T.)
+	_cXmlDest += TagXml("uf_destinatario",aPlpDest[_nX][13])
+	_cXmlDest += TagXml("cep_destinatario",RTrim(aPlpDest[_nX][14]),.T.)
+	_cXmlDest += TagXml("codigo_usuario_postal")
+	_cXmlDest += TagXml("centro_custo_cliente")
+	_cXmlDest += TagXml("numero_nota_fiscal",RTrim(Str(Val(aPlpDest[_nX][15]))))
+	_cXmlDest += TagXml("serie_nota_fiscal",aPlpDest[_nX][16])
+	_cXmlDest += TagXml("valor_nota_fiscal")
+	_cXmlDest += TagXml("natureza_nota_fiscal")
+	_cXmlDest += TagXml("descricao_objeto","",.T.)
+	_cXmlDest += TagXml("valor_a_cobrar","0,00")
+	_cXmlDest += '</nacional>'
+	_cXmlDest += '<servico_adicional>'
+	_cXmlDest += TagXml("codigo_servico_adicional","025")
+	_cXmlDest += TagXml("valor_declarado")
+	_cXmlDest += "</servico_adicional>"
+	_cXmlDest += "<dimensao_objeto>"
+	_cXmlDest += TagXml("tipo_objeto",aPlpDest[_nX][17])
+	_cXmlDest += TagXml("dimensao_altura",aPlpDest[_nX][18])
+	_cXmlDest += TagXml("dimensao_largura",aPlpDest[_nX][19])
+	_cXmlDest += TagXml("dimensao_comprimento",aPlpDest[_nX][20])
+	_cXmlDest += TagXml("dimensao_diametro","0")
+	_cXmlDest += '</dimensao_objeto>'
+	_cXmlDest += TagXml("data_postagem_sara")
+	_cXmlDest += TagXml("status_processamento","0")
+	_cXmlDest += TagXml("numero_comprovante_postagem")
+	_cXmlDest += TagXml("valor_cobrado")
+	_cXmlDest += '</objeto_postal>'
+Next _nX
 
 Return _cXmlDest
 
@@ -1027,10 +1004,10 @@ Return _cXmlDest
 @type function
 /*/
 /****************************************************************************************/
-Static Function TagXml(_cTagName,xConteud,_lCData)
+Static Function TagXml(_cTagName,_xConteud,_lCData)
 Local 	_cTagXml	:= ""
 
-Default _xConteud	:= ""
+Default	_xConteud	:= ""
 Default _lCData 	:= .F.
 
 //-----------------------------------+
@@ -1063,4 +1040,4 @@ Return _cTagXml
 /*/
 /****************************************************************************************/
 Static Function xConvCpo(xValor)
-Return Alltrim(Str(xValor * 100)) 
+Return Alltrim(Str(xValor * 1000)) 

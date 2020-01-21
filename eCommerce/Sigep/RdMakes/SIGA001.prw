@@ -37,9 +37,9 @@ User Function SIGA001()
 	oBrowse:SetAlias( _cAlias )
 	oBrowse:SetDescription( _cCadastro )
 		
-	oBrowse:AddLegend( "ZZ2_STATUS == '01'", "BR_VERDE" 	, "PLP - Gerada" )
+	oBrowse:AddLegend( "ZZ2_STATUS == '01'", "BR_VERMELHO" 	, "PLP - Gerada" )
 	oBrowse:AddLegend( "ZZ2_STATUS == '02'", "BR_AMARELO" 	, "PLP - Etiqueta Reservada" )
-	oBrowse:AddLegend( "ZZ2_STATUS == '04'", "BR_VERMELHO" 	, "PLP - Enviada" )
+	oBrowse:AddLegend( "ZZ2_STATUS == '04'", "BR_VERDE" 	, "PLP - Enviada" )
 	oBrowse:AddLegend( "ZZ2_STATUS == '03'", "BR_PRETO" 	, "PLP - Erro de Envio" )
 	
 	oBrowse:Activate()
@@ -315,7 +315,7 @@ Static Function MenuDef()
 	ADD OPTION aRotina TITLE "Incluir" 	            ACTION "U_SIGM006" 				OPERATION 3 ACCESS 0 
 	ADD OPTION aRotina TITLE "Alterar"              ACTION "VIEWDEF.SIGA001" 		OPERATION 4 ACCESS 0 
 	ADD OPTION aRotina TITLE "Excluir"              ACTION "VIEWDEF.SIGA001" 		OPERATION 5 ACCESS 0 
-	ADD OPTION aRotina TITLE "Envia PLP"			ACTION 'U_SIG01PLP'		  		OPERATION 4 ACCESS 0
+	ADD OPTION aRotina TITLE "Envia PLP"			ACTION 'U_SIGM004'		  		OPERATION 4 ACCESS 0
 	ADD OPTION aRotina TITLE "Imprime PLP"			ACTION 'U_SIGR002'		  		OPERATION 6 ACCESS 0
 	ADD OPTION aRotina TITLE "Imprime ETQ"			ACTION 'U_SIGR001'		  		OPERATION 6 ACCESS 0
 		
