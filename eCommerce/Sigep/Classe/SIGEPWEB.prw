@@ -434,6 +434,7 @@ Local _aEtq		:= {}
 Local _aServ	:= {}
 
 Local _nX		:= 0
+Local _nY		:= 0
 
 Local _lRet		:= .T.
 
@@ -470,7 +471,7 @@ If Empty(::cIdServ)
 
 	While ZZ0->( !Eof() )
 		If !Empty(ZZ0->ZZ0_CODECO)
-			aAdd(_aServ,{ZZ0->ZZ0_IDSER,ZZ0->ZZ0_CODSER,ZZ0->(Recno())})
+			aAdd(_aServ,{ZZ0->ZZ0_IDSER,ZZ0->ZZ0_CODSER,ZZ0->ZZ0_DESCRI,ZZ0->(Recno())})
 		EndIf
 		ZZ0->( dbSkip() )
 	EndDo
@@ -517,19 +518,19 @@ For _nX := 1 To Len(_aServ)
 				CoNout("<< SIGEPWEB - GRVCODETQ >> - ETIQUETAS SOLICITADAS COM SUCESSO .")
 				
 				_aEtq := Separa(_oResp:_Ns2_SolicitaEtiquetasResponse:_Return:Text,",")
-				For _nX := 1 To Len(_aEtq)
+				For _nY := 1 To Len(_aEtq)
 
-					CoNout("<< SIGEPWEB - GRVCODETQ >> - GRAVA NOVAS ETIQUETAS " + _aEtq[_nX] + " .")
+					CoNout("<< SIGEPWEB - GRVCODETQ >> - GRAVA NOVAS ETIQUETAS " + _aEtq[_nY] + " .")
 					
 					RecLock("ZZ1",.T.)
 						ZZ1->ZZ1_FILIAL := xFilial("ZZ1")
 						ZZ1->ZZ1_CODSER	:= ::cCodServ
 						ZZ1->ZZ1_IDSER  := ::cIdServ
-						ZZ1->ZZ1_CODETQ := SubStr(_aEtq[_nX],1,10)
-						ZZ1->ZZ1_SIGLA  := SubStr(_aEtq[_nX],12)
+						ZZ1->ZZ1_CODETQ := SubStr(_aEtq[_nY],1,10)
+						ZZ1->ZZ1_SIGLA  := SubStr(_aEtq[_nY],12)
 					ZZ1->( MsUnLock() )
 
-				Next _nX 
+				Next _nY 
 			Else
 				CoNout("<< SIGEPWEB - GRVCODETQ >> - ERRO NA SOLICITACAO DE NOVAS ETIQUETAS.")
 				::cError:= "ERRO NA SOLICITACAO DE NOVAS ETIQUETAS."
@@ -572,8 +573,6 @@ Local _cDigETQ		:= ""
 Local _nRecno		:= 0	
 
 Local _lGeraDvEtq	:= .F.
-
-Default _lContinua	:= .T.
 
 CoNout("<< SIGEPWEB - GETETIQUETA >> - INICIO DATA " + dToc( Date() ) + " HORA " + Time() + " .")
 

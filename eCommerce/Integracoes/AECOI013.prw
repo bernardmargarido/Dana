@@ -29,7 +29,7 @@ User function AECOI013(cOrderId)
 Local aArea		:= GetArea()
 Local aRet		:= {.T.,"",""}
 
-Local _lBloqueio:= GetNewPar("EC_BLSMSG",.T.)
+Local _lBloqueio:= GetNewPar("EC_BLSMSG",.F.)
 
 Private cThread	:= Alltrim(Str(ThreadId()))
 Private cStaLog	:= "0"
@@ -42,7 +42,7 @@ Private dDtaInt	:= Date()
 
 Private aMsgErro:= {}
 
-Private lJob 	:= .F.
+Private lJob 	:= .T.
 
 If _lBloqueio
 	RestArea(aArea)

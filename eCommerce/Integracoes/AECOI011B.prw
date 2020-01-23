@@ -29,7 +29,7 @@ User Function AECOI11B(cNumOrc,lCancel)
 Local aArea		:= GetArea()
 Local aRet		:= {.T.,"",""}
 
-Local _lBloqueio:= GetNewPar("EC_BLSMSG",.T.)	
+Local _lBloqueio:= GetNewPar("EC_BLSMSG",.F.)	
 
 Private cThread	:= Alltrim(Str(ThreadId()))
 Private cStaLog	:= "0"
@@ -120,7 +120,7 @@ Local cRetPost  	:= ""
 
 Local nTimeOut		:= 240
 
-Local _lBloqueio	:= GetNewPar("EC_BLSMSG",.T.)
+Local _lBloqueio	:= GetNewPar("EC_BLSMSG",.F.)
 
 Local oRestRet   	:= Nil 
 

@@ -178,7 +178,7 @@ Static Function MenuDef()
 
     ADD OPTION aRotina TITLE "Pesquisa"  		    	ACTION 'PesqBrw'            	OPERATION 1 ACCESS 0
 	ADD OPTION aRotina TITLE "Visualizar"          	    ACTION "VIEWDEF.SIGA004" 		OPERATION 2 ACCESS 0 
-	ADD OPTION aRotina TITLE "Solicita Etiquetas"       ACTION "U_SIGM002" 		        OPERATION 4 ACCESS 0 
+	ADD OPTION aRotina TITLE "Solicita Etiquetas"       ACTION "U_SIGM002" 		        OPERATION 3 ACCESS 0 
     ADD OPTION aRotina TITLE "Gera Digito Etiquetas"    ACTION "U_SIGM003" 		        OPERATION 4 ACCESS 0 
 
 Return aRotina

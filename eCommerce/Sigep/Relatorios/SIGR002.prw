@@ -211,6 +211,13 @@ Local _cIdCartao	:= GetNewPar("EC_IDCARTA")
 Local _cBitMap		:= GetSrvProfString("Startpath","")+"\correios.bmp"
 Local _cEnd_01 		:= ""
 Local _cEnd_02 		:= ""
+Local _cNomeRem		:= ""
+Local _cEndCob		:= ""
+Local _cMunCob		:= ""
+Local _cBairCob		:= ""
+Local _cCompCob		:= ""
+Local _cEstCob		:= ""
+Local _cCepCob		:= ""
 
 //---------------------+
 // Inicio da Impressao |
@@ -228,6 +235,17 @@ _oPrint:SayBitmap(001, 025, _cBitMap, 100,025 )
 _oPrint:Box(030, 025, 100, 600,"-9")
 _oPrint:Line(112, 025, 112, 600, 0, "-9")
 
+//--------------------+
+// Dados do Remetente |
+//--------------------+
+_cNomeRem		:= "Dana Cosméticos" 	//Capital(RTrim(SM0->M0_NOMECOM))
+_cEndCob		:= "Av. Piracema, 1.411"//Capital(RTrim(SM0->M0_ENDCOB))
+_cMunCob		:= "Barueri "			//Capital(RTrim(SM0->M0_CIDCOB))
+_cBairCob		:= "Tamboré"			//Capital(RTrim(SM0->M0_BAIRCOB))
+_cCompCob		:= "Módulo 5"			//Capital(RTrim(SM0->M0_COMPCOB))
+_cEstCob		:= "SP"					//SM0->M0_ESTCOB
+_cCepCob		:= "06460030"			//SM0->M0_CEPCOB
+
 //-----------------+
 // Dados Cabecalho |
 //-----------------+
@@ -236,18 +254,18 @@ _oPrint:Say(042, 260, _cSubTit 							, _oFont12N, 100 )
 _oPrint:Say(053, 030, "N° da Lista:"					, _oFont12N, 100 ) 
 _oPrint:Say(053, 090, _cIDPlp	 						, _oFont12 , 100 )
 _oPrint:Say(053, 190, "Remetente:" 						, _oFont12N, 100 )
-_oPrint:Say(053, 260, RTrim(Capital(SM0->M0_NOMECOM))	, _oFont12 , 100 )
+_oPrint:Say(053, 260, RTrim(Capital(_cNomeRem))			, _oFont12 , 100 )
 
 _oPrint:Say(068, 030, "Contrato:"	 					, _oFont12N, 100 ) 
 _oPrint:Say(068, 090, _cCodCont		 					, _oFont12 , 100 )
 _oPrint:Say(068, 190, "Cliente:"	 					, _oFont12N, 100 )
-_oPrint:Say(068, 260, RTrim(Capital(SM0->M0_NOMECOM))	, _oFont12 , 100 )
+_oPrint:Say(068, 260, RTrim(Capital(_cNomeRem))			, _oFont12 , 100 )
 _oPrint:Say(083, 030, "Cod. Adm:"	 					, _oFont12N, 100 ) 
 _oPrint:Say(083, 090, _cCodAdm	 						, _oFont12 , 100 )
 _oPrint:Say(083, 190, "Endereço:"	 					, _oFont12N, 100 )
 
-_cEnd_01 := RTrim(Capital(SM0->M0_ENDCOB))
-_cEnd_02 := RTrim(Capital(SM0->M0_BAIRCOB)) + " - " + RTrim(Capital(SM0->M0_CIDCOB)) + "/" + SM0->M0_ESTCOB + " - CEP:" + RTrim(SM0->M0_CEPCOB)    	
+_cEnd_01 := RTrim(Capital(_cEndCob))
+_cEnd_02 := RTrim(Capital(_cBairCob)) + " - " + RTrim(Capital(_cMunCob)) + "/" + _cEstCob + " - CEP:" + RTrim(_cCepCob)    	
 
 _oPrint:Say(083, 260, _cEnd_01		 					, _oFont12 , 100 )
 _oPrint:Say(098, 260, _cEnd_02		 					, _oFont12 , 100 ) 

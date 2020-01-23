@@ -32,7 +32,7 @@ End Transaction
 
 CoNout("<< SIGM006 >> - FIM " + dTos( Date() ) + " - " + Time() )
 
-Return .T.
+Return _lRet
 
 /**********************************************************************************/
 /*/{Protheus.doc} SigM006A
@@ -365,5 +365,3 @@ If (_cAlias)->( Eof() )
 EndIf
 
 Return .T.
-
-

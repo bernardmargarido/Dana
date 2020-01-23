@@ -21,10 +21,21 @@ User Function SIGM004(cNumDoc,cSerie,cOrderId,aFaixaEtq,cXmlPlp)
 Local _aArea		:= GetArea()
 
 Local _lRet 		:= .T.
+
+Private _lJob		:= IIF(Isincallstack("U_SIGM005"),.T.,.F.)
+
+CoNout("<< SIGM004 >> - INICIO " + dTos( Date() ) + " - " + Time() )
+
 //----------------------------+
 // Grava serviços contratados |
 //----------------------------+
-FwMsgRun(,{|| _lRet := SigM04A()},"Aguarde...","Consultando contratos")
+If _lJob
+	_lRet := SigM04A()
+Else
+	FwMsgRun(,{|| _lRet := SigM04A()},"Aguarde...","Consultando contratos")
+EndIf
+
+CoNout("<< SIGM004 >> - FIM " + dTos( Date() ) + " - " + Time() )
 
 RestArea(_aArea)
 Return _lRet 
@@ -63,7 +74,13 @@ Local  _oSigWeb	:= SigepWeb():New
 // Consulta PLP's |
 //----------------+
 If !SigM04Qry(_cAlias,@_nToReg)
-	MsgStop("Não existem dados para serem enviados.","Aviso")
+
+	If _lJob
+		MsgStop("Não existem dados para serem enviados.","Aviso")
+	EndIf
+	
+	ConOut(" << SIGM004 >> - NAO EXISTEM DADOS PARA SEREM ENVIADOS.")	
+
 	RestArea(_aArea)
 	Return .T.
 EndIf
@@ -103,6 +120,8 @@ While (_cAlias)->( !Eof() )
 	_aItPLP	 	:= {}
 	_aFaixaEtq	:= {}
 
+	CoNout("<< SIGM004 >> - ENVIANDO PLP " + _cCodPLP)
+
 	While (_cAlias)->( !Eof() .And. _cCodPLP == (_cAlias)->ZZ2_CODIGO )
 
 		//--------------------+
@@ -110,6 +129,8 @@ While (_cAlias)->( !Eof() )
 		//--------------------+
 		_cCodEmb := "001"
 		ZZ3->( dbSeek(xFilial("ZZ3") + _cCodEmb) )
+
+		CoNout("<< SIGM004 >> - ITENS PLP ETIQUETA " + RTrim((_cAlias)->ZZ4_CODETQ) + " NOTA " + RTrim((_cAlias)->WSA_DOC) + " SERIE " + RTrim((_cAlias)->WSA_SERIE) + " DESTINATARIO " + RTrim((_cAlias)->WSA_NOMDES) + " .")
 
 		aAdd( _aFaixaEtq, { (_cAlias)->ZZ1_CODETQ + (_cAlias)->ZZ1_SIGLA } ) 
 
@@ -145,6 +166,9 @@ While (_cAlias)->( !Eof() )
 
 	If _oSigWeb:SetPLP()
 		_cIDPlp	:= _oSigWeb:cIdPLP
+
+		CoNout("<< SIGM004 >> - PLP ID " + _cIDPlp + " ENVIADA COM SUCESSO .")
+
 		//---------------+
 		// Posiciona PLP |
 		//---------------+
@@ -176,11 +200,21 @@ While (_cAlias)->( !Eof() )
 					RecLock("WSA",.F.)
 						WSA->WSA_ENVLOG := "4"
 						WSA->WSA_CODSTA := "006"
-						WSA->WSA_CODSTA := Posicione("WS1",1,xFilial("WS1") + "006","WS1_DESCRI")
+						WSA->WSA_DESTAT := Posicione("WS1",1,xFilial("WS1") + "006","WS1_DESCRI")
 						WSA->WSA_TRACKI	:= ZZ4->ZZ4_CODETQ
 					WSA->( MsUnLock() )
 				EndIf
-
+				
+				//------------------------+
+				// Grava Status do Pedido |
+				//------------------------+
+				u_AEcoStaLog("006",WSA->WSA_NUMECO,WSA->WSA_NUM,Date(),Time())
+				
+				//----------------------------------------+
+				// Envia invoice com o codigo de rastreio |
+				//----------------------------------------+
+				U_AECOI013(WSA->WSA_NUMECO)
+													
 				//--------------------------+
 				// Atualiza status etiqueta |
 				//--------------------------+
@@ -194,6 +228,7 @@ While (_cAlias)->( !Eof() )
 			EndDo
 		EndIf
 	Else
+		CoNout("<< SIGM004 >> - ERRO AO ENVIAR PLP " + _cCodPLP + " .")
 		//---------------+
 		// Posiciona PLP |
 		//---------------+

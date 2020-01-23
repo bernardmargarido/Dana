@@ -630,6 +630,57 @@ aEstrut := { { "X3_ARQUIVO", 0 }, { "X3_ORDEM"  , 0 }, { "X3_CAMPO"  , 0 }, { "X
 
 aEval( aEstrut, { |x| x[2] := SX3->( FieldPos( x[1] ) ) } )
 
+//
+// Campos Tabela WSA
+//
+aAdd( aSX3, { ;
+	'WSA'																	, ; //X3_ARQUIVO
+	'E0'																	, ; //X3_ORDEM
+	'WSA_SERPOS'															, ; //X3_CAMPO
+	'C'																		, ; //X3_TIPO
+	6																		, ; //X3_TAMANHO
+	0																		, ; //X3_DECIMAL
+	'Cod. Serv Po'															, ; //X3_TITULO
+	'Cod. Serv Po'															, ; //X3_TITSPA
+	'Cod. Serv Po'															, ; //X3_TITENG
+	'Cod. Servico de Postagem '												, ; //X3_DESCRIC
+	'Cod. Servico de Postagem '												, ; //X3_DESCSPA
+	'Cod. Servico de Postagem '												, ; //X3_DESCENG
+	'@!'																	, ; //X3_PICTURE
+	''																		, ; //X3_VALID
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(160)					, ; //X3_USADO
+	''																		, ; //X3_RELACAO
+	''																		, ; //X3_F3
+	1																		, ; //X3_NIVEL
+	Chr(254) + Chr(192)														, ; //X3_RESERV
+	''																		, ; //X3_CHECK
+	''																		, ; //X3_TRIGGER
+	'U'																		, ; //X3_PROPRI
+	'N'																		, ; //X3_BROWSE
+	''																		, ; //X3_VISUAL
+	''																		, ; //X3_CONTEXT
+	''																		, ; //X3_OBRIGAT
+	''																		, ; //X3_VLDUSER
+	''																		, ; //X3_CBOX
+	''																		, ; //X3_CBOXSPA
+	''																		, ; //X3_CBOXENG
+	''																		, ; //X3_PICTVAR
+	''																		, ; //X3_WHEN
+	''																		, ; //X3_INIBRW
+	''																		, ; //X3_GRPSXG
+	''																		, ; //X3_FOLDER
+	''																		, ; //X3_CONDSQL
+	''																		, ; //X3_CHKSQL
+	''																		, ; //X3_IDXSRV
+	''																		, ; //X3_ORTOGRA
+	''																		, ; //X3_TELA
+	''																		, ; //X3_POSLGT
+	''																		, ; //X3_IDXFLD
+	''																		, ; //X3_AGRUP
+	''																		, ; //X3_MODAL
+	''																		} ) //X3_PYME
 
 //
 // Campos Tabela ZZ0

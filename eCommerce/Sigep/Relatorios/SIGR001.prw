@@ -1,9 +1,10 @@
-#INCLUDE 'PROTHEUS.CH'
+#INCLUDE "PROTHEUS.CH"
 #INCLUDE "FWPRINTSETUP.CH"
 #INCLUDE "TOPCONN.CH"
 #INCLUDE "FWPRINTSETUP.CH"
 #INCLUDE "RPTDEF.CH"
 #INCLUDE "TOTVS.CH"
+#INCLUDE "REPORT.CH" 
 
 #DEFINE CRLF CHR(13) + CHR(10)
 #DEFINE CLR_BLACK RGB(0,0,0)
@@ -103,14 +104,14 @@ While (_cAlias)->( !Eof() )
 	
 	_cCodPlp 	:= (_cAlias)->ZZ2_CODIGO
 	
-	_cFile		:= "ETQ_" +_cCodPlp + "_"  + DToS(dDataBase) + Left(Time(),2) + SubStr(Time(),4,2) + Right(Time(),2) + ".PD_"
+	_cFile		:= "ETQ_" + _cCodPlp + "_"  + DToS(Date()) + Left(Time(),2) + SubStr(Time(),4,2) + Right(Time(),2) + ".PD_"
 
 	_oProcess:IncRegua1("Etiquetas PLP " + _cCodPlp +  " .")
 
 	//------------------+
 	// Instancia classe | 
 	//------------------+
-	_oPrint	:=	FWMSPrinter():New(_cFile, IMP_PDF, _lAdjustToLegacy,_cDirExp, _lDisableSetup, , , , .T., , .F., )
+	_oPrint	:=	FWMSPrinter():New(_cFile, IMP_PDF, _lAdjustToLegacy, _cDirExp, _lDisableSetup, , , , .T., , .F., )
 
 	//---------------------+
 	// Configura Relatorio |
@@ -186,10 +187,10 @@ Static Function SigR01Etq(	_oPrint,_cPlpID,_cDoc,_cSerie,_cPedido,_cTelDest,;
 							_cCep,_cUF,_cObs,_cCodServ,_cDescSer,_cDTMatrix,;
 							_nValor,_nVolume,_nPeso)
 
-Local _cBtmDana		:= GetSrvProfString("Startpath","")+"\sigep_dana.bmp"
+Local _cBtmDana		:= GetSrvProfString("Startpath","")+"sigep_dana.bmp"
 Local _cDirSigep	:= GetSrvProfString("Startpath","")
-Local _cBTMapSedex	:= "\sigep_sedex.bmp"
-Local _cBTMapPac	:= "\sigep_pac.bmp"
+Local _cBTMapSedex	:= "sigep_sedex.bmp"
+Local _cBTMapPac	:= "sigep_pac.bmp"
 Local _cCodCont		:= GetNewPar("EC_CODCONT")
 Local _cCodCartao	:= GetNewPar("EC_IDCARTA")
 Local _cNomeRem		:= ""
@@ -211,13 +212,13 @@ Local _oFont11		:= TFont():New("Arial",,11,,.F.,,,,,.F. )
 //--------------------+
 // Dados do Remetente |
 //--------------------+
-_cNomeRem		:= Capital(RTrim(SM0->M0_NOMECOM))
-_cEndCob		:= Capital(RTrim(SM0->M0_ENDCOB))
-_cMunCob		:= Capital(RTrim(SM0->M0_CIDCOB))
-_cBairCob		:= Capital(RTrim(SM0->M0_BAIRCOB))
-_cCompCob		:= Capital(RTrim(SM0->M0_COMPCOB))
-_cEstCob		:= SM0->M0_ESTCOB
-_cCepCob		:= SM0->M0_CEPCOB
+_cNomeRem		:= "Dana Cosméticos" 	//Capital(RTrim(SM0->M0_NOMECOM))
+_cEndCob		:= "Av. Piracema, 1.411"//Capital(RTrim(SM0->M0_ENDCOB))
+_cMunCob		:= "Barueri "			//Capital(RTrim(SM0->M0_CIDCOB))
+_cBairCob		:= "Tamboré"			//Capital(RTrim(SM0->M0_BAIRCOB))
+_cCompCob		:= "Módulo 5"			//Capital(RTrim(SM0->M0_COMPCOB))
+_cEstCob		:= "SP"					//SM0->M0_ESTCOB
+_cCepCob		:= "06460030"			//SM0->M0_CEPCOB
 
 //---------------------+
 // Inicio da Impressao |
@@ -253,7 +254,7 @@ _oPrint:SayBitmap(015, 210, _cImgSigep , _nPixelX, _nPixelY )
 // Codigo do Tipo Data Matrix |
 //----------------------------+
 _cCodDtMatrix := SigR01DtMat(_cCep,_cCepCob,_cCodEtq,_cEndDest,_cEndCob,_cCodCartao,_cCodServ,_cObs,_nValor)
-_oPrint:DataMatrix( 118, 085, _cCodDtMatrix, 075)
+//_oPrint:DataMatrix( 118, 085, _cCodDtMatrix, 075)
 
 //---------------+
 // Dados Etiqueta|
@@ -279,6 +280,8 @@ _oPrint:Say(108, 032, _cPlpID						, _oFont09,  100 )
 
 _oPrint:Say(124, 090, _cCodEtq						, _oFont11N, 100 )
 _oPrint:Code128(126, 015, _cCodEtq, 02, 36, .F., /*oFont*/ , 200)
+//_oPrint:FWMsBar('CODE128',126,015,_cCodEtq, _oPrint,.F.,,.T., 02, 36, .F.,"Arial",,.F., 2, 2,.F.)
+//_oPrint:Code128c(163, 015, _cCodEtq, 060)
 
 _oPrint:Say(172, 015, "Recebedor:"					, _oFont09,  100 )
 _oPrint:Say(182, 015, "Assinatura:"					, _oFont09,  100 )
@@ -299,7 +302,8 @@ _oPrint:Say(234, 015, Capital(_cBairro)							, _oFont11,  100 )
 _oPrint:Say(245, 015, Capital(_cCep)							, _oFont11N, 100 )
 _oPrint:Say(245, 080, Capital(RTrim(_cMunicipio)) + "/" + _cUF	, _oFont11,  100 )
 
-_oPrint:Code128(250, 015, _cCep, 02, 36, .F., /*oFont*/ , 080)
+//_oPrint:Code128(250, 015, _cCep, 02, 36, .F., /*oFont*/ , 080)
+_oPrint:Code128c(283, 015, _cCep, 035)
 
 If !Empty(_cObs)
 	_oPrint:Say(256, 098, "OBS: " + Capital(RTrim(_cObs))		, _oFont10,  100 )

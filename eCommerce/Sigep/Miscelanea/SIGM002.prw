@@ -48,7 +48,7 @@ Local  _oSigWeb		:= SigepWeb():New
 // Consulta Contratos |
 //--------------------+
 If _oSigWeb:GrvCodEtq()
-	_cMsg 	:= "Etiquetas gravados com sucesso. Deseja abrir tela de consulta?"
+	_cMsg 	:= "Etiquetas gravados com sucesso"
 	_lRet	:= .T.
 Else
 	_cMsg 	:= _oSigWeb:cError

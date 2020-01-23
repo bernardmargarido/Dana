@@ -159,8 +159,8 @@ aAdd(aHeadOut,"Content-Type: application/json" )
 aAdd(aHeadOut,"X-VTEX-API-AppKey:" + cAppKey )
 aAdd(aHeadOut,"X-VTEX-API-AppToken:" + cAppToken ) 
 
-//cUrlParms := "ready-for-handling"
-cUrlParms := "handling"
+cUrlParms := "ready-for-handling"
+//cUrlParms := "handling"
 //cUrlParms := "canceled,invoiced" //handling,payment-pending,
 
 cHtmlPage := HttpGet(cUrl + "/api/oms/pvt/orders?f_status=" + cUrlParms , /*cUrlParms*/, nTimeOut, aHeadOut, @cXmlHead)

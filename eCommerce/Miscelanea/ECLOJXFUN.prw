@@ -193,7 +193,7 @@ Param03 - Array com os erros
 Retorno:
 Nenhum
 **************************************************************************************************/
-User Function AEcoMail(cCodInt,cDescInt,aMsgErro,_cPDF)
+User Function AEcoMail(cCodInt,cDescInt,aMsgErro,_cPDF,_cETQ)
 	Local aArea		:= GetArea()
 
 	Local cServer	:= GetMv("MV_RELSERV")
@@ -205,6 +205,7 @@ User Function AEcoMail(cCodInt,cDescInt,aMsgErro,_cPDF)
 	Local cMailIbex	:= GetNewPar("EC_MAILIBX","bernard.margarido@vitreoerp.com.br;agendamento@ibexlogistica.com.br")
 	Local cBody		:= ""	
 	Local cRgbCol	:= ""
+	Local cAnexos	:= ""
 	Local cTitulo	:= "Dana Cosmeticos - Integrações e-Commerce"
 	Local cEndLogo	:= "https://danacosmeticos.vteximg.com.br/arquivos/dana-logo-002.png" 
 
@@ -216,7 +217,8 @@ User Function AEcoMail(cCodInt,cDescInt,aMsgErro,_cPDF)
 	Local lRelauth  := SuperGetMv("MV_RELAUTH",, .F.)
 
 	Default	_cPDF	:= ""
-
+	Default	_cETQ	:= ""
+	
 	//---------------------------------------------+
 	// Montagem do Html que sera enciado com erros |
 	//---------------------------------------------+
@@ -295,8 +297,18 @@ User Function AEcoMail(cCodInt,cDescInt,aMsgErro,_cPDF)
 	//-------------------------------------------------------------+
 	If lOk
 		If !Empty(_cPDF)
+			//------+
+		 	// NF-e |
+		 	//------+
 			If File(_cPDF)
-				SEND MAIL FROM cFrom TO cMailIbex SUBJECT cTitulo BODY cBody ATTACHMENT _cPDF RESULT lEnviado  
+				cAnexos += _cPDF
+				//----------+
+				// Etiqueta |
+				//----------+
+				If File(_cETQ)
+					cAnexos += "; " + _cETQ
+				EndIf
+				SEND MAIL FROM cFrom TO cMailIbex SUBJECT cTitulo BODY cBody ATTACHMENT cAnexos RESULT lEnviado  
 			EndIf	
 		Else
 			SEND MAIL FROM cFrom TO cMail SUBJECT cTitulo BODY cBody RESULT lEnviado 
@@ -897,9 +909,11 @@ EndIf
 // Grava Status do Pedido |
 //------------------------+
 u_AEcoStaLog(_cCodSta,_cOrderId,WSA->WSA_NUM,dDataBase,Time())
+/*
 If WS1->WS1_ENVECO == "S"
 	U_AECOI013(_cOrderId)
 EndIf
+*/
 
 RestArea(_aArea)
 Return .T.
