@@ -27,7 +27,7 @@
 User Function SIGR001()
 Local _cPerg 		:= "SIGR02"
 
-Private _lJob		:= .F.
+Private _lJob		:= IIF(Isincallstack("U_ECLOJM06"),.T.,.F.)
 
 Private _oProcess   := Nil
 
@@ -279,9 +279,11 @@ _oPrint:Say(108, 032, _cPlpID						, _oFont09,  100 )
 
 
 _oPrint:Say(124, 090, _cCodEtq						, _oFont11N, 100 )
-_oPrint:Code128(126, 015, _cCodEtq, 02, 36, .F., /*oFont*/ , 200)
-//_oPrint:FWMsBar('CODE128',126,015,_cCodEtq, _oPrint,.F.,,.T., 02, 36, .F.,"Arial",,.F., 2, 2,.F.)
-//_oPrint:Code128c(163, 015, _cCodEtq, 060)
+//If _lJob
+_oPrint:Code128c(163, 015, _cCodEtq, 035)
+//Else
+//	_oPrint:Code128(126, 015, _cCodEtq, 02, 36, .F., /*oFont*/ , 200)
+//EndIf
 
 _oPrint:Say(172, 015, "Recebedor:"					, _oFont09,  100 )
 _oPrint:Say(182, 015, "Assinatura:"					, _oFont09,  100 )

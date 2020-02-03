@@ -180,7 +180,7 @@ oPedido	:= oJson[#"notas"]
 // Inicia a Gravacao / Atualização dos Pedidos |
 //---------------------------------------------+
 For nPed := 1 To Len(oPedido)	
-	LogExec("INICIA VALIDACAO DA SEPARACAO DA NOTA " + LTrim(oPedido[nPed][#"notas"]) )
+	LogExec("INICIA VALIDACAO DA SEPARACAO DA NOTA " + RTrim(oPedido[nPed][#"nota"]) )
 	DnaApi10B(oPedido[nPed])
 Next nPed	
 
@@ -270,7 +270,7 @@ oPedido	:= oJson[#"notas"]
 // Inicia a Gravacao / Atualização dos Pedidos |
 //---------------------------------------------+
 For nPed := 1 To Len(oPedido)	
-	LogExec("INICIA VALIDACAO DA BAIXA DA NOTA " + LTrim(oPedido[nPed][#"notas"]) )
+	LogExec("INICIA VALIDACAO DA BAIXA DA NOTA " + RTrim(oPedido[nPed][#"nota"]) )
 	DnaApi10C(oPedido[nPed])
 Next nPed	
 

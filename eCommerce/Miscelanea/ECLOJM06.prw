@@ -25,10 +25,10 @@ Static _cDirArq     := "/danfe/"
     @version version
 /*/
 /******************************************************************************/
-User Function ECLOJM06(aParam)
+User Function ECLOJM06(_cEmp,_cFil)
 Local _aArea        := GetArea()
 
-Private _lJob       := IIF( ValType(aParam) == "A", .T., .F.)
+Private _lJob       := IIF( Empty(_cEmp) , .F., .T.)
 
 Private _oProcess   := Nil
 
@@ -48,7 +48,7 @@ MakeDir(_cDirRaiz + _cDirArq)
 //-----------------------+
 If _lJob
     RpcSetType(3)
-	RpcSetEnv(aParam[1], aParam[2],,,'FAT')
+	RpcSetEnv(_cEmp, _cFil,,,'FAT')
 EndIf
 
 //----------------------------+
