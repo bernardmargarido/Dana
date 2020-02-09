@@ -13,7 +13,7 @@ Static cDirImp	:= "/ecommerce/"
     @since 28/05/2019
 /*/
 /**************************************************************************/
-User Function ECLOJ012(aParam)
+User Function ECLOJ012()
 Local _aArea    := GetArea()
 
 Local _cAlias   := ""
@@ -22,15 +22,7 @@ Local _lContinua:= .T.
 
 Private cArqLog	:= ""	
 
-Private _lJob   := IIF(ValType(aParam) <> "U" , .T., .F.)
-
-//-----------------------+
-// Abre empresa / filial | 
-//-----------------------+
-If _lJob
-    RpcSetType(3)
-	RpcSetEnv(aParam[1], aParam[2],,,'LOJ')
-EndIf
+Private _lJob   := IIF(Isincallstack("U_ECLOJM04"),.T.,.F.)
 
 //------------------------------+
 // Inicializa Log de Integracao |
@@ -101,12 +93,6 @@ LogExec("FINALIZA PROCESSAMENTO DE PEDIDO ECOMMERCE - DATA/HORA: "+DTOC(DATE())+
 LogExec(Replicate("-",80))
 ConOut("")
 
-//------------------------+
-// Fecha empresa / filial |
-//------------------------+
-If _lJob
-    RpcClearEnv()
-EndIf    
 
 RestArea(_aArea)
 Return Nil
@@ -145,8 +131,6 @@ Local _nPDtaTef     := 0
 Local _nPDocTef     := 0
 Local _nPNsuTef     := 0
 Local _nValDesc     := 0
-
-Local _lContinua    := .T.
 
 Private nTTipo      := TamSx3("C0_TIPO")[1] 
 Private nTNumCl     := TamSx3("L1_XNUMECL")[1]  
@@ -376,6 +360,7 @@ aAdd( _aCabec,	{"LQ_XOBSECO"	, WSA->WSA_OBSECO								, Nil })
 aAdd( _aCabec,	{"LQ_XTEL01"	, WSA->WSA_TEL01 								, Nil })
 aAdd( _aCabec,	{"LQ_XTRACKI"	, WSA->WSA_TRACKI								, Nil })
 aAdd( _aCabec,	{"LQ_XVLBXPV"	, WSA->WSA_VLBXPV								, Nil })
+aAdd( _aCabec,  {"AUTRESERVA"   ,"000001"                                       , Nil })
 
 //------------------------+
 // Processa ExecAuto Loja |

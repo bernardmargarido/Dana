@@ -68,7 +68,6 @@ Local cSerie		:= IIF(Empty(::SERIE),"",::SERIE)
 Local cDataHora		:= IIF(Empty(::DATAHORA),"1900-01-01T00:00",::DATAHORA)
 Local cTamPage		:= ::PERPAGE
 Local cPage			:= ::PAGE
-Local cFilAux		:= cFilAnt
 
 Local nLen			:= Len(::aUrlParms)
 

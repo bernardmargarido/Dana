@@ -12,7 +12,7 @@
 /***********************************************************************************/
 User Function LJTESPED()
 Local _cTesI    := GetNewPar("EC_TESECO","601")
-Local _cTesE    := GetNewPar("EC_TESECO","602")
+Local _cTesE    := GetNewPar("EC_TESECOE","602")
 Local _cTes     := ""
 
 Local _aSL1     := ParamIxb[2]
@@ -29,6 +29,9 @@ dbSelectArea("SA1")
 SA1->( dbSetOrder(1) )
 If SA1->( dbSeek(xFilial("SA1") + _aSL1[_nPosCli][2] + _aSL1[_nPosLoj][2]))
     ConOut("<< LJTESPED >> - CLIENTE LOCALIZADO - UF " + SA1->A1_EST)
+    //--------------------------------+
+    // Valida UF do cliente eCommerce |
+    //--------------------------------+
     If SA1->A1_EST == "SP"
         _cTes := _cTesI
     Else
