@@ -51,6 +51,9 @@ Do Case
 		
 	Case Upper(Alltrim(cFuncao)) == "CPOADIC"
 		xRet := fCPOADIC(@xParam1,@xParam2)
+
+	Case Upper(Alltrim(cFuncao)) == "LOGIN"
+		xRet := .T.
 		
 EndCase
 

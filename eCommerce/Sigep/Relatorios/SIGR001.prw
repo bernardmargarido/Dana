@@ -279,11 +279,7 @@ _oPrint:Say(108, 032, _cPlpID						, _oFont09,  100 )
 
 
 _oPrint:Say(124, 090, _cCodEtq						, _oFont11N, 100 )
-//If _lJob
-_oPrint:Code128c(163, 015, _cCodEtq, 035)
-//Else
-//	_oPrint:Code128(126, 015, _cCodEtq, 02, 36, .F., /*oFont*/ , 200)
-//EndIf
+_oPrint:Code128(126, 015, _cCodEtq, 02, 36, .F., /*oFont*/ , 200)
 
 _oPrint:Say(172, 015, "Recebedor:"					, _oFont09,  100 )
 _oPrint:Say(182, 015, "Assinatura:"					, _oFont09,  100 )

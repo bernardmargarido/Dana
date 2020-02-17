@@ -210,11 +210,18 @@ User Function AEcoMail(cCodInt,cDescInt,aMsgErro,_cPDF,_cETQ)
 	Local cEndLogo	:= "https://danacosmeticos.vteximg.com.br/arquivos/dana-logo-002.png" 
 
 	Local nErro		:= 0
+	Local _nPort	:= 0
+	Local _nPosTmp	:= 0
+
+	Local _xRet		
 
 	Local lEnviado	:= .F.
 	Local lOk		:= .F.
 	Local lZebra	:= .T.
 	Local lRelauth  := SuperGetMv("MV_RELAUTH",, .F.)
+
+	Local _oServer	:= Nil
+	Local _oMessage	:= Nil
 
 	Default	_cPDF	:= ""
 	Default	_cETQ	:= ""
@@ -279,6 +286,66 @@ User Function AEcoMail(cCodInt,cDescInt,aMsgErro,_cPDF,_cETQ)
 	cBody += '    </body>'
 	cBody += '    </html>'
 
+	//-------------------------+	
+	// Realiza envio do e-mail | 
+	//-------------------------+
+	lEnviado := .T.	
+	_oServer := TMailManager():New()
+	_oServer:SetUseTLS(.T.)
+
+	If ( _nPosTmp := At(":",cServer) ) > 0
+		_nPort := Val(SubStr(cServer,_nPosTmp+1,Len(cServer)))
+		cServer := SubStr(cServer,1,_nPosTmp-1)
+	EndIf
+
+	If  ( _xRet := _oServer:Init( "", cServer, cUser, cPassword,,_nPort) ) == 0
+		If ( _xRet := _oServer:SMTPConnect()) == 0
+			If lRelauth
+				If ( _xRet := _oServer:SMTPAuth( cUser, cPassword ))  <> 0
+					_xRet := _oServer:SMTPAuth( SubStr(cUser,1,At("@",cUser)-1), cPassword )
+				EndIf
+			Endif
+
+			If _xRet == 0
+				
+				_oMessage := TMailMessage():New()
+				_oMessage:Clear()
+				
+				_oMessage:cDate  	:= cValToChar( Date() )
+				_oMessage:cFrom  	:= cFrom
+				_oMessage:cTo   	:= IIF(Empty(_cPDF),cMail,cMailIbex)
+				//_oMessage:cCc   	:= cEmailCc
+				_oMessage:cSubject 	:= cTitulo
+				_oMessage:cBody   	:= cBody
+				If !Empty(_cPDF)
+					//------+
+					// NF-e |
+					//------+
+					If File(_cPDF) .Or. File(Lower(_cPDF))
+						_oMessage:AttachFile(_cPDF)
+					EndIf
+					//----------+
+					// Etiqueta |
+					//----------+
+					If File(_cETQ) .Or. File(Lower(_cETQ))
+						_oMessage:AttachFile(_cETQ)
+					EndIf
+				Endif
+				
+				If (_xRet := _oMessage:Send( _oServer )) <> 0
+					Conout("Erro ao enviar e-mail --> " + _oServer:GetErrorString( _xRet ))	
+					lEnviado := .F.
+				Endif
+			Else
+				Conout("Erro ao enviar e-mail --> " + _oServer:GetErrorString( _xRet ))	
+				lEnviado := .F.
+			EndIf
+		EndIf
+	Else
+		Conout("Erro ao Conectar ! ")
+	EndIf
+
+	/*	
 	//-------------------------------------------------------------+
 	// Verifica usuario e senha para conectar no servidor de saida |
 	//-------------------------------------------------------------+
@@ -336,7 +403,7 @@ User Function AEcoMail(cCodInt,cDescInt,aMsgErro,_cPDF,_cETQ)
 	//---------------------------------+
 	// Disconecta do servidor de saida |
 	//---------------------------------+
-	DISCONNECT SMTP SERVER
+	//DISCONNECT SMTP SERVER
 
 	RestArea(aArea)
 

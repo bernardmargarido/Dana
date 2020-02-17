@@ -28,7 +28,7 @@ Static _cDirArq     := "/danfe/"
 User Function ECLOJM06(_cEmp,_cFil)
 Local _aArea        := GetArea()
 
-Private _lJob       := IIF( Empty(_cEmp) , .F., .T.)
+Private _lJob       := IIF(Isincallstack("U_ECLOJ010"),.F.,.T.) 
 
 Private _oProcess   := Nil
 
@@ -235,7 +235,7 @@ If !Empty(_cIdent) .And. !Empty(_cDoc) .And. !Empty(_cSerie)
     //-----------------------+
     // Gera nome arquivo PDF |
     //-----------------------+
-    _cPDFDanfe  := "DANFE_" + RTrim(_cDoc) + "_" + _cSerie 
+    _cPDFDanfe  := "DANFE_" + RTrim(_cDoc) + "_" + RTrim(_cSerie)
 
     //--------------------------+
     // Deleta arquivo existente |
@@ -401,9 +401,8 @@ EndIf
 // Instancia classe | 
 //------------------+
 _oPrint	:= FWMSPrinter():New(_cPDFEtq, IMP_PDF , _lAdjustToLegacy, _cPasta, _lDisableSetup, , , , .T., , .F., )
-//_oPrint	:= FWMSPrinter():New(_cPDFEtq, IMP_PDF, .F.,_cPasta, .T., , , , .T., , .F., )
 
- //---------------------+
+//---------------------+
 // Configura Relatorio |
 //---------------------+
 _oPrint:setResolution(78)

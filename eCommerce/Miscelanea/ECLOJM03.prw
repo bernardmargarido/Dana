@@ -9,7 +9,7 @@
     @version version
 /*/
 /******************************************************************************/
-User Function ECLOJM03(_cEmpInt,_cFilInt)
+User Function ECLOJM03(_cEmpInt,_cFilInt) 
 Local _aArea        := GetArea()
 
 Private _lJob       := IIF(!Empty(_cEmpInt) .And. !Empty(_cFilInt), .T., .F.)
