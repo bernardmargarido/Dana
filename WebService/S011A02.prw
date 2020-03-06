@@ -137,7 +137,7 @@ Local _nI    		:= 0
 Local lPedExist		:= .F.
 Local cNumPedido	:= ""
 Local cNumSIM3G		:= ""
-Local cOldFil		:= cFilAnt
+Local cOldFil		:= ""
 Local nOldMod		:= 0
 Local aDadosPE		:= {}
 Local cCampo 		:= ""
@@ -153,6 +153,25 @@ Private aItensSC6	:= {}
 Private aItem   	:= {}
 
 GeraLog("INICIO","IncluirPedido")
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+//--------------------+
+// Salva filial atual | 
+//--------------------+
+cOldFil		:= cFilAnt
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Valida campo obrigatório FILIAL ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+If Empty(Self:INPedido:C5_FILIAL)
+	aAdd(aMsg,{"P","C5_FILIAL","Codigo da Filial nao informado"})
+	Return( GeraStatus("N",@aMsg,@::RetStatus) )
+EndIf
 
 If !ExistDir("\logsim3g")
 	MakeDir("\logsim3g")
@@ -531,6 +550,11 @@ S011A02LCK(cNumSIM3G,2,nHandle,_cArqLck)
 
 GeraLog("FIM","IncluirPedido")
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+//RpcClearEnv()
+
 Return bRet
 
 /******************************************************************************/
@@ -750,7 +774,7 @@ Local aItens		:= {}
 Local aItem   		:= {}
 Local cNumContr 	:= ""
 Local cNumSIM3G		:= ""
-Local cOldFil		:= cFilAnt
+Local cOldFil		:= ""
 Local nOldMod		:= 0
 Local aDadosPE		:= {}
 Local cCampo 		:= ""
@@ -758,6 +782,25 @@ Local xValor		:= nil
 Local bRet			:= .T.
 Local _nI
 Local i
+
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Valida campo obrigatório FILIAL ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+If Empty(Self:INParceria:ADA_FILIAL)
+	aAdd(aMsg,{"P","ADA_FILIAL","Codigo da Filial nao informado"})
+	Return( GeraStatus("N",@aMsg,@::RetStatus) )
+EndIf
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", Self:INParceria:ADA_FILIAL, Nil, Nil, "FRT")
+
+//--------------------+
+// Salva filial atual | 
+//--------------------+
+cOldFil		:= cFilAnt
 
 GeraLog("INICIO","IncluirCntParceria")
 
@@ -1030,6 +1073,11 @@ Endif
 
 GeraLog("FIM","IncluirCntParceria")
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+//RpcClearEnv()
+
 Return(bRet)
 
 
@@ -1136,7 +1184,21 @@ Local i
 
 GeraLog("INICIO","IncluirCliente")
 
-If ! ExistDir("\logsim3g")
+//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+//³ Valida campo FILIAL - Utilizado para LOGAR na filial ³
+//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+If Empty(Self:INCliente:A1_FILIAL)
+	aAdd(aMsg,{"P","A1_FILIAL","Codigo da Filial nao informado"})
+	Return( GeraStatus("N",@aMsg,@::RetStatus) )
+EndIf
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", Self:INCliente:A1_FILIAL, Nil, Nil, "FRT")
+
+If !ExistDir("\logsim3g")
 	MakeDir("\logsim3g")
 Endif
 
@@ -1388,7 +1450,7 @@ For i := 1 to Len(Self:INCliente:CAMPOS_ESPEC)
 		cCampo := Alltrim( Self:INCliente:CAMPOS_ESPEC[i]:CAMPO )
 		xValor := AllTrim( Self:INCliente:CAMPOS_ESPEC[i]:VALOR )
 		SX3->(dbSetOrder(2))
-		If SX3->(dbSeek(cCampo))
+		If SX3->(dbSeek(Padr(cCampo,10)))
 			Do Case
 				Case SX3->X3_TIPO == "N"
 					xValor := Val(xValor)
@@ -1412,7 +1474,8 @@ Next i
 //³ Executa rotina automática de inclusão  ³
 //ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
 Private lMsErroAuto := .F.
-nModulo := 5 // Faturamento
+//nModulo := 5 // Faturamento
+//aDados		:= FWVetByDic( aDados, "SA1", .F. ) 
 If cOperacao == "I"
 	MSExecAuto({|x,y| MATA030(x,y)}, aDados, 3) // INCLUIR
 Else
@@ -1433,19 +1496,24 @@ If ! lMsErroAuto
 	Endif
 	GeraStatus("S",@aMsg,@::RetStatus)
 Else
-	cFile := "IncluirCliente_"+ AllTrim(cNumSIM3G) +".log"
+	cFile := "IncluirCliente_"+ Rtrim(Self:INCliente:A1_COD) + "_" + Rtrim(Self:INCliente:A1_LOJA) + ".log"
 	MostraErro(cPath,cFile)
 	cErro := FwNoAccent(MemoRead(cPath + cFile))
 	
 	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
 	//³ Retorna STATUS da importação - ERRO    ³
 	//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
-	aAdd(aMsg,{"P","Cadastro de Cliente: "+ AllTrim(cNumSIM3G),cErro})
+	aAdd(aMsg,{"P","Cadastro de Cliente: " + Rtrim(Self:INCliente:A1_COD) + "_" + Rtrim(Self:INCliente:A1_LOJA),cErro})
 	GeraStatus("N",@aMsg,@::RetStatus)
 	bRet := .T. // Deve retornar .T. mesmo em caso de erro
 Endif
 
 GeraLog("FIM","IncluirCliente")
+
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+//RpcClearEnv()
 
 Return(bRet)
 
@@ -1525,6 +1593,17 @@ Local cLoja   		:= ""
 Local i
 
 GeraLog("INICIO","IncluirContato")
+
+If Empty(Self:INContato:U5_FILIAL)
+	aAdd(aMsg,{"P","U5_FILIAL","Codigo da Filial nao informado"})
+	Return( GeraStatus("N",@aMsg,@::RetStatus) )
+EndIf
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
 
 If ! ExistDir("\logsim3g")
 	MakeDir("\logsim3g")
@@ -1796,6 +1875,11 @@ Else
 Endif
 
 GeraLog("FIM","IncluirContato")
+
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+//RpcClearEnv()
 
 Return(bRet)
 

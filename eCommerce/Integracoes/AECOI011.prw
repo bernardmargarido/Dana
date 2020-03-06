@@ -1084,8 +1084,11 @@ Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt)
 	If cCodAfili == "MRC"
 		cCodTransp 	:= ""
 		cIdPost		:= ""
-	Else
+	ElseIf ValType(oRestPv:ShippingData:LogisticsInfo[1]:DeliveryIds[1]:CourierId) <> "U"
 		AEcoI11IP(oRestPv:ShippingData:LogisticsInfo[1]:DeliveryIds[1]:CourierId,cCodAfili,@cCodTransp,@cIdPost,@_cIdServ)
+	ElseIf ValType(oRestPv:ShippingData:LogisticsInfo[1]:DeliveryIds[1]:courierName) ==  "vtex:fob_1"
+		cCodTransp 	:= ""
+		cIdPost		:= ""
 	EndIf	 
 		
 	nDesconto	:= 0 
@@ -2300,6 +2303,7 @@ Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmi
 	Local cAdmCart	:= ""
 	Local cParcela 	:= ""
 	Local cCondPg	:= ""
+	Local cOperTX	:= GetNewPar("EC_OPERSTX","000")
 	Local c1DUP     := SuperGetMv("MV_1DUP")	
 	Local cOpera	:= ""	
 	Local cCodAuto	:= ""
@@ -2560,7 +2564,7 @@ Static Function AEcoSe4(cOrderId,cTipo,nQtdParc)
 
 		cCodigo := "MKT"	
 		cDescri	:= "MARKET PLACE"
-		cCondPg	:= GetNewPar("EC_MKTVENC","15")
+		cCondPg	:= GetNewPar("EC_MKTVENC","30")
 		cTpCond := "1"
 		
 	EndIf	

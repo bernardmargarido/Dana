@@ -338,6 +338,7 @@ _cQuery += "	WSA.WSA_FILIAL = '" + xFilial("WSA") + "' AND " + CRLF
 _cQuery += "	WSA.WSA_DOC <> '' AND " + CRLF 
 _cQuery += "	WSA.WSA_SERIE <> '' AND " + CRLF
 _cQuery += "	WSA.WSA_ENVLOG = '3' AND " + CRLF
+_cQuery += "	WSA.WSA_SERPOS <> '' AND " + CRLF
 _cQuery += "	NOT EXISTS( " + CRLF
 _cQuery += "				SELECT " + CRLF
 _cQuery += "					ZZ4.ZZ4_NOTA, " + CRLF

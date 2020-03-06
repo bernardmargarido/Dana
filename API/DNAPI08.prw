@@ -345,7 +345,7 @@ EndIf
 //----------------------------------+
 // Valida se Pedido já foi expedido | 
 //----------------------------------+
-If SF2->F2_XENVWMS == "2"
+If SF2->F2_XENVWMS == "4"
 	aAdd(aMsgErro,{cFilAnt,RTrim(_cNota) + RTrim(_cSerie),.F.,"NOTA " + RTrim(_cNota) + " SERIE " + RTrim(_cSerie) + " JÁ VALIDADO."})
 	RestArea(_aArea)
 	Return .F.
@@ -355,7 +355,7 @@ EndIf
 // Atualiza Status do Pedido |
 //---------------------------+
 RecLock("SF2",.F.)
-	SF2->F2_XENVWMS := "2"
+	SF2->F2_XENVWMS := "4"
 	SF2->F2_XDTALT	:= Date()
 	SF2->F2_XHRALT	:= Time()
 SF2->( MsUnLock() )
@@ -466,8 +466,9 @@ Else
 	cQuery += "				F2.F2_FILIAL IN" + _cFilWMS + " AND " + CRLF
 EndIf
 	
-cQuery += "				F2.F2_XENVWMS IN('1') AND " + CRLF
+cQuery += "				F2.F2_XENVWMS = '3' AND " + CRLF
 cQuery += "				F2.F2_XNUMECO = '' AND " + CRLF
+cQuery += "				F2.F2_FIMP = 'S' AND " + CRLF
 If Empty(cNota) .And. Empty(cSerie)
 	cQuery += "				CAST((F2.F2_XDTALT + ' ' + F2.F2_XHRALT) AS DATETIME) >= CAST(('" + cData + "' + ' ' + '" + cHora + ".000') AS DATETIME) AND " + CRLF
 	cQuery += "				CAST((F2.F2_XDTALT + ' ' + F2.F2_XHRALT) AS DATETIME) <= CAST(('" + dTos(dDataBase) + "' + ' ' + '" + Time() + ".000') AS DATETIME) AND " + CRLF
@@ -539,8 +540,9 @@ Else
 	cQuery += "			F2.F2_FILIAL IN" + _cFilWMS + " AND " + CRLF
 EndIf
 
-cQuery += "			F2.F2_XENVWMS IN('1') AND " + CRLF
-cQuery += "			F2.F2_XNUMECO = '' AND " + CRLF
+cQuery += "				F2.F2_XENVWMS = '3' AND " + CRLF
+cQuery += "				F2.F2_XNUMECO = '' AND " + CRLF
+cQuery += "				F2.F2_FIMP = 'S' AND " + CRLF
 If Empty(cNota) .And. Empty(cSerie)
 	cQuery += "			CAST((F2.F2_XDTALT + ' ' + F2.F2_XHRALT) AS DATETIME) >= CAST(('" + cData + "' + ' ' + '" + cHora + ".000') AS DATETIME) AND " + CRLF
 	cQuery += "			CAST((F2.F2_XDTALT + ' ' + F2.F2_XHRALT) AS DATETIME) <= CAST(('" + dTos(dDataBase) + "' + ' ' + '" + Time() + ".000') AS DATETIME) AND " + CRLF

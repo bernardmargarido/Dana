@@ -189,7 +189,9 @@ EcLojM06D(_cDoc,_cSerie,@_cPDFDanfe)
 //------------------+
 // Imprime Etiqueta |
 //------------------+
-EcLojM06E(_cDoc,_cSerie,_cCodETQ,@_cPDFEtq)
+If !Empty(_cCodETQ)
+	EcLojM06E(_cDoc,_cSerie,_cCodETQ,@_cPDFEtq)
+Endif
 
 RestArea(_aArea)
 Return .T. 

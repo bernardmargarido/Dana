@@ -121,6 +121,8 @@ Local cFilAux	:= cFilAnt
 Local nDecimal 	:= 2
 Local nIdSku	:= 0
 Local _nVlrTotal:= 0
+Local _nTOrderId:= TamSx3("WSA_NUMECO")[1]
+
 Local _oJson	:= Nil
 Local _oItens	:= Nil
 
@@ -129,7 +131,7 @@ Local _oItens	:= Nil
 //---------------------+
 dbSelectArea("WSA")
 WSA->( dbSetOrder(2) )
-WSA->( dbSeek(xFilial("WSA") + cOrderId) )
+WSA->( dbSeek(xFilial("WSA") + PadR(cOrderId,_nTOrderId)) )
 
 //----------------------------------+
 // Consulta Data de Emissao da Nota |

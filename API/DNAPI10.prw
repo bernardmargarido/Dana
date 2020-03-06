@@ -290,13 +290,6 @@ LogExec("FINALIZA BAIXA DA NOTA DE SAIDA - DATA/HORA: " + dToc( Date() )+ " AS "
 LogExec(Replicate("-",80))
 ConOut("")
 
-//------------------------+
-// Restaura a Filila REST |
-//------------------------+
-If cFilAux <> cFilAnt
-	cFilAnt := cFilAux
-EndIf
-
 RestArea(aArea)
 Return .T.
 
@@ -647,7 +640,7 @@ SF2->( dbSetOrder(1) )
 If !SF2->( dbSeek(xFilial("SF2") + _cNota + _cSerie + _cCodCli + _cLoja) )
 	LogExec("NOTA " + _cNota + " SERIE " + _cSerie + " NAO LOCALIZADO")
 	aAdd(aMsgErro,{cFilAnt,_cNota + _cSerie,.F.,"NOTA NAO LOCALIZADO" })
-	RestArea(aArea)
+	RestArea(_aArea)
 	Return .F.
 EndIf
 
@@ -767,6 +760,7 @@ EndIf
 
 cQuery += "			F2.F2_XENVWMS = '1' AND " + CRLF
 cQuery += "			F2.F2_TIPO IN('N','D','B') AND " + CRLF
+cQuery += "			F2.F2_XNUMECO = '' AND " + CRLF
 cQuery += "			F2.D_E_L_E_T_ = ''  " + CRLF
 cQuery += "	) PEDIDO  " + CRLF
 cQuery += "	WHERE RNUM > " + cTamPage + " * (" + cPage + " - 1) " + CRLF 

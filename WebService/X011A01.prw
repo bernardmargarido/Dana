@@ -264,7 +264,7 @@ Return(aRet)
 Static Function fRetCpoExp(cTab,cOpc)	//ex: "CC2_X_EXPO", "A1_X_EXPO "
 
 Local cCampo 	:= ""
-Local lExpTudo	:= .F. //cOpc <> NIL .and. ("FULL" $ Upper(Alltrim(cOpc))) 
+Local lExpTudo	:= cOpc <> NIL .and. ( ("FULL" $ Upper(Alltrim(cOpc))) .OR. ("DELTA" $ Upper(Alltrim(cOpc))) )
 DEFAULT cTab	:= ""
 
 If ! lExpTudo .and. ! Empty(cTab)

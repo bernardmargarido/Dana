@@ -163,14 +163,27 @@ WSMETHOD GetCidade WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogin WSSEN
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetCidade")
-Local cFilDel	:= U_X011A01("FILDEL","CC2",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","CC2",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetCidade")
+cFilDel		:= U_X011A01("FILDEL","CC2",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","CC2",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetCidade "+ INOPCAO)
 
@@ -239,6 +252,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -251,8 +269,8 @@ WSSTRUCT EstrutRetCondicaoPagamento
 	WSDATA E4_FILIAL       				As String
 	WSDATA E4_CODIGO       				As String
 	WSDATA E4_TIPO        				As String	// 1,2,3,4,5,6,8,9, A e B
-	WSDATA E4_COND   						As String	// Parametros da condição de pagamento
-	WSDATA E4_DESCRI 		    			As String	// Descricao da condicao
+	WSDATA E4_COND   					As String	// Parametros da condição de pagamento
+	WSDATA E4_DESCRI 		    		 	 As String	// Descricao da condicao
 	WSDATA E4_MSBLQL  		    		As String	// Bloqueado
 	WSDATA E4_DESCFIN 			 		As Float Optional
 	WSDATA E4_DIADESC 			 		As Float Optional
@@ -269,15 +287,29 @@ WSMETHOD GetCondicaoPagamento WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, IN
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetCondicaoPagamento")
-Local cFilDel	:= U_X011A01("FILDEL","SE4",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","SE4",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
-Local lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
+Local lFullDel	:= .T.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetCondicaoPagamento")
+cFilDel		:= U_X011A01("FILDEL","SE4",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SE4",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetCondicaoPagamento "+ INOPCAO)
 
@@ -353,6 +385,11 @@ End Transaction
 
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -398,17 +435,33 @@ WSMETHOD GetClienteContato WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLog
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetClienteContato")
-Local cFilDel1	:= U_X011A01("FILDEL","SU5",INOPCAO)
-Local cFilDel2	:= U_X011A01("FILDEL","SA1",INOPCAO)
-Local cFilDel3	:= U_X011A01("FILDEL","AC8",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","SU5",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel1	:= ""
+Local cFilDel2	:= ""
+Local cFilDel3	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
-Local lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
+Local lFullDel	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetClienteContato")
+cFilDel1	:= U_X011A01("FILDEL","SU5",INOPCAO)
+cFilDel2	:= U_X011A01("FILDEL","SA1",INOPCAO)
+cFilDel3	:= U_X011A01("FILDEL","AC8",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SU5",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetClienteContato "+ INOPCAO)
 
@@ -514,6 +567,11 @@ End Transaction
 
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -550,16 +608,31 @@ WSMETHOD GetEstoque WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogin WSSE
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE := U_X011A01("FILSQL","GetEstoque")
-Local cFilDel1	:= U_X011A01("FILDEL","SB1",INOPCAO)
-Local cFilDel2	:= U_X011A01("FILDEL","SB2",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","SB2",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE := ""
+Local cFilDel1	:= ""
+Local cFilDel2	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
-Local lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
+Local lFullDel	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE 	:= U_X011A01("FILSQL","GetEstoque")
+cFilDel1	:= U_X011A01("FILDEL","SB1",INOPCAO)
+cFilDel2	:= U_X011A01("FILDEL","SB2",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SB2",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetEstoque "+ INOPCAO)
 
@@ -655,6 +728,11 @@ End Transaction
 
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -723,15 +801,29 @@ WSMETHOD GetTituloReceber WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogi
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetTituloReceber")
-Local cFilDel	:= U_X011A01("FILDEL","SE1",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","SE1",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
-Local lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
+Local lFullDel	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetTituloReceber")
+cFilDel		:= U_X011A01("FILDEL","SE1",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SE1",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetTituloReceber "+ INOPCAO)
 
@@ -847,6 +939,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -892,13 +989,25 @@ WSMETHOD GetFilial WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogin WSSEN
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltroPE := U_X011A01("FILSQL","GetFilial")
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+Local cFiltroPE := ""
+Local cFiltro	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local cEmp 		:= Alltrim( FWSM0Layout(nil, 1) ) // EE
-Local cUni 		:= Alltrim( FWSM0Layout(nil, 2) ) // UU
+Local aCpoAdic	:= {}
+Local cEmp 		:= ""
+Local cUni 		:= ""
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltroPE 	:= U_X011A01("FILSQL","GetFilial")
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+cEmp 		:= Alltrim( FWSM0Layout(nil, 1) ) // EE
+cUni 		:= Alltrim( FWSM0Layout(nil, 2) ) // UU
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetFilial "+ INOPCAO)
 
@@ -962,6 +1071,11 @@ While !EOF()
 Enddo
 U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -985,15 +1099,29 @@ WSMETHOD GetGrupoProduto WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogin
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetGrupoProduto")
-Local cFilDel	:= U_X011A01("FILDEL","SBM",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","SBM",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
-Local lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
+Local lFullDel	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetGrupoProduto")
+cFilDel		:= U_X011A01("FILDEL","SBM",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SBM",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetGrupoProduto "+ INOPCAO)
 
@@ -1064,6 +1192,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 
 End Transaction
 (cAliasQry)->(DbCloseArea())
+
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
 
 RETURN .T.
 
@@ -1148,17 +1281,32 @@ WSMETHOD GetNotaFiscal WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogin W
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetNotaFiscal")
-Local cFilDel	:= U_X011A01("FILDEL","SF2",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
 Local cTipoNF	:= " 'N','D' "	// *** SOMENTE OS TIPOS DE NOTAS CONFIGURADOS PARA INTEGRACAO
-Local cCpoExpo	:= U_X011A01("CMPEXP","SF2",INOPCAO)
-Local cCpoExpo2 := U_X011A01("CMPEXP","SD2",INOPCAO)
+Local cCpoExpo	:= ""
+Local cCpoExpo2 := ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
-Local lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
+Local lFullDel	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetNotaFiscal")
+cFilDel		:= U_X011A01("FILDEL","SF2",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SF2",INOPCAO)
+cCpoExpo2 	:= U_X011A01("CMPEXP","SD2",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetNotaFiscal "+ INOPCAO)
 
@@ -1301,6 +1449,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -1389,17 +1542,32 @@ WSMETHOD GetNotaFiscalProduto WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, IN
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetNotaFiscalProduto")
-Local cFilDel	:= U_X011A01("FILDEL","SD2",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
 Local cTipoNF	:= " 'N','D' "	// *** SOMENTE OS TIPOS DE NOTAS CONFIGURADOS PARA INTEGRACAO
-Local cCpoExpo	:= U_X011A01("CMPEXP","SD2",INOPCAO)
-Local cCpoExpo2 := U_X011A01("CMPEXP","SF2",INOPCAO)
+Local cCpoExpo	:= ""
+Local cCpoExpo2 := ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
-Local lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
+Local lFullDel	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetNotaFiscalProduto")
+cFilDel		:= U_X011A01("FILDEL","SD2",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SD2",INOPCAO)
+cCpoExpo2 	:= U_X011A01("CMPEXP","SF2",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetNotaFiscalProduto "+ INOPCAO)
 
@@ -1557,6 +1725,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -1580,14 +1753,27 @@ WSMETHOD GetPais WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogin WSSEND 
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetPais")
-Local cFilDel	:= U_X011A01("FILDEL","SYA",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","SYA",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetPais")
+cFilDel		:= U_X011A01("FILDEL","SYA",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SYA",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetPais "+ INOPCAO)
 
@@ -1655,6 +1841,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 
 End Transaction
 (cAliasQry)->(DbCloseArea())
+
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
 
 RETURN .T.
 
@@ -1733,15 +1924,29 @@ WSMETHOD GetCliente WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogin WSSE
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetCliente")
-Local cFilDel	:= U_X011A01("FILDEL","SA1",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","SA1",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
-Local lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
+Local lFullDel	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetCliente")
+cFilDel		:= U_X011A01("FILDEL","SA1",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SA1",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetCliente "+ INOPCAO)
 
@@ -1868,6 +2073,11 @@ End Transaction
 
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -1923,15 +2133,29 @@ WSMETHOD GetProduto WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogin WSSE
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetProduto")
-Local cFilDel	:= U_X011A01("FILDEL","SB1",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","SB1",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
-Local lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
+Local lFullDel	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetProduto")
+cFilDel		:= U_X011A01("FILDEL","SB1",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SB1",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetProduto "+ INOPCAO)
 
@@ -2038,6 +2262,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -2066,15 +2295,29 @@ WSMETHOD GetTabelaPreco WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogin 
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetTabelaPreco")
-Local cFilDel	:= U_X011A01("FILDEL","DA0",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","DA0",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
-Local lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
+Local lFullDel	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetTabelaPreco")
+cFilDel		:= U_X011A01("FILDEL","DA0",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","DA0",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetTabelaPreco "+ INOPCAO)
 
@@ -2151,6 +2394,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -2186,17 +2434,31 @@ WSMETHOD GetTabelaPrecoProduto WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, I
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetTabelaPrecoProduto")
-Local cFilDel	:= U_X011A01("FILDEL","DA1",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","DA1",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
-Local lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
+Local lFullDel	:= .F.
 Local i
 
 Public INCLUI := .F.
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetTabelaPrecoProduto")
+cFilDel		:= U_X011A01("FILDEL","DA1",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","DA1",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetTabelaPrecoProduto "+ INOPCAO)
 
@@ -2281,6 +2543,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -2303,14 +2570,27 @@ WSMETHOD GetUnidadeFederativa WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, IN
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetUnidadeFederativa")
-Local cFilDel	:= U_X011A01("FILDEL","SX5",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","SX5",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetUnidadeFederativa")
+cFilDel		:= U_X011A01("FILDEL","SX5",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SX5",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetUnidadeFederativa "+ INOPCAO)
 
@@ -2377,6 +2657,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction 
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -2400,14 +2685,27 @@ WSMETHOD GetUnidadeMedida WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogi
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetUnidadeMedida")
-Local cFilDel	:= U_X011A01("FILDEL","SAH",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","SAH",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetUnidadeMedida")
+cFilDel		:= U_X011A01("FILDEL","SAH",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SAH",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetUnidadeMedida "+ INOPCAO)
 
@@ -2475,6 +2773,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -2524,15 +2827,29 @@ WSMETHOD GetVendedor WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogin WSS
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetVendedor")
-Local cFilDel	:= U_X011A01("FILDEL","SA3",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","SA3",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
-Local lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
+Local lFullDel	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetVendedor")
+cFilDel		:= U_X011A01("FILDEL","SA3",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SA3",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetVendedor "+ INOPCAO)
 
@@ -2629,6 +2946,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -2653,16 +2975,31 @@ WSMETHOD GetVendedorCliente WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLo
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetVendedorCliente")
-Local cFilDel1	:= U_X011A01("FILDEL","SA3",INOPCAO)
-Local cFilDel2	:= U_X011A01("FILDEL","SA1",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","SA1",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel1	:= ""
+Local cFilDel2	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
-Local lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
+Local lFullDel	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetVendedorCliente")
+cFilDel1	:= U_X011A01("FILDEL","SA3",INOPCAO)
+cFilDel2	:= U_X011A01("FILDEL","SA1",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SA1",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetVendedorCliente "+ INOPCAO)
 
@@ -2741,6 +3078,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -2754,6 +3096,12 @@ WSMETHOD GetTipoCliente WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogin 
 Local aCodigo	:= {"L", 			  "F", 				 "R", 		  "S", 							   "X"}
 Local aDescri	:= {"Produtor Rural", "Consumidor Final","Revendedor","ICMS Solidario sem IPI na base","Exportacao"}
 Local nIdx		:= 1
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetTipoCliente "+ INOPCAO)
 
@@ -2769,6 +3117,11 @@ Next
 
 U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -2783,6 +3136,12 @@ Local aCodigo	:= {"C",   "F",	 "T", 		  		   "S"}
 Local aDescri	:= {"CIF", "FOB","Por conta terceiros","Sem frete"}
 Local nIdx		:= 1
 
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
 U_X011A01("CONSOLE","Exportacao SIM3G: GetTipoFretePedido "+ INOPCAO)
 
 If ! U_X011A01("LOGIN",INLogin)
@@ -2796,6 +3155,11 @@ For nIdx := 1 to Len(aCodigo)
 Next
 
 U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
+
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
 
 RETURN .T.
 
@@ -2859,6 +3223,12 @@ Local aDescri	:= {"Nota Fiscal Normal",;
 	                "Nota Complementar de ICMS"}
 Local nIdx		:= 1
 
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
 U_X011A01("CONSOLE","Exportacao SIM3G: GetTipoNotaFiscal "+ INOPCAO)
 
 If ! U_X011A01("LOGIN",INLogin)
@@ -2872,6 +3242,11 @@ For nIdx := 1 to Len(aCodigo)
 Next
 
 U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
+
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
 
 RETURN .T.
 
@@ -2887,13 +3262,25 @@ WSMETHOD GetTipoOperacaoItemPedido WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADI
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetTipoOperacaoItemPedido")
-Local cCpoExpo	:= U_X011A01("CMPEXP","SX5",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetTipoOperacaoItemPedido")
+cCpoExpo	:= U_X011A01("CMPEXP","SX5",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetTipoOperacaoItemPedido "+ INOPCAO)
 
@@ -2951,6 +3338,11 @@ End Transaction
 (cAliasQry)->(DbCloseArea())
 U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -2965,14 +3357,27 @@ WSMETHOD GetTipoTitulo WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogin W
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro 	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetTipoTitulo")
-Local cFilDel	:= U_X011A01("FILDEL","SX5",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","SX5",INOPCAO)
+Local cFiltro 	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro 	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetTipoTitulo")
+cFilDel		:= U_X011A01("FILDEL","SX5",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SX5",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetTipoTitulo "+ INOPCAO)
 
@@ -3033,6 +3438,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetTipoTitulo "+ INOPCAO)
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -3055,14 +3465,27 @@ WSMETHOD GetTES WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogin WSSEND R
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetTES")
-Local cFilDel	:= U_X011A01("FILDEL","SF4",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","SF4",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetTES")
+cFilDel		:= U_X011A01("FILDEL","SF4",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SF4",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetTES "+ INOPCAO)
 
@@ -3128,6 +3551,11 @@ EndDo
 
 End Transaction
 U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
+
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
 
 RETURN .T.
 
@@ -3195,17 +3623,32 @@ WSMETHOD GetPedido WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogin WSSEN
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetPedido")
-Local cFilDel	:= U_X011A01("FILDEL","SC5",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","SC5",INOPCAO)
-Local cCpoExpo2 := U_X011A01("CMPEXP","SC6",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
+Local cCpoExpo2 := ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
-Local lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
+Local lFullDel	:= .F.
 Local i
 Local cSituacao	:= ""
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetPedido")
+cFilDel		:= U_X011A01("FILDEL","SC5",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SC5",INOPCAO)
+cCpoExpo2 	:= U_X011A01("CMPEXP","SC6",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetPedido "+ INOPCAO)
 
@@ -3272,7 +3715,7 @@ While ! (cAliasQry)->(Eof())
 	EndCase
 	
 	// Ponto de Entrada que permite alterar a situacao do Pedido
-	cSituacao := U_X011A01("CSITUA", "GetPedido", cSituacao)
+	//cSituacao := U_X011A01("CSITUA", "GetPedido", cSituacao)
 	
 	AADD(::RetPedido:aPedido,WSClassNew("EstrutRetPedido"))
 	::RetPedido:aPedido[nIdx]:C5_FILIAL		:= Alltrim(C5_FILIAL)
@@ -3343,6 +3786,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -3400,17 +3848,33 @@ WSMETHOD GetPedidoProduto WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogi
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetPedidoProduto")
-Local cFilDel	:= U_X011A01("FILDEL","SC6",INOPCAO)
-Local cFilDel2	:= U_X011A01("FILDEL","SC5",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","SC6",INOPCAO)
-Local cCpoExpo2 := U_X011A01("CMPEXP","SC5",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cFilDel2	:= ""
+Local cCpoExpo	:= ""
+Local cCpoExpo2 := ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
-Local lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
+Local lFullDel	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetPedidoProduto")
+cFilDel		:= U_X011A01("FILDEL","SC6",INOPCAO)
+cFilDel2	:= U_X011A01("FILDEL","SC5",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SC6",INOPCAO)
+cCpoExpo2 	:= U_X011A01("CMPEXP","SC5",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetPedidoProduto "+ INOPCAO)
 
@@ -3535,6 +3999,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -3571,14 +4040,28 @@ WSMETHOD GetMetasVendas WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogin 
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetMetasVendas")
-Local cFilDel	:= U_X011A01("FILDEL","SCT",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","SCT",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetMetasVendas")
+cFilDel		:= U_X011A01("FILDEL","SCT",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SCT",INOPCAO)
+aCpoEspec	:= {}
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetMetasVendas "+ INOPCAO)
 
@@ -3660,6 +4143,11 @@ EndDo
 End Transaction
 U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -3734,15 +4222,29 @@ WSMETHOD GetNotaFiscalDev WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogi
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetNotaFiscalDev")
-Local cFilDel	:= U_X011A01("FILDEL","SF1",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","SF1",INOPCAO)
-Local cCpoExpo2 := U_X011A01("CMPEXP","SD1",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
+Local cCpoExpo2 := ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetNotaFiscalDev")
+cFilDel		:= U_X011A01("FILDEL","SF1",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SF1",INOPCAO)
+cCpoExpo2 	:= U_X011A01("CMPEXP","SD1",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetNotaFiscalDev "+ INOPCAO)
 
@@ -3872,6 +4374,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -3963,15 +4470,29 @@ WSMETHOD GetNotaFiscalDevProduto WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC,
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetNotaFiscalDevProduto")
-Local cFilDel	:= U_X011A01("FILDEL","SD1",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","SD1",INOPCAO)
-Local cCpoExpo2	:= U_X011A01("CMPEXP","SF1",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
+Local cCpoExpo2	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetNotaFiscalDevProduto")
+cFilDel		:= U_X011A01("FILDEL","SD1",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SD1",INOPCAO)
+cCpoExpo2	:= U_X011A01("CMPEXP","SF1",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetNotaFiscalDevProduto "+ INOPCAO)
 
@@ -4129,6 +4650,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -4152,14 +4678,27 @@ WSMETHOD GetCatProd WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogin WSSE
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetCatProd")
-Local cFilDel	:= U_X011A01("FILDEL","ACU",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","ACU",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetCatProd")
+cFilDel		:= U_X011A01("FILDEL","ACU",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","ACU",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetCatProd "+ INOPCAO)
 
@@ -4227,6 +4766,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -4253,16 +4797,29 @@ WSMETHOD GetCatProdRelac WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogin
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetCatProdRelac")
-Local cFilDel	:= U_X011A01("FILDEL","ACV",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","ACV",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
 Local i
 
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
 U_X011A01("CONSOLE","Exportacao SIM3G: GetCatProdRelac "+ INOPCAO)
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetCatProdRelac")
+cFilDel		:= U_X011A01("FILDEL","ACV",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","ACV",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
 
 If ! U_X011A01("LOGIN",INLogin)
 	Return .F.
@@ -4331,6 +4888,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -4363,14 +4925,27 @@ WSMETHOD GetVeiculoOficina WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLog
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetVeiculoOficina")
-Local cFilDel	:= U_X011A01("FILDEL","VV1",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","VV1",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetVeiculoOficina")
+cFilDel		:= U_X011A01("FILDEL","VV1",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","VV1",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetVeiculoOficina "+ INOPCAO)
 
@@ -4462,6 +5037,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -4499,14 +5079,27 @@ WSMETHOD GetOrdemServicoOficina WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, 
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetOrdemServicoOficina")
-Local cFilDel	:= U_X011A01("FILDEL","VO1",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","VO1",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetOrdemServicoOficina")
+cFilDel		:= U_X011A01("FILDEL","VO1",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","VO1",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetOrdemServicoOficina "+ INOPCAO)
 
@@ -4594,6 +5187,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -4671,18 +5269,33 @@ WSMETHOD GetContratoParceria WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INL
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetContratoParceria")
-Local cFilDel	:= U_X011A01("FILDEL","ADA",INOPCAO)
-Local cFilDel2	:= U_X011A01("FILDEL","ADB",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","ADA",INOPCAO)
-Local cCpoExpo2	:= U_X011A01("CMPEXP","ADB",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cFilDel2	:= ""
+Local cCpoExpo	:= ""
+Local cCpoExpo2	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
 Local i
 Local oReg, oItem
 Local nADA_Recno
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetContratoParceria")
+cFilDel		:= U_X011A01("FILDEL","ADA",INOPCAO)
+cFilDel2	:= U_X011A01("FILDEL","ADB",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","ADA",INOPCAO)
+cCpoExpo2	:= U_X011A01("CMPEXP","ADB",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetContratoParceria "+ INOPCAO)
 
@@ -4834,6 +5447,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -4872,16 +5490,30 @@ WSMETHOD GetTransportadora WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLog
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
-Local cFiltroPE	:= U_X011A01("FILSQL","GetTransportadora")
-Local cFilDel	:= U_X011A01("FILDEL","SA4",INOPCAO)
-Local cCpoExpo	:= U_X011A01("CMPEXP","SA4",INOPCAO)
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
 Local aCpoEspec	:= {}
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
-Local lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
+Local aCpoAdic	:= {}
+Local lOpcFull	:= .F.
+Local lFullDel	:= .F.
 Local oReg
 Local i
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)
+cFiltroPE	:= U_X011A01("FILSQL","GetTransportadora")
+cFilDel		:= U_X011A01("FILDEL","SA4",INOPCAO)
+cCpoExpo	:= U_X011A01("CMPEXP","SA4",INOPCAO)
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+lFullDel	:= ("FULL" $ Upper(Alltrim(INOPCAO)) .and. "DELET" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetTransportadora "+ INOPCAO)
 
@@ -4964,6 +5596,11 @@ EndDo
 U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -5005,18 +5642,33 @@ WSMETHOD GetRegraNegocio WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogin
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)	// Filtro via parâmetro do GET
-Local cFiltroPE	:= U_X011A01("FILSQL","GetRegraNegocio")	// Filtro via ponto de entrada
-Local cFilDel	:= U_X011A01("FILDEL","ACS",INOPCAO)		// Filtra registros DELETADOS ou NAO DELETADOS
-Local cFilDel2	:= U_X011A01("FILDEL","ACN",INOPCAO)		// Filtra registros DELETADOS ou NAO DELETADOS
-Local cCpoExpo	:= U_X011A01("CMPEXP","ACS",INOPCAO)		// Campo de registro Exportado (S/N) via TRIGGER
-Local cCpoExpo2	:= U_X011A01("CMPEXP","ACN",INOPCAO)		// Campo de registro Exportado (S/N) via TRIGGER
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)			// Campos adicionais via parâmetro do GET
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cFilDel2	:= ""
+Local cCpoExpo	:= ""
+Local cCpoExpo2	:= ""
+Local aCpoAdic	:= {}
 Local aCpoEspec	:= {}
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+Local lOpcFull	:= .F.
 Local i
 Local oReg, oItem
 Local nACS_Recno
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)	// Filtro via parâmetro do GET
+cFiltroPE	:= U_X011A01("FILSQL","GetRegraNegocio")	// Filtro via ponto de entrada
+cFilDel		:= U_X011A01("FILDEL","ACS",INOPCAO)		// Filtra registros DELETADOS ou NAO DELETADOS
+cFilDel2	:= U_X011A01("FILDEL","ACN",INOPCAO)		// Filtra registros DELETADOS ou NAO DELETADOS
+cCpoExpo	:= U_X011A01("CMPEXP","ACS",INOPCAO)		// Campo de registro Exportado (S/N) via TRIGGER
+cCpoExpo2	:= U_X011A01("CMPEXP","ACN",INOPCAO)		// Campo de registro Exportado (S/N) via TRIGGER
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)			// Campos adicionais via parâmetro do GET
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetRegraNegocio "+ INOPCAO)
 
@@ -5132,6 +5784,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -5196,15 +5853,28 @@ WSMETHOD GetDocCargaGFE WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogin 
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)	// Filtro via parâmetro do GET
-Local cFiltroPE	:= U_X011A01("FILSQL","GetDocCargaGFE")		// Filtro via ponto de entrada
-Local cFilDel	:= U_X011A01("FILDEL","GW1",INOPCAO)		// Filtra registros DELETADOS ou NAO DELETADOS
-Local cCpoExpo	:= U_X011A01("CMPEXP","GW1",INOPCAO)		// Campo de registro Exportado (S/N) via TRIGGER
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)			// Campos adicionais via parâmetro do GET
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
+Local aCpoAdic	:= {}
 Local aCpoEspec	:= {}
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+Local lOpcFull	:= .f.
 Local i
 Local oReg
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)	// Filtro via parâmetro do GET
+cFiltroPE	:= U_X011A01("FILSQL","GetDocCargaGFE")		// Filtro via ponto de entrada
+cFilDel		:= U_X011A01("FILDEL","GW1",INOPCAO)		// Filtra registros DELETADOS ou NAO DELETADOS
+cCpoExpo	:= U_X011A01("CMPEXP","GW1",INOPCAO)		// Campo de registro Exportado (S/N) via TRIGGER
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)			// Campos adicionais via parâmetro do GET
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetDocCargaGFE "+ INOPCAO)
 
@@ -5312,6 +5982,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -5367,15 +6042,28 @@ WSMETHOD GetEmitenteGFE WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogin 
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)	// Filtro via parâmetro do GET
-Local cFiltroPE	:= U_X011A01("FILSQL","GetEmitenteGFE")		// Filtro via ponto de entrada
-Local cFilDel	:= U_X011A01("FILDEL","GU3",INOPCAO)		// Filtra registros DELETADOS ou NAO DELETADOS
-Local cCpoExpo	:= U_X011A01("CMPEXP","GU3",INOPCAO)		// Campo de registro Exportado (S/N) via TRIGGER
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)			// Campos adicionais via parâmetro do GET
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
+Local aCpoAdic	:= {}
 Local aCpoEspec	:= {}
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+Local lOpcFull	:= .F.
 Local i
 Local oReg
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)	// Filtro via parâmetro do GET
+cFiltroPE	:= U_X011A01("FILSQL","GetEmitenteGFE")		// Filtro via ponto de entrada
+cFilDel		:= U_X011A01("FILDEL","GU3",INOPCAO)		// Filtra registros DELETADOS ou NAO DELETADOS
+cCpoExpo	:= U_X011A01("CMPEXP","GU3",INOPCAO)		// Campo de registro Exportado (S/N) via TRIGGER
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)			// Campos adicionais via parâmetro do GET
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetEmitenteGFE"+ INOPCAO)
 
@@ -5481,6 +6169,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 End Transaction
 (cAliasQry)->(DbCloseArea())
 
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
+
 RETURN .T.
 
 
@@ -5563,15 +6256,28 @@ WSMETHOD GetFreteGFE WSRECEIVE INCAMPO, INVALOR, INOPCAO, INCPOADIC, INLogin WSS
 Local cSql := ""
 Local nIdx := 1
 Local cAliasQry	:= GetNextAlias()
-Local cFiltro	:= U_X011A01("PARSESQL",INCAMPO,INVALOR)	// Filtro via parâmetro do GET
-Local cFiltroPE	:= U_X011A01("FILSQL","GetFreteGFE")		// Filtro via ponto de entrada
-Local cFilDel	:= U_X011A01("FILDEL","GWM",INOPCAO)		// Filtra registros DELETADOS ou NAO DELETADOS
-Local cCpoExpo	:= U_X011A01("CMPEXP","GWM",INOPCAO)		// Campo de registro Exportado (S/N) via TRIGGER
-Local aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)			// Campos adicionais via parâmetro do GET
+Local cFiltro	:= ""
+Local cFiltroPE	:= ""
+Local cFilDel	:= ""
+Local cCpoExpo	:= ""
+Local aCpoAdic	:= {}
 Local aCpoEspec	:= {}
-Local lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
+Local lOpcFull	:= .F.
 Local i
 Local oReg
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+RPCSetType(3)  // Não consome licença.
+RPCSetEnv("01", "05", Nil, Nil, "FRT")
+
+cFiltro		:= U_X011A01("PARSESQL",INCAMPO,INVALOR)	// Filtro via parâmetro do GET
+cFiltroPE	:= U_X011A01("FILSQL","GetFreteGFE")		// Filtro via ponto de entrada
+cFilDel		:= U_X011A01("FILDEL","GWM",INOPCAO)		// Filtra registros DELETADOS ou NAO DELETADOS
+cCpoExpo	:= U_X011A01("CMPEXP","GWM",INOPCAO)		// Campo de registro Exportado (S/N) via TRIGGER
+aCpoAdic	:= U_X011A01("PARSECPO",INCPOADIC)			// Campos adicionais via parâmetro do GET
+lOpcFull	:= ("FULL" $ Upper(Alltrim(INOPCAO)))
 
 U_X011A01("CONSOLE","Exportacao SIM3G: GetFreteGFE "+ INOPCAO)
 
@@ -5695,6 +6401,11 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 
 End Transaction
 (cAliasQry)->(DbCloseArea())
+
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
 
 RETURN .T.
 
