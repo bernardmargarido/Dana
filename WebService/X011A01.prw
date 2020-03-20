@@ -186,9 +186,8 @@ Local cRet  	:= ""
 Default cTab	:= ""
 Default cOpcao	:= ""
 
-If ! Empty(cTab)
+If !Empty(cTab)
 	cOpcao := Upper(Alltrim(cOpcao))
-	
 	If "FULL" $ cOpcao
 		If "DELET" $ cOpcao
 			cRet := ""	//cTab + ".D_E_L_E_T_ = '*' "
@@ -264,7 +263,8 @@ Return(aRet)
 Static Function fRetCpoExp(cTab,cOpc)	//ex: "CC2_X_EXPO", "A1_X_EXPO "
 
 Local cCampo 	:= ""
-Local lExpTudo	:= cOpc <> NIL .and. ( ("FULL" $ Upper(Alltrim(cOpc))) .OR. ("DELTA" $ Upper(Alltrim(cOpc))) )
+Local lExpTudo	:= cOpc <> NIL .And. ("FULL" $ Upper(Alltrim(cOpc)))
+
 DEFAULT cTab	:= ""
 
 If ! lExpTudo .and. ! Empty(cTab)

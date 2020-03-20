@@ -22,7 +22,7 @@
 #DEFINE MAXMSG    006                                                // Máximo de dados adicionais na primeira página
 #DEFINE MAXMSG2   019                                                // Máximo de dados adicionais na segunda página
 #DEFINE MAXBOXH   800                                                // Tamanho maximo do box Horizontal
-#DEFINE MAXBOXV   602//600
+#DEFINE MAXBOXV   600
 #DEFINE INIBOXH   -10
 #DEFINE MAXMENL   080                                                // Máximo de caracteres por linha de dados adicionais
 #DEFINE MAXVALORC 009                                                // Máximo de caracteres por linha de valores numéricos
@@ -864,8 +864,7 @@ PRIVATE oFont12    := TFontEx():New(oDanfe,"Times New Roman",11,11,.F.,.T.,.F.)/
 PRIVATE oFont11N   := TFontEx():New(oDanfe,"Times New Roman",10,10,.T.,.T.,.F.)// 11
 PRIVATE oFont18N   := TFontEx():New(oDanfe,"Times New Roman",17,17,.T.,.T.,.F.)// 12 
 PRIVATE OFONT12N   := TFontEx():New(oDanfe,"Times New Roman",11,11,.T.,.T.,.F.)// 12 
-PRIVATE oFont07S   := TFontEx():New(oDanfe,"Times New Roman",07,07,.T.,.T.,.T.)// 13// Perfumes Dana
-PRIVATE lUsaColab  :=  UsaColaboracao("1")
+PRIVATE lUsaColab	  :=  UsaColaboracao("1")
 
 PrtDanfe(@oDanfe,oNfe,cCodAutSef,cModalidade,oNfeDPEC,cCodAutDPEC,cDtHrRecCab,dDtReceb,aNota)
 
@@ -2478,11 +2477,11 @@ oDanfe:Say(nLine+205,MAXBOXH-30,"DATA DE EMISSÃO",oFont08N:oFont)
 oDanfe:Say(nLine+215,MAXBOXH-30,IIF(TYPE("oIdent:_DEmi") <> "U" ,ConvDate(oIdent:_DEmi:TEXT),ConvDate(oIdent:_DHEmi:TEXT)),oFont08:oFont)
 oDanfe:Box(nLine+222,MAXBOXH-40,nLine+247,MAXBOXH+70)
 oDanfe:Say(nLine+230,MAXBOXH-30,"DATA ENTRADA/SAÍDA",oFont08N:oFont)
-oDanfe:Say(nLine+240,MAXBOXH-30,Substr(GRAVADATA(SF2->F2_DTDANFE,.F.,5),1,2)+"/"+Substr(GRAVADATA(SF2->F2_DTDANFE,.F.,5),3,2)+"/"+Substr(GRAVADATA(SF2->F2_DTDANFE,.F.,5),5,4) ,oFont08:oFont) //Especifico DANA Alterado em 04/02/2010 Solicitado pelo Sr. Rafael.
+oDanfe:Say(nLine+240,MAXBOXH-30,Substr(GRAVADATA(SF2->F2_DAUTNFE,.F.,5),1,2)+"/"+Substr(GRAVADATA(SF2->F2_DAUTNFE,.F.,5),3,2)+"/"+Substr(GRAVADATA(SF2->F2_DAUTNFE,.F.,5),5,4) ,oFont08:oFont) //Especifico DANA Alterado em 04/02/2010 Solicitado pelo Sr. Rafael.
 //oDanfe:Say(nLine+240,MAXBOXH-30,Iif( Empty(aDest[4]),"",ConvDate(aDest[4]) ),oFont08:oFont)
 oDanfe:Box(nLine+247,MAXBOXH-40,nLine+272,MAXBOXH+70)
 oDanfe:Say(nLine+255,MAXBOXH-30,"HORA ENTRADA/SAÍDA",oFont08N:oFont)
-oDanfe:Say(nLine+265,MAXBOXH-30,SF2->F2_HORA,oFont08:oFont)//aHrEnt[01],oFont08:oFont)
+oDanfe:Say(nLine+265,MAXBOXH-30,SF2->F2_HAUTNFE,oFont08:oFont)//aHrEnt[01],oFont08:oFont)
 
 
 
@@ -3387,7 +3386,6 @@ Local nX       := 0
 * Caso a posição (nTam) for maior que o tamanho da string, ou for um valor
 * inválido, retorna 0.
 */
-
 If nTam > Len(cString) .Or. nTam < 1
 	nRetorno := 0
 	Return nRetorno
@@ -4011,7 +4009,6 @@ local cStartPath := GetSrvProfString("Startpath","")
 Local Nx:= 0
 Local Nw:= 0
 local nPosAdicionais := 0
-local lMsgVol	:= .F.//Especifico Perfumes Dana
 default lComplemento := .F.
 oBrush := TBrush():New( , CLR_BLACK )
 
@@ -4026,33 +4023,23 @@ If nFolha ==1
 	oDanfe:Say(MAXBOXV-13,nBaseTxt+11,"ADICIONAIS"    ,oFont08N:oFont, ,CLR_WHITE , 270 )
 	nBaseTxt += 30 
 	
-	oDanfe:Box(nLine+597,nBaseCol+30,MAXBOXV,624)
+	oDanfe:Box(nLine+597,nBaseCol+30,MAXBOXV,622)
 	oDanfe:Say(nLine+606,nBaseTxt,"INFORMAÇÕES COMPLEMENTARES",oFont08N:oFont)
-		
+	
+	
 	nLenMensagens:= Len(aMensagem)
 	nLin:= nLine+618
 	
 	For nX := 1 To Min(nLenMensagens, MAXMSG)
-		If "VOLUMES" $ aMensagem[nX]//Específico Perfumes Dana
-			oDanfe:Say(nLin,nBaseTxt,Substr(Alltrim(aMensagem[nX]), 1, AT("VOLUMES", aMensagem[nX])-1),oFont07S:oFont)
-			nLin:= nLin+10
-			oDanfe:Say(nLin,nBaseTxt,Substr(Alltrim(aMensagem[nX]), AT("VOLUMES", aMensagem[nX])),oFont07:oFont)
-			nLin:= nLin+10
-			lMsgVol	:= .T.
-		Elseif !lMsgVol
-			oDanfe:Say(nLin,nBaseTxt,aMensagem[nX],oFont07:oFont)
-			nLin:= nLin+10
-		Else
-			oDanfe:Say(nLin,nBaseTxt,aMensagem[nX],oFont07:oFont)
-			nLin:= nLin+10
-		Endif
+		oDanfe:Say(nLin,nBaseTxt,aMensagem[nX],oFont07:oFont)
+		nLin:= nLin+10
 	Next nX
 	
 	If Nx <= nLenMensagens 
 		nPosMsg := Nx
 	EndIf 
 	
-	oDanfe:Box(nLine+597,624,MAXBOXV,MAXBOXH+70)
+	oDanfe:Box(nLine+597,622,MAXBOXV,MAXBOXH+70)
 	oDanfe:Say(nLine+606,632,"RESERVADO AO FISCO",oFont08N:oFont)
 
 	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
@@ -4088,7 +4075,7 @@ ElseIf nFolha == 2
 	oDanfe:Say(nPosAdicionais+12,nBaseTxt+11,"ADICIONAIS"    ,oFont08N:oFont, ,CLR_WHITE , 270 )
 	nBaseTxt += 30 
 	
-	oDanfe:Box(nLine+397,nBaseCol+30,MAXBOXV,624)
+	oDanfe:Box(nLine+397,nBaseCol+30,MAXBOXV,622)
 	if lComplemento
 		nBaseTxt += 30
 	endif
@@ -4109,7 +4096,7 @@ ElseIf nFolha == 2
 	
 	nPosMsg := 0
 	
-	oDanfe:Box(nLine+397,624,MAXBOXV,MAXBOXH+70)
+	oDanfe:Box(nLine+397,622,MAXBOXV,MAXBOXH+70)
 	oDanfe:Say(nLine+406,632,"RESERVADO AO FISCO",oFont08N:oFont)
 
 	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿

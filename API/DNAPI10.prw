@@ -548,7 +548,12 @@ For _nPed := 1 To Len(_oItPed)
 		_lContinua := .F.
 		Loop
 	EndIf
-		
+	
+	//------------------------+
+	// Grava numero do pedido | 
+	//------------------------+
+	_cPedido	:= SD2->D2_PEDIDO
+		 
 	//--------------------+
 	// Valida conferencia |
 	//--------------------+
@@ -587,12 +592,28 @@ If _lContinua
 	
 		RecLock("SF2",.F.)
 			SF2->F2_XENVWMS := "3"
-			//SF2->F2_ESPECI1	:= "CAIXAS"
-			//SF2->F2_PESOL		:= _nPeso
+			SF2->F2_XDTALT	:= Date()
+			SF2->F2_XHRALT	:= Time()
+			SF2->F2_ESPECI1	:= "CAIXAS"
+			//SF2->F2_PLIQUI	:= _nPeso
 			//SF2->F2_PBRUTO	:= _nPeso
-			//SF2->F2_VOLUME1	:= _nVolume
+			SF2->F2_VOLUME1	:= _nVolume
 		SF2->( MsUnLock() )
-			
+		
+		//------------------+
+		// Atualiza pedidos |
+		//------------------+
+		dbSelectArea("SC5")
+		SC5->( dbSetOrder(1) )
+		If SC5->( dbSeek(xFilial("SC5") + _cPedido) )
+			RecLock("SC5",.F.)
+				SC5->C5_ESPECI1	:= "CAIXAS"
+				//SC5->C5_PESOL		:= _nPeso
+				//SC5->C5_PBRUTO	:= _nPeso
+				SC5->C5_VOLUME1	:= _nVolume
+			SC5->( MsUnLock() )
+		EndIf	
+		
 		//----------------------+	
 		// Log processo da nota |
 		//----------------------+
@@ -658,6 +679,8 @@ EndIf
 //---------------------------+
 RecLock("SF2",.F.)
 	SF2->F2_XENVWMS := "2"
+	SF2->F2_XDTALT	:= Date()
+	SF2->F2_XHRALT	:= Time()
 SF2->( MsUnLock() )
 
 aAdd(aMsgErro,{cFilAnt,_cNota + _cSerie,.T.,"NOTA BAIXADO COM SUCESSO."})
@@ -728,7 +751,7 @@ cQuery += "				CROSS APPLY( " + CRLF
 cQuery += "							SELECT " + CRLF
 cQuery += "								D2.D2_PEDIDO PEDIDO " + CRLF
 cQuery += "							FROM " + CRLF
-cQuery += "								SD2010 D2 " + CRLF
+cQuery += "								" + RetSqlName("SD2") + " D2 " + CRLF
 cQuery += "							WHERE " + CRLF
 cQuery += "								D2.D2_FILIAL = F2.F2_FILIAL AND " + CRLF
 cQuery += "								D2.D2_DOC = F2.F2_DOC AND " + CRLF
@@ -751,6 +774,9 @@ Else
 Endif
 
 If Empty(cNota) .And. Empty(cSerie)
+	cQuery += "				F2.F2_XENVWMS = '1' AND " + CRLF
+	cQuery += "				F2.F2_TIPO IN('N','D','B') AND " + CRLF
+	cQuery += "				F2.F2_XNUMECO = '' AND " + CRLF
 	cQuery += "				CAST((F2.F2_XDTALT + ' ' + F2.F2_XHRALT) AS DATETIME) >= CAST(('" + cData + "' + ' ' + '" + cHora + ".000') AS DATETIME) AND " + CRLF
 	cQuery += "				CAST((F2.F2_XDTALT + ' ' + F2.F2_XHRALT) AS DATETIME) <= CAST(('" + dTos(dDataBase) + "' + ' ' + '" + Time() + ".000') AS DATETIME) AND " + CRLF
 Else
@@ -758,9 +784,6 @@ Else
 	cQuery += "				F2.F2_SERIE = '" + cSerie + "' AND " + CRLF
 EndIf
 
-cQuery += "			F2.F2_XENVWMS = '1' AND " + CRLF
-cQuery += "			F2.F2_TIPO IN('N','D','B') AND " + CRLF
-cQuery += "			F2.F2_XNUMECO = '' AND " + CRLF
 cQuery += "			F2.D_E_L_E_T_ = ''  " + CRLF
 cQuery += "	) PEDIDO  " + CRLF
 cQuery += "	WHERE RNUM > " + cTamPage + " * (" + cPage + " - 1) " + CRLF 
@@ -818,6 +841,9 @@ Else
 Endif
 
 If Empty(cNota) .And. Empty(cSerie)
+	cQuery += "				F2.F2_XNUMECO = '' AND " + CRLF
+	cQuery += "				F2.F2_XENVWMS = '1' AND " + CRLF
+	cQuery += "				F2.F2_TIPO IN('N','D','B') AND " + CRLF
 	cQuery += "				CAST((F2.F2_XDTALT + ' ' + F2.F2_XHRALT) AS DATETIME) >= CAST(('" + cData + "' + ' ' + '" + cHora + ".000') AS DATETIME) AND " + CRLF
 	cQuery += "				CAST((F2.F2_XDTALT + ' ' + F2.F2_XHRALT) AS DATETIME) <= CAST(('" + dTos(dDataBase) + "' + ' ' + '" + Time() + ".000') AS DATETIME) AND " + CRLF
 Else
@@ -825,8 +851,6 @@ Else
 	cQuery += "				F2.F2_SERIE = '" + cSerie + "' AND " + CRLF
 EndIf
 
-cQuery += "				F2.F2_XENVWMS = '1' AND " + CRLF
-cQuery += "				F2.F2_TIPO IN('N','D','B') AND " + CRLF
 cQuery += "				F2.D_E_L_E_T_ = ''  " + CRLF
 
 dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)

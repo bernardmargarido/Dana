@@ -3189,12 +3189,12 @@ Return aRet
 Static Function aVldCanPv(cAlias,cOrderId)
 Local cQuery := ""
 
-cQuery := "	SELECT 
-cQuery += "		C5.C5_FILIAL,
-cQuery += "		C5.R_E_C_N_O_ RECNOSC5
-cQuery += "	FROM	
+cQuery := "	SELECT "
+cQuery += "		C5.C5_FILIAL, "
+cQuery += "		C5.R_E_C_N_O_ RECNOSC5 "
+cQuery += "	FROM "	
 cQuery += "		" + RetSqlName("SC5") + " C5 "
-cQuery += "	WHERE 
+cQuery += "	WHERE "
 cQuery += "		C5.C5_XNUMECO = '" + cOrderId + "' AND "
 cQuery += "		C5.D_E_L_E_T_ = '' "
 cQuery += "	ORDER BY C5.C5_FILIAL " 

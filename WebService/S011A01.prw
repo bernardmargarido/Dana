@@ -1074,7 +1074,7 @@ U_X011A01("CONSOLE",Alltrim(Str(nIdx-1)) +" Registro(s)")
 //-------------------+
 // Finaliza Ambiente |
 //-------------------+
-RpcClearEnv()
+//RpcClearEnv()
 
 RETURN .T.
 
@@ -2860,7 +2860,7 @@ Endif
 cSql := "SELECT SA3.R_E_C_N_O_, SA3.D_E_L_E_T_ DELET "
 cSql += "FROM "+ RetSqlName("SA3") +" SA3 "
 cSql += "WHERE 1=1 "
-If ! lFullDel
+If !lFullDel
 	cSql += " AND SA3.A3_X_SIM3G <> 'N' "	// Filtra registros marcados para integrar com o SIM3G
 Endif
 If !Empty(cFilDel)
