@@ -521,6 +521,55 @@ aAdd( aSX3, { ;
 //
 aAdd( aSX3, { ;
 	'AY2'																	, ; //X3_ARQUIVO
+	'13'																	, ; //X3_ORDEM
+	'AY2_XIDMAR'															, ; //X3_CAMPO
+	'N'																		, ; //X3_TIPO
+	10																		, ; //X3_TAMANHO
+	0																		, ; //X3_DECIMAL
+	'Id Marca'																, ; //X3_TITULO
+	'Id Marca'																, ; //X3_TITSPA
+	'Id Marca'																, ; //X3_TITENG
+	'Id Marca'																, ; //X3_DESCRIC
+	'Id Marca'																, ; //X3_DESCSPA
+	'Id Marca'																, ; //X3_DESCENG
+	'@E 9,999,999,999'														, ; //X3_PICTURE
+	''																		, ; //X3_VALID
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(160)					, ; //X3_USADO
+	''																		, ; //X3_RELACAO
+	''																		, ; //X3_F3
+	0																		, ; //X3_NIVEL
+	Chr(254) + Chr(192)														, ; //X3_RESERV
+	''																		, ; //X3_CHECK
+	''																		, ; //X3_TRIGGER
+	'U'																		, ; //X3_PROPRI
+	'S'																		, ; //X3_BROWSE
+	'V'																		, ; //X3_VISUAL
+	'R'																		, ; //X3_CONTEXT
+	''																		, ; //X3_OBRIGAT
+	''																		, ; //X3_VLDUSER
+	''																		, ; //X3_CBOX
+	''																		, ; //X3_CBOXSPA
+	''																		, ; //X3_CBOXENG
+	''																		, ; //X3_PICTVAR
+	''																		, ; //X3_WHEN
+	''																		, ; //X3_INIBRW
+	''																		, ; //X3_GRPSXG
+	''																		, ; //X3_FOLDER
+	''																		, ; //X3_CONDSQL
+	''																		, ; //X3_CHKSQL
+	''																		, ; //X3_IDXSRV
+	'N'																		, ; //X3_ORTOGRA
+	''																		, ; //X3_TELA
+	''																		, ; //X3_POSLGT
+	'N'																		, ; //X3_IDXFLD
+	''																		, ; //X3_AGRUP
+	''																		, ; //X3_MODAL
+	''																		} ) //X3_PYME
+	
+aAdd( aSX3, { ;
+	'AY2'																	, ; //X3_ARQUIVO
 	'12'																	, ; //X3_ORDEM
 	'AY2_XDTEXP'															, ; //X3_CAMPO
 	'C'																		, ; //X3_TIPO
