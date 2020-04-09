@@ -997,7 +997,8 @@ Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt)
 	Local nVrSubTot		:= 0
 	Local nVlrTotal		:= 0
 	Local nQtdItem		:= 0
-		
+	Local nVlrTotMkt	:= 0
+
 	Local lUsaVend		:= GetNewPar("EC_USAVEND",.F.)
 		
 	Local dDtaEmiss		:= Nil
@@ -1101,6 +1102,7 @@ Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt)
 	nVlrFrete	:= RetPrcUni(oRestPv:Totals[3]:Value)
 	nVrSubTot	:= RetPrcUni(oRestPv:Totals[1]:Value)
 	nVlrTotal	:= RetPrcUni(oRestPv:Totals[1]:Value) //RetPrcUni(oRestPv:Value)
+	nVlrTotMkt	:= RetPrcUni(oRestPv:Value)
 	nQtdItem	:= Len(oRestPv:Items)
 		
 	//---------------------+
@@ -1150,7 +1152,7 @@ Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt)
 	//------------------+
 	// Grava Financeiro |
 	//------------------+
-	aRet := AEcoGrvFin(oRestPv:PaymentData,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmis,cCodAfili,dDtaEmiss)
+	aRet := AEcoGrvFin(oRestPv:PaymentData,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmis,cCodAfili,dDtaEmiss,nVlrTotMkt,nVlrFrete)
 		
 	If!aRet[1]
 		RestArea(aArea)
@@ -2294,7 +2296,7 @@ Return aRet
 @return			aRet - Array aRet[1] - Logico aRet[2] - Codigo Erro aRet[3] - Descricao do Erro
 /*/			
 /**************************************************************************************************/
-Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmis,cCodAfili,dDtaEmiss)
+Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmis,cCodAfili,dDtaEmiss,nVlrTotMkt,nVlrFrete)
 	Local aArea		:= GetArea()
 	Local aRet		:= {.T.,"",""}
 	Local aVencTo	:= {}
@@ -2401,7 +2403,12 @@ Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmi
 				// Market Place |
 				//--------------+ 
 				ElseIf WS4->WS4_TIPO == "4"
-					cTipo 	:= "MKT"
+					cTipo 		:= "MKT"
+
+					If nVlrTotal < nVlrTotMkt
+						nVlrTotal	:= nVlrTotMkt
+					EndIf
+
 				EndIf
 			
 				//----------+

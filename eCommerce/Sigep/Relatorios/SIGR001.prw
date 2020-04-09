@@ -15,7 +15,7 @@
 /********************************************************************************/
 /*/{Protheus.doc} SIGR001
 
-@description Realiza a impressao das etiquetas Vizcaya
+@description Realiza a impressao das etiquetas SIGEP
 
 @author Bernard M. Margarido
 @since 08/03/2017
@@ -81,6 +81,7 @@ Local _nVolume			:= 0
 Local _nPeso			:= 0 
 Local _nToReg			:= 0
 Local _nValor			:= 0
+Local _nX				:= 0
 
 Local _lAdjustToLegacy	:= .F.
 Local _lDisableSetup	:= .T.
@@ -125,35 +126,38 @@ While (_cAlias)->( !Eof() )
 	_oProcess:SetRegua2( -1 )
 	While (_cAlias)->( !Eof() .And. _cCodPlp == (_cAlias)->ZZ2_CODIGO )
 
-		//------------------+	
-		// Imprime etiqueta |
-		//------------------+
-		_cPlpID		:= (_cAlias)->ZZ2_PLPID
-		_cDoc		:= (_cAlias)->WSA_DOC
-		_cSerie		:= (_cAlias)->WSA_SERIE
-		_cPedido	:= (_cAlias)->C5_NUM
-		_cCodEtq	:= (_cAlias)->ZZ4_CODETQ	
-		_cDest		:= (_cAlias)->WSA_NOMDES
-		_cEndDest	:= (_cAlias)->WSA_ENDENT
-		_cBairro	:= (_cAlias)->WSA_BAIRRE
-		_cMunicipio	:= (_cAlias)->WSA_MUNE
-		_cCep		:= (_cAlias)->WSA_CEPE
-		_cUF		:= (_cAlias)->WSA_ESTE
-		_cObs		:= (_cAlias)->WSA_COMPLE
-		_cCodServ	:= (_cAlias)->ZZ0_CODSER
-		_cDescSer	:= (_cAlias)->ZZ0_DESCRI
-		_cTelDest	:= (_cAlias)->WSA_TEL01
-		_cDTMatrix	:= ""
-		_nValor		:= (_cAlias)->WSA_VLRTOT
-		_nVolume	:= (_cAlias)->C5_VOLUME1
-		_nPeso		:= (_cAlias)->C5_PBRUTO * 100
-		
-		_oProcess:IncRegua2(" Imprimindo Etiqueta pedido " + _cPedido + " .")
+		For _nX := 1 To Int((_cAlias)->C5_VOLUME1)
 
-		SigR01Etq(	_oPrint,_cPlpID,_cDoc,_cSerie,_cPedido,_cTelDest,;
-					_cCodEtq,_cDest,_cEndDest,_cBairro,_cMunicipio,;
-					_cCep,_cUF,_cObs,_cCodServ,_cDescSer,_cDTMatrix,;
-					_nValor,_nVolume,_nPeso)
+			//------------------+	
+			// Imprime etiqueta |
+			//------------------+
+			_cPlpID		:= (_cAlias)->ZZ2_PLPID
+			_cDoc		:= (_cAlias)->WSA_DOC
+			_cSerie		:= (_cAlias)->WSA_SERIE
+			_cPedido	:= (_cAlias)->C5_NUM
+			_cCodEtq	:= (_cAlias)->ZZ4_CODETQ	
+			_cDest		:= (_cAlias)->WSA_NOMDES
+			_cEndDest	:= (_cAlias)->WSA_ENDENT
+			_cBairro	:= (_cAlias)->WSA_BAIRRE
+			_cMunicipio	:= (_cAlias)->WSA_MUNE
+			_cCep		:= (_cAlias)->WSA_CEPE
+			_cUF		:= (_cAlias)->WSA_ESTE
+			_cObs		:= (_cAlias)->WSA_COMPLE
+			_cCodServ	:= (_cAlias)->ZZ0_CODSER
+			_cDescSer	:= (_cAlias)->ZZ0_DESCRI
+			_cTelDest	:= (_cAlias)->WSA_TEL01
+			_cDTMatrix	:= ""
+			_nValor		:= (_cAlias)->WSA_VLRTOT
+			_nVolume	:= _nX
+			_nPeso		:= (_cAlias)->C5_PBRUTO * 100
+			
+			_oProcess:IncRegua2(" Imprimindo Etiqueta pedido " + _cPedido + " .")
+
+			SigR01Etq(	_oPrint,_cPlpID,_cDoc,_cSerie,_cPedido,_cTelDest,;
+						_cCodEtq,_cDest,_cEndDest,_cBairro,_cMunicipio,;
+						_cCep,_cUF,_cObs,_cCodServ,_cDescSer,_cDTMatrix,;
+						_nValor,_nVolume,_nPeso)
+		Next _nX
 
 		(_cAlias)->( dbSkip() )
 	EndDo

@@ -51,6 +51,7 @@ Local _cEtiqueta    := ""
 Local _cCodEmb      := ""
 
 Local _nToReg       := 0
+Local _nX           := 0
 
 Local _lRet         := .T.
 
@@ -106,31 +107,37 @@ While (_cAlias)->( !Eof() )
     //------------------------+
     WSA->( dbGoTo( (_cAlias)->RECNOWSA) )
 
-    //-----------------------------------------+
-    // Solicita etiqueta de acordo com serviço |
-    //-----------------------------------------+
-    _cEtiqueta := ""
-    SigM006C((_cAlias)->WSA_SERPOS,(_cAlias)->WSA_DOC,(_cAlias)->WSA_SERIE,(_cAlias)->WSA_NUMECO,@_cEtiqueta)
+    //-------------------------------------------+
+    // Solicita etiquetas de acordo com o volume | 
+    //-------------------------------------------+
+    For _nX := 1 To Int(WSA->WSA_VOLUME)
+        //-----------------------------------------+
+        // Solicita etiqueta de acordo com serviço |
+        //-----------------------------------------+
+        _cEtiqueta := ""
+        SigM006C((_cAlias)->WSA_SERPOS,(_cAlias)->WSA_DOC,(_cAlias)->WSA_SERIE,(_cAlias)->WSA_NUMECO,@_cEtiqueta)
 
-    //-----------------------------+
-    // Retorna codigo da embalagem |
-    //-----------------------------+
-    _cCodEmb := ""
-    SigM006D(@_cCodEmb)
+        //-----------------------------+
+        // Retorna codigo da embalagem |
+        //-----------------------------+
+        _cCodEmb := ""
+        SigM006D(@_cCodEmb)
 
-    //--------------------------------+
-    // Array contendo os dados da PLP |
-    //--------------------------------+
-    aAdd(_oSigepWeb:aNotas,{    (_cAlias)->WSA_DOC      ,;  // 01. Nota
-                                (_cAlias)->WSA_SERIE    ,;  // 02. Serie
-                                (_cAlias)->WSA_CLIENT   ,;  // 03. Cliente
-                                (_cAlias)->WSA_LOJA     ,;  // 04. Loja
-                                _cEtiqueta              ,;  // 05. Codigo Etiqueta
-                                (_cAlias)->WSA_SERPOS   ,;  // 06. Codigo serviço de postagem
-                                _cCodEmb                ,;  // 07. Codigo Embalagem 
-                                (_cAlias)->WSA_NUMECO   ,;  // 08. Codigo do pedido e-Commerce
-                                (_cAlias)->WSA_NUMECL   ,;  // 09. Codigo do pedido e-Commerce (Chave)
-                                (_cAlias)->WSA_NUMSC5   })  // 10. Numero do Pedido Faturamento 
+        //--------------------------------+
+        // Array contendo os dados da PLP |
+        //--------------------------------+
+        aAdd(_oSigepWeb:aNotas,{    (_cAlias)->WSA_DOC      ,;  // 01. Nota
+                                    (_cAlias)->WSA_SERIE    ,;  // 02. Serie
+                                    (_cAlias)->WSA_CLIENT   ,;  // 03. Cliente
+                                    (_cAlias)->WSA_LOJA     ,;  // 04. Loja
+                                    _cEtiqueta              ,;  // 05. Codigo Etiqueta
+                                    (_cAlias)->WSA_SERPOS   ,;  // 06. Codigo serviço de postagem
+                                    _cCodEmb                ,;  // 07. Codigo Embalagem 
+                                    (_cAlias)->WSA_NUMECO   ,;  // 08. Codigo do pedido e-Commerce
+                                    (_cAlias)->WSA_NUMECL   ,;  // 09. Codigo do pedido e-Commerce (Chave)
+                                    (_cAlias)->WSA_NUMSC5   })  // 10. Numero do Pedido Faturamento 
+
+    Next _nX
 
     (_cAlias)->( dbSkip() )
 EndDo
