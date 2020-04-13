@@ -834,6 +834,10 @@ Local cAlias:= GetNextAlias()
 Local cQuery:= ""
 Local cIbge	:= ""
 
+If At("(",cMunicipio) > 0
+	cMunicipio := SubStr(cMunicipio,1,At("(",cMunicipio) -1)
+EndIf
+
 If At("'",cMunicipio) > 0
 	cMunicipio := StrTran(cMunicipio,"'","''")
 EndIf
