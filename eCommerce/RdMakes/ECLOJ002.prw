@@ -559,7 +559,7 @@ AY1->( dbSetOrder(1) )
 If AY1->( dbSeek(xFilial("AY1") + _cSubCat) )
 	While AY1->( !Eof() .And. xFilial("AY1") + _cSubCat == AY1->AY1_FILIAL + AY1->AY1_CODIGO )
 	    If AY1->AY1_SUBCAT == _cCateg .Or. EcLoj02Ref(_cCateg, AY1->AY1_SUBCAT)
-	    	lRet := .T.
+	    	_lRet := .T.
 	    	Exit
 	    EndIf
 		AY1->( dbSkip() )
@@ -567,7 +567,7 @@ If AY1->( dbSeek(xFilial("AY1") + _cSubCat) )
 EndIf
 
 RestArea(_aArea)
-Return lRet
+Return _lRet
 
 /*********************************************************************************/
 /*/{Protheus.doc} EcLoj02G01

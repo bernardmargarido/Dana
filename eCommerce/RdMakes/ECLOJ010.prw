@@ -282,6 +282,23 @@ RestArea(_aArea)
 Return .T.
 
 /************************************************************************************/
+/*/{Protheus.doc} ECLOJ102
+	@description Realiza faturamento de pedido 
+	@author Bernard M. Margarido
+	@since 10/08/2017
+	@version undefined
+	@type function
+/*/
+/************************************************************************************/
+User Function ECLOJ102()
+Local _aArea	:= GetArea()
+
+	U_EcLojM05()
+
+RestArea(_aArea)
+Return .T.
+
+/************************************************************************************/
 /*/{Protheus.doc} MenuDef
 
 @description Menu padrao para manutencao do cadastro

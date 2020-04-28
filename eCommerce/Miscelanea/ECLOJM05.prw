@@ -10,10 +10,10 @@
     @since 16/09/2019
 /*/
 /******************************************************************************************/
-User Function EcLojM05(aParam)
+User Function EcLojM05(_cEmp,_cFil)
 Local _aArea        := GetArea()
 
-Private _lJob       := IIF( ValType(aParam) == "A", .T., .F.)
+Private _lJob       := IIF(Isincallstack("U_ECLOJ010"),.F.,.T.) 
 
 Private _oProcess   := Nil
 
@@ -27,7 +27,7 @@ CoNout("<< ECLOJM05 >> - INICIO " + dTos( Date() ) + " - " + Time() )
 //-----------------------+
 If _lJob
     RpcSetType(3)
-	RpcSetEnv(aParam[1], aParam[2],,,'FAT')
+	RpcSetEnv(_cEmp, _cFil,,,'FAT')
 EndIf
 
 //----------------------------------+
@@ -78,10 +78,20 @@ Local _nToReg       := 0
 Local _nTDoc        := TamSx3("F2_DOC")[1]
 Local _nTSerie      := TamSx3("F2_SERIE")[1]
 Local _nItemNf	    := a460NumIt(_cSerie)
+Local _nCalAcrs   	:= 1	
+Local _nArredPrcLis	:= 1
 
 Local _lBlqEst      := .F.
 Local _lBlqCred     := .F.
+Local _lRet			:= .F.
+Local _lMostraCtb	:= .F.
+Local _lAglutCtb	:= .F.
+Local _lCtbOnLine	:= .F.
+Local _lCtbCusto	:= .F.
+Local _lReajuste	:= .F.
+Local _lECF			:= .F.
 
+Local _dDataMoe		:= Nil
 //----------------------------------------------+
 // Consulta pedidos e-Commerce para faturamento |
 //----------------------------------------------+
@@ -146,6 +156,11 @@ While (_cAlias)->( !Eof() )
     // Posiciona pedido |
     //------------------+
     SC5->( dbGoTo((_cAlias)->RECNOSC5) )
+
+    _cNota      := ""
+    aPvlNfs     := {}    
+    _aNotas     := {}
+    _aNfGerada  := {}
 
     CoNout("<< ECLOJM05 >> - INICIA FATURAMENTO PEDIDO " + SC5->C5_NUM + " ID ECOMMERCE " + SC5->C5_XNUMECO + " DATA " + dToc(Date())  + " HORA " + Time() + " .")
 
@@ -253,9 +268,8 @@ While (_cAlias)->( !Eof() )
         // Gera notas e-Commerce |
         //-----------------------+
 		For _nX := 1 To Len(_aNotas)	
-            //cNota := MaPvlNfs(aNotas[_nX],cSerieNF,lMostraCtb,lAglutCtb,lCtbOnLine,lCtbCusto,lReajuste,nCalAcrs,nArredPrcLis,.F.,lECF,,,,,,dDataMoe)
+            _cNota := MaPvlNfs(_aNotas[_nX],_cSerie,_lMostraCtb,_lAglutCtb,_lCtbOnLine,_lCtbCusto,_lReajuste,_nCalAcrs,_nArredPrcLis,.F.,_lECF,,,,,,_dDataMoe)
             _cSerie:= PadR(_cSerie,_nTSerie)
-			_cNota := MaPvlNfs(aNotas[_nX], _cSerie, .F., .F., .F., .T., .F., 0, 0, .F., .F.)
 			aAdd(_aNfGerada,PadR(_cNota,_nTDoc))
 		Next _nX
 
@@ -312,6 +326,7 @@ _cQuery += "	WSA.WSA_FILIAL = '" + xFilial("WSA") + "' AND " + CRLF
 _cQuery += "	WSA.WSA_DOC = '' AND " + CRLF
 _cQuery += "	WSA.WSA_SERIE = '' AND " + CRLF
 _cQuery += "	WSA.WSA_ENVLOG = '2' AND " + CRLF
+_cQuery += "	WSA.WSA_CODSTA = '011' AND " + CRLF
 _cQuery += "	WSA.D_E_L_E_T_ = '' " + CRLF
 _cQuery += " GROUP BY C5.C5_NUM,C5.C5_XNUMECO,C5.R_E_C_N_O_  "
 
