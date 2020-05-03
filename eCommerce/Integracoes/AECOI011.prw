@@ -1501,6 +1501,9 @@ Local aRefImpos	:= {}
 Local lTesInt	:= GetNewPar("EC_TESINT")
 Local lGrava	:= .T.
 Local lDescPer	:= .F.
+Local lGift		:= .F.
+Local lBrinde	:= .F.
+Local lGratis	:= .F.
 
 Local cTpOper	:= GetNewPar("EC_TPOPEREC")
 Local cTesEco	:= GetNewPar("EC_TESECO")
@@ -1550,10 +1553,12 @@ For nPrd := 1 To Len(oItKit)
 		RestArea(aArea)
 		Return aRet
 	EndIf
-						
+
+	lGratis		:= ( RetPrcUni(oItKit[nPrd]:SellingPrice) == 0 )
 	nQtdItem	:= nQtdKit * oItKit[nPrd]:Quantity
 	nValor		:= RetPrcUni(oItKit[nPrd]:Price)
-	nVlrFinal	:= RetPrcUni(oItKit[nPrd]:SellingPrice)
+	nVlrFinal	:= IIF(lGratis, 0.01, RetPrcUni(oItKit[nPrd]:SellingPrice))
+	nDesconto	+= IIF(lGratis, Round(nQtdItem * nVlrFinal,nDecIt),0)
 	If Empty(oTransp:LogisticsInfo[nItAtu]:ShippingEstimateDate)
 		dDtaEntr	:= cTod(dDtaEmiss) + Val(oTransp:LogisticsInfo[nItAtu]:ShippingEstimate)
 		nPrzEntr	:= Val(oTransp:LogisticsInfo[nItAtu]:ShippingEstimate)
@@ -1624,10 +1629,10 @@ For nPrd := 1 To Len(oItKit)
 	// Valida se valor foi informado |
 	//-------------------------------+
 	If Empty(nVlrFinal)
-		LogExec("VALOR DO PRODUTO " + Alltrim(cProduto) + " NAO INFORMADO. VERIFIQUE VALOR NO ADMINISTRATIVO RAKUTEN PARA PEDIDO ORDERID " + cOrderId)
+		LogExec("VALOR DO PRODUTO " + Alltrim(cProduto) + " NAO INFORMADO. VERIFIQUE VALOR NO ADMINISTRATIVO ECOMMERCE PARA PEDIDO ORDERID " + cOrderId)
 		aRet[1] := .F.
 		aRet[2] := cOrderId
-		aRet[3] := "VALOR DO PRODUTO " + Alltrim(cProduto) + " NAO INFORMADO. VERIFIQUE VALOR NO ADMINISTRATIVO RAKUTEN PARA PEDIDO ORDERID " + cOrderId
+		aRet[3] := "VALOR DO PRODUTO " + Alltrim(cProduto) + " NAO INFORMADO. VERIFIQUE VALOR NO ADMINISTRATIVO ECOMMERCE PARA PEDIDO ORDERID " + cOrderId
 		RestArea(aArea)
 		Return aRet
 	EndIf
@@ -1658,8 +1663,8 @@ For nPrd := 1 To Len(oItKit)
 		WSB->WSB_VLRITE		:= Round(nQtdItem * nVlrFinal,nDecIt)
 		WSB->WSB_LOCAL		:= cLocal
 		WSB->WSB_UM			:= SB1->B1_UM
-		WSB->WSB_DESC		:= nPerDItem
-		WSB->WSB_VALDES		:= Round( nValor * (nPerDItem /100 ),2)
+		WSB->WSB_DESC		:= IIF(nPerDItem < 100, nPerDItem, 0)
+		WSB->WSB_VALDES		:= IIF(nPerDItem < 100, Round( nValor * (nPerDItem /100 ),2), 0)
 		WSB->WSB_TES		:= cTesEco
 		WSB->WSB_CF			:= SF4->F4_CF
 		WSB->WSB_VALIPI		:= MaFisRet(nPrd,"IT_VALIPI") 
@@ -3437,14 +3442,6 @@ Return aRet
 /**************************************************************************************************/
 Static Function RetPrcUni(nVlrUnit)
 Local nValor	:= 0
-/*
-If Len(cVlrUnit) == 1
-	nDecimal		:= 3
-	nValor 			:= Val(Left(Alltrim(Str(nVlrUnit)),Len(cVlrUnit) - nDecimal) + "." + Right(Alltrim(Str(nVlrUnit)),nDecimal))
-Else 
-	nValor 			:= Val(Left(Alltrim(Str(nVlrUnit)),Len(cVlrUnit) - nDecimal) + "." + Right(Alltrim(Str(nVlrUnit)),nDecimal))
-EndIf
-*/
 
 nValor := nVlrUnit / 100
 
