@@ -45,7 +45,7 @@ Static nTItemL2	:= TamSx3("WSB_ITEM")[1]
 Static nDecIt	:= TamSx3("WSB_VLRITE")[2]
 Static nTamStat	:= TamSx3("WS1_DESCVT")[1]
 Static nTamOper	:= TamSx3("WS4_CODIGO")[1]
-
+Static nTMun	:= TamSx3("CC2_MUN")[1]
 
 /**************************************************************************************************/
 
@@ -352,8 +352,10 @@ Static Function EcGrvCli(oDadosCli,oDadosEnd,aEndRes,aEndCob,aEndEnt)
 Local aArea		:= GetArea()
 Local aRet		:= {.T.,"",""}
 
+Local cCnpj		:= ""
 Local cCodCli	:= ""
 Local cLoja		:= ""
+Local cNomeCli	:= ""
 Local cTpPess	:= ""   
 Local cTipoCli	:= ""
 Local cContrib	:= ""
@@ -378,7 +380,7 @@ Local cBairroE	:= ""
 Local cMunE		:= ""
 Local cCepE		:= ""
 Local cEstE		:= "" 
-
+Local _cCMunDef	:= GetNewPar("EC_CMUNDE","99999")
 
 Local aCliente  := {} 
 
@@ -665,7 +667,13 @@ If Len(aCliente) > 0
 		If Len(aEndEnt) > 0 .Or. Len(aEndRes) > 0
 			AEc011Cont(cCodCli,cLoja,cNomeCli,IIF(Len(aEndEnt) > 0,aEndEnt,aEndRes))
 		Endif
-
+		
+		//------------------------------------+
+		// Envia e-Mail com erro de municipio |
+		//------------------------------------+	
+		If Rtrim(cCodMun) == RTrim(_cCMunDef)
+			u_AEcMailC(cCodInt,cDescInt,cCnpj,cNomeCli)
+		EndIf
 		//--------------------+
 		// Desloqueia Cliente |
 		//--------------------+
@@ -829,10 +837,15 @@ Return aRet
 /*/
 /***********************************************************************************/
 Static Function EcCodMun(cEstado,cMunicipio)
-Local aArea	:= GetARea()
-Local cAlias:= GetNextAlias()
-Local cQuery:= ""
-Local cIbge	:= ""
+Local aArea		:= GetARea()
+
+Local cAlias	:= GetNextAlias()
+Local cQuery	:= ""
+Local cIbge		:= ""
+Local _cMunDef	:= GetNewPar("EC_MUNDEF","INVALIDO")
+Local _cCMunDef	:= GetNewPar("EC_CMUNDE","99999")
+
+Local _lAtMunDef:= GetNewPar("EC_ATMUNDE",.T.)
 
 If At("(",cMunicipio) > 0
 	cMunicipio := SubStr(cMunicipio,1,At("(",cMunicipio) -1)
@@ -857,13 +870,40 @@ cQuery += "		D_E_L_E_T_ <> '*' "
 
 dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.) 
 
-If Empty( (cAlias)->CC2_CODMUN )
-	(cAlias)->( dbCloseArea() )	
-	RestArea(aArea)
-	Return cIbge
+If (cAlias)->( Eof() )
+	If _lAtMunDef
+		dbSelectArea("CC2")
+		CC2->( dbSetOrder(1) )
+		If CC2->( dbSeek(xFilial("CC2") + cEstado + _cCMunDef) )
+			cIbge	:= CC2->CC2_CODMUN
+		Else
+			//-------------------------+
+			// Grava Municipio Default |
+			//-------------------------+
+			RecLock("CC2",.T.)
+				CC2->CC2_FILIAL := xFilial("CC2")
+				CC2->CC2_EST   	:= cEstado
+				CC2->CC2_CODMUN	:= _cCMunDef
+				CC2->CC2_MUN   	:= cMunicipio
+				CC2->CC2_MDEDMA	:= CriaVar("CC2_MDEDMA",.F.)
+				CC2->CC2_MDEDSR	:= CriaVar("CC2_MDEDSR",.F.)
+				CC2->CC2_PERMAT	:= CriaVar("CC2_PERMAT",.F.)
+				CC2->CC2_PERSER	:= CriaVar("CC2_PERSER",.F.)
+				CC2->CC2_DTRECO	:= CriaVar("CC2_DTRECO",.F.)
+				CC2->CC2_CDSIAF	:= CriaVar("CC2_CDSIAF",.F.)
+				CC2->CC2_CPOM  	:= CriaVar("CC2_CPOM  ",.F.)
+				CC2->CC2_TPDIA 	:= CriaVar("CC2_TPDIA ",.F.)
+				CC2->CC2_CODANP	:= CriaVar("CC2_CODANP",.F.)
+			CC2->( MsUnLock() )
+			cIbge	:= _cCMunDef
+		EndIf
+		
+	EndIf
+Else
+	cIbge := (cAlias)->CC2_CODMUN
 EndIf
 
-cIbge := (cAlias)->CC2_CODMUN
+
 (cAlias)->( dbCloseArea() )	
 
 RestArea(aArea)

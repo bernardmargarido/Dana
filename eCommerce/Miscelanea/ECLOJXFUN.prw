@@ -409,6 +409,157 @@ User Function AEcoMail(cCodInt,cDescInt,aMsgErro,_cPDF,_cETQ)
 
 Return lEnviado
 
+/**************************************************************************************************
+Função:
+AEcMailC
+
+Autor:
+Bernard M. Margarido
+
+Data:
+02/02/2016
+
+Descrição:
+Rotina realiza o envio de email com os logs
+
+Parâmetros:
+Param01 - Codigo da Interface
+Param02 - Descrição Interface
+Param03 - Array com os erros
+
+Retorno:
+Nenhum
+**************************************************************************************************/
+User Function AEcMailC(_cCodInt,_cDescInt,_cCPF,_cRazao)
+	Local aArea		:= GetArea()
+
+	Local cServer	:= GetMv("MV_RELSERV")
+	Local cUser		:= GetMv("MV_RELAUSR")
+	Local cPassword := GetMv("MV_RELAPSW")
+	Local cFrom		:= GetMv("MV_RELACNT")
+
+	Local cMail		:= GetNewPar("EC_LOGMAIL")
+	Local cBody		:= ""	
+	Local cRgbCol	:= ""
+	Local cAnexos	:= ""
+	Local cTitulo	:= "Dana Cosmeticos - Integrações e-Commerce"
+	Local cEndLogo	:= "https://danacosmeticos.vteximg.com.br/arquivos/dana-logo-002.png" 
+
+	Local nErro		:= 0
+	Local _nPort	:= 0
+	Local _nPosTmp	:= 0
+
+	Local _xRet		
+
+	Local lEnviado	:= .F.
+	Local lOk		:= .F.
+	Local lZebra	:= .T.
+	Local lRelauth  := SuperGetMv("MV_RELAUTH",, .F.)
+
+	Local _oServer	:= Nil
+	Local _oMessage	:= Nil
+
+	Default	_cPDF	:= ""
+	Default	_cETQ	:= ""
+	
+	//---------------------------------------------+
+	// Montagem do Html que sera enciado com erros |
+	//---------------------------------------------+
+	cBody := '    <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
+	cBody += '	  <html xmlns="http://www.w3.org/1999/xhtml">'
+	cBody += '		<head>'
+	cBody += '			<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />' 
+	cBody += '			<title>' + cTitulo + '</title>'
+	cBody += '		</head>'
+	cBody += '		<body>'
+	cBody += '		<table width="1000" height="10" border="0" bordercolor="#000000" bgcolor="#FFFFFF">'
+	cBody += '			<tr align="center">'
+	cBody += '				<td align="center" bgcolor="#0d0000">'
+	cBody += '					<img src="' + Alltrim(cEndLogo)  + '" height="070" width="180" />'
+	cBody += '				</td>'    
+	cBody += '			</tr>'
+	cBody += '			<tr>'
+	cBody += '				<td width="1000" align= "center">'
+	cBody += '					<font color="#999999" size="+2" face="Arial, Helvetica, sans-serif"><b>' + _cCodInt + " - " + Capital(_cDescInt) + '</b></font>'
+	cBody += '				</td>'
+	cBody += '		 	</tr>'
+	cBody += '		 </table>'
+	cBody += '		 <table width="1000" border="0"  bordercolor="#000000" bgcolor="#FFFFFF">'   
+	cBody += '			<tr bordercolor="#FFFFFF" bgcolor="#0d0000">'
+	cBody += '				<td colspan="2" width="15%" height="30" align= "center">'
+	cBody += '					<font color="#FFFFFF" size="-1" face="Arial, Helvetica, sans-serif"><b>Erro de Município</b></font><br>'
+	cBody += '				</td>'
+	cBody += '			</tr>'
+	cBody += '			<tr bordercolor="#FFFFFF" bgcolor="#FFFFFF">'
+	cBody += '				<td width="15%" height="30" align= "left">'
+	cBody += '					<font color="#000000" size="-1" face="Arial, Helvetica, sans-serif"> CNPJ/CPF </font>'
+	cBody += '				</td>'
+	cBody += '				<td width="85%" height="30" align= "left">'
+	cBody += '					<font color="#000000" size="-1" face="Arial, Helvetica, sans-serif"> ' + _cCPF + ' </font>'
+	cBody += '				</td>'
+	cBody += '			</tr>'
+	cBody += '			<tr bordercolor="#FFFFFF" bgcolor="#FFFFFF">'
+	cBody += '				<td width="15%" height="30" align= "left">'
+	cBody += '					<font color="#000000" size="-1" face="Arial, Helvetica, sans-serif"> NOME </font>'
+	cBody += '				</td>'
+	cBody += '				<td width="85%" height="30" align= "left">'
+	cBody += '					<font color="#000000" size="-1" face="Arial, Helvetica, sans-serif"> ' + _cRazao + ' </font>'
+	cBody += '				</td>'
+	cBody += '			</tr>'
+	cBody += '		</table>'
+	cBody += '		<br><br><br>'
+	cBody += '		<font color="#000000" size="-1" face="Arial, Helvetica, sans-serif">VitreoERP - eCommerce <font face="Times New Roman">&copy;</font> - Enviado em'  + dToc(dDataBase) +  ' - '  + Time() + '</font>'
+	cBody += '	</body>
+	cBody += '</html>
+
+	//-------------------------+	
+	// Realiza envio do e-mail | 
+	//-------------------------+
+	lEnviado := .T.	
+	_oServer := TMailManager():New()
+	_oServer:SetUseTLS(.T.)
+
+	If ( _nPosTmp := At(":",cServer) ) > 0
+		_nPort := Val(SubStr(cServer,_nPosTmp+1,Len(cServer)))
+		cServer := SubStr(cServer,1,_nPosTmp-1)
+	EndIf
+
+	If  ( _xRet := _oServer:Init( "", cServer, cUser, cPassword,,_nPort) ) == 0
+		If ( _xRet := _oServer:SMTPConnect()) == 0
+			If lRelauth
+				If ( _xRet := _oServer:SMTPAuth( cUser, cPassword ))  <> 0
+					_xRet := _oServer:SMTPAuth( SubStr(cUser,1,At("@",cUser)-1), cPassword )
+				EndIf
+			Endif
+
+			If _xRet == 0
+				
+				_oMessage := TMailMessage():New()
+				_oMessage:Clear()
+				
+				_oMessage:cDate  	:= cValToChar( Date() )
+				_oMessage:cFrom  	:= cFrom
+				_oMessage:cTo   	:= cMail
+				_oMessage:cSubject 	:= cTitulo
+				_oMessage:cBody   	:= cBody
+								
+				If (_xRet := _oMessage:Send( _oServer )) <> 0
+					Conout("Erro ao enviar e-mail --> " + _oServer:GetErrorString( _xRet ))	
+					lEnviado := .F.
+				Endif
+			Else
+				Conout("Erro ao enviar e-mail --> " + _oServer:GetErrorString( _xRet ))	
+				lEnviado := .F.
+			EndIf
+		EndIf
+	Else
+		Conout("Erro ao Conectar ! ")
+	EndIf
+	
+	RestArea(aArea)
+
+Return lEnviado
+
 /*****************************************************************************/
 /*/{Protheus.doc} SYACENTO
 
