@@ -1119,7 +1119,7 @@ If WSA->( dbSeek(xFilial("WSA") +_cOrderId) )
 		WSA->WSA_SERIE	:= _cSerie
 		WSA->WSA_CODSTA	:= IIF(Empty(WSA->WSA_SERPOS),"006",_cCodSta)
 		WSA->WSA_DESTAT	:= WS1->WS1_DESCRI
-		WSA->WSA_ENVLOG	:= "3"
+		WSA->WSA_ENVLOG	:= IIF(Empty(WSA->WSA_SERPOS),"4","3")
 	WSA->( MsUnlock() )
 EndIf
 
@@ -1131,10 +1131,11 @@ u_AEcoStaLog(_cCodSta,_cOrderId,WSA->WSA_NUM,dDataBase,Time())
 //---------------+
 // Envia Invoice |
 //---------------+
+/*
 If WS1->WS1_ENVECO == "S" .And. Empty(WSA->WSA_SERPOS)
 	U_AECOI013(_cOrderId)
 EndIf
-
+*/
 
 RestArea(_aArea)
 Return .T.

@@ -3612,7 +3612,7 @@ Else
 	//----------------------+
 	// Municipio de Entrega | 
 	//----------------------+
-	cCodMune := EcCodMun(cMunDest,cEstDest)
+	cCodMune := EcCodMun(cEstDest,cMunDest)
 	
 	//---------------------------+
 	// Atualiza dados de entrega |

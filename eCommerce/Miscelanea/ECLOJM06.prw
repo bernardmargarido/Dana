@@ -138,11 +138,18 @@ While (_cAlias)->( !Eof() )
     EndIf    
 
     CoNout("<< EcLojM06A >> - GERANDO DANFE PEDIDO E-COMMERCE" + RTrim(WSA->WSA_NUMECO) )
-
+    
+    //---------------+
+    // Envia Invoice |
+    //---------------+
+    U_AECOI013(WSA->WSA_NUMECO)
+    
     //------------------+
     // Gera PDF da nota |
     //------------------+
-    If EcLojM06B(WSA->WSA_DOC,WSA->WSA_SERIE,WSA->WSA_TRACKI,@_cPDFDanfe,@_cPDFEtq)
+    _cPDFDanfe	:= ""
+    _cPDFEtq	:= ""
+    If EcLojM06B(WSA->WSA_DOC,WSA->WSA_SERIE,WSA->WSA_TRACKI,WSA->WSA_SERPOS,@_cPDFDanfe,@_cPDFEtq)
         //-------------------+
         // Envia e-Mail IBEX |
         //-------------------+
@@ -171,7 +178,7 @@ Return Nil
     @version version
 /*/
 /******************************************************************************/
-Static Function EcLojM06B(_cDoc,_cSerie,_cCodETQ,_cPDFDanfe,_cPDFEtq)
+Static Function EcLojM06B(_cDoc,_cSerie,_cCodETQ,_cIdPos,_cPDFDanfe,_cPDFEtq)
 Local _aArea    := GetArea()
 
 //--------------------------------+
@@ -189,7 +196,7 @@ EcLojM06D(_cDoc,_cSerie,@_cPDFDanfe)
 //------------------+
 // Imprime Etiqueta |
 //------------------+
-If !Empty(_cCodETQ)
+If !Empty(_cCodETQ) .And. !Empty(_cIdPos)
 	EcLojM06E(_cDoc,_cSerie,_cCodETQ,@_cPDFEtq)
 Endif
 

@@ -213,7 +213,7 @@ While (_cAlias)->( !Eof() )
 				//----------------------------------------+
 				// Envia invoice com o codigo de rastreio |
 				//----------------------------------------+
-				U_AECOI013(WSA->WSA_NUMECO)
+				//U_AECOI013(WSA->WSA_NUMECO)
 													
 				//--------------------------+
 				// Atualiza status etiqueta |
@@ -248,7 +248,7 @@ While (_cAlias)->( !Eof() )
 				//---------------------+
 				RecLock("ZZ4",.F.)
 					ZZ4->ZZ4_STATUS	:= "03"
-					ZZ4->ZZ4_DESC	:= "ERRO AO ENVIAR PLP"
+					ZZ4->ZZ4_DESC	:= _oSigWeb:cError
 				ZZ4->( MsUnLock() )
 
 				ZZ4->( dbSkip() )
