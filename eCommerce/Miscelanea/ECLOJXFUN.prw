@@ -193,7 +193,7 @@ Param03 - Array com os erros
 Retorno:
 Nenhum
 **************************************************************************************************/
-User Function AEcoMail(cCodInt,cDescInt,aMsgErro,_cPDF,_cETQ)
+User Function AEcoMail(cCodInt,cDescInt,aMsgErro,_cPDF,_cDirEtq,_aETQ)
 	Local aArea		:= GetArea()
 
 	Local cServer	:= GetMv("MV_RELSERV")
@@ -206,12 +206,14 @@ User Function AEcoMail(cCodInt,cDescInt,aMsgErro,_cPDF,_cETQ)
 	Local cBody		:= ""	
 	Local cRgbCol	:= ""
 	Local cAnexos	:= ""
+	Local _cETQ		:= ""
 	Local cTitulo	:= "Dana Cosmeticos - Integrações e-Commerce"
 	Local cEndLogo	:= "https://danacosmeticos.vteximg.com.br/arquivos/dana-logo-002.png" 
 
 	Local nErro		:= 0
 	Local _nPort	:= 0
 	Local _nPosTmp	:= 0
+	Local _nY		:= 0
 
 	Local _xRet		
 
@@ -224,7 +226,8 @@ User Function AEcoMail(cCodInt,cDescInt,aMsgErro,_cPDF,_cETQ)
 	Local _oMessage	:= Nil
 
 	Default	_cPDF	:= ""
-	Default	_cETQ	:= ""
+	Default _cDirEtq:= ""
+	Default	_aETQ	:= {}
 	
 	//---------------------------------------------+
 	// Montagem do Html que sera enciado com erros |
@@ -327,8 +330,13 @@ User Function AEcoMail(cCodInt,cDescInt,aMsgErro,_cPDF,_cETQ)
 					//----------+
 					// Etiqueta |
 					//----------+
-					If File(_cETQ) .Or. File(Lower(_cETQ))
-						_oMessage:AttachFile(_cETQ)
+					If Len(_aETQ) > 0 
+						For _nY	:= 1 To Len(_aETQ)
+							_cETQ := _cDirEtq + _aETQ[_nY]
+							If File(_cETQ) .Or. File(Lower(_cETQ))
+								_oMessage:AttachFile(_cETQ)
+							EndIf
+						Next _nY
 					EndIf
 				Endif
 				

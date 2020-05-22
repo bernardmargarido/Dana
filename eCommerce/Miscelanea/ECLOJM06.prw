@@ -90,9 +90,10 @@ Local _aArea        := GetArea()
 
 Local _cAlias       := GetNextAlias()
 Local _cPDFDanfe    := ""
-Local _cPDFEtq		:= ""
 
 Local _nToReg       := 0
+
+Local _aPDFEtq		:= {}
 
 Private _nTNota     := TamSX3("F2_DOC")[1]
 Private _nTSerie    := TamSX3("F2_SERIE")[1]
@@ -148,12 +149,18 @@ While (_cAlias)->( !Eof() )
     // Gera PDF da nota |
     //------------------+
     _cPDFDanfe	:= ""
-    _cPDFEtq	:= ""
-    If EcLojM06B(WSA->WSA_DOC,WSA->WSA_SERIE,WSA->WSA_TRACKI,WSA->WSA_SERPOS,@_cPDFDanfe,@_cPDFEtq)
+    If EcLojM06B(WSA->WSA_DOC,WSA->WSA_SERIE,@_cPDFDanfe)
+        //------------------+
+        // Imprime etiqueta |
+        //------------------+
+        If !Empty(WSA->WSA_SERPOS)
+            _aPDFEtq := {}
+            EcLojM06E(WSA->WSA_DOC,WSA->WSA_SERIE,@_aPDFEtq)
+        EndIf
         //-------------------+
         // Envia e-Mail IBEX |
         //-------------------+
-        If EcLojM06C(WSA->WSA_NUMECO,_cPDFDanfe,_cPDFEtq)
+        If EcLojM06C(WSA->WSA_NUMECO,_cPDFDanfe,_aPDFEtq)
             RecLock("WSA",.F.)
                 WSA->WSA_ENVLOG := "5"
             WSA->(MsUnLocK() )
@@ -161,7 +168,6 @@ While (_cAlias)->( !Eof() )
             CoNout("<< EcLojM06A >> - EMAIL ENVIADO COM SUCESSO.")
         EndIf
     EndIf   
-
     (_cAlias)->( dbSkip() )
 EndDo
 CoNout("<< EcLojM06A >> - FIM GERA PDF DAS NOTAS.")
@@ -178,7 +184,7 @@ Return Nil
     @version version
 /*/
 /******************************************************************************/
-Static Function EcLojM06B(_cDoc,_cSerie,_cCodETQ,_cIdPos,_cPDFDanfe,_cPDFEtq)
+Static Function EcLojM06B(_cDoc,_cSerie,_cPDFDanfe)
 Local _aArea    := GetArea()
 
 //--------------------------------+
@@ -192,13 +198,6 @@ EndIf
 // Imprime DANFE | 
 //---------------+
 EcLojM06D(_cDoc,_cSerie,@_cPDFDanfe)
-
-//------------------+
-// Imprime Etiqueta |
-//------------------+
-If !Empty(_cCodETQ) .And. !Empty(_cIdPos)
-	EcLojM06E(_cDoc,_cSerie,_cCodETQ,@_cPDFEtq)
-Endif
 
 RestArea(_aArea)
 Return .T. 
@@ -354,10 +353,11 @@ Return _lRet
 @type function
 /*/
 /******************************************************************************/
-Static Function EcLojM06E(_cDoc,_cSerie,_cCodETQ,_cPDFEtq)
+Static Function EcLojM06E(_cDoc,_cSerie,_aPDFEtq)
 Local _cAlias			:= GetNextAlias()
 Local _cPasta   		:= _cDirRaiz
 Local _cDirExp			:= GetTempPath()
+Local _cCodEtq          := ""
 Local _cPedido			:= ""
 Local _cDest			:= ""
 Local _cEndDest			:= ""
@@ -371,11 +371,13 @@ Local _cPlpID			:= ""
 Local _cCodServ			:= ""
 Local _cTelDest			:= ""
 Local _cArqPDF          := ""
+Local _cPDFEtq          := ""
 
 Local _nVolume			:= 0
 Local _nPeso			:= 0 
 Local _nToReg			:= 0
 Local _nValor			:= 0
+Local _nCount           := 0
 
 Local _lRet				:= .T.
 Local _lAdjustToLegacy	:= .F.
@@ -388,110 +390,124 @@ CoNout("<< ECLOJM06E >> - INICIA IMPRESSAO ETIQUETA " )
 //-------------------+
 // Consulta Etiqueta |
 //-------------------+
-EcLojM06EQry(_cAlias,_cDoc,_cSerie,_cCodETQ)
+EcLojM06EQry(_cAlias,_cDoc,_cSerie)
 
-//----------------------+
-// Cria nome do arquivo |
-//----------------------+
-_cPDFEtq	:= "ETQ_" + RTrim(_cDoc) + "_"  + RTrim(_cSerie)
 
-If !_lJob
-    _oProcess:IncRegua2("PDF ETQ " + RTrim(_cDoc) + " / " + RTrim(_cSerie) + " " + _cCodETQ )
-EndIf
+While (_cAlias)->( !Eof() .And. _lRet ) 
 
-//--------------------------+
-// Deleta arquivo existente |
-//--------------------------+
-If File(_cPasta + "/" + _cPDFEtq + ".pdf")
-	FErase(_cPasta + "/" + _cPDFEtq + ".pdf")
-EndIf
+    //-----------------+
+    // Volume etiqueta |
+    //-----------------+
+    _nVolume++
 
-//------------------+
-// Instancia classe | 
-//------------------+
-_oPrint	:= FWMSPrinter():New(_cPDFEtq, IMP_PDF , _lAdjustToLegacy, _cPasta, _lDisableSetup, , , , .T., , .F., )
+    //----------------------+
+    // Cria nome do arquivo |
+    //----------------------+
+    _cPDFEtq	:= "ETQ_" + RTrim(_cDoc) + "_" + RTrim(_cSerie) + cValToChar(_nVolume)
 
-//---------------------+
-// Configura Relatorio |
-//---------------------+
-_oPrint:setResolution(78)
-_oPrint:SetPortrait()
-_oPrint:setPaperSize(DMPAPER_A4)
-_oPrint:SetMargin(10,10,10,10)
-
-_oPrint:nDevice             := IMP_PDF
-_oPrint:cPathPdf 			:= _cPasta
-_oPrint:lInJob  	        := .T.
-_oPrint:lServer             := .T.
-_oPrint:lViewPDF            := .F.
-
-//------------------+	
-// Imprime etiqueta |
-//------------------+
-_cPlpID		:= (_cAlias)->ZZ2_PLPID
-_cDoc		:= (_cAlias)->WSA_DOC
-_cSerie		:= (_cAlias)->WSA_SERIE
-_cPedido	:= (_cAlias)->C5_NUM
-_cCodEtq	:= (_cAlias)->ZZ4_CODETQ	
-_cDest		:= (_cAlias)->WSA_NOMDES
-_cEndDest	:= (_cAlias)->WSA_ENDENT
-_cBairro	:= (_cAlias)->WSA_BAIRRE
-_cMunicipio	:= (_cAlias)->WSA_MUNE
-_cCep		:= (_cAlias)->WSA_CEPE
-_cUF		:= (_cAlias)->WSA_ESTE
-_cObs		:= (_cAlias)->WSA_COMPLE
-_cCodServ	:= (_cAlias)->ZZ0_CODSER
-_cDescSer	:= (_cAlias)->ZZ0_DESCRI
-_cTelDest	:= (_cAlias)->WSA_TEL01
-_cDTMatrix	:= ""
-_nValor		:= (_cAlias)->WSA_VLRTOT
-_nVolume	:= (_cAlias)->C5_VOLUME1
-_nPeso		:= (_cAlias)->C5_PBRUTO * 100
-
-//-----------------------------------------+         
-// Chamando a impressão da danfe no RDMAKE |	        
-//-----------------------------------------+
-StaticCall(SIGR001, SigR01Etq, 	@_oPrint, _cPlpID,_cDoc,_cSerie,_cPedido,_cTelDest,;
-								_cCodEtq,_cDest,_cEndDest,_cBairro,_cMunicipio,;
-								_cCep,_cUF,_cObs,_cCodServ,_cDescSer,_cDTMatrix,;
-								_nValor,_nVolume,_nPeso)
-_oPrint:Print()
-
-//--------------------------+
-// Renomeia nome do arquivo |
-//--------------------------+
-_cArqPDF  := _cPasta + "/" + _cPDFEtq 
-
-//-------------------------------+
-// Emula uso do TotvsPrinter.exe |
-//-------------------------------+
-File2Printer( _cArqPDF, "PDF" )
-    
-If File(_cPasta + "/" + _cPDFEtq + ".pdf")
-    _lRet := .T.
-    _cPDFEtq := _cPDFEtq + ".pdf"
-    Conout("<< ECLOJM06E >> - ARQUIVO PDF " + _cPasta + _cPDFEtq + " GERADO COM SUCESSO.")
-Else
-    
-    If File(_cArqPDF) 
-        File2Printer(_cArqPDF, "PDF" )
-    ElseIf File(_cArqPDF + ".rel")
-        File2Printer(_cArqPDF, "PDF" )
-    ElseIf File(_cArqPDF + ".pd_")
-        File2Printer(_cArqPDF, "PDF" )
+    If !_lJob
+        _oProcess:IncRegua2("PDF ETQ " + RTrim(_cDoc) + " / " + RTrim(_cSerie) + " " + (_cAlias)->ZZ4_CODETQ + " " + cValToChar(_nVolume) )
     EndIf
-    
+
+    //--------------------------+
+    // Deleta arquivo existente |
+    //--------------------------+
+    If File(_cPasta + "/" + _cPDFEtq + ".pdf")
+        FErase(_cPasta + "/" + _cPDFEtq + ".pdf")
+    EndIf
+
+    //------------------+
+    // Instancia classe | 
+    //------------------+
+    _oPrint	:= FWMSPrinter():New(_cPDFEtq, IMP_PDF , _lAdjustToLegacy, _cPasta, _lDisableSetup, , , , .T., , .F., )
+
+    //---------------------+
+    // Configura Relatorio |
+    //---------------------+
+    _oPrint:setResolution(78)
+    _oPrint:SetPortrait()
+    _oPrint:setPaperSize(DMPAPER_A4)
+    _oPrint:SetMargin(10,10,10,10)
+
+    _oPrint:nDevice             := IMP_PDF
+    _oPrint:cPathPdf 			:= _cPasta
+    _oPrint:lInJob  	        := .T.
+    _oPrint:lServer             := .T.
+    _oPrint:lViewPDF            := .F.
+
+    //------------------+	
+    // Imprime etiqueta |
+    //------------------+
+    _cPlpID		:= (_cAlias)->ZZ2_PLPID
+    _cDoc		:= (_cAlias)->WSA_DOC
+    _cSerie		:= (_cAlias)->WSA_SERIE
+    _cPedido	:= (_cAlias)->C5_NUM
+    _cCodEtq	:= (_cAlias)->ZZ4_CODETQ	
+    _cDest		:= (_cAlias)->WSA_NOMDES
+    _cEndDest	:= (_cAlias)->WSA_ENDENT
+    _cBairro	:= (_cAlias)->WSA_BAIRRE
+    _cMunicipio	:= (_cAlias)->WSA_MUNE
+    _cCep		:= (_cAlias)->WSA_CEPE
+    _cUF		:= (_cAlias)->WSA_ESTE
+    _cObs		:= (_cAlias)->WSA_COMPLE
+    _cCodServ	:= (_cAlias)->ZZ0_CODSER
+    _cDescSer	:= (_cAlias)->ZZ0_DESCRI
+    _cTelDest	:= (_cAlias)->WSA_TEL01
+    _cDTMatrix	:= ""
+    _nValor		:= (_cAlias)->WSA_VLRTOT
+    //_nVolume	:= (_cAlias)->C5_VOLUME1
+    _nPeso		:= (_cAlias)->C5_PBRUTO * 100
+
+    //-----------------------------------------+         
+    // Chamando a impressão da danfe no RDMAKE |	        
+    //-----------------------------------------+
+    StaticCall(SIGR001, SigR01Etq, 	@_oPrint, _cPlpID,_cDoc,_cSerie,_cPedido,_cTelDest,;
+                                    _cCodEtq,_cDest,_cEndDest,_cBairro,_cMunicipio,;
+                                    _cCep,_cUF,_cObs,_cCodServ,_cDescSer,_cDTMatrix,;
+                                    _nValor,_nVolume,_nPeso)
+    _oPrint:Print()
+
+    //--------------------------+
+    // Renomeia nome do arquivo |
+    //--------------------------+
+    _cArqPDF  := _cPasta + "/" + _cPDFEtq 
+
+    //-------------------------------+
+    // Emula uso do TotvsPrinter.exe |
+    //-------------------------------+
+    File2Printer( _cArqPDF, "PDF" )
+        
     If File(_cPasta + "/" + _cPDFEtq + ".pdf")
         _lRet := .T.
         _cPDFEtq := _cPDFEtq + ".pdf"
         Conout("<< ECLOJM06E >> - ARQUIVO PDF " + _cPasta + _cPDFEtq + " GERADO COM SUCESSO.")
     Else
-        _lRet 		:= .F.
-        _cPDFEtq 	:= ""
-        Conout("<< ECLOJM06E >> - NAO GEROU ARQUIVO DE NOTA FISCAL EM PDF  [" + _cPasta + _cPDFEtq + "].")
-    EndIf	
-EndIf
+        
+        If File(_cArqPDF) 
+            File2Printer(_cArqPDF, "PDF" )
+        ElseIf File(_cArqPDF + ".rel")
+            File2Printer(_cArqPDF, "PDF" )
+        ElseIf File(_cArqPDF + ".pd_")
+            File2Printer(_cArqPDF, "PDF" )
+        EndIf
+        
+        If File(_cPasta + "/" + _cPDFEtq + ".pdf")
+            _lRet := .T.
+            _cPDFEtq := _cPDFEtq + ".pdf"
+            Conout("<< ECLOJM06E >> - ARQUIVO PDF " + _cPasta + _cPDFEtq + " GERADO COM SUCESSO.")
+        Else
+            _lRet 		:= .F.
+            _cPDFEtq 	:= ""
+            Conout("<< ECLOJM06E >> - NAO GEROU ARQUIVO DE NOTA FISCAL EM PDF  [" + _cPasta + _cPDFEtq + "].")
+        EndIf	
+    EndIf
 
+    If _lRet
+        aAdd(_aPDFEtq,_cPDFEtq)
+    EndIf
+
+    (_cAlias)->( dbSkip() )
+EndDo
 //--------------------+
 // Encerra temporario |
 //--------------------+
@@ -514,7 +530,7 @@ Return _lRet
     @version version
 /*/
 /******************************************************************************/
-Static Function EcLojM06C(_cOrderID,_cPDFDanfe,_cPDFEtq)
+Static Function EcLojM06C(_cOrderID,_cPDFDanfe,_aPDFEtq)
 Local _aArea    := GetArea()
 
 Local _cCodInt  := "DNF"
@@ -527,7 +543,7 @@ Local _aMsgErro := {}
 
 aAdd(_aMsgErro,{_cOrderID,"PDF DANFE " + _cPDFDanfe + " ENVIADO COM SUCESSO."})
 
-_lRet := U_AEcoMail(_cCodInt,_cDescInt,_aMsgErro,_cPasta + _cPDFDanfe,_cPasta + _cPDFEtq)    
+_lRet := U_AEcoMail(_cCodInt,_cDescInt,_aMsgErro,_cPasta + _cPDFDanfe,_cPasta,_aPDFEtq)    
 
 RestArea(_aArea)
 Return _lRet
@@ -614,7 +630,7 @@ Return .T.
 @type function
 /*/
 /******************************************************************************/
-Static Function EcLojM06EQry(_cAlias,_cDoc,_cSerie,_cCodETQ)
+Static Function EcLojM06EQry(_cAlias,_cDoc,_cSerie)
 Local _cQuery	:= ""
 
 _cQuery := " SELECT " + CRLF
@@ -639,7 +655,7 @@ _cQuery += "	ZZ0.ZZ0_CODSER, " + CRLF
 _cQuery += "	ZZ0.ZZ0_DESCRI " + CRLF	 
 _cQuery += " FROM " + CRLF
 _cQuery += "	" + RetSqlName("ZZ2") + " ZZ2 " + CRLF 
-_cQuery += "	INNER JOIN " + RetSqlName("ZZ4") + " ZZ4 ON ZZ4.ZZ4_FILIAL = ZZ2.ZZ2_FILIAL AND ZZ4.ZZ4_CODIGO = ZZ2.ZZ2_CODIGO AND ZZ4.ZZ4_NOTA = '" + _cDoc + "' AND ZZ4.ZZ4_SERIE = '" + _cSerie + "' AND ZZ4.ZZ4_CODETQ = '" + _cCodETQ + "' AND ZZ4.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "	INNER JOIN " + RetSqlName("ZZ4") + " ZZ4 ON ZZ4.ZZ4_FILIAL = ZZ2.ZZ2_FILIAL AND ZZ4.ZZ4_CODIGO = ZZ2.ZZ2_CODIGO AND ZZ4.ZZ4_NOTA = '" + _cDoc + "' AND ZZ4.ZZ4_SERIE = '" + _cSerie + "' AND ZZ4.D_E_L_E_T_ = '' " + CRLF
 _cQuery += "	INNER JOIN " + RetSqlName("WSA") + " WSA ON WSA.WSA_FILIAL = ZZ4.ZZ4_FILIAL AND WSA.WSA_NUMECO = ZZ4.ZZ4_NUMECO AND WSA.D_E_L_E_T_ = '' " + CRLF
 _cQuery += "	INNER JOIN " + RetSqlName("ZZ0") + " ZZ0 ON ZZ0.ZZ0_FILIAL = ZZ2.ZZ2_FILIAL AND ZZ0.ZZ0_IDSER = ZZ4.ZZ4_CODSPO AND ZZ0.D_E_L_E_T_ = '' " + CRLF
 _cQuery += "	INNER JOIN " + RetSqlName("SC5") + " SC5 ON SC5.C5_FILIAL = WSA.WSA_FILIAL AND SC5.C5_NUM = WSA.WSA_NUMSC5 AND SC5.D_E_L_E_T_ = '' " + CRLF
