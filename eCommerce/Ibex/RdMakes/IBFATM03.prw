@@ -262,7 +262,7 @@ Local _lRet     := .T.
 //-------------------------------+
 // Localiza arquivo de cabeçalho |
 //-------------------------------+
-_nPosArq := aScan(_aPedCab,{|x| SubStr(x[1],1,6) == SubStr(_cArqItem,1,6)})
+_nPosArq := aScan(_aPedCab,{|x| SubStr(x[1],1,6) == SubStr(_cArqItem,1,6) })
 
 If _nPosArq <= 0
     LogExec( "<< IBFATM03 >> - ARQUIVO NAO ENCONTRADO.")

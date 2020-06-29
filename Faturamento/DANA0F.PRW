@@ -26,7 +26,7 @@ if M->A1_FATORPR > 1
    Return(_xret)
 endif   
 dbSelectArea("SZB")
-RecLock("SZB",.t.)
+RecLock("SZB",.T.)
 SZB->ZB_CODCLI  := M->A1_COD
 SZB->ZB_LOJA    := M->A1_LOJA
 SZB->ZB_FATOR   := M->A1_FATORPR

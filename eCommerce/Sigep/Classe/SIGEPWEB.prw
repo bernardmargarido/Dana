@@ -390,7 +390,7 @@ ZZ2->( MsunLock() )
 dbSelectArea("ZZ4")
 ZZ4->( dbSetOrder(1) )
 For _nX := 1 To Len(::aNotas)
-	If !ZZ4->( dbSeek(xFilial("ZZ4") + ::cIdPLPErp + ::aNotas[_nX][1] + ::aNotas[_nX][2]))
+	If !ZZ4->( dbSeek(xFilial("ZZ4") + ::cIdPLPErp + ::aNotas[_nX][1] + ::aNotas[_nX][2] + ::aNotas[_nX][5]))
 		CoNout("<< SIGEPWEB - GRVPLP >> - GRAVANDO PRE LISTA DE POSTAGEM " + ::cIdPLPErp + " NOTA " + ::aNotas[_nX][1] + " SERIE " + ::aNotas[_nX][2] + "  .")
 				
 		RecLock("ZZ4",.T.)

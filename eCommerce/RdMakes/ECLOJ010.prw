@@ -5,15 +5,11 @@
 
 /************************************************************************************/
 /*/{Protheus.doc} ECLOJ010
-
-@description Gestão de Pedidos e-Commerce
-
-@author Bernard M. Margarido
-
-@since 29/04/2019
-@version undefined
-
-@type function
+	@description Gestão de Pedidos e-Commerce
+	@author Bernard M. Margarido
+	@since 29/04/2019
+	@version undefined
+	@type function
 /*/
 /************************************************************************************/
 User Function ECLOJ010()
@@ -54,15 +50,11 @@ Return Nil
 
 /************************************************************************************/
 /*/{Protheus.doc} ECLOJ10A
-
-@description Visualiza dados do pedido e-Commerce
-
-@author Bernard M. Margarido
-
-@since 10/08/2017
-@version undefined
-
-@type function
+	@description Visualiza dados do pedido e-Commerce
+	@author Bernard M. Margarido
+	@since 10/08/2017
+	@version undefined
+	@type function
 /*/
 /************************************************************************************/
 User Function ECLOJ10A(cAlias,nReg,nOpc)
@@ -262,15 +254,11 @@ Return Nil
 
 /************************************************************************************/
 /*/{Protheus.doc} ECLOJ101
-
-@description Realiza a liberação de pedido 
-
-@author Bernard M. Margarido
-
-@since 10/08/2017
-@version undefined
-
-@type function
+	@description Realiza a liberação de pedido 
+	@author Bernard M. Margarido
+	@since 10/08/2017
+	@version undefined
+	@type function
 /*/
 /************************************************************************************/
 User Function ECLOJ101()
@@ -299,16 +287,29 @@ RestArea(_aArea)
 Return .T.
 
 /************************************************************************************/
+/*/{Protheus.doc} ECLOJ103
+	@description Realiza transmissão do sefaz
+	@author Bernard M. Margarido
+	@since 10/08/2017
+	@version undefined
+	@type function
+/*/
+/************************************************************************************/
+User Function ECLOJ103()
+Local _aArea	:= GetArea()
+
+	SPEDNFe()
+
+RestArea(_aArea)
+Return .T.
+
+/************************************************************************************/
 /*/{Protheus.doc} MenuDef
-
-@description Menu padrao para manutencao do cadastro
-
-@author Bernard M. Margarido
-
-@since 10/08/2017
-@version undefined
-
-@type function
+	@description Menu padrao para manutencao do cadastro
+	@author Bernard M. Margarido
+	@since 10/08/2017
+	@version undefined
+	@type function
 /*/
 /************************************************************************************/
 Static Function MenuDef()

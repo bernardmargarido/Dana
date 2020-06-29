@@ -13,7 +13,7 @@ Local lRet		:= .T.
 Local cUsuFin	:= GETMV("MV_XUSRSA1")
 Local cCodUsu	:= RetCodUsr()
 
-If !cCodUsu $cUsuFin
+If !cCodUsu $ cUsuFin
 	lRet	:= .F.
 Endif
 

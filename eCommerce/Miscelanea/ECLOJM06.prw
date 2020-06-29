@@ -149,12 +149,12 @@ While (_cAlias)->( !Eof() )
     // Gera PDF da nota |
     //------------------+
     _cPDFDanfe	:= ""
+    _aPDFEtq 	:= {}
     If EcLojM06B(WSA->WSA_DOC,WSA->WSA_SERIE,@_cPDFDanfe)
         //------------------+
         // Imprime etiqueta |
         //------------------+
         If !Empty(WSA->WSA_SERPOS)
-            _aPDFEtq := {}
             EcLojM06E(WSA->WSA_DOC,WSA->WSA_SERIE,@_aPDFEtq)
         EndIf
         //-------------------+

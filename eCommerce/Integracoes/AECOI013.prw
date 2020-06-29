@@ -88,18 +88,12 @@ u_AEcoGrvLog(cCodInt,cDescInt,dDtaInt,cHrIni,Time(),cStaLog,nQtdInt,aMsgErro,cTh
 Return Nil
 
 /**************************************************************************************************/
-
 /*/{Protheus.doc} AECOINT13
-
-@description	Realiza o envio da Invoice para o e-Commerce
-
-@param cOrderId		, characters, OrderID eCommerce
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		02/02/2016
+	@description	Realiza o envio da Invoice para o e-Commerce
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		02/02/2016
 /*/
-
 /**************************************************************************************************/
 Static Function AECOINT13(cOrderId)
 Local aArea		:= GetArea()
@@ -177,7 +171,7 @@ While WSB->( !Eof() .And. xFilial("WSB") + WSA->WSA_NUM == WSB->WSB_FILIAL + WSB
 	aEcoI013Sku(WSB->WSB_PRODUT,@nIdSku)
 	
 	cQuant := Alltrim(Str(Int(WSB->WSB_QUANT)))
-	cPrcVen:= RetPrcUni(WSB->WSB_VRUNIT)
+	cPrcVen:= cValToChar(RetPrcUni(WSB->WSB_VRUNIT))
 
 	_oItens[#"id"]			:= 	IIF(Empty(WSB->WSB_KIT),Alltrim(Str(nIdSku)),RTrim(WSB->WSB_KIT))
 	_oItens[#"quantity"]	:= 	cQuant
@@ -192,7 +186,7 @@ EndDo
 //-----------------------------+
 cDtaFat := IIF(Empty(dDtaEmiss),dTos(dDataBase),dTos(dDtaEmiss))
 cDtaFat := SubStr(cDtaFat,1,4) + "-" + SubStr(cDtaFat,5,2) + "-" + SubStr(cDtaFat,7,2) //+ "T" + SubStr(Time(),1,8)
-cVlrFat	:= RetPrcUni(_nVlrTotal)    
+cVlrFat	:= cValToChar(RetPrcUni(_nVlrTotal))    
 
 //------------------------+
 // Data e Valor da Fatura |
@@ -229,7 +223,7 @@ SF2->( dbSetOrder(1) )
 If SF2->( dbSeek(xFilial("SF2") + Padr(cDoc,TamSx3("F2_DOC")[1]) + Padr(cSerie,TamSx3("F2_SERIE")[1]) + PadR(cCliente,TamSx3("F2_CLIENTE")[1]) + PadR(cLoja,TamSx3("F2_LOJA")[1])) )
 	cChaveNfe := SF2->F2_CHVNFE
 	dDtaEmiss := SF2->F2_EMISSAO
-	_nVlrTotal:= SF2->F2_VALFAT	
+	_nVlrTotal:= SF2->F2_VALBRUT	
 EndIf	 
 
 RestArea(aArea)
@@ -360,7 +354,7 @@ Return .T.
 Static Function RetPrcUni(nVlrUnit) 
 Local nValor	:= 0
 	nValor		:= NoRound(nVlrUnit,2) * 100
-Return Alltrim(Str(nValor))
+Return nValor
 
 /*********************************************************************************/
 /*/{Protheus.doc} LogExec
