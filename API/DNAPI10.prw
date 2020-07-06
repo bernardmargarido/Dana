@@ -21,14 +21,11 @@ Static nTLote	:= TamSx3("C6_LOTECTL")[1]
 	
 /************************************************************************************/
 /*/{Protheus.doc} NOTA
-
-@description API - Envia dados das notas para separação
-
-@author Bernard M. Margarido
-@since 10/11/2018
-@version 1.0
-
-@type class
+	@description API - Envia dados das notas para separação
+	@author Bernard M. Margarido
+	@since 10/11/2018
+	@version 1.0
+	@type class
 /*/
 /************************************************************************************/
 WSRESTFUL NOTA_SEPARACAO DESCRIPTION " Servico Perfumes Dana - Processo Separação."
@@ -48,14 +45,11 @@ END WSRESTFUL
 
 /************************************************************************************/
 /*/{Protheus.doc} GET
-
-@description Retorna string JSON com os pedidos para separação
-
-@author Bernard M. Margarido
-@since 10/11/2018
-@version 1.0
-
-@type function
+	@description Retorna string JSON com os pedidos para separação
+	@author Bernard M. Margarido
+	@since 10/11/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 WSMETHOD GET WSRECEIVE FILIAL,NOTA,SERIE,DATAHORA,PERPAGE,PAGE WSSERVICE NOTA_SEPARACAO
@@ -68,8 +62,6 @@ Local cSerie		:= IIF(Empty(::SERIE),"",::SERIE)
 Local cDataHora		:= IIF(Empty(::DATAHORA),"1900-01-01T00:00",::DATAHORA)
 Local cTamPage		:= ::PERPAGE
 Local cPage			:= ::PAGE
-
-Local nLen			:= Len(::aUrlParms)
 
 Private cArqLog		:= ""
 Private _cFilWMS	:= FormatIn(GetNewPar("DN_FILWMS","05,06"),",")
@@ -115,20 +107,16 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} POST
-
-@description Metodo POST - Retorna dados conferidos da separação.
-
-@author Bernard M. Margarido
-@since 20/11/2018
-@version 1.0
-
-@type function
+	@description Metodo POST - Retorna dados conferidos da separação.
+	@author Bernard M. Margarido
+	@since 20/11/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 WSMETHOD POST WSSERVICE NOTA_SEPARACAO
 Local aArea		:= GetArea()
 
-Local nLen		:= Len(::aUrlParms)
 Local nPed		:= 0
 
 Local oJson		:= Nil
@@ -164,7 +152,7 @@ If Empty(cBody)
 	//----------------+
 	// Retorno da API |
 	//----------------+
-	HTTPSetStatus(400,"Arquivo POST não enviado.")
+	HTTPSetStatus(400,"Arquivo POST nço enviado.")
 	Return .T.
 EndIf
 
@@ -205,20 +193,16 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} PUT
-
-@description Metodo PUT - Retorna dados conferidos da separação.
-
-@author Bernard M. Margarido
-@since 20/11/2018
-@version 1.0
-
-@type function
+	@description Metodo PUT - Retorna dados conferidos da separação.
+	@author Bernard M. Margarido
+	@since 20/11/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 WSMETHOD PUT WSSERVICE NOTA_SEPARACAO
 Local aArea		:= GetArea()
 
-Local nLen		:= Len(::aUrlParms)
 Local nPed		:= 0
 
 Local oJson		:= Nil
@@ -254,7 +238,7 @@ If Empty(cBody)
 	//----------------+
 	// Retorno da API |
 	//----------------+
-	HTTPSetStatus(400,"Arquivo POST não enviado.")
+	HTTPSetStatus(400,"Arquivo POST nço enviado.")
 	Return .T.
 EndIf
 
@@ -295,14 +279,11 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApi10A
-
-@description Consulta pedidos de separacao e monta arquivo de envio
-
-@author Bernard M. Margarido
-@since 10/11/2018
-@version 1.0
-
-@type function
+	@description Consulta pedidos de separacao e monta arquivo de envio
+	@author Bernard M. Margarido
+	@since 10/11/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApi10A(cFilNF,cNota,cSerie,cDataHora,cTamPage,cPage)
@@ -367,17 +348,23 @@ While (cAlias)->( !Eof() )
 	aAdd(oJson[#"notas"],Array(#))
 	oPedido := aTail(oJson[#"notas"])
 	
-	cFilAut		:= (cAlias)->FILIAL
-	cNota		:= (cAlias)->NOTA
-	cSerie		:= (cAlias)->SERIE
-	cCodCli		:= (cAlias)->CLIENTE
-	cLoja		:= (cAlias)->LOJA
-	cCodTransp	:= (cAlias)->CODTRANSP
-	cTipoPV		:= (cAlias)->TIPO
-	cPedVen		:= (cAlias)->PEDIDO
-	_nTotalPv	:= (cAlias)->TOTALNF
+	cFilAut			:= (cAlias)->FILIAL
+	cNota			:= (cAlias)->NOTA
+	cSerie			:= (cAlias)->SERIE
 	
-	dDtaEmiss	:= dToc(sTod((cAlias)->EMISSAO))
+	//---------------------------------------------+
+	// Ricardo Evangelista, Inserindo novos campos |
+	//---------------------------------------------+
+	cID_ecommerce	:= (cAlias)->ID_ECOMMERCEX
+
+	cCodCli			:= (cAlias)->CLIENTE
+	cLoja			:= (cAlias)->LOJA
+	cCodTransp		:= (cAlias)->CODTRANSP
+	cTipoPV			:= (cAlias)->TIPO
+	cPedVen			:= (cAlias)->PEDIDO
+	_nTotalPv		:= (cAlias)->TOTALNF
+	
+	dDtaEmiss		:= dToc(sTod((cAlias)->EMISSAO))
 				 
 	//-------------------------------+
 	// Cria cabeçalho do pedido JSON |
@@ -386,6 +373,12 @@ While (cAlias)->( !Eof() )
 	oPedido[#"pedido"]				:= cPedVen
 	oPedido[#"nota"]				:= cNota
 	oPedido[#"serie"]				:= cSerie
+	
+	//---------------------------------------------+
+	// Ricardo Evangelista, Inserindo novos campos |
+	//---------------------------------------------+
+	oPedido[#"id_ecommerce"]		:= cID_ecommerce
+
 	oPedido[#"codigo_cliente"]		:= cCodCli
 	oPedido[#"loja"]				:= cLoja
 	oPedido[#"transportadora"]		:= cCodTransp
@@ -452,13 +445,11 @@ Return aRet
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApi10B
-
-@description Realiza conferencia das notas separados pelo WMS
-
-@author Bernard M. Margarido
-@since 20/11/2018
-@version 1.0
-@type function
+	@description Realiza conferencia das notas separados pelo WMS
+	@author Bernard M. Margarido
+	@since 20/11/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApi10B(_oPedido)
@@ -509,11 +500,11 @@ If !SF2->( dbSeek(xFilial("SF2") + _cNota + _cSerie + _cCodCli + _cLoja) )
 EndIf
 
 //---------------------------------+
-// Valida se nota já foi conferido | 
+// Valida se nota jç foi conferido | 
 //---------------------------------+
 If SF2->F2_XENVWMS == "3"
-	LogExec("NOTA " + _cNota + " SERIE " + _cSerie + " JÁ SEPARADO.")
-	aAdd(aMsgErro,{cFilAnt,_cNota+_cSerie,.F.,"JÁ SEPARADO."})
+	LogExec("NOTA " + _cNota + " SERIE " + _cSerie + " Jç SEPARADO.")
+	aAdd(aMsgErro,{cFilAnt,_cNota+_cSerie,.F.,"Jç SEPARADO."})
 	RestArea(aArea)
 	Return .T.
 EndIf
@@ -582,8 +573,8 @@ If _lContinua
 		//----------------------+	
 		// Log processo da nota |
 		//----------------------+
-		LogExec(_cNota + _cSerie + "DIVERGENCIA SEPARAÇÃO.")
-		aAdd(aMsgErro,{cFilAnt,_cNota + _cSerie,.F.,"DIVERGENCIA SEPARAÇÃO."})
+		LogExec(_cNota + _cSerie + "DIVERGENCIA SEPARAçãO.")
+		aAdd(aMsgErro,{cFilAnt,_cNota + _cSerie,.F.,"DIVERGENCIA SEPARAçãO."})
 		
 	//------------------------------+	
 	// Libera faturamento do pedido |
@@ -633,13 +624,11 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApi10C
-
-@description Realiza a baixa dos pedidos 
-
-@author Bernard M. Margarido
-@since 08/12/2018
-@version 1.0
-@type function
+	@description Realiza a baixa dos pedidos 
+	@author Bernard M. Margarido
+	@since 08/12/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApi10C(_oPedido)
@@ -666,10 +655,10 @@ If !SF2->( dbSeek(xFilial("SF2") + _cNota + _cSerie + _cCodCli + _cLoja) )
 EndIf
 
 //----------------------------------+
-// Valida se Pedido já foi expedido | 
+// Valida se Pedido jç foi expedido | 
 //----------------------------------+
 If SF2->F2_XENVWMS == "3"
-	aAdd(aMsgErro,{cFilAnt,_cNota + _cSerie,.F.,"NOTA JÁ SEPARADO."})
+	aAdd(aMsgErro,{cFilAnt,_cNota + _cSerie,.F.,"NOTA Jç SEPARADO."})
 	RestArea(_aArea)
 	Return .F.
 EndIf
@@ -695,14 +684,11 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApiQry
-
-@description Consulta pedidos de venda para serem enviados para separação 
-
-@author Bernard M. Margarido
-@since 27/10/2018
-@version 1.0
-
-@type function
+	@description Consulta pedidos de venda para serem enviados para separação 
+	@author Bernard M. Margarido
+	@since 27/10/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApiQry(cAlias,cFilNF,cNota,cSerie,cDataHora,cTamPage,cPage)
@@ -722,6 +708,7 @@ cQuery := "	SELECT " + CRLF
 cQuery += "		TOP(" + cTamPage + ") RNUM, " + CRLF
 cQuery += "		FILIAL, " + CRLF
 cQuery += "		NOTA, " + CRLF
+cQuery += "		ID_ECOMMERCEX, " + CRLF
 cQuery += "		SERIE, " + CRLF
 cQuery += "		CLIENTE, " + CRLF
 cQuery += "		LOJA, " + CRLF
@@ -736,6 +723,7 @@ cQuery += "			SELECT " + CRLF
 cQuery += "				ROW_NUMBER() OVER(ORDER BY F2.F2_DOC) RNUM, " + CRLF
 cQuery += "				F2.F2_FILIAL FILIAL, " + CRLF
 cQuery += "				F2.F2_DOC NOTA, " + CRLF
+cQuery += "				F2.F2_XNUMECO ID_ECOMMERCEX, " + CRLF
 cQuery += "				F2.F2_SERIE SERIE, " + CRLF
 cQuery += "				F2.F2_CLIENTE CLIENTE, " + CRLF
 cQuery += "				F2.F2_LOJA LOJA, " + CRLF
@@ -776,7 +764,7 @@ Endif
 If Empty(cNota) .And. Empty(cSerie)
 	cQuery += "				F2.F2_XENVWMS = '1' AND " + CRLF
 	cQuery += "				F2.F2_TIPO IN('N','D','B') AND " + CRLF
-	cQuery += "				F2.F2_XNUMECO = '' AND " + CRLF
+	//cQuery += "				F2.F2_XNUMECO = '' AND " + CRLF
 	cQuery += "				CAST((F2.F2_XDTALT + ' ' + F2.F2_XHRALT) AS DATETIME) >= CAST(('" + cData + "' + ' ' + '" + cHora + ".000') AS DATETIME) AND " + CRLF
 	cQuery += "				CAST((F2.F2_XDTALT + ' ' + F2.F2_XHRALT) AS DATETIME) <= CAST(('" + dTos(dDataBase) + "' + ' ' + '" + Time() + ".000') AS DATETIME) AND " + CRLF
 Else
@@ -801,14 +789,11 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} ApiQryTot
-
-@description Retorna total de Pedidos
-
-@author Bernard M. Margarido
-@since 27/10/2018
-@version 1.0
-
-@type function
+	@description Retorna total de Pedidos
+	@author Bernard M. Margarido
+	@since 27/10/2018
+	@version 1.0
+	@type function
 /*/
 /*************************************************************************************/
 Static Function DnaQryTot(cFilNF,cNota,cSerie,cDataHora,cTamPage,cPage)
@@ -841,7 +826,7 @@ Else
 Endif
 
 If Empty(cNota) .And. Empty(cSerie)
-	cQuery += "				F2.F2_XNUMECO = '' AND " + CRLF
+	//cQuery += "				F2.F2_XNUMECO = '' AND " + CRLF
 	cQuery += "				F2.F2_XENVWMS = '1' AND " + CRLF
 	cQuery += "				F2.F2_TIPO IN('N','D','B') AND " + CRLF
 	cQuery += "				CAST((F2.F2_XDTALT + ' ' + F2.F2_XHRALT) AS DATETIME) >= CAST(('" + cData + "' + ' ' + '" + cHora + ".000') AS DATETIME) AND " + CRLF
@@ -879,15 +864,11 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} DnaApi10P
-
-@description Estorna liberação do pedido 
-
-@author Bernard M. Margarido
-@since 20/11/2018
-@version 1.0
-
-@type function
-
+	@description Estorna liberação do pedido 
+	@author Bernard M. Margarido
+	@since 20/11/2018
+	@version 1.0
+	@type function
 /*/
 /*************************************************************************************/
 Static Function DnaApi10P(_cNota, _cSerie,_cCodCli,_cLoja,_aDiverg)
@@ -922,7 +903,7 @@ EndIf
 
 
 //-------------------+
-// Itens da Pré Nota | 
+// Itens da Prç Nota | 
 //-------------------+
 dbSelectArea("SC9")
 SC9->( dbSetOrder(1) )
@@ -943,14 +924,11 @@ Return lRet
 
 /*************************************************************************************/
 /*/{Protheus.doc} DnaApi10E
-
-@description Processa retorno da conferencia separação pedido de venda
-
-@author Bernard M. Margarido
-@since 20/11/2018
-@version 1.0
-
-@type function
+	@description Processa retorno da conferencia separação pedido de venda
+	@author Bernard M. Margarido
+	@since 20/11/2018
+	@version 1.0
+	@type function
 /*/
 /*************************************************************************************/
 Static Function DnaApi10E(aMsgErro,cJsonRet)
@@ -959,7 +937,7 @@ Local oPedidos	:= Nil
 
 Local nMsg		:= 0
 
-oJsonRet						:= Array(#)
+oJsonRet					:= Array(#)
 oJsonRet[#"notas"]			:= {}
 	
 For nMsg := 1 To Len(aMsgErro)
@@ -980,16 +958,12 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} LogExec
-
-@description Grava log de integração
-
-@author TOTVS
-@since 05/06/2017
-@version undefined
-
-@param cMsg, characters, descricao
-
-@type function
+	@description Grava log de integração
+	@author TOTVS
+	@since 05/06/2017
+	@version undefined
+	@param cMsg, characters, descricao
+	@type function
 /*/
 /*************************************************************************************/
 Static Function LogExec(cMsg)

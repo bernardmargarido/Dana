@@ -20,14 +20,11 @@ Static nTLote	:= TamSx3("C6_LOTECTL")[1]
 	
 /************************************************************************************/
 /*/{Protheus.doc} PEDIDO
-
-@description API - Envia dados dos pedidos para separação
-
-@author Bernard M. Margarido
-@since 10/11/2018
-@version 1.0
-
-@type class
+	@description API - Envia dados dos pedidos para separação
+	@author Bernard M. Margarido
+	@since 10/11/2018
+	@version 1.0
+	@type class
 /*/
 /************************************************************************************/
 WSRESTFUL PEDIDO DESCRIPTION " Servico Perfumes Dana - Processo Separação."
@@ -45,14 +42,11 @@ END WSRESTFUL
 
 /************************************************************************************/
 /*/{Protheus.doc} GET
-
-@description Retorna string JSON com os pedidos para separação
-
-@author Bernard M. Margarido
-@since 10/11/2018
-@version 1.0
-
-@type function
+	@description Retorna string JSON com os pedidos para separação
+	@author Bernard M. Margarido
+	@since 10/11/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 WSMETHOD GET WSRECEIVE PEDIDO,DATAHORA,PERPAGE,PAGE WSSERVICE PEDIDO
@@ -110,14 +104,11 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} PUT
-
-@description Metodo PUT - Retorna dados conferidos da separação.
-
-@author Bernard M. Margarido
-@since 20/11/2018
-@version 1.0
-
-@type function
+	@description Metodo PUT - Retorna dados conferidos da separação.
+	@author Bernard M. Margarido
+	@since 20/11/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 WSMETHOD PUT WSSERVICE PEDIDO
@@ -200,14 +191,11 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} POST
-
-@description Metodo POST - Retorna dados conferidos da separação.
-
-@author Bernard M. Margarido
-@since 20/11/2018
-@version 1.0
-
-@type function
+	@description Metodo POST - Retorna dados conferidos da separação.
+	@author Bernard M. Margarido
+	@since 20/11/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 WSMETHOD POST WSSERVICE PEDIDO
@@ -290,14 +278,11 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} DNAAPI07A	
-
-@description Consulta pedidos de separacao e monta arquivo de envio
-
-@author Bernard M. Margarido
-@since 10/11/2018
-@version 1.0
-
-@type function
+	@description Consulta pedidos de separacao e monta arquivo de envio
+	@author Bernard M. Margarido
+	@since 10/11/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApi07A(cPedido,cDataHora,cTamPage,cPage)
@@ -383,23 +368,37 @@ While (cAlias)->( !Eof() )
 		cSeqLib := IIF( Empty((cAlias)->SEQLIB),"01", (cAlias)->SEQLIB)
 	EndIf
 	
-	cFilAut		:= (cAlias)->FILIAL
-	cPedVen 	:= (cAlias)->PEDIDO
-	cCodCli		:= (cAlias)->CLIENTE
-	cLoja		:= (cAlias)->LOJA
-	cCodTransp	:= (cAlias)->CODTRANSP
-	cTipoPV		:= (cAlias)->TIPO
-	cPedPai		:= (cAlias)->PEDPAI
-	cCancelado	:= (cAlias)->CANCELADO
-	dDtaEmiss	:= dToc(sTod((cAlias)->EMISSAO))
-	_nRecSC5	:= (cAlias)->RECNOSC5
-	_nTotalPv	:= DnApi07TPv(cFilAut,cPedVen,1)
+	cFilAut			:= (cAlias)->FILIAL
+	cPedVen 		:= (cAlias)->PEDIDO
+	//-------------------------+
+	// Ricardo Evangelista     |
+	// Inserindo novos campos  |
+	//-------------------------+
+	cPed_ecom 		:= (cAlias)->PEDIDO_ECOMMERCE
+	cPed_ID_ecom	:= (cAlias)->ID_ECOMMERCE
+
+	cCodCli			:= (cAlias)->CLIENTE
+	cLoja			:= (cAlias)->LOJA
+	cCodTransp		:= (cAlias)->CODTRANSP
+	cTipoPV			:= (cAlias)->TIPO
+	cPedPai			:= (cAlias)->PEDPAI
+	cCancelado		:= (cAlias)->CANCELADO
+	dDtaEmiss		:= dToc(sTod((cAlias)->EMISSAO))
+	_nRecSC5		:= (cAlias)->RECNOSC5
+	_nTotalPv		:= DnApi07TPv(cFilAut,cPedVen,1)
 				 
 	//-------------------------------+
 	// Cria cabeçalho do pedido JSON |
 	//-------------------------------+
 	oPedido[#"filial"]				:= cFilAut
 	oPedido[#"pedido"]				:= cPedVen
+	
+	//---------------------------------------------+
+	// Ricardo Evangelista, Inserindo novos campos |
+	//---------------------------------------------+
+	oPedido[#"pedido_ecommerce"]	:= cPed_ecom
+	oPedido[#"id_ecommerce"]		:= cPed_ID_ecom
+
 	oPedido[#"codigo_cliente"]		:= cCodCli
 	oPedido[#"loja"]				:= cLoja
 	oPedido[#"transportadora"]		:= cCodTransp
@@ -524,14 +523,11 @@ Return aRet
 
 /************************************************************************************/
 /*/{Protheus.doc} DnApi07I
-
-@description Atualiza item do pedido de venda
-
-@author Bernard M. Margarido
-@since 29/04/2019
-@version 1.0
-
-@type function
+	@description Atualiza item do pedido de venda
+	@author Bernard M. Margarido
+	@since 29/04/2019
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnApi07I(cFilAut,_cPedVen,_cItem,_cProduto)
@@ -566,14 +562,11 @@ Return Nil
 
 /************************************************************************************/
 /*/{Protheus.doc} DnApi07TPv
-
-@description Retorna total do pedido 
-
-@author Bernard M. Margarido
-@since 29/04/2019
-@version 1.0
-
-@type function
+	@description Retorna total do pedido 
+	@author Bernard M. Margarido
+	@since 29/04/2019
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnApi07TPv(cFilAut,cPedVen,_nField)
@@ -616,13 +609,11 @@ Return _nTotal
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApi07B
-
-@description Realiza conferencia dos pedidos separados pelo WMS
-
-@author Bernard M. Margarido
-@since 20/11/2018
-@version 1.0
-@type function
+	@description Realiza conferencia dos pedidos separados pelo WMS
+	@author Bernard M. Margarido
+	@since 20/11/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApi07B(_oPedido)
@@ -846,13 +837,11 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} DnApi07Div
-
-@description Realiza a baixa dos pedidos 
-
-@author Bernard M. Margarido
-@since 08/12/2018
-@version 1.0
-@type function
+	@description Realiza a baixa dos pedidos 
+	@author Bernard M. Margarido
+	@since 08/12/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnApi07Div(_oItPed,_aProdu)
@@ -900,13 +889,11 @@ Return Nil
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApi07C
-
-@description Realiza a baixa dos pedidos 
-
-@author Bernard M. Margarido
-@since 08/12/2018
-@version 1.0
-@type function
+	@description Realiza a baixa dos pedidos 
+	@author Bernard M. Margarido
+	@since 08/12/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApi07C(_oPedido)
@@ -1041,14 +1028,11 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApiQry
-
-@description Consulta pedidos de venda para serem enviados para separação 
-
-@author Bernard M. Margarido
-@since 27/10/2018
-@version 1.0
-
-@type function
+	@description Consulta pedidos de venda para serem enviados para separação 
+	@author Bernard M. Margarido
+	@since 27/10/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApiQry(cAlias,cPedido,cDataHora,cTamPage,cPage)
@@ -1068,6 +1052,8 @@ cQuery := "	SELECT " + CRLF
 cQuery += "		TOP(" + cTamPage + ") RNUM, " + CRLF
 cQuery += "		FILIAL, " + CRLF
 cQuery += "		PEDIDO, " + CRLF
+cQuery += "		PEDIDO_ECOMMERCE, " + CRLF //C5_XNUMECO
+cQuery += "		ID_ECOMMERCE, " + CRLF //C5_XNUMECL
 cQuery += "		CLIENTE, " + CRLF
 cQuery += "		LOJA, " + CRLF
 cQuery += "		CODTRANSP, " + CRLF
@@ -1084,6 +1070,8 @@ cQuery += "		SELECT " + CRLF
 cQuery += "			ROW_NUMBER() OVER(ORDER BY PEDIDO) RNUM, 
 cQuery += "			FILIAL, " + CRLF
 cQuery += "			PEDIDO, " + CRLF
+cQuery += "			PEDIDO_ECOMMERCE, " + CRLF //C5_XNUMECO
+cQuery += "			ID_ECOMMERCE, " + CRLF //C5_XNUMECL
 cQuery += "			CLIENTE, " + CRLF
 cQuery += "			LOJA, " + CRLF
 cQuery += "			CODTRANSP, " + CRLF
@@ -1099,6 +1087,8 @@ cQuery += "		FROM ( " + CRLF
 cQuery += "			SELECT " + CRLF
 cQuery += "				C5.C5_FILIAL FILIAL, " + CRLF
 cQuery += "				C5.C5_NUM PEDIDO, " + CRLF
+cQuery += "				C5.C5_XNUMECO PEDIDO_ECOMMERCE, " + CRLF //PEDIDO_ECOMMERCE
+cQuery += "				C5.C5_XNUMECL ID_ECOMMERCE, " + CRLF //ID_ECOMMERCE
 cQuery += "				C5.C5_CLIENTE CLIENTE, " + CRLF
 cQuery += "				C5.C5_LOJACLI LOJA, " + CRLF
 cQuery += "				C5.C5_TRANSP CODTRANSP, " + CRLF
@@ -1162,11 +1152,14 @@ Else
 EndIf
 
 cQuery += "				C5.D_E_L_E_T_ = '' " + CRLF
-cQuery += "			GROUP BY C5.C5_FILIAL,C5.C5_NUM,C5.C5_CLIENTE,C5.C5_LOJACLI,C5.C5_TRANSP,C5.C5_EMISSAO,C5.C5_TIPO,C5.C5_XSEQLIB,C5.C5_XPEDPAI,PV.TOTAL,LIB.TOTAL,C5.R_E_C_N_O_  " + CRLF
+//Bernard cQuery += "			GROUP BY C5.C5_FILIAL,C5.C5_NUM,C5.C5_CLIENTE,C5.C5_LOJACLI,C5.C5_TRANSP,C5.C5_EMISSAO,C5.C5_TIPO,C5.C5_XSEQLIB,C5.C5_XPEDPAI,PV.TOTAL,LIB.TOTAL,C5.R_E_C_N_O_  " + CRLF
+//Ricardo Evangelista, Inserindo novos campos
+cQuery += "			GROUP BY C5.C5_XNUMECO,C5.C5_XNUMECL,C5.C5_FILIAL,C5.C5_NUM,C5.C5_CLIENTE,C5.C5_LOJACLI,C5.C5_TRANSP,C5.C5_EMISSAO,C5.C5_TIPO,C5.C5_XSEQLIB,C5.C5_XPEDPAI,PV.TOTAL,LIB.TOTAL,C5.R_E_C_N_O_  " + CRLF
 cQuery += "			UNION ALL  " + CRLF
 cQuery += "			SELECT " + CRLF
 cQuery += "				C5.C5_FILIAL FILIAL, " + CRLF
 cQuery += "				C5.C5_NUM PEDIDO, " + CRLF
+cQuery += "				C5_XNUMECO PEDIDO_ECOMMERCE, " + CRLF //C5_XNUMECO
 cQuery += "				C5.C5_CLIENTE CLIENTE, " + CRLF
 cQuery += "				C5.C5_LOJACLI LOJA, " + CRLF
 cQuery += "				C5.C5_TRANSP CODTRANSP, " + CRLF
@@ -1228,7 +1221,10 @@ Else
 EndIf
 
 cQuery += "				( C5.D_E_L_E_T_ = '*' OR C5.D_E_L_E_T_ = '' ) " + CRLF
-cQuery += "			GROUP BY C5.C5_FILIAL,C5.C5_NUM,C5.C5_CLIENTE,C5.C5_LOJACLI,C5.C5_TRANSP,C5.C5_EMISSAO,C5.C5_TIPO,C5.C5_XSEQLIB,C5.C5_XPEDPAI,PV.TOTAL,LIB.TOTAL,C5.R_E_C_N_O_  " + CRLF
+//Bernard cQuery += "			GROUP BY C5.C5_FILIAL,C5.C5_NUM,C5.C5_CLIENTE,C5.C5_LOJACLI,C5.C5_TRANSP,C5.C5_EMISSAO,C5.C5_TIPO,C5.C5_XSEQLIB,C5.C5_XPEDPAI,PV.TOTAL,LIB.TOTAL,C5.R_E_C_N_O_  " + CRLF
+//Ricardo Evangelista, Inserindo novos campos
+cQuery += "			GROUP BY C5.C5_XNUMECO,C5.C5_XNUMECL,C5.C5_FILIAL,C5.C5_NUM,C5.C5_CLIENTE,C5.C5_LOJACLI,C5.C5_TRANSP,C5.C5_EMISSAO,C5.C5_TIPO,C5.C5_XSEQLIB,C5.C5_XPEDPAI,PV.TOTAL,LIB.TOTAL,C5.R_E_C_N_O_  " + CRLF
+
 cQuery += "		) PEDIDOS  " + CRLF
 cQuery += "	) TOTAL_PEDIDO  " + CRLF
 cQuery += "	WHERE " + CRLF
