@@ -1365,14 +1365,14 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDesconto,nP
 			//--------------------------------------------------------+
 			// Valida se desconto foi aplicado em percentual ou valor |
 			//--------------------------------------------------------+
-			cNameDesc	:=  IIF(Len(oItems[nPrd]:PriceTags) > 0 ,oItems[nPrd]:PriceTags[1]:name,"") 
+			cNameDesc	:= IIF(Len(oItems[nPrd]:PriceTags) > 0 ,oItems[nPrd]:PriceTags[1]:name,"") 
 			lDescPer	:= IIF(Len(oItems[nPrd]:PriceTags) > 0 ,oItems[nPrd]:PriceTags[1]:IsPercentual,.F.)
 			nVlrDesc	:= IIF(Len(oItems[nPrd]:PriceTags) > 0 ,IIF(oItems[nPrd]:PriceTags[1]:value < 0,oItems[nPrd]:PriceTags[1]:value,0),0)
 				
 			//------------------------------+
 			// Acha percentual de desconto  |
 			//------------------------------+ 
-			If !lGift .And. nVlrBrinde == 0 .And. At("discount@shipping",cNameDesc) <= 0  
+			If !lGift .And. nVlrBrinde == 0 .And. At("discount@shipping",Lower(cNameDesc)) <= 0  
 				If lDescPer
 					nPerDItem := RetPrcUni(oItems[nPrd]:PriceTags[1]:Value * -1)
 				ElseIf nVlrDesc < 0
