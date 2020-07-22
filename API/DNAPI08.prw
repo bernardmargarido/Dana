@@ -16,14 +16,11 @@ Static _nTSerie	:= TamSx3("F2_SERIE")[1]
 	
 /************************************************************************************/
 /*/{Protheus.doc} NFSAIDA
-
-@description API - Envia dados das notas fiscais Dana
-
-@author Bernard M. Margarido
-@since 10/11/2018
-@version 1.0
-
-@type class
+	@description API - Envia dados das notas fiscais Dana
+	@author Bernard M. Margarido
+	@since 10/11/2018
+	@version 1.0
+	@type class
 /*/
 /************************************************************************************/
 WSRESTFUL NFSAIDA DESCRIPTION " Servico Perfumes Dana - Nota Fiscal de Saida."
@@ -41,14 +38,11 @@ END WSRESTFUL
 
 /************************************************************************************/
 /*/{Protheus.doc} GET
-
-@description Retorna string JSON com os dados da nota de saida 
-
-@author Bernard M. Margarido
-@since 10/11/2018
-@version 1.0
-
-@type function
+	@description Retorna string JSON com os dados da nota de saida 
+	@author Bernard M. Margarido
+	@since 10/11/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 WSMETHOD GET WSRECEIVE NOTA,SERIE,DATAHORA,PERPAGE,PAGE WSSERVICE NFSAIDA
@@ -60,8 +54,6 @@ Local cSerie		:= IIF(Empty(::SERIE),"",::SERIE)
 Local cDataHora		:= IIF(Empty(::DATAHORA),"1900-01-01T00:00",::DATAHORA)
 Local cTamPage		:= ::PERPAGE
 Local cPage			:= ::PAGE
-
-Local nLen			:= Len(::aUrlParms)
 
 Private cArqLog		:= ""
 Private _cFilWMS	:= FormatIn(GetNewPar("DN_FILWMS","05,06"),",")
@@ -107,19 +99,16 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} PUT
-
-@description Realiza a baixa da nota fiscal da fila de integração
-@author Bernard M. Margarido
-@since 24/07/2019
-@version 1.0
-
-@type function
+	@description Realiza a baixa da nota fiscal da fila de integração
+	@author Bernard M. Margarido
+	@since 24/07/2019
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 WSMETHOD PUT WSSERVICE NFSAIDA
 Local aArea		:= GetArea()
 
-Local nLen		:= Len(::aUrlParms)
 Local _nX		:= 0
 
 Local oJson		:= Nil
@@ -196,14 +185,11 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApi08A
-
-@description Consulta notas de saida e monta arquivo de envio
-
-@author Bernard M. Margarido
-@since 10/11/2018
-@version 1.0
-
-@type function
+	@description Consulta notas de saida e monta arquivo de envio
+	@author Bernard M. Margarido
+	@since 10/11/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApi08A(cNota,cSerie,cDataHora,cTamPage,cPage)
@@ -309,13 +295,11 @@ Return aRet
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApi08C
-
-@description Realiza a baixa das notas de saida
-@author Bernard M. Margarido
-@since 24/07/2019
-@version 1.0
-
-@type function
+	@description Realiza a baixa das notas de saida
+	@author Bernard M. Margarido
+	@since 24/07/2019
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApi08C(_oNota)
@@ -372,14 +356,11 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} DnaApi07E
-
-@description Processa retorno da conferencia separação pedido de venda
-
-@author Bernard M. Margarido
-@since 20/11/2018
-@version 1.0
-
-@type function
+	@description Processa retorno da conferencia separação pedido de venda
+	@author Bernard M. Margarido
+	@since 20/11/2018
+	@version 1.0
+	@type function
 /*/
 /*************************************************************************************/
 Static Function DnaApi08E(aMsgErro,cJsonRet)
@@ -409,14 +390,11 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApiQry
-
-@description Consulta notas de saida para serem enviados 
-
-@author Bernard M. Margarido
-@since 27/10/2018
-@version 1.0
-
-@type function
+	@description Consulta notas de saida para serem enviados 
+	@author Bernard M. Margarido
+	@since 27/10/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApiQry(cAlias,cNota,cSerie,cDataHora,cTamPage,cPage)
@@ -467,7 +445,7 @@ Else
 EndIf
 	
 cQuery += "				F2.F2_XENVWMS = '3' AND " + CRLF
-cQuery += "				F2.F2_XNUMECO = '' AND " + CRLF
+//cQuery += "				F2.F2_XNUMECO = '' AND " + CRLF
 cQuery += "				F2.F2_FIMP = 'S' AND " + CRLF
 If Empty(cNota) .And. Empty(cSerie)
 	cQuery += "				CAST((F2.F2_XDTALT + ' ' + F2.F2_XHRALT) AS DATETIME) >= CAST(('" + cData + "' + ' ' + '" + cHora + ".000') AS DATETIME) AND " + CRLF
@@ -494,14 +472,11 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} ApiQryTot
-
-@description Retorna total de Notas
-
-@author Bernard M. Margarido
-@since 27/10/2018
-@version 1.0
-
-@type function
+	@description Retorna total de Notas
+	@author Bernard M. Margarido
+	@since 27/10/2018
+	@version 1.0
+	@type function
 /*/
 /*************************************************************************************/
 Static Function DnaQryTot(cNota,cSerie,cDataHora,cTamPage,cPage)
@@ -541,7 +516,7 @@ Else
 EndIf
 
 cQuery += "				F2.F2_XENVWMS = '3' AND " + CRLF
-cQuery += "				F2.F2_XNUMECO = '' AND " + CRLF
+//cQuery += "				F2.F2_XNUMECO = '' AND " + CRLF
 cQuery += "				F2.F2_FIMP = 'S' AND " + CRLF
 If Empty(cNota) .And. Empty(cSerie)
 	cQuery += "			CAST((F2.F2_XDTALT + ' ' + F2.F2_XHRALT) AS DATETIME) >= CAST(('" + cData + "' + ' ' + '" + cHora + ".000') AS DATETIME) AND " + CRLF
@@ -580,16 +555,11 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} LogExec
-
-@description Grava log de integração
-
-@author TOTVS
-@since 05/06/2017
-@version undefined
-
-@param cMsg, characters, descricao
-
-@type function
+	@description Grava log de integração
+	@author TOTVS
+	@since 05/06/2017
+	@version undefined
+	@type function
 /*/
 /*************************************************************************************/
 Static Function LogExec(cMsg)
