@@ -12,14 +12,11 @@
 
 /************************************************************************************/
 /*/{Protheus.doc} SIGA001
-
-@description Monitor SIGEP
-
-@author Bernard M. Margarido
-@since 03/04/2017
-@version undefined
-
-@type function
+	@description Monitor SIGEP
+	@author Bernard M. Margarido
+	@since 03/04/2017
+	@version undefined
+	@type function
 /*/ 
 /************************************************************************************/
 User Function SIGA001()
@@ -49,15 +46,11 @@ Return Nil
 
 /************************************************************************************/
 /*/{Protheus.doc} ModelDef
-
-@description  Modelo de dados, estrutura dos dados e modelo de negocio
-
-@author Bernard M. Margarido
-
-@since 10/08/2017
-@version undefined
-
-@type function
+	@description  Modelo de dados, estrutura dos dados e modelo de negocio
+	@author Bernard M. Margarido
+	@since 10/08/2017
+	@version undefined
+	@type function
 /*/
 /************************************************************************************/
 Static Function ModelDef()
@@ -101,15 +94,11 @@ Return _oModel
 
 /************************************************************************************/
 /*/{Protheus.doc} ViewDef
-
-@description Cria interface com o usuario
-
-@author Bernard M. Margarido
-
-@since 10/08/2017
-@version undefined
-
-@type function
+	@description Cria interface com o usuario
+	@author Bernard M. Margarido
+	@since 10/08/2017
+	@version undefined
+	@type function
 /*/
 /************************************************************************************/
 Static Function ViewDef()
@@ -183,41 +172,7 @@ Local _cMsg			:= ""
 Local _nX			:= 0
 
 Local _lRet			:= .T.
-/*
-Local _oModelWs6	:= _oModel:GetModel("WS6DETAIL")
-Local _oModelAy5	:= _oModel:GetModel("AY5DETAIL")
 
-//--------+
-// Inclui |
-//--------+
-If _oModel:nOperation == 3  .Or. _oModel:nOperation == 4
-	//------------------------------------------------------------+
-	// Valida se campos obrigatorios e-Commerce foram preenchidos |
-	//------------------------------------------------------------+
-	If Empty(M->B5_XNOMPRD)
-		_cMsg := " Campo " + RetTitle("B5_XNOMPRD")+ " obrigatorio e-Commerce nao preenchido."
-	ElseIf Empty(M->B5_XTITULO)
-		_cMsg := " Campo " + RetTitle("B5_XTITULO")+ " obrigatorio e-Commerce nao preenchido."
-	ElseIf Empty(M->B5_XCODMAR)
-		_cMsg := " Campo " + RetTitle("B5_XCODMAR")+ " obrigatorio e-Commerce nao preenchido."
-	ElseIf Empty(M->B5_XCAT01) 
-		_cMsg := " Campo " + RetTitle("B5_XCAT01")+ " obrigatorio e-Commerce nao preenchido."
-	EndIf
-
-//---------+
-// Excluir | 
-//---------+
-ElseIf _oModel:nOperation == 5
-	If SB5->B5_XENVECO == "2" .Or. !Empty(SB5->B5_XDTEXP) .Or. !Empty(SB5->B5_XHREXP)  
-		_cMsg := " Não é possivel excluir complemento de produto para produtos já enviados ao e-Commerce."
-	EndIf
-Endif
-
-If !Empty(_cMsg)
-	_lRet	:= .F.
-	 Help( ,, 'HELP',, _cMsg, 1, 0)
-EndIf
-*/
 RestArea(_aArea)
 Return _lRet
 
@@ -237,74 +192,59 @@ Local _cCodCampo	:= ""
 Local _cCodCarac	:= ""
 
 Local _nX			:= 0
-/*
-Local _oModelSB5	:= _oModel:GetModel("SB5MASTER")
-Local _oModelWs6	:= _oModel:GetModel("WS6DETAIL")
-Local _oModelAy5	:= _oModel:GetModel("AY5DETAIL")
-
-Local _aSaveLines	:= FWSaveRows()
-
-//----------------------------------------+
-// Realiza a gravação dos dados do Objeto |
-//----------------------------------------+
-FwFormCommit(_oModel)
-
-//-------------------------------------+
-// Atualiza Flag para envio e-Commerce |
-//-------------------------------------+
-RecLock("SB5",.F.)
-	SB5->B5_XENVECO := "1"
-	SB5->B5_XENVCAT	:= "1"
-	SB5->B5_XENVSKU	:= "1"
-SB5->( MsUnLock() )
-
-//----------------------+
-// Campos para gravação |
-//----------------------+
-_cCodProd := _oModelSB5:GetValue("B5_COD")
-
-//--------------------------+
-// Atualiza flag para envio |
-//--------------------------+
-dbSelectArea("WS6")
-WS6->( dbSetOrder(1) )
-If WS6->( dbSeek(xFilial("WS6") + _cCodProd) )
-	While WS6->( !Eof() .And. xFilial("WS6") + RTrim(_cCodProd) == WS6->WS6_FILIAL + RTrim(WS6->WS6_CODPRD) )
-		RecLock("WS6",.F.)
-			WS6->WS6_ENVECO := "1"
-		WS6->( MsUnLock() )
-		WS6->( dbSkip() )
-	EndDo
-EndIf	
-
-
-//---------------+
-// Valida Filtro |
-//---------------+
-dbSelectArea("AY5")
-AY5->( dbSetOrder(2) )
-If AY5->( dbSeek(xFilial("AY5") + _cCodProd) )
-	While AY5->( !Eof() .And. xFilial("AY5") + _cCodProd == AY5->AY5_FILIAL + AY5->AY5_CODPRO)
-		RecLock("AY5",.F.)
-			AY5->AY5_ENVECO := "1"
-		AY5->( MsUnLock() )
-		AY5->( dbSkip() )
-	EndDo
-EndIf
-
-FWRestRows(_aSaveLines) 
-*/
 
 Return .T.
 
 /***************************************************************************************/
+/*/{Protheus.doc} SIGA01A
+	@description Função de definição do Menu da Rotina
+	@author	Bernard M. Margarido
+	@since		18/02/2016
+	@version	1.00
+/*/
+/***************************************************************************************/
+User Function SIGA01A()
+Local _aArea	:= GetArea()
+
+Local _cPLPAte	:= CriaVar("ZZ2_CODIGO",.F.)
+Local _cPLPDe	:= CriaVar("ZZ2_CODIGO",.F.)
+Local _nStatus	:= 0
+
+Local _aParam	:= {}
+Local _aRetP	:= {}
+
+aAdd( _aParam, {1,"Pre Lista De ?"	, _cPLPDe	, "@!", "", "ZZ2", "", 60, .F.	})
+aAdd( _aParam, {1,"Pre Lista Ate?"	, _cPLPAte	, "@!", "", "ZZ2", "", 60, .F.	})
+aAdd( _aParam, {3,"Imprimir em ..."	, _nStatus  , {"PDF","Térmica - Zebra"}, 100, , .T.	})
+
+If ParamBox(_aParam,"Informe mode de impressão.",@_aRetP)
+
+	_cPLPDe	 := _aRetP[1]
+	_cPLPAte := _aRetP[2]	
+	_nStatus := _aRetP[3]
+	
+	//-----+	
+	// PDF |
+	//-----+	
+	If _nStatus == 1
+		U_SIGR001(_cPLPDe,_cPLPAte)
+	//-------+
+	// Zebra |
+	//-------+
+	Else
+		U_SIGR003(_cPLPDe,_cPLPAte)
+	EndIf
+EndIf
+
+RestArea(_aArea)
+Return .T.
+
+/***************************************************************************************/
 /*/{Protheus.doc} MENUDEF
-@description Função de definição do Menu da Rotina
-
-@author	Bernard M. Margarido
-@since		18/02/2016
-@version	1.00
-
+	@description Função de definição do Menu da Rotina
+	@author	Bernard M. Margarido
+	@since		18/02/2016
+	@version	1.00
 /*/
 /***************************************************************************************/
 Static Function MenuDef()     
@@ -317,6 +257,6 @@ Static Function MenuDef()
 	ADD OPTION aRotina TITLE "Excluir"              ACTION "VIEWDEF.SIGA001" 		OPERATION 5 ACCESS 0 
 	ADD OPTION aRotina TITLE "Envia PLP"			ACTION 'U_SIGM004'		  		OPERATION 4 ACCESS 0
 	ADD OPTION aRotina TITLE "Imprime PLP"			ACTION 'U_SIGR002'		  		OPERATION 6 ACCESS 0
-	ADD OPTION aRotina TITLE "Imprime ETQ"			ACTION 'U_SIGR001'		  		OPERATION 6 ACCESS 0
+	ADD OPTION aRotina TITLE "Imprime ETQ"			ACTION 'U_SIGA01A'		  		OPERATION 6 ACCESS 0
 		
 Return aRotina

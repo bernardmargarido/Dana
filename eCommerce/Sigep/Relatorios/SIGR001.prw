@@ -24,22 +24,25 @@
 @type function
 /*/
 /********************************************************************************/
-User Function SIGR001()
+User Function SIGR001(_cPLPDe,_cPLPAte)
 Local _cPerg 		:= "SIGR02"
 
 Private _lJob		:= IIF(Isincallstack("U_ECLOJM06"),.T.,.F.)
 
 Private _oProcess   := Nil
 
+Default _cPLPDe		:= ""
+Default _cPLPAte	:= ""
+
 //------------------------------+
 // Cria Parametros do relatorio |
 //------------------------------+
-AjustaSx1(_cPerg)
+//AjustaSx1(_cPerg)
 
-If Pergunte(_cPerg,.T.)
-	_oProcess:= MsNewProcess():New( {|| SigR01Prt()},"Dana Cosmeticos - eCommerce","Aguarde ... Imprimindo Etiquetas." )
+//If Pergunte(_cPerg,.T.)
+	_oProcess:= MsNewProcess():New( {|| SigR01Prt(_cPLPDe,_cPLPAte)},"Dana Cosmeticos - eCommerce","Aguarde ... Imprimindo Etiquetas." )
     _oProcess:Activate()
-EndIf
+//EndIf
 	
 Return Nil
 
@@ -55,7 +58,7 @@ Return Nil
 @type function
 /*/
 /**********************************************************************************/
-Static Function SigR01Prt()
+Static Function SigR01Prt(_cPLPDe,_cPLPAte)
 Local _cAlias			:= GetNextAlias()
 Local _cDirRaiz			:= GetTempPath()
 Local _cFile			:= ""
@@ -91,7 +94,7 @@ Local _oPrint			:= Nil
 //-----------------------------+
 // Consulta PLP a ser impressa |
 //-----------------------------+
-If !Sigr01Qry(_cAlias,@_nToReg)
+If !Sigr01Qry(_cAlias,_cPLPDe,_cPLPAte,@_nToReg)
 	MsgStop("Não foram encontrados dados para serem processados. Favor Verificar os parametros.","Dana Cosmeticos - eCommerce")
 	(_cAlias)->( dbCloseArea() )
 	Return Nil
@@ -216,13 +219,13 @@ Local _oFont11		:= TFont():New("Arial",,11,,.F.,,,,,.F. )
 //--------------------+
 // Dados do Remetente |
 //--------------------+
-_cNomeRem		:= "Dana Cosméticos" 	//Capital(RTrim(SM0->M0_NOMECOM))
-_cEndCob		:= "Av. Piracema, 1.411"//Capital(RTrim(SM0->M0_ENDCOB))
-_cMunCob		:= "Barueri "			//Capital(RTrim(SM0->M0_CIDCOB))
-_cBairCob		:= "Tamboré"			//Capital(RTrim(SM0->M0_BAIRCOB))
-_cCompCob		:= "Módulo 5"			//Capital(RTrim(SM0->M0_COMPCOB))
-_cEstCob		:= "SP"					//SM0->M0_ESTCOB
-_cCepCob		:= "06460030"			//SM0->M0_CEPCOB
+_cNomeRem		:= Capital(RTrim(SM0->M0_NOMECOM))
+_cEndCob		:= Capital(RTrim(SM0->M0_ENDCOB))
+_cMunCob		:= Capital(RTrim(SM0->M0_CIDCOB))
+_cBairCob		:= Capital(RTrim(SM0->M0_BAIRCOB))
+_cCompCob		:= Capital(RTrim(SM0->M0_COMPCOB))
+_cEstCob		:= SM0->M0_ESTCOB
+_cCepCob		:= SM0->M0_CEPCOB
 
 //---------------------+
 // Inicio da Impressao |
@@ -432,21 +435,14 @@ Return cValToChar(_nResult)
 
 /**********************************************************************************/
 /*/{Protheus.doc} Sigr01Qry
-
-@description Consulta etiquetas ser impressa
-
-@author Bernard M. Margarido
-
-@since 07/04/2017
-@version undefined
-
-@param _cAlias, characters, descricao
-@param nToReg, numeric, descricao
-
-@type function
+	@description Consulta etiquetas ser impressa
+	@author Bernard M. Margarido
+	@since 07/04/2017
+	@version undefined
+	@type function
 /*/
 /**********************************************************************************/
-Static Function Sigr01Qry(_cAlias,_nToReg)
+Static Function Sigr01Qry(_cAlias,_cPLPDe,_cPLPAte,_nToReg)
 Local _cQuery := ""
 
 _cQuery := " SELECT " + CRLF
@@ -477,7 +473,7 @@ _cQuery += "	INNER JOIN " + RetSqlName("ZZ0") + " ZZ0 ON ZZ0.ZZ0_FILIAL = ZZ2.ZZ
 _cQuery += "	INNER JOIN " + RetSqlName("SC5") + " SC5 ON SC5.C5_FILIAL = WSA.WSA_FILIAL AND SC5.C5_NUM = WSA.WSA_NUMSC5 AND SC5.D_E_L_E_T_ = '' " + CRLF
 _cQuery += " WHERE " + CRLF
 _cQuery += "	ZZ2.ZZ2_FILIAL = '" + xFilial("ZZ2") + "' AND " + CRLF
-_cQuery += "	ZZ2.ZZ2_CODIGO BETWEEN '" + mv_par01 + "' AND '" + mv_par02 + "' AND " + CRLF
+_cQuery += "	ZZ2.ZZ2_CODIGO BETWEEN '" + _cPLPDe + "' AND '" + _cPLPAte + "' AND " + CRLF
 _cQuery += "	ZZ2.ZZ2_STATUS = '04' AND " + CRLF
 _cQuery += "	ZZ2.D_E_L_E_T_= '' " + CRLF
 _cQuery += " ORDER BY ZZ2.ZZ2_CODIGO "
