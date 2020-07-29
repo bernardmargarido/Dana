@@ -54,6 +54,12 @@ Return Nil
 /**********************************************************************************/
 Static Function SigR03Prt(_cPLPDe,_cPLPAte)
 Local _cAlias			:= GetNextAlias()
+Local _cPath 	        := AllTrim(GetTempPath())
+Local _cBat             := "SIGR003.bat"
+Local _cCmdBat          := ""
+Local _cPasta	        := "\ETIQUETAS\"
+Local _cPorta           := "LPT1"
+Local _cArquivo         := ""
 Local _cCodPlp			:= ""
 Local _cDoc				:= ""
 Local _cSerie			:= ""
@@ -88,86 +94,88 @@ If !Sigr03Qry(_cAlias,_cPLPDe,_cPLPAte,@_nToReg)
 	Return Nil
 EndIf
 
-//---------------------------------+
-// Valida se impressora está ativa | 
-//---------------------------------+
-If CB5SetImp( mv_par01 )
 
-    //---------------------------------------+
-    // Coordendas para linha inicial e final |
-    //---------------------------------------+
-    _oProcess:SetRegua1( _nToReg )
-    While (_cAlias)->( !Eof() )
-        
-        _cCodPlp 	:= (_cAlias)->ZZ2_CODIGO
-        
-        _oProcess:IncRegua1("Etiquetas PLP " + _cCodPlp +  " .")
-        
-        _oProcess:SetRegua2( -1 )
-        While (_cAlias)->( !Eof() .And. _cCodPlp == (_cAlias)->ZZ2_CODIGO )
+//---------------------------------------+
+// Coordendas para linha inicial e final |
+//---------------------------------------+
+_oProcess:SetRegua1( _nToReg )
+While (_cAlias)->( !Eof() )
+    
+    _cCodPlp 	:= (_cAlias)->ZZ2_CODIGO
+    
+    _cArquivo   := RTrim(_cCodPlp) + "-" + cValToChar(_nX) + "_" + DToS(Date()) + "-" + StrTran( Time(),":") + ".prn"
+    _cCmdBat    := "REM Run shell as admin" + CRLF
+    _cCmdBat    += "TYPE " + _cPath + _cArquivo + " >" + _cPorta
 
-            For _nX := 1 To Int((_cAlias)->C5_VOLUME1)
+    //------------------+    
+    // Cria arquivo bat |
+    //------------------+
+    SigR03Bat(_cPath,_cBat,_cCmdBat)
 
-                //------------------+	
-                // Imprime etiqueta |
-                //------------------+
-                _cEtq       := ""
-                _cPlpID		:= (_cAlias)->ZZ2_PLPID
-                _cDoc		:= (_cAlias)->WSA_DOC
-                _cSerie		:= (_cAlias)->WSA_SERIE
-                _cPedido	:= (_cAlias)->C5_NUM
-                _cCodEtq	:= (_cAlias)->ZZ4_CODETQ	
-                _cDest		:= (_cAlias)->WSA_NOMDES
-                _cEndDest	:= (_cAlias)->WSA_ENDENT
-                _cBairro	:= (_cAlias)->WSA_BAIRRE
-                _cMunicipio	:= (_cAlias)->WSA_MUNE
-                _cCep		:= (_cAlias)->WSA_CEPE
-                _cUF		:= (_cAlias)->WSA_ESTE
-                _cObs		:= (_cAlias)->WSA_COMPLE
-                _cCodServ	:= (_cAlias)->ZZ0_CODSER
-                _cDescSer	:= (_cAlias)->ZZ0_DESCRI
-                _cTelDest	:= (_cAlias)->WSA_TEL01
-                _cDTMatrix	:= ""
-                _nValor		:= (_cAlias)->WSA_VLRTOT
-                _nVolume	:= _nX
-                _nPeso		:= (_cAlias)->C5_PBRUTO * 100
-                
-                _oProcess:IncRegua2(" Imprimindo Etiqueta pedido " + _cPedido + " .")
+    _oProcess:IncRegua1("Etiquetas PLP " + _cCodPlp +  " .")
+    
+    _oProcess:SetRegua2( -1 )
+    While (_cAlias)->( !Eof() .And. _cCodPlp == (_cAlias)->ZZ2_CODIGO )
+    
+        For _nX := 1 To Int((_cAlias)->C5_VOLUME1)
 
-                SigR03Etq(	_cPlpID,_cDoc,_cSerie,_cPedido,_cTelDest,;
-                            _cCodEtq,_cDest,_cEndDest,_cBairro,_cMunicipio,;
-                            _cCep,_cUF,_cObs,_cCodServ,_cDescSer,_cDTMatrix,;
-                            _nValor,_nVolume,_nPeso,@_cEtq)
-                
-                If !Empty(_cEtq)
-                    //-------------------------------------+
-                    // Inicializa a montagem da impressora |
-                    //-------------------------------------+
-                    MscbBegin(1,6) 
-                    
-                    //-----------------------------+
-                    // Envia imagem para impressão |
-                    //-----------------------------+
-                    MSCBWrite(cEtq)
-                    
-                    //---------------------------------+
-                    // Finaliza a Imagem da Impressora |
-                    //---------------------------------+
-                    MscbEnd()
-                    //_cTotEtq += _cEtq + CRLF
-                EndIf
-            Next _nX
-            (_cAlias)->( dbSkip() )
-        EndDo
+            //------------------+	
+            // Imprime etiqueta |
+            //------------------+
+            _cEtq       := ""
+            _cPlpID		:= (_cAlias)->ZZ2_PLPID
+            _cDoc		:= (_cAlias)->WSA_DOC
+            _cSerie		:= (_cAlias)->WSA_SERIE
+            _cPedido	:= (_cAlias)->C5_NUM
+            _cCodEtq	:= (_cAlias)->ZZ4_CODETQ	
+            _cDest		:= (_cAlias)->WSA_NOMDES
+            _cEndDest	:= (_cAlias)->WSA_ENDENT
+            _cBairro	:= (_cAlias)->WSA_BAIRRE
+            _cMunicipio	:= (_cAlias)->WSA_MUNE
+            _cCep		:= (_cAlias)->WSA_CEPE
+            _cUF		:= (_cAlias)->WSA_ESTE
+            _cObs		:= (_cAlias)->WSA_COMPLE
+            _cCodServ	:= (_cAlias)->ZZ0_CODSER
+            _cDescSer	:= (_cAlias)->ZZ0_DESCRI
+            _cTelDest	:= (_cAlias)->WSA_TEL01
+            _cDTMatrix	:= ""
+            _nValor		:= (_cAlias)->WSA_VLRTOT
+            _nVolume	:= _nX
+            _nPeso		:= (_cAlias)->C5_PBRUTO * 100
+            
+            _oProcess:IncRegua2(" Imprimindo Etiqueta pedido " + _cPedido + " .")
+
+            SigR03Etq(	_cPlpID,_cDoc,_cSerie,_cPedido,_cTelDest,;
+                        _cCodEtq,_cDest,_cEndDest,_cBairro,_cMunicipio,;
+                        _cCep,_cUF,_cObs,_cCodServ,_cDescSer,_cDTMatrix,;
+                        _nValor,_nVolume,_nPeso,@_cEtq)
+            
+            If !Empty(_cEtq)
+                _cTotEtq += _cEtq 
+            EndIf
+            
+        Next _nX
+        (_cAlias)->( dbSkip() )
     EndDo
 
-    //--------------------------------------+
-    // Encerra comunicação com a impressora |
-    //--------------------------------------+
-    MSCBClosePrinter()
+    _nHandle := FCREATE(_cPasta + _cArquivo)
+    FWRITE(_nHandle, _cTotEtq)
+    FCLOSE(_nHandle)
 
-    //Aviso('',_cTotEtq,{"Ok"},3)
-EndIf
+    __CopyFile(_cPasta + _cArquivo, _cPath + _cArquivo)
+
+    FErase(_cPasta + _cArquivo)
+
+    //_nErro := WinExec("cmd /c copy " + _cPath + _cArquivo + " " + _cPorta + " /Y")
+    _nErro := WinExec(_cPath + _cBat)
+
+    If _nErro == 0
+        MsgInfo("Enviado arquivo para impressão com sucesso.")
+    Else
+        MsgStop("Falha ao enviar arquivo para impressão. Erro de OS = " + cValToChar(_nErro))
+    EndIf
+
+EndDo
 
 Return Nil
 
@@ -425,6 +433,28 @@ If (_cAlias)->( Eof() )
 EndIf
 
 Return .T.
+
+/***************************************************************************************/
+/*/{Protheus.doc} SigR03Bat
+    @description Cria arquivo bat para impressao de etiquetas 
+    @author Bernard M. Maragrido
+    @since 05/04/2017
+    @version undefined
+    @type function
+/*/
+/***************************************************************************************/
+Static Function SigR03Bat(_cPath,_cBat,_cCmdBat)
+Local __nHdl    := 0
+
+If File(_cPath + _cBat )
+	fErase(_cPath + _cBat )
+EndIf
+__nHdl := MSFCreate(_cPath + _cBat )
+FSeek(__nHdl,0,0)
+FWrite(__nHdl, _cCmdBat + CRLF, Len(_cCmdBat) + 2)
+FClose(__nHdl)
+
+Return Nil
 
 /***************************************************************************************/
 /*/{Protheus.doc} AjustaSx1
