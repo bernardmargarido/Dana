@@ -33,7 +33,7 @@ Local _bFlagEco := { || Processa({|| EcLoj011F() }, "Verificando tabelas para en
 
 Private _cCodTab:= GetNewPar("EC_TABECO")    
 Private _cFilEst:= GetNewPar("EC_FILEST")
-Private _cLocal := GetNewPar("EC_ARMAZEM")	
+Private _cLocal := FormatIn(GetNewPar("EC_ARMAZEM"),"/")
 
 Private _lAY1   := .F.
 Private _lAY2   := .F.
@@ -74,9 +74,9 @@ _oDlg := MsDialog():New(000, 000, 375, 615,"Monitor Integrações",,,,,,,,,.T.)
 
     @ 030,010 Button "01 ) Categoria"				Size 92,12 When _lAY1  Action ( U_AECOI001() 	, Eval(_bFlagEco) ) Pixel
     @ 030,110 Button "02 ) Marcas"					Size 92,12 When _lAY2  Action ( U_AECOI002()	, Eval(_bFlagEco) ) Pixel
-    @ 030,210 Button "03 ) Ws Produto"			    Size 92,12 When _lSB4  Action ( U_AECOI003() 	, Eval(_bFlagEco) ) Pixel
+    @ 030,210 Button "03 ) Produto"			        Size 92,12 When _lSB4  Action ( U_AECOI003() 	, Eval(_bFlagEco) ) Pixel
 	
-	@ 045,010 Button "04 ) Ws Produto Sku"		    Size 92,12 When _lSB1  Action ( U_AECOI004() 	, Eval(_bFlagEco) ) Pixel
+	@ 045,010 Button "04 ) Produto Sku"		        Size 92,12 When _lSB1  Action ( U_AECOI004() 	, Eval(_bFlagEco) ) Pixel
     @ 045,110 Button "05 ) Atualiza Preço" 			Size 92,12 When _lDA1  Action ( U_AECOI009()	, Eval(_bFlagEco) ) Pixel
 	@ 045,210 Button "06 ) Atualiza Estoque" 		Size 92,12 When _lSB2  Action ( U_AECOI008() 	, Eval(_bFlagEco) ) Pixel
 	
@@ -203,11 +203,11 @@ _cQuery := " SELECT " + CRLF
 _cQuery += "    COUNT(*) TOTAL " + CRLF
 _cQuery += " FROM " + CRLF
 _cQuery += "	" + RetSqlName("SB2") + " B2 " + CRLF
-_cQuery += "	INNER JOIN " + RetSqlName("SB1") + " B1 ON B1.B1_FILIAL = '" + xFilial("SB1") + "' AND B1.B1_COD = B2.B2_COD AND B1.B1_MSBLQL <> '1' AND B1.D_E_L_E_T_ = '' " + CRLF 
+_cQuery += "	INNER JOIN " + RetSqlName("SB1") + " B1 ON B1.B1_FILIAL = '" + xFilial("SB1") + "' AND B1.B1_COD = B2.B2_COD AND B1.B1_MSBLQL <> '1' AND B1.B1_LOCPAD IN " + _cLocal + " AND B1.D_E_L_E_T_ = '' " + CRLF 
 _cQuery += "	INNER JOIN " + RetSqlName("SB5") + " B5 ON B5.B5_FILIAL = '" + xFilial("SB5") + "' AND B5.B5_COD = B2.B2_COD AND B5.B5_XENVECO = '2' AND B5.B5_XENVSKU = '2' AND B5.B5_XUSAECO = 'S' AND B5.D_E_L_E_T_ = '' " + CRLF
 _cQuery += " WHERE " + CRLF
 _cQuery += "	B2.B2_FILIAL = '" + _cFilEst  + "' AND " + CRLF 
-_cQuery += "	B2.B2_LOCAL = '" + _cLocal + "' AND " + CRLF
+_cQuery += "	B2.B2_LOCAL = B1.B1_LOCPAD AND " + CRLF
 _cQuery += "	B2.B2_MSEXP = '' AND " + CRLF
 _cQuery += "	B2.D_E_L_E_T_ = '' "
 
