@@ -15,7 +15,7 @@ User Function XDNALTSA1()
 Local lRet		:= .T.
 Local cUsuFin	:= GETMV("MV_XFINSA1")
 Local cCodUsu	:= RetCodUsr()
-Local cNomUsr   := PswChave(RetCodUsr())
+Local cNomUsr   := RTrim(UsrRetName( __cUserID ))
 
 Private cConta	:= AllTrim(GetMv("MV_XMAIFIN"))
 Private cMsgCam := ""
