@@ -14,14 +14,11 @@
 
 /********************************************************************************/
 /*/{Protheus.doc} SIGR001
-
-@description Realiza a impressao das etiquetas SIGEP
-
-@author Bernard M. Margarido
-@since 08/03/2017
-@version undefined
-
-@type function
+	@description Realiza a impressao das etiquetas SIGEP
+	@author Bernard M. Margarido
+	@since 08/03/2017
+	@version undefined
+	@type function
 /*/
 /********************************************************************************/
 User Function SIGR001(_cPLPDe,_cPLPAte)
@@ -48,14 +45,11 @@ Return Nil
 
 /**********************************************************************************/
 /*/{Protheus.doc} SigR01Prt
-
-@description Realiza a impressao de etiquetas
-
-@author Bernard M. Margarido
-@since 07/04/2017
-@version undefined
-
-@type function
+	@description Realiza a impressao de etiquetas
+	@author Bernard M. Margarido
+	@since 07/04/2017
+	@version undefined
+	@type function
 /*/
 /**********************************************************************************/
 Static Function SigR01Prt(_cPLPDe,_cPLPAte)
@@ -152,7 +146,7 @@ While (_cAlias)->( !Eof() )
 			_cDTMatrix	:= ""
 			_nValor		:= (_cAlias)->WSA_VLRTOT
 			_nVolume	:= _nX
-			_nPeso		:= (_cAlias)->C5_PBRUTO * 100
+			_nPeso		:= IIF((_cAlias)->C5_PBRUTO > 0, (_cAlias)->C5_PBRUTO * 1000, 100) 
 			
 			_oProcess:IncRegua2(" Imprimindo Etiqueta pedido " + _cPedido + " .")
 
@@ -176,17 +170,11 @@ Return Nil
 
 /**********************************************************************************/
 /*/{Protheus.doc} SigR01Etq
-
-@description Imprime etiqueta 
-
-@author Bernard M. Margarido
-
-@since 07/04/2017
-@version undefined
-
-@param _oPrint		, object	, objeto contendo dados para impressao do relatorio
-
-@type function
+	@description Imprime etiqueta 
+	@author Bernard M. Margarido
+	@since 07/04/2017
+	@version undefined
+	@type function
 /*/
 /**********************************************************************************/
 Static Function SigR01Etq(	_oPrint,_cPlpID,_cDoc,_cSerie,_cPedido,_cTelDest,;
@@ -493,14 +481,11 @@ Return .T.
 
 /***************************************************************************************/
 /*/{Protheus.doc} AjustaSx1
-
-@description Cria parametros para processamento da PLP
-
-@author Bernard M. Maragrido
-@since 05/04/2017
-@version undefined
-@param cPerg		, characters	, Codigo para criação dos parametros
-@type function
+	@description Cria parametros para processamento da PLP
+	@author Bernard M. Maragrido
+	@since 05/04/2017
+	@version undefined
+	@type function
 /*/
 /***************************************************************************************/
 Static Function AjustaSx1(_cPerg)

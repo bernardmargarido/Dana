@@ -446,6 +446,7 @@ While (cAlias)->( !Eof() )
 			oItens[#"armazem"]		:= SC6->C6_LOCAL
 			SC6->( dbSkip() )
 		EndDo
+		
 		SET DELETED ON
 	//------------------+	
 	// Pedido separação |

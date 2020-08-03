@@ -461,6 +461,7 @@ Local _cLoja	:= ""
 Local _cCodProd	:= ""
 Local _cItem	:= ""
 Local _cLote	:= ""
+Local _cCodSta	:= "006"
 Local _cFilAux	:= cFilAnt
 	
 Local _nQtdConf	:= 0
@@ -585,9 +586,7 @@ If _lContinua
 			SF2->F2_XENVWMS := "3"
 			SF2->F2_XDTALT	:= Date()
 			SF2->F2_XHRALT	:= Time()
-			SF2->F2_ESPECI1	:= "CAIXAS"
-			//SF2->F2_PLIQUI	:= _nPeso
-			//SF2->F2_PBRUTO	:= _nPeso
+			SF2->F2_ESPECI1	:= IIF(Empty(SF2->F2_XNUMECO),"CAIXAS","EMBALAGEM")
 			SF2->F2_VOLUME1	:= _nVolume
 		SF2->( MsUnLock() )
 		
@@ -598,13 +597,38 @@ If _lContinua
 		SC5->( dbSetOrder(1) )
 		If SC5->( dbSeek(xFilial("SC5") + _cPedido) )
 			RecLock("SC5",.F.)
-				SC5->C5_ESPECI1	:= "CAIXAS"
-				//SC5->C5_PESOL		:= _nPeso
-				//SC5->C5_PBRUTO	:= _nPeso
+				SC5->C5_ESPECI1	:= IIF(Empty(SF2->F2_XNUMECO),"CAIXAS","EMBALAGEM")
 				SC5->C5_VOLUME1	:= _nVolume
 			SC5->( MsUnLock() )
 		EndIf	
-		
+
+		//-------------------------------+	
+		// Valida se é pedido e-Commerce |
+		//-------------------------------+
+		If !Empty(SF2->F2_XNUMECO)
+
+			//------------------------------+
+			// Posiciona status de Despacho |
+			//------------------------------+
+			dbSelectArea("WS1")
+			WS1->( dbSetOrder(1) )
+			WSA->( dbSeek(xFilial("WS1") + _cCodSta) )
+
+			//----------------------------+
+			// Atualiza dados de despacho | 
+			//----------------------------+
+			dbSelectArea("WSA")
+			WSA->( dbSetOrder(2) )
+			If WSA->( dbSeek(xFilial("WSA") + SF2->F2_XNUMECO) )
+				RecLock("WSA",.F.)
+					WSA->WSA_ESPECI	 := "EMBALAGEM" 
+					WSA->WSA_VOLUME  := _nVolume
+					WSA->WSA_CODSTA  := _cCodSta
+                	WSA->WSA_DESTAT  := WS1->WS1_DESCRI
+				WSA->( MsUnLock() )
+			EndIf
+
+		EndIf
 		//----------------------+	
 		// Log processo da nota |
 		//----------------------+
@@ -655,10 +679,10 @@ If !SF2->( dbSeek(xFilial("SF2") + _cNota + _cSerie + _cCodCli + _cLoja) )
 EndIf
 
 //----------------------------------+
-// Valida se Pedido jç foi expedido | 
+// Valida se Pedido ja foi expedido | 
 //----------------------------------+
 If SF2->F2_XENVWMS == "3"
-	aAdd(aMsgErro,{cFilAnt,_cNota + _cSerie,.F.,"NOTA Jç SEPARADO."})
+	aAdd(aMsgErro,{cFilAnt,_cNota + _cSerie,.F.,"NOTA JA SEPARADO."})
 	RestArea(_aArea)
 	Return .F.
 EndIf

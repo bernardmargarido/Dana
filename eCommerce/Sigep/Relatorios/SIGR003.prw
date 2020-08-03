@@ -141,7 +141,7 @@ While (_cAlias)->( !Eof() )
             _cDTMatrix	:= ""
             _nValor		:= (_cAlias)->WSA_VLRTOT
             _nVolume	:= _nX
-            _nPeso		:= (_cAlias)->C5_PBRUTO * 100
+            _nPeso		:= IIF((_cAlias)->C5_PBRUTO > 0, (_cAlias)->C5_PBRUTO * 1000, 100) 
             
             _oProcess:IncRegua2(" Imprimindo Etiqueta pedido " + _cPedido + " .")
 

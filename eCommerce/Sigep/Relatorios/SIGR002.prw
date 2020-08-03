@@ -12,14 +12,11 @@
 
 /**********************************************************************************/
 /*/{Protheus.doc} SIGR002
-
-@description Relatorio de PLP
-
-@author Bernard M. Margarido
-@since 07/04/2017
-@version undefined
-
-@type function
+	@description Relatorio de PLP
+	@author Bernard M. Margarido
+	@since 07/04/2017
+	@version undefined
+	@type function
 /*/
 /**********************************************************************************/
 User Function SIGR002()
@@ -39,14 +36,11 @@ Return Nil
 
 /**********************************************************************************/
 /*/{Protheus.doc} SigR02Prt
-
-@description Realiza a impressao do relatorio
-
-@author Bernard M. Margarido
-@since 07/04/2017
-@version undefined
-
-@type function
+	@description Realiza a impressao do relatorio
+	@author Bernard M. Margarido
+	@since 07/04/2017
+	@version undefined
+	@type function
 /*/
 /**********************************************************************************/
 Static Function SigR02Prt()
@@ -189,17 +183,11 @@ Return Nil
 
 /**********************************************************************************/
 /*/{Protheus.doc} SigR02Cabec
-
-@description Imprime cabeçalho do relatorio
-
-@author Bernard M. Margarido
-
-@since 07/04/2017
-@version undefined
-
-@param _oPrint		, object	, objeto contendo dados para impressao do relatorio
-
-@type function
+	@description Imprime cabeçalho do relatorio
+	@author Bernard M. Margarido
+	@since 07/04/2017
+	@version undefined
+	@type function
 /*/
 /**********************************************************************************/
 Static Function SigR02Cabec(_oPrint,_cIDPlp)
@@ -238,13 +226,13 @@ _oPrint:Line(112, 025, 112, 600, 0, "-9")
 //--------------------+
 // Dados do Remetente |
 //--------------------+
-_cNomeRem		:= "Dana Cosméticos" 	//Capital(RTrim(SM0->M0_NOMECOM))
-_cEndCob		:= "Av. Piracema, 1.411"//Capital(RTrim(SM0->M0_ENDCOB))
-_cMunCob		:= "Barueri "			//Capital(RTrim(SM0->M0_CIDCOB))
-_cBairCob		:= "Tamboré"			//Capital(RTrim(SM0->M0_BAIRCOB))
-_cCompCob		:= "Módulo 5"			//Capital(RTrim(SM0->M0_COMPCOB))
-_cEstCob		:= "SP"					//SM0->M0_ESTCOB
-_cCepCob		:= "06460030"			//SM0->M0_CEPCOB
+_cNomeRem		:= Capital(RTrim(SM0->M0_NOMECOM))
+_cEndCob		:= Capital(RTrim(SM0->M0_ENDCOB))
+_cMunCob		:= Capital(RTrim(SM0->M0_CIDCOB))
+_cBairCob		:= Capital(RTrim(SM0->M0_BAIRCOB))
+_cCompCob		:= Capital(RTrim(SM0->M0_COMPCOB))
+_cEstCob		:= SM0->M0_ESTCOB
+_cCepCob		:= SM0->M0_CEPCOB
 
 //-----------------+
 // Dados Cabecalho |
@@ -293,17 +281,11 @@ Return _oPrint
 
 /**********************************************************************************/
 /*/{Protheus.doc} SigR02Rod
-
-@description Imprime Rodape PLP
-
-@author Bernard M. Margarido
-
-@since 07/04/2017
-@version undefined
-
-@param _oPrint		, object	, objeto contendo dados para impressao do relatorio
-
-@type function
+	@description Imprime Rodape PLP
+	@author Bernard M. Margarido
+	@since 07/04/2017
+	@version undefined
+	@type function
 /*/
 /**********************************************************************************/
 Static Function SigR02Rod(_oPrint,_nLinF,_nTotPlp)
@@ -348,18 +330,11 @@ Return _oPrint
 
 /**********************************************************************************/
 /*/{Protheus.doc} Sigr02Qry
-
-@description Consulta PLP a ser impressa
-
-@author Bernard M. Margarido
-
-@since 07/04/2017
-@version undefined
-
-@param _cAlias, characters, descricao
-@param nToReg, numeric, descricao
-
-@type function
+	@description Consulta PLP a ser impressa
+	@author Bernard M. Margarido
+	@since 07/04/2017
+	@version undefined
+	@type function
 /*/
 /**********************************************************************************/
 Static Function Sigr02Qry(_cAlias,_nToReg)
@@ -410,14 +385,11 @@ Return .T.
 
 /***************************************************************************************/
 /*/{Protheus.doc} AjustaSx1
-
-@description Cria parametros para processamento da PLP
-
-@author Bernard M. Maragrido
-@since 05/04/2017
-@version undefined
-@param cPerg		, characters	, Codigo para criação dos parametros
-@type function
+	@description Cria parametros para processamento da PLP
+	@author Bernard M. Maragrido
+	@since 05/04/2017
+	@version undefined
+	@type function
 /*/
 /***************************************************************************************/
 Static Function AjustaSx1(_cPerg)

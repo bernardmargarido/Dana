@@ -10,17 +10,13 @@ Static cDescInt	:= "SKU"
 Static cDirImp	:= "/ecommerce/"
 
 /**************************************************************************************************/
-
 /*/{Protheus.doc} AECOI004
-
-@description	Rotina realiza a integração dos produtos filhos (sku) para o ecommerce
-
-@type   		Function 
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		10/02/2016
+	@description	Rotina realiza a integração dos produtos filhos (sku) para o ecommerce
+	@type   		Function 
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
 /*/
-
 /**************************************************************************************************/
 User Function AECOI004()
 Local aArea		:= GetArea()
@@ -79,16 +75,12 @@ u_AEcoGrvLog(cCodInt,cDescInt,dDtaInt,cHrIni,Time(),cStaLog,nQtdInt,aMsgErro,cTh
 
 Return Nil
 /**************************************************************************************************/
-
 /*/{Protheus.doc} AECOINT04
-
-@description	Rotina consulta e envia Produtos Filhos (SKU) para a pataforma e-Commerce
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		10/02/2016
+	@description	Rotina consulta e envia Produtos Filhos (SKU) para a pataforma e-Commerce
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
 /*/
-
 /**************************************************************************************************/
 Static Function AECOINT04()
 Local aArea		:= GetArea()
@@ -191,14 +183,11 @@ Return .T.
 
 /**************************************************************************************************/
 /*/{Protheus.doc} AEcoEnv
-
-@description	Rotina envia dados do SKU para a plataforma e-commerce
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		02/02/2016
-
-@type function
+	@description	Rotina envia dados do SKU para a plataforma e-commerce
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		02/02/2016
+	@type function
 /*/
 /**************************************************************************************************/
 Static Function AEcoEnv(cCodPai,cNomePrd,cCodSku,cNomeSku,cCodBar,cLocal,cUnidade,;
@@ -323,19 +312,15 @@ EndIf
 RestArea(aArea)
 Return .T.
 
-/*****************************************************************************************************
-{Protheus.doc} AECOQRY
-
-@description 	Rotina consulta os produtos filhos (SKU) a serem enviados para a pataforma e-Commerce
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		10/02/2016
-
-@param			cAlias 		, Nome Arquivo Temporario
-
-@return			lRet - Variavel Logica			
-******************************************************************************************************/
+/*****************************************************************************************************/
+/*/{Protheus.doc} AECOQRY
+	@description 	Rotina consulta os produtos filhos (SKU) a serem enviados para a pataforma e-Commerce
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
+	@return			lRet - Variavel Logica			
+/*/
+/******************************************************************************************************/
 Static Function AEcoQry(cAlias,nToReg)
 Local cQuery := ""
 
@@ -426,18 +411,13 @@ Return .T.
 
 /*********************************************************************************/
 /*/{Protheus.doc} LogExec
-
-@description Grava Log do processo 
-
-@author SYMM Consultoria
-@since 26/01/2017
-@version undefined
-
-@param cMsg, characters, descricao
-
-@type function
+	@description Grava Log do processo 
+	@author SYMM Consultoria
+	@since 26/01/2017
+	@version undefined
+	@param cMsg, characters, descricao
+	@type function
 /*/
-
 /*********************************************************************************/
 Static Function LogExec(cMsg)
 	CONOUT(cMsg)

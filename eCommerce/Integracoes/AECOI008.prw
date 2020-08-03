@@ -13,13 +13,11 @@ Static cDirImp	:= "/ecommerce/"
 
 /**************************************************************************************************/
 /*/{Protheus.doc} AECOI008
-
-@description	Rotina realiza a integração dos estoques e-commerce
-
-@type   		Function 
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		10/02/2016
+	@description	Rotina realiza a integração dos estoques e-commerce
+	@type   		Function 
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
 /*/
 /**************************************************************************************************/
 User Function AECOI008()
@@ -82,12 +80,10 @@ Return Nil
 
 /**************************************************************************************************/
 /*/{Protheus.doc} AECOINT08
-
-@description	Rotina consulta e envia estoque dos produtos para a pataforma e-Commerce
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		10/02/2016
+	@description	Rotina consulta e envia estoque dos produtos para a pataforma e-Commerce
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
 /*/
 /**************************************************************************************************/
 Static Function AECOINT08()
@@ -258,24 +254,17 @@ Return .T.
 
 /**********************************************************************************************/
 /*/{Protheus.doc} AECOQRY
-
-@description 	Rotina consulta os estoques a serem enviados para a pataforma e-Commerce
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		10/02/2016
-
-@param			cAlias 		, Nome Arquivo Temporario
-@param			nToReg		, Grava total de registros encontrados
-
-@return			lRet - Variavel Logica
+	@description 	Rotina consulta os estoques a serem enviados para a pataforma e-Commerce
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
 /*/			
 /************************************************************************************************/
 Static Function AEcoQry(cAlias,nToReg)
 
 Local cQuery 	:= ""
 Local cFilEst	:= GetNewPar("EC_FILEST")
-Local cLocal	:= GetNewPar("EC_ARMAZEM")
+Local cLocal	:= FormatIn(GetNewPar("EC_ARMAZEM"),"/")
 
 //------------------------+
 // Query consulta Estoques|
@@ -302,13 +291,13 @@ cQuery += "			SC0.SALDOC0 SALDOC0, " + CRLF
 cQuery += "			B2.R_E_C_N_O_ RECNOSB2 " + CRLF
 cQuery += "		FROM " + CRLF
 cQuery += "			" + RetSqlName("SB2") + " B2 " + CRLF
-cQuery += "			INNER JOIN " + RetSqlName("SB1") + " B1 ON B1.B1_FILIAL = '" + xFilial("SB1") + "' AND B1.B1_COD = B2.B2_COD AND B1.B1_MSBLQL <> '1' AND B1.D_E_L_E_T_ = '' " + CRLF 
+cQuery += "			INNER JOIN " + RetSqlName("SB1") + " B1 ON B1.B1_FILIAL = '" + xFilial("SB1") + "' AND B1.B1_COD = B2.B2_COD AND B1.B1_MSBLQL <> '1' AND B1.B1_LOCPAD IN " + cLocal + " AND B1.D_E_L_E_T_ = '' " + CRLF 
 cQuery += "			INNER JOIN " + RetSqlName("SB5") + " B5 ON B5.B5_FILIAL = '" + xFilial("SB5") + "' AND B5.B5_COD = B2.B2_COD AND B5.B5_XENVECO = '2' AND B5.B5_XENVSKU = '2' AND B5.B5_XUSAECO = 'S' AND B5.D_E_L_E_T_ = '' " + CRLF
 cQuery += "			OUTER APPLY ( " + CRLF
 cQuery += "							SELECT " + CRLF
 cQuery += "								ISNULL(SUM(D2.D2_QUANT),0) SALDOD2 " + CRLF
 cQuery += "							FROM " + CRLF
-cQuery += "								SD2010 D2 " + CRLF 
+cQuery += "								" + RetSqlName("SD2") + " D2 " + CRLF 
 cQuery += "							WHERE " + CRLF
 cQuery += "								D2.D2_FILIAL = B2.B2_FILIAL AND " + CRLF 
 cQuery += "								D2.D2_COD = B2.B2_COD AND " + CRLF
@@ -320,7 +309,7 @@ cQuery += "			OUTER APPLY ( " + CRLF
 cQuery += "							SELECT " + CRLF 
 cQuery += "								ISNULL(SUM(C6.C6_QTDVEN),0) SALDOC6 " + CRLF
 cQuery += "							FROM " + CRLF
-cQuery += "								SC6010 C6 " + CRLF
+cQuery += "								" + RetSqlName("SC6") + " C6 " + CRLF
 cQuery += "							WHERE 
 cQuery += "								C6.C6_FILIAL = B2.B2_FILIAL AND 
 cQuery += "								C6.C6_PRODUTO = B2.B2_COD AND 
@@ -333,7 +322,7 @@ cQuery += "			OUTER APPLY (
 cQuery += "							SELECT 
 cQuery += "								ISNULL(SUM(C0.C0_QUANT),0) SALDOC0
 cQuery += "							FROM 
-cQuery += "								SC0010 C0 
+cQuery += "								" + RetSqlName("SC0") + " C0 
 cQuery += "							WHERE 
 cQuery += "								C0.C0_FILIAL = B2.B2_FILIAL AND 
 cQuery += "								C0.C0_PRODUTO = B2.B2_COD AND 
@@ -343,7 +332,7 @@ cQuery += "							GROUP BY C0.C0_FILIAL,C0.C0_PRODUTO
 cQuery += "						)SC0
 cQuery += "		WHERE " + CRLF
 cQuery += "			B2.B2_FILIAL = '" + cFilEst  + "' AND " + CRLF 
-cQuery += "			B2.B2_LOCAL = '" + cLocal + "' AND " + CRLF
+cQuery += "			B2.B2_LOCAL = B1.B1_LOCPAD AND " + CRLF
 cQuery += "			B2.B2_MSEXP = '' AND " + CRLF
 cQuery += "			B2.D_E_L_E_T_ = '' " + CRLF
 cQuery += "	) ESTOQUE " + CRLF

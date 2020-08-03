@@ -40,7 +40,7 @@ U_VldLibPv(SC5->C5_NUM,@_lLiber,@_lBlqEst)
 If _lLiber .And. _lBlqEst
     U_GrvStaEc(SC5->C5_XNUMECO,'004')
 ElseIf _lLiber .And. !_lBlqEst
-    U_GrvStaEc(SC5->C5_XNUMECO,'003')
+    U_GrvStaEc(SC5->C5_XNUMECO,'011')
 ElseIf !_lLiber .And. !_lBlqEst    
     U_GrvStaEc(SC5->C5_XNUMECO,'002')
 EndIf
@@ -57,13 +57,19 @@ If WSA->( FieldPos("WSA_NUMSC5") ) > 0
 	If WSA->( dbSeek(xFilial("WSA") + SC5->C5_XNUMECO) )
         RecLock("WSA",.F.)
             WSA->WSA_NUMSC5 := SC5->C5_NUM
+            WSA->WSA_ENVLOG := "2"
         WSA->( MsUnLock() )
 
-        If WSA->WSA_FRETE > 0
-            SC5->C5_FRETE   := WSA->WSA_FRETE
-            SC5->C5_TPFRETE := "F"
-        EndIf
-       
+        //----------------------+
+        // Grava dados de Frete |
+        //----------------------+
+        SC5->C5_FRETE   := IIF(WSA->WSA_FRETE > 0, WSA->WSA_FRETE, 0)
+        SC5->C5_TPFRETE := IIF(WSA->WSA_FRETE > 0, "F", "C")
+        SC5->C5_PESOL   := IIF(WSA->WSA_PLIQUI > 0, WSA->WSA_PLIQUI, 0)
+        SC5->C5_PBRUTO  := IIF(WSA->WSA_PBRUTO > 0, WSA->WSA_PBRUTO, 0)
+        SC5->C5_VOLUME1 := IIF(WSA->WSA_VOLUME > 0, WSA->WSA_VOLUME, 0)
+        SC5->C5_ESPECI1 := IIF(Empty(WSA->WSA_ESPECI) , "", WSA->WSA_ESPECI)
+
     EndIf
 EndIf
 

@@ -1345,7 +1345,8 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDesconto,nP
 				RestArea(aArea)
 				Return aRet
 			EndIf
-			
+
+			cLocal		:= IIF(Empty(SB1->B1_LOCPAD), cLocal, SB1->B1_LOCPAD)
 			lGift		:= oItems[nPrd]:IsGift
 			lBrinde		:= IIF(!lBrinde,lGift,lBrinde)
 			lGratis		:= IIF(oItems[nPrd]:SellingPrice <= 0,.T.,.F.)
@@ -1521,14 +1522,11 @@ Return aRet
 
 /**************************************************************************************/
 /*/{Protheus.doc} AEcoI11Kit
-
-@description Realiza a gravação dos produtos KIT
-
-@author Bernard M. Margarido
-@since 02/03/2017
-@version undefined
-
-@type function
+	@description Realiza a gravação dos produtos KIT
+	@author Bernard M. Margarido
+	@since 02/03/2017
+	@version undefined
+	@type function
 /*/
 /**************************************************************************************/
 Static Function AEcoI11Kit(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDesconto,nPesoBruto,dDtaEmiss,nQtdKit,cRefKit,oItKit,oTransp,oRestPv,cCodKit,nItAtu,cItem)
@@ -1594,6 +1592,7 @@ For nPrd := 1 To Len(oItKit)
 		Return aRet
 	EndIf
 
+	cLocal		:= IIF(Empty(SB1->B1_LOCPAD), cLocal, SB1->B1_LOCPAD)
 	lGratis		:= ( RetPrcUni(oItKit[nPrd]:SellingPrice) == 0 )
 	nQtdItem	:= nQtdKit * oItKit[nPrd]:Quantity
 	nValor		:= RetPrcUni(oItKit[nPrd]:Price)
@@ -1752,17 +1751,11 @@ Return aRet
 
 /******************************************************************************/
 /*/{Protheus.doc} AEcoI11Brinde
-
-@description Aplica desconto do brinde no primeiro item do pedido
-
-@author Bernard M. Margarido
-
-@since 01/06/2017
-@version undefined
-
-@param cNumOrc, characters, descricao
-
-@type function
+	@description Aplica desconto do brinde no primeiro item do pedido
+	@author Bernard M. Margarido
+	@since 01/06/2017
+	@version undefined
+	@type function
 /*/
 /******************************************************************************/
 Static Function AEcoI11Brinde(cNumOrc,nVlrBrinde)
@@ -1901,6 +1894,7 @@ For nPrd := 1 To Len(oItems)
 		//-----------------------------------------+
 		// Valida se produto tem desconto / brinde |
 		//-----------------------------------------+ 
+		cLocal		:= IIF(Empty(SB1->B1_LOCPAD), cLocal, SB1->B1_LOCPAD)
 		lGift		:= oItems[nPrd]:IsGift
 		lBrinde		:= IIF(!lBrinde,lGift,lBrinde)
 
@@ -2065,6 +2059,8 @@ For nX := 1 To Len(oItKit)
 		Return aRet
 	EndIf
 
+	cLocal		:= IIF(Empty(SB1->B1_LOCPAD), cLocal, SB1->B1_LOCPAD)
+
 	//--------------------------+
 	// Valida se existe reserva |
 	//--------------------------+
@@ -2158,15 +2154,11 @@ Return aRet
 
 /***********************************************************************************************************/
 /*/{Protheus.doc} AEcoGrvCab
-
-@description Grava Cabeçalho do Pedido e-Commerce
-
-@author Bernard M. Margarido
-
-@since 01/02/2017
-@version undefined
-
-@type function
+	@description Grava Cabeçalho do Pedido e-Commerce
+	@author Bernard M. Margarido
+	@since 01/02/2017
+	@version undefined
+	@type function
 /*/
 /***********************************************************************************************************/
 Static Function AEcoGrvCab(	cNumOrc,cOrderId,cCodCli,cLojaCli,cTipoCli,cVendedor,cEndDest,cNumDest,;
@@ -2327,22 +2319,10 @@ Return aRet
 
 /**************************************************************************************************/
 /*/{Protheus.doc} AEcoGrvFin
-
-@description	Grava os titulos financeiro
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		10/02/2016
-
-@param			oPayment	, object	, Objeto contendo os dados do pagamento
-@param			oRestPv		, object	, Objeto contendo os dados do pedido ecommerce
-@param			cNumOrc		, character	, Numero do Orçamento
-@param			cOrderId	, character	, Numero do pedido e-Commerce
-@param			cPedCodCli  , character	, Numero do pedido Cliente
-@param			cHoraEmis	, character	, Hora emissao do pedido
-@param			dDtaEmiss	, date		, Data de Emissao do Pedido
-
-@return			aRet - Array aRet[1] - Logico aRet[2] - Codigo Erro aRet[3] - Descricao do Erro
+	@description	Grava os titulos financeiro
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
 /*/			
 /**************************************************************************************************/
 Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmis,cCodAfili,dDtaEmiss,nVlrTotMkt,nVlrFrete)

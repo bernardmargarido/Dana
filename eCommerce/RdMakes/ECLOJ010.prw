@@ -343,6 +343,6 @@ aAdd(aRotIbx, {"Envia NF. IBEX"		,"U_ECLOJM06"	, 0, 4 } )	// Envia Notas Ibex Lo
 aAdd(aRotina, {"Pesquisa"   	, "AxPesqui"    , 0, 1 })  // Pesquisa
 aAdd(aRotina, {"Visualizar" 	, "U_ECLOJ10A"  , 0, 2 })  // Visualizar
 aAdd(aRotina, {"Faturamento"	, aRotFat		, 0, 4 })  // Faturamento
-aAdd(aRotina, {"Canc / Troca"   , aRotTro  		, 0, 4 })  // Cancelamento / Troca Devolução
-aAdd(aRotina, {"Env. IBEX"   	, aRotIbx  		, 0, 4 })  // Envia Pedidos Ibex Logistica
+//aAdd(aRotina, {"Canc / Troca"   , aRotTro  		, 0, 4 })  // Cancelamento / Troca Devolução
+//aAdd(aRotina, {"Env. IBEX"   	, aRotIbx  		, 0, 4 })  // Envia Pedidos Ibex Logistica
 Return aRotina

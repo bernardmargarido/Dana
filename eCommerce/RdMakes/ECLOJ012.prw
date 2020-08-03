@@ -76,6 +76,22 @@ If _lContinua
                     EcLoj012Orc()
                 End Transaction    
             LogExec("==> FIM ORCAMENTO ECOMMERCE " + WSA->WSA_NUM + "DATA/HORA: " + dToc( Date() ) + " AS " + Time() )
+        //----------------------------------------+    
+        // Libera pedidos com bloqueio de estoque |
+        //----------------------------------------+
+        ElseIf WSA->WSA_CODSTA == "004"
+            LogExec("==> INICIO LIBERACAO ORCAMENTO ECOMMERCE " + WSA->WSA_NUM + "DATA/HORA: " + dToc( Date() ) + " AS " + Time() )
+                Begin Transaction 
+                    //------------------------+
+                    // Libera pedido de Venda | 
+                    //------------------------+
+                    If EcLoj012Lib(WSA->WSA_NUMSC5)
+                        U_GrvStaEc(WSA->WSA_NUMECO,"011")
+                    Else
+                        U_GrvStaEc(WSA->WSA_NUMECO,"004")
+                    EndIf
+                End Transaction   
+            LogExec("==> FIM LIBERACAO ORCAMENTO ECOMMERCE " + WSA->WSA_NUM + "DATA/HORA: " + dToc( Date() ) + " AS " + Time() )
         //-----------+
         // Cancelado |
         //-----------+
@@ -573,6 +589,147 @@ Endif
 Return Nil
 
 /**************************************************************************/
+/*/{Protheus.doc} EcLoj012Lib()
+    @description Libera pedidos com bloqueio de saldo
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 02/08/2020
+/*/
+/**************************************************************************/
+Static Function EcLoj012Lib(_cNumPv)
+Local _aArea        := GetArea()
+
+Local _aCabec       := {}
+Local _aRegSC6      := {}
+
+Local _nVlrLiber    := 0
+Local _nValTot      := 0
+Local _nQtdLib      := 0
+
+Local _lRet         := .T.
+
+Private lMsErroAuto := .F.
+
+aAdd(_aCabec, { "C5_FILIAL", xFilial("SC5") , Nil   })
+aAdd(_aCabec, { "C5_NUM"   , _cNumPv        , Nil   })
+
+//------------------+
+// Seleciona pedido | 
+//------------------+
+dbSelectArea("SC5")
+SC5->( dbSetOrder(1) )
+
+//---------------+
+// Seleciona TES | 
+//---------------+
+dbSelectArea("SF4")
+SF4->( dbSetOrder(1) )
+
+//---------------------------+
+// Seleciona itens liberados | 
+//---------------------------+
+dbSelectArea("SC9")
+SC9->( dbSetOrder(1) )
+
+//--------------------------------------+
+// Posiciona itens do pedido e-Commerce |
+//--------------------------------------+
+dbSelectArea("SC6")
+SC6->( dbSetOrder(1) )
+SC6->( dbSeek(xFilial("SC6") + _cNumPv))
+While SC6->( !Eof() .And. xFilial("SC6") + _cNumPv == SC6->C6_FILIAL + SC6->C6_NUM )
+    //--------------------------+
+    // Atualiza Total do pedido | 
+    //--------------------------+
+    _nValTot += SC6->C6_VALOR
+
+    //---------------+
+    // Posiciona TES | 
+    //---------------+
+	SF4->( MsSeek( xFilial("SF4") + SC6->C6_TES ) )
+    
+    //------------------+
+    // Reserva registro |
+    //------------------+
+    If SC5->( RecLock("SC5",.F.) )
+
+		_nQtdLib := IIF(SC6->C6_QTDLIB == 0,SC6->C6_QTDVEN,SC6->C6_QTDLIB)
+		
+		//---------------------------------+
+		// Recalcula a Quantidade Liberada |
+		//---------------------------------+
+		SC6->( RecLock("SC6",.F.) )
+		
+		//---------------------------+
+		// Libera por Item de Pedido |
+		//---------------------------+
+		Begin Transaction
+			SC6->C6_QTDLIB := IIF(SC6->C6_QTDLIB == 0,SC6->C6_QTDVEN,SC6->C6_QTDLIB) 
+
+            //--------------------------------+    
+            // Valida se item já foi liberado | 
+            //--------------------------------+    
+			If SC9->( dbSeek(xFilial("SC9") + SC6->C6_NUM + SC6->C6_ITEM))
+
+                //----------------------+        
+                // Salva valor liberado | 
+                //----------------------+    
+				_nVlrLiber := SC6->C6_VALOR
+
+                //-------------+
+                // Salva Recno | 
+                //-------------+
+                _aRegSC6    := {}
+				aAdd(_aRegSC6, SC6->(RecNo()))
+
+                //------------------+
+				// Posiciona pedido |
+                //------------------+
+				SC5->( dbSeek(xFilial("SC5") + SC6->C6_NUM ) )
+
+                //----------------------------------------------------------------------------+    
+				// Caso possuir o chamo a função de validação de cabecario do pedido de venda |
+                //----------------------------------------------------------------------------+
+				MaAvalSC5("SC5",3,.F.,.F.,,,,,,SC9->C9_PEDIDO,_aRegSC6,.T.,.F.,@_nVlrLiber)		
+				
+                //--------------------------------------------------------------------+
+                // A liberação do credito é forçada pois o pagamento já foi realizado |
+                //--------------------------------------------------------------------+
+				RecLock("SC9",.F.)
+				    SC9->C9_BLCRED := " "
+				SC9->( MsUnlock() )										
+			Else						
+                //------------------------------------------------------------------------------+ 
+				// Liberação do Credito/estoque do pedido de venda mais informações ver fatxfun |
+                //------------------------------------------------------------------------------+ 
+				MaLibDoFat( SC6->(RecNo()),_nQtdLib,.T.,.T.,.F.,.F.,.F.,.F.)	
+			EndIf 											
+			
+		End Transaction
+	EndIf
+	
+	SC5->( MsUnLock() )
+	SC6->( MsUnLock() )
+
+    SC6->( dbSkip() )
+EndDo
+
+//--------------------------------------------------------------------------+
+// Verifica se existe bloqueio de crédito ou estoque, se existir desbloqueia|
+//--------------------------------------------------------------------------+
+MaLiberOk( { SC6->C6_NUM } )
+SC5->(dbSeek(xFilial("SC5") + _cNumPv) )
+If !lMsErroAuto
+	_lRet   := .T.
+Else
+	MostraErro("/erros/" + "SC5_LIB" + _cNumPv )
+	_lRet   := .F.
+EndIf
+
+RestArea(_aArea)
+Return _lRet
+
+/**************************************************************************/
 /*/{Protheus.doc} EcLoj012Qry
     @description Consulta pedidos eCommerce
     @type  Static Function
@@ -583,7 +740,7 @@ Return Nil
 /**************************************************************************/
 Static Function EcLoj012Qry(_cAlias)
 Local _cQuery   := ""
-Local _cCodSta  := GetNewPAr("EC_STAPROC","001/002/008")
+Local _cCodSta  := GetNewPAr("EC_STAPROC","001/002/004/008")
 Local _lRet     := .T.
 
 //---------------------------+
@@ -598,7 +755,7 @@ _cQuery += "    " + RetSqlName("WSA") + " WSA " + CRLF
 _cQuery += " WHERE " + CRLF
 _cQuery += "    WSA.WSA_FILIAL = '" + xFilial("WSB") + "' AND  " + CRLF
 _cQuery += "    WSA.WSA_CODSTA IN " + _cCodSta + " AND " + CRLF
-_cQuery += "    WSA.WSA_NUMSL1 = '' AND " + CRLF 
+_cQuery += "    ( WSA.WSA_NUMSL1 = '' OR WSA.WSA_NUMSL1 <> '' ) AND " + CRLF 
 _cQuery += "    WSA.D_E_L_E_T_ = '' "
 
 dbUseArea(.T.,"TOPCONN",TcGenQry(,,_cQuery),_cAlias,.T.,.T.)
@@ -731,32 +888,13 @@ RestArea(_aArea)
 Return _lRet
 
 /*********************************************************************************/
-/*/{Protheus.doc} EcLoj012Can
-    @description Realiza a gravação dos orçamentos na LOJA
-    @type  Static Function
-    @author Bernard M. Margarido
-    @since 13/06/2019
-    @version version
-/*/
-/*********************************************************************************/
-Static Function EcLoj012Can()
-
-Return Nil
-
-/*********************************************************************************/
 /*/{Protheus.doc} LogExec
-
-@description Grava Log do processo 
-
-@author SYMM Consultoria
-@since 26/01/2017
-@version undefined
-
-@param cMsg, characters, descricao
-
-@type function
+    @description Grava Log do processo 
+    @author SYMM Consultoria
+    @since 26/01/2017
+    @version undefined
+    @type function
 /*/
-
 /*********************************************************************************/
 Static Function LogExec(cMsg)
 	CONOUT(cMsg)
