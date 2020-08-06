@@ -2998,7 +2998,11 @@ Static Function AEcoUpdPv(cOrderId,cOrdPvCli,cNumOrc,cNumDoc,cNumSer,cNumPv,oRes
 	//------------------+
 	// Ajusta variaveis |
 	//------------------+
-	cCnpj	:= oRestPv:ClientProfileData:Document
+	If oRestPv:ClientProfileData:IsCorporate
+		cCnpj	:= oRestPv:ClientProfileData:CorporateDocument
+	Else
+		cCnpj	:= oRestPv:ClientProfileData:Document
+	EndIF
 	cCnpj 	:= PadR(cCnpj,nTamCnpj)
 	cNomeCli:= Alltrim(oRestPv:ClientProfileData:FirstName + " " + oRestPv:ClientProfileData:LastName)	
 	

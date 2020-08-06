@@ -21,7 +21,6 @@ Static cDirImp	:= "/ecommerce/"
 /*/
 /**************************************************************************************************/
 User Function AECOI008()
-Local aArea		:= GetArea()
 
 Private cThread	:= Alltrim(Str(ThreadId()))
 Private cStaLog	:= "0"
@@ -91,7 +90,6 @@ Local aArea		:= GetArea()
 
 Local cCodSku	:= ""
 Local cDescSku	:= ""
-Local cLocal	:= GetNewPar("EC_ARMAZEM")
 Local cAlias	:= GetNextAlias()
 
 Local nToReg	:= 0
@@ -285,11 +283,11 @@ cQuery += "			B2.B2_QATU SALDOB2, " + CRLF
 cQuery += "			B2.R_E_C_N_O_ RECNOSB2 " + CRLF
 cQuery += "		FROM " + CRLF
 cQuery += "			" + RetSqlName("SB2") + " B2 " + CRLF
-cQuery += "			INNER JOIN " + RetSqlName("SB1") + " B1 ON B1.B1_FILIAL = '" + xFilial("SB1") + "' AND B1.B1_COD = B2.B2_COD AND B1.B1_MSBLQL <> '1' AND B1.B1_LOCPAD IN " + cLocal + " AND B1.D_E_L_E_T_ = '' " + CRLF 
+cQuery += "			INNER JOIN " + RetSqlName("SB1") + " B1 ON B1.B1_FILIAL = '" + xFilial("SB1") + "' AND B1.B1_COD = B2.B2_COD AND B1.B1_MSBLQL <> '1' AND B1.B1_XLOCPAD IN " + cLocal + " AND B1.D_E_L_E_T_ = '' " + CRLF 
 cQuery += "			INNER JOIN " + RetSqlName("SB5") + " B5 ON B5.B5_FILIAL = '" + xFilial("SB5") + "' AND B5.B5_COD = B2.B2_COD AND B5.B5_XENVECO = '2' AND B5.B5_XENVSKU = '2' AND B5.B5_XUSAECO = 'S' AND B5.D_E_L_E_T_ = '' " + CRLF
 cQuery += "		WHERE " + CRLF
 cQuery += "			B2.B2_FILIAL = '" + cFilEst  + "' AND " + CRLF 
-cQuery += "			B2.B2_LOCAL = B1.B1_LOCPAD AND " + CRLF
+cQuery += "			B2.B2_LOCAL = B1.B1_XLOCPAD AND " + CRLF
 cQuery += "			B2.B2_MSEXP = '' AND " + CRLF
 cQuery += "			B2.D_E_L_E_T_ = '' " + CRLF
 cQuery += "	) ESTOQUE " + CRLF

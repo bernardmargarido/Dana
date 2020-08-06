@@ -36,10 +36,10 @@ Default _cPLPAte	:= ""
 //------------------------------+
 AjustaSx1(_cPerg)
 
-If Pergunte(_cPerg,.T.)
+//If Pergunte(_cPerg,.T.)
 	_oProcess:= MsNewProcess():New( {|| SigR03Prt(_cPLPDe,_cPLPAte)},"Dana Cosmeticos - eCommerce","Aguarde ... Imprimindo Etiquetas." )
     _oProcess:Activate()
-EndIf
+//EndIf
 	
 Return Nil
 
@@ -90,10 +90,8 @@ Local _nX				:= 0
 //-----------------------------+
 If !Sigr03Qry(_cAlias,_cPLPDe,_cPLPAte,@_nToReg)
 	MsgStop("Não foram encontrados dados para serem processados. Favor Verificar os parametros.","Dana Cosmeticos - eCommerce")
-	(_cAlias)->( dbCloseArea() )
 	Return Nil
 EndIf
-
 
 //---------------------------------------+
 // Coordendas para linha inicial e final |
