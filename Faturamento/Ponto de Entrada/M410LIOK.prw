@@ -28,6 +28,7 @@ Local cTbDif06	:= ALLTRIM(GETMV("MV_XPRONST")) // Produtos que não incidem ST pa
 Local lTbDif06	:= .F.
 Local _lWeb		:= IIF(ValType(__cInternet) <> "U",.T.,.F.)
 Local _aTbDif06	:= Separa(cTbDif06,"/")
+Local lTESB1	:= .F.
 
 
 SetPrvt("_nLinGetD,_nPosCan,_cCan,ACOLS,_cCpo,_flagdel,_DesPed,_DesMax,_SZ8des")
@@ -43,30 +44,40 @@ If (Altera .or. Inclui) .And. M->C5_TIPO == "N" .And. xFilial("SC5") == "06"//Tr
 	_nPosNat	:= aScan(aHeader, { |x| Alltrim(x[2]) == "C6_NATNOTA"})
 	
 	aCols[n, _nPosNat] := M->C5_NATNOTA
-
+	
 	_cPro    	:= aCols[n, _nPosPro]
 	
 	//------------------------------------+
 	// Valida se produto não inside em ST |
-	//------------------------------------+ 
+	//------------------------------------+
 	If aScan(_aTbDif06,{|x| RTrim(x) == RTrim(_cPro)}) > 0
 		lTbDif06	:= .T.
 	EndIf
 	
 	/*
 	For nX1 := 1 To Len(cTbDif06)
-		If !Substr(cTbDif06,nX1,1) == '/' .And. (nX1 <> Len(cTbDif06))
-			cProdif += Substr(cTbDif06,nX1,1)
-		Else
-			If Alltrim(_cPro) == cProdif
-				lTbDif06	:= .T.
-			Endif
-			cProdif	:= ""
-		EndIf
+	If !Substr(cTbDif06,nX1,1) == '/' .And. (nX1 <> Len(cTbDif06))
+	cProdif += Substr(cTbDif06,nX1,1)
+	Else
+	If Alltrim(_cPro) == cProdif
+	lTbDif06	:= .T.
+	Endif
+	cProdif	:= ""
+	EndIf
 	Next nX1
-	*/ 
+	*/
 	
-	If Alltrim(M->C5_XATUTES) == "S"
+	_cTESB1  	:= Posicione('SB1',1,xFilial('SB1')+_cPro,'B1_TS')
+
+	If _cTESB1 == "522"//Produtos Hair
+		_cSitTrib 	:= Posicione('SF4',1,xFilial('SF4')+_cTESB1,'F4_SITTRIB')
+		_cOrigem  	:= Posicione('SB1',1,xFilial('SB1')+_cPro,'B1_ORIGEM')
+		aCols[n, _nPosTES] 		:= _cTESB1
+		aCols[n, _nPosClasFis] 	:= Alltrim(_cOrigem)+Alltrim(_cSitTrib)
+		lTESB1	:= .T.
+	Endif
+
+	If Alltrim(M->C5_XATUTES) == "S" .And. !lTESB1
 		If Alltrim(M->C5_NATNOTA) $ cNatNBo
 			If lTbDif06
 				_cTES    	:= "504"//Bonificação sem incidencia de ST
@@ -118,6 +129,7 @@ Else
 				cCliUF  	:= Posicione("SA1",1,xFilial("SA1")+M->(C5_CLIENTE+C5_LOJAENT),"A1_EST")
 				cCliSuf 	:= Posicione("SA1",1,xFilial("SA1")+M->(C5_CLIENTE+C5_LOJAENT),"A1_CALCSUF")
 				cCliBred 	:= Posicione("SA1",1,xFilial("SA1")+M->(C5_CLIENTE+C5_LOJAENT),"A1_BASERED")
+				cRegEsp 	:= Posicione("SA1",1,xFilial("SA1")+M->(C5_CLIENTE+C5_LOJAENT),"A1_XREGESP")
 				cTPNatNF	:= Posicione("SZH",1,xFilial("SZH")+M->C5_NATNOTA,"ZH_TIPOFAT")
 				nMargSF7	:= 0
 				lAchoSF7	:= .F.
@@ -157,7 +169,7 @@ Else
 									aCols[n, _nPosTES]	:= cValToChar(TRBSZH->ZH_BRSPNAO)//Sem Base reduzida
 								Endif
 							Elseif cCliSuf == "S"//Zona Franca
-								If Alltrim(cCliBred)=="S" //Com Base Reduzida
+								If Alltrim(cCliBred)=="S" .Or. nMargSF7 <> 0 //Com Base Reduzida
 									aCols[n, _nPosNat]	:= TRBSZH->ZH_CODNAT
 									aCols[n, _nPosTES]	:= cValToChar(TRBSZH->ZH_ZFCOMST)//Zona Base reduzida
 								Else
@@ -165,7 +177,7 @@ Else
 									aCols[n, _nPosTES]	:= cValToChar(TRBSZH->ZH_ZFSEMST)//Zona sem Base reduzida
 								Endif
 							Else
-								If nMargSF7 <> 0 //Com ST
+								If nMargSF7 <> 0 .And. cRegEsp <> "1" //Com ST
 									aCols[n, _nPosNat]	:= TRBSZH->ZH_CODNAT
 									aCols[n, _nPosTES]	:= cValToChar(TRBSZH->ZH_FSPCST)//Fora de SP com ST
 								Else

@@ -30,6 +30,7 @@ Local aArea		:= GetArea()
 Local aRet		:= {.T.,"",""}
 
 Local _lBloqueio:= GetNewPar("EC_BLSMSG",.F.)
+Local _lRet 	:= .T.
 
 Private cThread	:= Alltrim(Str(ThreadId()))
 Private cStaLog	:= "0"
@@ -42,7 +43,7 @@ Private dDtaInt	:= Date()
 
 Private aMsgErro:= {}
 
-Private lJob 	:= .T.
+Private lJob 	:= IIF(Isincallstack("U_ECLOJM07"),.F.,.T.) 
 
 If _lBloqueio
 	RestArea(aArea)
@@ -66,7 +67,11 @@ LogExec("INICIA ENVIO DE INVOICE COM A VTEX - DATA/HORA: "+DTOC(DATE())+" AS "+T
 //-----------------------------------------+
 // Inicia processo de envio das categorias |
 //-----------------------------------------+
-Processa({|| AECOINT13(cOrderId) },"Aguarde...","Enviando invoice.")
+If lJob
+	_lRet := AECOINT13(cOrderId)
+Else
+	Processa({|| _lRet := AECOINT13(cOrderId) },"Aguarde...","Enviando invoice.")
+EndIf
 
 LogExec("FINALIZA ENVIO DE INVOICE COM A VTEX - DATA/HORA: "+DTOC(DATE())+" AS "+TIME())
 LogExec(Replicate("-",80))
@@ -85,7 +90,7 @@ EndIf
 //----------------------------------+
 u_AEcoGrvLog(cCodInt,cDescInt,dDtaInt,cHrIni,Time(),cStaLog,nQtdInt,aMsgErro,cThread,2)
 
-Return Nil
+Return _lRet
 
 /**************************************************************************************************/
 /*/{Protheus.doc} AECOINT13
@@ -205,7 +210,7 @@ cRest := xToJson(_oJson)
 aRet := AEcoI13Inv(WSA->WSA_DOC,WSA->WSA_SERIE,cOrderId,cRest)
 
 RestArea(aArea)
-Return .T.
+Return aRet[1]
 
 /************************************************************************************/
 /*/{Protheus.doc} aEcoI13DtaE

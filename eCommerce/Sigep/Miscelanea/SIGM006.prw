@@ -10,6 +10,7 @@
 /*/
 /***************************************************************/
 User Function SIGM006()
+Local   _lRet       := .T.
 
 Private _lJob       := IIF(Isincallstack("U_SIGM005"),.T.,.F.)
 

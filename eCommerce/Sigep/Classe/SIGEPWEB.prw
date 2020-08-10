@@ -844,6 +844,7 @@ Return Nil
 /****************************************************************************************/
 Method GetXMLPlp() Class SIGEPWEB
 Local _cXml		:= ""
+Local _cNameXML	:= ""
 
 ::cIdCartao		:= GetNewPar("EC_IDCARTA")
 
@@ -869,6 +870,9 @@ _cXml += '</correioslog>'
 // Grava XML variavel da classe |
 //------------------------------+
 ::cXmlPLP	:= _cXml
+
+_cNameXML := "XML_" + ::cIdPLPErp + ".xml"
+MemoWrite("/xmp_plp/" + _cNameXML ,_cXml)
 
 Return .T.
 
@@ -950,13 +954,13 @@ For _nX := 1 To Len(aPlpDest)
 	_cXmlDest += TagXml("rt2")
 
 	_cXmlDest += '<destinatario>'
-	_cXmlDest += TagXml("nome_destinatario",SubStr(aPlpDest[_nX][4],1,50),.T.)
+	_cXmlDest += TagXml("nome_destinatario",RTrim(SubStr(aPlpDest[_nX][4],1,50)),.T.)
 	_cXmlDest += TagXml("telefone_destinatario",RTrim(aPlpDest[_nX][5]) + RTrim(aPlpDest[_nX][6]),.T.)
 	_cXmlDest += TagXml("celular_destinatario")
 	_cXmlDest += TagXml("email_destinatario")
-	_cXmlDest += TagXml("logradouro_destinatario",SubStr(aPlpDest[_nX][8],1,50),.T.)
+	_cXmlDest += TagXml("logradouro_destinatario",RTrim(SubStr(aPlpDest[_nX][8],1,IIF(At(",",aPlpDest[_nX][8]) > 0,At(",",aPlpDest[_nX][8]) - 1,50))),.T.)
 	_cXmlDest += TagXml("complemento_destinatario",RTrim(aPlpDest[_nX][9]))
-	_cXmlDest += TagXml("numero_end_destinatario",IIF(At(",",aPlpDest[_nX][8]) > 0,RTrim(aPlpDest[_nX][8]),"S/N"),.T.)
+	_cXmlDest += TagXml("numero_end_destinatario",IIF(At(",",aPlpDest[_nX][8]) > 0,RTrim(SubStr(aPlpDest[_nX][8],At(",",aPlpDest[_nX][8]) + 1)),"S/N"),.T.)
 	_cXmlDest += TagXml("cpf_cnpj_destinatario",aPlpDest[_nX][10],.T.)
 	_cXmlDest += '</destinatario>'
 
