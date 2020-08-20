@@ -70,7 +70,7 @@ If _lContinua
         //-----------------------------+
         // Pagamento pendente/aprovado |
         //-----------------------------+
-        If WSA->WSA_CODSTA $ "001/002"
+        If WSA->WSA_CODSTA $ "001/002" .And. Empty(WSA->WSA_NUMSL1)
             LogExec("==> INICIO ORCAMENTO ECOMMERCE " + WSA->WSA_NUM + "DATA/HORA: " + dToc( Date() ) + " AS " + Time() )
                 Begin Transaction 
                     EcLoj012Orc()
@@ -79,7 +79,7 @@ If _lContinua
         //----------------------------------------+    
         // Libera pedidos com bloqueio de estoque |
         //----------------------------------------+
-        ElseIf WSA->WSA_CODSTA == "004"
+        ElseIf WSA->WSA_CODSTA == "004" .And. !Empty(WSA->WSA_NUMSC5)
             LogExec("==> INICIO LIBERACAO ORCAMENTO ECOMMERCE " + WSA->WSA_NUM + "DATA/HORA: " + dToc( Date() ) + " AS " + Time() )
                 Begin Transaction 
                     //------------------------+

@@ -1346,7 +1346,7 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDesconto,nP
 				Return aRet
 			EndIf
 
-			cLocal		:= IIF(Empty(SB1->B1_LOCPAD), cLocal, SB1->B1_LOCPAD)
+			cLocal		:= IIF(Empty(SB1->B1_XLOCPAD), SB1->B1_LOCPAD, SB1->B1_XLOCPAD)
 			lGift		:= oItems[nPrd]:IsGift
 			lBrinde		:= IIF(!lBrinde,lGift,lBrinde)
 			lGratis		:= IIF(oItems[nPrd]:SellingPrice <= 0,.T.,.F.)
@@ -1393,9 +1393,9 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDesconto,nP
 			//------------------------+
 			// Utiliza Tes do Produto |
 			//------------------------+
-			If !Empty(SB1->B1_TS)
-				cTesEco := SB1->B1_TS 
-			EndIf
+			//If !Empty(SB1->B1_TS)
+			//	cTesEco := SB1->B1_TS 
+			//EndIf
 			
 			//-----------------+
 			// Tes Inteligente |
@@ -1592,7 +1592,7 @@ For nPrd := 1 To Len(oItKit)
 		Return aRet
 	EndIf
 
-	cLocal		:= IIF(Empty(SB1->B1_LOCPAD), cLocal, SB1->B1_LOCPAD)
+	cLocal		:= IIF(Empty(SB1->B1_XLOCPAD), SB1->B1_LOCPAD, SB1->B1_XLOCPAD)
 	lGratis		:= ( RetPrcUni(oItKit[nPrd]:SellingPrice) == 0 )
 	nQtdItem	:= nQtdKit * oItKit[nPrd]:Quantity
 	nValor		:= RetPrcUni(oItKit[nPrd]:Price)
@@ -1631,9 +1631,11 @@ For nPrd := 1 To Len(oItKit)
 	//------------------------+
 	// Utiliza Tes do Produto |
 	//------------------------+
+	/*
 	If !Empty(SB1->B1_TS)
 		cTesEco := SB1->B1_TS 
 	EndIf
+	*/
 	
 	//-----------------+
 	// Tes Inteligente |
@@ -1873,7 +1875,7 @@ For nPrd := 1 To Len(oItems)
 		//-----------------------------------+
 		aRet 	:= AEcoGrvRKit(cOrderId,cPedCodCli,cNumOrc,cCodCli,cLojaCli,cVendedor,nDesconto,dDtaEmiss,oItems[nPrd]:Quantity,oItems[nPrd]:Components,oTransp,oRestPv,cProduto,dDtVldRserv)
 		If !aRet[1]
-			RestArea(aArea)
+			RestArea(_aArea)
 			Return aRet
 		EndIf
 	Else
@@ -1887,14 +1889,14 @@ For nPrd := 1 To Len(oItems)
 			aRet[1] := .F.
 			aRet[2] := cProduto
 			aRet[3] := "PRODUTO " + Alltrim(cProduto) + " NAO ENCONTRADO. PEDIDO ORDERID " + cOrderId 
-			RestArea(aArea)
+			RestArea(_aArea)
 			Return aRet
 		EndIf
 		
 		//-----------------------------------------+
 		// Valida se produto tem desconto / brinde |
 		//-----------------------------------------+ 
-		cLocal		:= IIF(Empty(SB1->B1_LOCPAD), cLocal, SB1->B1_LOCPAD)
+		cLocal		:= IIF(Empty(SB1->B1_XLOCPAD), SB1->B1_LOCPAD, SB1->B1_XLOCPAD)
 		lGift		:= oItems[nPrd]:IsGift
 		lBrinde		:= IIF(!lBrinde,lGift,lBrinde)
 
@@ -2059,7 +2061,7 @@ For nX := 1 To Len(oItKit)
 		Return aRet
 	EndIf
 
-	cLocal		:= IIF(Empty(SB1->B1_LOCPAD), cLocal, SB1->B1_LOCPAD)
+	cLocal		:= IIF(Empty(SB1->B1_XLOCPAD), SB1->B1_LOCPAD, SB1->B1_XLOCPAD)
 
 	//--------------------------+
 	// Valida se existe reserva |
