@@ -429,8 +429,8 @@ EndIf
 // Dados passados pela Vtex |
 //--------------------------+ 
 If oDadosCli:IsCorporate
-	cNomeCli	:= IIF(nOpcA == 3,	u_ECACENTO(DecodeUtf8(oDadosCli:CorporateName),.T.)				, SA1->A1_NOME 		) 
-	cNReduz		:= IIF(nOpcA == 3,	u_ECACENTO(DecodeUtf8(oDadosCli:TradeName),.T.)					, SA1->A1_NREDUZ	)
+	cNomeCli	:= IIF(nOpcA == 3,	Alltrim(u_ECACENTO(DecodeUtf8(oDadosCli:CorporateName),.T.))	, SA1->A1_NOME 		) 
+	cNReduz		:= IIF(nOpcA == 3,	Alltrim(u_ECACENTO(DecodeUtf8(oDadosCli:TradeName),.T.))		, SA1->A1_NREDUZ	)
 	cContato	:= IIF(nOpcA == 3,	u_ECACENTO(DecodeUtf8(oDadosCli:FirstName),.T.) + " " + u_ECACENTO(DecodeUtf8(oDadosCli:LastName),.T.)	, SA1->A1_CONTATO	)	
 	cDdd01		:= IIF(nOpcA == 3,	SubStr(oDadosCli:CorporatePhone,5,2)							, SA1->A1_DDD		)
 	cTel01		:= IIF(nOpcA == 3,	StrTran(SubStr(oDadosCli:CorporatePhone,8,nTamTel)," ","")		, SA1->A1_TEL		)
@@ -438,11 +438,13 @@ If oDadosCli:IsCorporate
 	cContrib	:= IIF(nOpcA == 3,	IIF(Alltrim(cInscE) == "ISENTO","2","1")						, SA1->A1_CONTRIB	)
 Else	
 	
-	cNomeCli	:= IIF(nOpcA == 3,	u_ECACENTO(DecodeUtf8(oDadosCli:FirstName),.T.) + " " + u_ECACENTO(DecodeUtf8(oDadosCli:LastName),.T.)	, SA1->A1_NOME 		)
-	cNReduz		:= IIF(nOpcA == 3,	u_ECACENTO(DecodeUtf8(oDadosCli:FirstName),.T.) + " " + u_ECACENTO(DecodeUtf8(oDadosCli:LastName),.T.)	, SA1->A1_NREDUZ	)
+	cNomeCli	:= IIF(nOpcA == 3,	Alltrim(u_ECACENTO(DecodeUtf8(oDadosCli:FirstName),.T.)) + " " + Alltrim(u_ECACENTO(DecodeUtf8(oDadosCli:LastName),.T.))	, SA1->A1_NOME 		)
+	cNReduz		:= IIF(nOpcA == 3,	Alltrim(u_ECACENTO(DecodeUtf8(oDadosCli:FirstName),.T.)) + " " + Alltrim(u_ECACENTO(DecodeUtf8(oDadosCli:LastName),.T.))	, SA1->A1_NREDUZ	)
 	cDdd01		:= IIF(nOpcA == 3,	SubStr(oDadosCli:Phone,4,2)										, SA1->A1_DDD		)
 	cTel01		:= IIF(nOpcA == 3,	SubStr(oDadosCli:Phone,6,nTamTel) 								, SA1->A1_TEL		)
 	cContrib	:= IIF(nOpcA == 3,	"2"																, SA1->A1_CONTRIB	)
+	cNomeCli	:= Alltrim(cNomeCli)
+	cNReduz		:= Alltrim(cNReduz)
 EndIf
 
 cEmail			:= IIF(nOpcA == 3,	Alltrim(oDadosCli:eMail)										, SA1->A1_EMAIL		)
@@ -517,42 +519,42 @@ EndIf
 //--------------------------------------+
 // Cria Array para cadastro de clientes |
 //--------------------------------------+
-aAdd(aCliente ,	{"A1_FILIAL"	,	xFilial("SA1")							,	Nil, Posicione("SX3",2,"A1_FILIAL","X3_ORDEM")	})
-aAdd(aCliente ,	{"A1_COD"		,	cCodCli									,	Nil, Posicione("SX3",2,"A1_COD","X3_ORDEM")		})
-aAdd(aCliente ,	{"A1_LOJA"		,	cLoja									,	Nil, Posicione("SX3",2,"A1_LOJA","X3_ORDEM")	})
-aAdd(aCliente ,	{"A1_PESSOA"	,	cTpPess									,	Nil, Posicione("SX3",2,"A1_PESSOA","X3_ORDEM")	})
-aAdd(aCliente ,	{"A1_NOME"		,	cNomeCli								,	Nil, Posicione("SX3",2,"A1_NOME","X3_ORDEM")	})
-aAdd(aCliente ,	{"A1_NREDUZ"	,	cNReduz									,	Nil, Posicione("SX3",2,"A1_NREDUZ","X3_ORDEM")	})
+aAdd(aCliente ,	{"A1_FILIAL"	,	xFilial("SA1")							,	Nil	})
+aAdd(aCliente ,	{"A1_COD"		,	cCodCli									,	Nil	})
+aAdd(aCliente ,	{"A1_LOJA"		,	cLoja									,	Nil	})
+aAdd(aCliente ,	{"A1_PESSOA"	,	cTpPess									,	Nil	})
+aAdd(aCliente ,	{"A1_NOME"		,	cNomeCli								,	Nil	})
+aAdd(aCliente ,	{"A1_NREDUZ"	,	cNReduz									,	Nil	})
 
 If nOpcA == 3
-	aAdd(aCliente ,	{"A1_END"		,	cEnd + ", " + cNumEnd					,	Nil, Posicione("SX3",2,"A1_END","X3_ORDEM")		})
-	aAdd(aCliente ,	{"A1_EST"		,	cEst									,	Nil, Posicione("SX3",2,"A1_EST","X3_ORDEM")		})
-	aAdd(aCliente ,	{"A1_COD_MUN"	,	cCodMun									,	Nil, Posicione("SX3",2,"A1_COD_MUN","X3_ORDEM")	})
-	aAdd(aCliente ,	{"A1_MUN"		,	cMun									,	Nil, Posicione("SX3",2,"A1_MUN","X3_ORDEM")		})
-	aAdd(aCliente ,	{"A1_BAIRRO"	,	cBairro									,	Nil, Posicione("SX3",2,"A1_BAIRRO","X3_ORDEM")	})
-	aAdd(aCliente ,	{"A1_CEP"		,	cCep									,	Nil, Posicione("SX3",2,"A1_CEP","X3_ORDEM")		})
+	aAdd(aCliente ,	{"A1_END"		,	cEnd + ", " + cNumEnd					,	Nil	})
+	aAdd(aCliente ,	{"A1_EST"		,	cEst									,	Nil	})
+	aAdd(aCliente ,	{"A1_COD_MUN"	,	cCodMun									,	Nil	})
+	aAdd(aCliente ,	{"A1_MUN"		,	cMun									,	Nil	})
+	aAdd(aCliente ,	{"A1_BAIRRO"	,	cBairro									,	Nil	})
+	aAdd(aCliente ,	{"A1_CEP"		,	cCep									,	Nil	})
 EndIf	
 
-aAdd(aCliente ,	{"A1_ENDCOB"	,	cEndC + ", " + cNumEndC					,	Nil, Posicione("SX3",2,"A1_ENDCOB","X3_ORDEM")	})
-aAdd(aCliente ,	{"A1_ESTCOB"	,	cEstC									,	Nil, Posicione("SX3",2,"A1_ESTCOB","X3_ORDEM")	})
-aAdd(aCliente ,	{"A1_MUNCOB"	,	cMunC									,	Nil, Posicione("SX3",2,"A1_MUNCOB","X3_ORDEM")	})
-aAdd(aCliente ,	{"A1_BAIRROC"	,	cBairroC								,	Nil, Posicione("SX3",2,"A1_BAIRROC","X3_ORDEM")	})
-aAdd(aCliente ,	{"A1_CEPCOB"	,	cCepC									,	Nil, Posicione("SX3",2,"A1_CEPCOB","X3_ORDEM")	})  
-aAdd(aCliente ,	{"A1_ENDENT"	,	cEndE + ", " + cNumEndE					,	Nil, Posicione("SX3",2,"A1_ENDENT","X3_ORDEM")	})
-aAdd(aCliente ,	{"A1_ESTE"		,	cEstE									,	Nil, Posicione("SX3",2,"A1_ESTE","X3_ORDEM")	})
-aAdd(aCliente ,	{"A1_MUNE"		,	cMunE									,	Nil, Posicione("SX3",2,"A1_MUNE","X3_ORDEM")	})
-aAdd(aCliente ,	{"A1_BAIRROE"	,	cBairroE								,	Nil, Posicione("SX3",2,"A1_BAIRROE","X3_ORDEM")	})
-aAdd(aCliente ,	{"A1_CEPE"		,	cCepE									,	Nil, Posicione("SX3",2,"A1_CEPE","X3_ORDEM")	})
-aAdd(aCliente ,	{"A1_TIPO"		,	cTipoCli								,	Nil, Posicione("SX3",2,"A1_TIPO","X3_ORDEM")	})
-aAdd(aCliente ,	{"A1_DDD"		,	cDdd01									,	Nil, Posicione("SX3",2,"A1_DDD","X3_ORDEM")		})
-aAdd(aCliente ,	{"A1_TEL"		,	cTel01									,	Nil, Posicione("SX3",2,"A1_TEL","X3_ORDEM")		})
-aAdd(aCliente ,	{"A1_PAIS"		,	"105"									,	Nil, Posicione("SX3",2,"A1_PAIS","X3_ORDEM")	})
-aAdd(aCliente ,	{"A1_CGC"		,	cCnpj									,	Nil, Posicione("SX3",2,"A1_CGC","X3_ORDEM")		})
-aAdd(aCliente ,	{"A1_EMAIL"		,	cEmail									,	Nil, Posicione("SX3",2,"A1_EMAIL","X3_ORDEM")	})
-aAdd(aCliente ,	{"A1_DTNASC"	,	dDataBase								,	Nil, Posicione("SX3",2,"A1_DTNASC","X3_ORDEM")	})
-aAdd(aCliente ,	{"A1_CLIENTE"	,	"S"										,	Nil, Posicione("SX3",2,"A1_CLIENTE","X3_ORDEM")	})
-aAdd(aCliente ,	{"A1_CONTRIB"	,	cContrib								,	Nil, Posicione("SX3",2,"A1_CONTRIB","X3_ORDEM")	})  
-aAdd(aCliente ,	{"A1_CONTATO"	,	cContato								,	Nil, Posicione("SX3",2,"A1_CONTATO","X3_ORDEM")	})  
+aAdd(aCliente ,	{"A1_ENDCOB"	,	cEndC + ", " + cNumEndC					,	Nil	})
+aAdd(aCliente ,	{"A1_ESTCOB"	,	cEstC									,	Nil	})
+aAdd(aCliente ,	{"A1_MUNCOB"	,	cMunC									,	Nil	})
+aAdd(aCliente ,	{"A1_BAIRROC"	,	cBairroC								,	Nil	})
+aAdd(aCliente ,	{"A1_CEPCOB"	,	cCepC									,	Nil	})  
+aAdd(aCliente ,	{"A1_ENDENT"	,	cEndE + ", " + cNumEndE					,	Nil	})
+aAdd(aCliente ,	{"A1_ESTE"		,	cEstE									,	Nil	})
+aAdd(aCliente ,	{"A1_MUNE"		,	cMunE									,	Nil	})
+aAdd(aCliente ,	{"A1_BAIRROE"	,	cBairroE								,	Nil	})
+aAdd(aCliente ,	{"A1_CEPE"		,	cCepE									,	Nil	})
+aAdd(aCliente ,	{"A1_TIPO"		,	cTipoCli								,	Nil	})
+aAdd(aCliente ,	{"A1_DDD"		,	cDdd01									,	Nil	})
+aAdd(aCliente ,	{"A1_TEL"		,	cTel01									,	Nil	})
+aAdd(aCliente ,	{"A1_PAIS"		,	"105"									,	Nil	})
+aAdd(aCliente ,	{"A1_CGC"		,	cCnpj									,	Nil	})
+aAdd(aCliente ,	{"A1_EMAIL"		,	cEmail									,	Nil	})
+aAdd(aCliente ,	{"A1_DTNASC"	,	dDataBase								,	Nil	})
+aAdd(aCliente ,	{"A1_CLIENTE"	,	"S"										,	Nil	})
+aAdd(aCliente ,	{"A1_CONTRIB"	,	cContrib								,	Nil	})  
+aAdd(aCliente ,	{"A1_CONTATO"	,	cContato								,	Nil	})  
 
 //---------------------------+
 // Valida Inscricao estadual |
@@ -574,17 +576,17 @@ EndIf
 // Grava Incsrição estadual para pessoa Juridica |
 //-----------------------------------------------+
 If oDadosCli:IsCorporate
-	aAdd(aCliente ,	{"A1_INSCR"	,	Alltrim(cInscE)										,	"AllWaysTrue()", Posicione("SX3",2,"A1_INSCR","X3_ORDEM")	})
+	aAdd(aCliente ,	{"A1_INSCR"	,	Alltrim(cInscE)										,	"AllWaysTrue()"	})
 Else
-	aAdd(aCliente ,	{"A1_INSCR"	,	Alltrim("ISENTO")									,	"AllWaysTrue()", Posicione("SX3",2,"A1_INSCR","X3_ORDEM")	})
+	aAdd(aCliente ,	{"A1_INSCR"	,	Alltrim("ISENTO")									,	"AllWaysTrue()"	})
 EndIf
 
 //----------------------------------------------+
 // Caso pedido de venda seja outros             |
 // o cliente será criado com risco de credito E |
 //----------------------------------------------+
-aAdd(aCliente ,	{"A1_RISCO"		,"A"													,	Nil, Posicione("SX3",2,"A1_RISCO","X3_ORDEM")	})
-aAdd(aCliente ,	{"A1_CODPAIS"	,"01058"												,	Nil, Posicione("SX3",2,"A1_CODPAIS","X3_ORDEM")	})
+aAdd(aCliente ,	{"A1_RISCO"		,"A"													,	Nil	})
+aAdd(aCliente ,	{"A1_CODPAIS"	,"01058"												,	Nil	})
 
 //----------------------------------------------------------+
 // Ponto de Entrada utilizado para acrescentar novos campos |

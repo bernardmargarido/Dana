@@ -41,6 +41,6 @@ aAdd(aCliente , {"A1_XREGESP"   ,    _cRegEsp   ,    Nil })
 aAdd(aCliente , {"A1_CLASSIF"   ,    _cClassif  ,    Nil })
 aAdd(aCliente , {"A1_XACESAL"   ,    _cAceSaldo ,    Nil })
 aAdd(aCliente , {"A1_FATORPR"   ,    _nFatorPr  ,    Nil })
-aAdd(aCliente , {"A1_XFIMPPE"   ,    _cFimPPe  ,    Nil })
+aAdd(aCliente , {"A1_XFIMPPE"   ,    _cFimPPe   ,    Nil })
 
 Return aCliente
