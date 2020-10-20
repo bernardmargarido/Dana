@@ -3493,7 +3493,7 @@ Static Function AEcoI11IP(cIdTran,cCodAfili,cCodTransp,cIdPost,_cIdServ)
 Local aArea 	:= GetArea() 
 
 If Empty(cIdPost)
-	AEcoI11TR(SubStr(cIdTran,1,6),@cCodTransp,@_cIdServ)
+	AEcoI11TR(cIdTran,@cCodTransp,@_cIdServ)
 Else
 	cCodTransp	:= GetNewPar("EC_TRANSP","EC0001")
 EndIf	
