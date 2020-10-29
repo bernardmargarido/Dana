@@ -1912,8 +1912,10 @@ WSSTRUCT EstrutRetCliente
 	WSDATA A1_DTCAD    					As Date
 	WSDATA A1_HRCAD  					As String
 	WSDATA A1_CALCSUF					As String
+	WSDATA A1_XFILFAT					As String
+	WSDATA A1_XTIPCLI					As String
 	WSDATA OPERACAO 					As String Optional
-	WSDATA CAMPOS_ESPEC				As Array of EstrutRetCamposEspec Optional	// Campos específicos do cliente
+	WSDATA CAMPOS_ESPEC					As Array of EstrutRetCamposEspec Optional	// Campos específicos do cliente
 ENDWSSTRUCT  
 WSSTRUCT RetCliente
 	WSDATA aCliente 					As Array of EstrutRetCliente Optional
@@ -2048,6 +2050,8 @@ While ! (cAliasQry)->(Eof())
 	::RetCliente:aCliente[nIdx]:A1_DTCAD   := IF( FieldPos("A1_DTCAD") > 0, A1_DTCAD, STOD("") )
 	::RetCliente:aCliente[nIdx]:A1_HRCAD   := IF( FieldPos("A1_HRCAD") > 0, Alltrim(A1_HRCAD), " " )
 	::RetCliente:aCliente[nIdx]:A1_CALCSUF := A1_CALCSUF
+	::RetCliente:aCliente[nIdx]:A1_XFILFAT := A1_XFILFAT
+	::RetCliente:aCliente[nIdx]:A1_XTIPCLI := IIF(Empty(A1_XTIPCLI),IIF(A1_TIPO == "F","2","1"),A1_XTIPCLI)
 	::RetCliente:aCliente[nIdx]:OPERACAO	:= IF((cAliasQry)->DELET == '*' .or. A1_X_SIM3G == "N","D","")
 	::RetCliente:aCliente[nIdx]:CAMPOS_ESPEC := {}
 	
@@ -2283,7 +2287,8 @@ WSSTRUCT EstrutRetTabelaPreco
 	WSDATA DA0_CONDPG 	 			As String	// Codigo condicao pagamento
 	WSDATA DA0_TPHORA 			 	As String	// Tipo horario: 1=Unico;2=Recorrente
 	WSDATA DA0_ATIVO   			 	As String	// 1=Sim;2=Nao
-	WSDATA OPERACAO 					As String Optional
+	WSDATA DA0_XTPTAB  			 	As String	// 1=Sim;2=Nao
+	WSDATA OPERACAO 				As String Optional
 	WSDATA CAMPOS_ESPEC				As Array of EstrutRetCamposEspec Optional	// Campos específicos do cliente
 ENDWSSTRUCT  
 WSSTRUCT RetTabelaPreco
@@ -2370,6 +2375,7 @@ While ! (cAliasQry)->(Eof())
 	::RetTabelaPreco:aTabelaPreco[nIdx]:DA0_CONDPG		:= Alltrim(DA0_CONDPG)
 	::RetTabelaPreco:aTabelaPreco[nIdx]:DA0_TPHORA		:= DA0_TPHORA
 	::RetTabelaPreco:aTabelaPreco[nIdx]:DA0_ATIVO		:= DA0_ATIVO
+	::RetTabelaPreco:aTabelaPreco[nIdx]:DA0_XTPTAB		:= DA0_ATIVO
 	::RetTabelaPreco:aTabelaPreco[nIdx]:OPERACAO		:= IF((cAliasQry)->DELET == '*' .or. DA0_X_SIM3 == "N","D","")
 	::RetTabelaPreco:aTabelaPreco[nIdx]:CAMPOS_ESPEC := {}
 	
