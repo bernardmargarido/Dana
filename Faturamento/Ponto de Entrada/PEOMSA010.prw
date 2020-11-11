@@ -14,11 +14,15 @@ Local _aParam   := ParamIxb
 
 Local _oObj     := Nil 
 Local _oGrid    := Nil 
+Local _oModel   := Nil 
 
 Local _cIdPonto := ""
 Local _cIdModel := ""
 Local _cClasse  := ""
 Local _cValGrid := ""
+Local _cMsg     := ""
+
+Local _aMsg     := {}
 
 Local _nPPrcAux := 0
 Local _nPPrcVen := 0
@@ -39,7 +43,7 @@ If ValType(_aParam) <> "U"
     _lIsGrid    := ( Len(_aParam) > 3)
     If _lIsGrid
         _cValGrid := IIF(Len(_aParam) > 4 , _aParam[5], "")
-        If _cIdPonto == "FORMLINEPRE" //.And. _cValGrid == "SETVALUE"
+        If _cIdPonto == "FORMLINEPRE" .And. _cValGrid == "SETVALUE"
             _cCpo       := _aParam[6]
             _nLinha     := _aParam[4]
 
@@ -55,34 +59,47 @@ If ValType(_aParam) <> "U"
             _xType  := ('M->'+_cCpo)
             If Type(_xType) <> "U"
                 _nPPrcAux   := _oObj:aCols[_nLinha][_nPPrcVen]
-                _oObj:aCols[_nLinha][_nPPrcVenX]    := 0
-                If !u_DnFatM01(_oObj:aCols[_nLinha][_nPPrcVen], _oObj:aCols[_nLinha][_nPPerDesc], _oObj:aCols[_nLinha][_nPValDesc],_cCpo,@_nPrcX) 
-                    Help(,,'OMSA010',, "Preço " + cValToChar(_nPrcX) + " do Produto " + RTrim(_oObj:aCols[_nLinha][_nPProd]) + " necessita de autorização do superior, será enviado um e-mail para autorização.", 1, 0)
+                If !u_DnFatM02(_oObj:aCols[_nLinha][_nPPrcVen], _oObj:aCols[_nLinha][_nPPerDesc], _oObj:aCols[_nLinha][_nPValDesc],_cCpo,@_nPrcX) 
+                    //Help(,,'OMSA010',, "Preço " + cValToChar(_nPrcX) + " do Produto " + RTrim(_oObj:aCols[_nLinha][_nPProd]) + " necessita de autorização do superior, será enviado um e-mail para autorização.", 1, 0)
 
+                    //--------------------------+
+                    // Posiciona linha alterada | 
+                    //--------------------------+
                     DA1->( dbGoTo(_oObj:aCols[_nLinha][Len(_oObj:aHeader) + 1]))
-                    RecLock("DA1",.F.)
-                        DA1->DA1_XPRCVE := _nPrcX
-                    DA1->( MsUnLock() )
-                    
-                    _oObj:aCols[_nLinha][_nPPrcVenX]    := _nPrcX
-                    _oObj:aCols[_nLinha][_nPPrcVen]     := _nPPrcAux
+                    If DA1->DA1_XPRCVE == 0 .Or. ( _nPrcX <= DA1->DA1_XPRCVE )
+                        RecLock("DA1",.F.)
+                            DA1->DA1_XPRCVE := IIF(_nPrcX == DA1->DA1_XPRCVE, 0, _nPPrcAux)
+                        DA1->( MsUnLock() )
+                    EndIf
 
                     _oGrid:Refresh()
-                    _lRet := .F.
+                    _lRet := .T.
                 Else
-                    If _oObj:aCols[_nLinha][_nPPrcVenX] > 0 
-                        DA1->( dbGoTo(_oObj:aCols[_nLinha][Len(_oObj:aHeader) + 1]))
-                        RecLock("DA1",.F.)
-                            DA1->DA1_XPRCVE := 0
-                        DA1->( MsUnLock() )
-                        _oObj:aCols[_nLinha][_nPPrcVenX]    := 0
-
-                        _oGrid:Refresh()
-                        
-                    EndIF
+                    //--------------------------+
+                    // Posiciona linha alterada | 
+                    //--------------------------+
+                    DA1->( dbGoTo(_oObj:aCols[_nLinha][Len(_oObj:aHeader) + 1]))
+                    RecLock("DA1",.F.)
+                        DA1->DA1_XPRCVE := 0
+                    DA1->( MsUnLock() )
+                    _oGrid:Refresh()
+                    _lRet := .T.
                 EndIf
             EndIf
         EndIf
+    ElseIf _cIdPonto == "MODELCOMMITTTS"
+
+        _oModel := FwModelActive()
+        _oDa0   := _oModel:GetModel( 'DA0MASTER' )
+        //--------------------------------------------+
+        // Valida se obteve valores menores alterados | 
+        //--------------------------------------------+
+        If u_DnFatM03(_oDa0:GetValue('DA0_CODTAB'),_oDa0:GetValue('DA0_FILIAL'),@_cMsg,@_aMsg)
+            If !Empty(_cMsg)
+                Help(,,'OMSA010',, _cMsg, 1, 0)
+                u_AEcoMail("PRC","Alteracao de Preços",_aMsg)
+            EndIf
+        EndIF
     EndIf
 EndIf
 

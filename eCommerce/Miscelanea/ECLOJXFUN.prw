@@ -202,7 +202,7 @@ User Function AEcoMail(cCodInt,cDescInt,aMsgErro,_cPDF,_cDirEtq,_aETQ)
 	Local cFrom		:= GetMv("MV_RELACNT")
 
 	Local cMail		:= GetNewPar("EC_LOGMAIL")
-	Local cMailIbex	:= GetNewPar("EC_MAILIBX","bernard.margarido@vitreoerp.com.br;agendamento@ibexlogistica.com.br")
+	Local cMailIbex	:= IIF(cCodInt == "PRC",GetNewPar("DN_APRPRC","bernard.margarido@vitreoerp.com.br"),GetNewPar("EC_MAILIBX","bernard.margarido@vitreoerp.com.br"))
 	Local cBody		:= ""	
 	Local cRgbCol	:= ""
 	Local cAnexos	:= ""
