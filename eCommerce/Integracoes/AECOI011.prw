@@ -1054,10 +1054,10 @@ Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt)
 	//------------------+
 	// Ajusta variaveis |
 	//------------------+
-	If Empty(oRestPv:ClientProfileData:CorporateDocument)
-		cCnpj := PadR(oRestPv:ClientProfileData:Document,nTamCnpj)
-	Else     
+	If oRestPv:ClientProfileData:IsCorporate
 		cCnpj := PadR(oRestPv:ClientProfileData:CorporateDocument,nTamCnpj)
+	Else     
+		cCnpj := PadR(oRestPv:ClientProfileData:Document,nTamCnpj)
 	EndIf	
 	
 	cNomeCli:= Alltrim(oRestPv:ClientProfileData:FirstName + " " +  oRestPv:ClientProfileData:LastName )	
@@ -1849,8 +1849,15 @@ LogExec("EFETUANDO A RESERVA DO PEDIDO " + cOrderId )
 //--------------+
 // Abre Tabelas |
 //--------------+
+dbSelectArea("SC0")
 dbSelectArea("SB1")
 dbSelectArea("WSB")
+
+_cCodRes	:= GetSxeNum("SC0","C0_NUM")
+SC0->(dbSetOrder(1) )
+While SC0->(dbSeek(xFilial("SC0") + _cCodRes) )
+	_cCodRes	:= GetSxeNum("SC0","C0_NUM","",1)
+EndDo
 
 For nPrd := 1 To Len(oItems)
 
@@ -1943,8 +1950,6 @@ For nPrd := 1 To Len(oItems)
 			//------------------------------+
 			aOperacao 	:= {1, cTipo, cPedCodCli, _cClient, xFilial("SC0"), "Reserva eCommerce:" + cPedCodCli}
 			aLote   	:= {"" , "" , "", ""}
-			_cCodRes	:= GetSxeNum("SC0","C0_NUM")
-
 			_lGerou		:= a430Reserv(	aOperacao						,;			// Array contendo dados da reserva
 										_cCodRes						,;			// Numero da Reserva
 										PadR(cProduto, nTamProd)		,;			// Produto 
@@ -2037,8 +2042,15 @@ LogExec("EFETUANDO A RESERVA DOS PRODUTOS KIT PEDIDO " + cOrderId)
 //--------------+
 // Abre Tabelas |
 //--------------+
+dbSelectArea("SC0")
 dbSelectArea("SB1")
 dbSelectArea("WSB")
+
+_cCodRes	:= GetSxeNum("SC0","C0_NUM")
+SC0->(dbSetOrder(1) )
+While SC0->(dbSeek(xFilial("SC0") + _cCodRes) )
+	_cCodRes	:= GetSxeNum("SC0","C0_NUM","",1)
+EndDo
 
 For nX := 1 To Len(oItKit)
 	
@@ -2102,8 +2114,6 @@ For nX := 1 To Len(oItKit)
 		//------------------------------+
 		aOperacao 	:= {1, cTipo, cPedCodCli, _cClient, xFilial("SC0"), "Reserva eCommerce:" + cPedCodCli}
 		aLote   	:= {"" , "" , "", ""}
-		_cCodRes	:= GetSxeNum("SC0","C0_NUM")
-
 		_lGerou		:= a430Reserv(	aOperacao						,;			// Array contendo dados da reserva
 									_cCodRes						,;			// Numero da Reserva
 									PadR(cProduto, nTamProd)		,;			// Produto 
