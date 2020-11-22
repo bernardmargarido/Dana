@@ -329,15 +329,15 @@ FwFormCommit(_oModel)
 //--------------+
 // Gera Cliente |
 //--------------+
-If _oModelXT1:GetValue("XT1_GERCLI")
-    DLogA01D(1,_oModel)
+If _oModelXT1:GetValue("XT1_GERCLI") 
+    FwMsgRun(,{|| _lRet := DLogA01D(1,_oModel)}, "Aguarde...", "Incluindo Cliente")
 EndIf
 
 //-----------------+
 // Gera Fornecedor |
 //-----------------+
 If _oModelXT1:GetValue("XT1_GERFOR")
-    DLogA01D(2,_oModel)
+    FwMsgRun(,{|| _lRet := DLogA01D(2,_oModel)}, "Aguarde...", "Incluindo Fornecedor")
 EndIf
 
 //-----------------------------------------+
@@ -391,7 +391,197 @@ Return _lRet
 /*/
 /************************************************************************************/
 Static Function DLogA01D(_nType,_oModel)
-Local _lRet := .T.
+Local _cCodigo      := ""
+Local _cLoja        := ""
+Local _cAtivo       := "S"
+Local _cClassif     := "001"    
+
+Local _nFatorPr     := 1
+Local _nOpcA        := 4
+
+Local _lRet         := .T.
+
+Local _aArray       := {}
+
+Local _oModelXT1    := _oModel:GetModel("XT1_01") 
+
+Private lMsErroAuto := .F.
+
+//--------------+
+// Gera cliente |
+//--------------+
+If _nType == 1
+    dbSelectArea("SA1")
+    SA1->( dbSetOrder(1) )
+    
+    If Empty(_oModelXT1:GetValue("XT1_CODCLI")) .And. Empty(_oModelXT1:GetValue("XT1_LOJCLI"))  
+        _cCodigo    := GetSxeNum("SA1","A1_COD")
+        _cLoja	    := "01"
+        While SA1->( dbSeek(xFilial("SA1") +_cCodigo + _cLoja ) )
+            ConfirmSx8()
+            _cCodigo	:= GetSxeNum("SA1","A1_COD","",1)
+        EndDo	
+        _nOpcA  := 3
+    Else
+        _cCodigo    := _oModelXT1:GetValue("XT1_CODCLI")
+        _cLoja	    := _oModelXT1:GetValue("XT1_LOJCLI")
+        SA1->( dbSeek(xFilial("SA1") + _cCodigo + _cLoja ) )
+        _nOpcA      := 4
+	EndIf
+    //--------------------------------------+
+    // Cria Array para cadastro de clientes |
+    //--------------------------------------+
+    aAdd(_aArray ,	{"A1_FILIAL"	,	xFilial("SA1")							,	Nil	})
+    aAdd(_aArray ,	{"A1_COD"		,	_cCodigo								,	Nil	})
+    aAdd(_aArray ,	{"A1_LOJA"		,	_cLoja									,	Nil	})
+    aAdd(_aArray ,	{"A1_PESSOA"	,	"J" 									,	Nil	})
+    aAdd(_aArray ,	{"A1_NOME"		,	_oModelXT1:GetValue("XT1_NOME")			,	Nil	})
+    aAdd(_aArray ,	{"A1_NREDUZ"	,	_oModelXT1:GetValue("XT1_NREDUZ")		,	Nil	})
+    aAdd(_aArray ,	{"A1_END"		,	_oModelXT1:GetValue("XT1_END")          ,	Nil	})
+	aAdd(_aArray ,	{"A1_EST"		,	_oModelXT1:GetValue("XT1_EST") 		    ,	Nil	})
+	aAdd(_aArray ,	{"A1_COD_MUN"	,	_oModelXT1:GetValue("XT1_CODMUN") 		,	Nil	})
+	aAdd(_aArray ,	{"A1_MUN"		,	_oModelXT1:GetValue("XT1_MUN")			,	Nil	})
+	aAdd(_aArray ,	{"A1_BAIRRO"	,	_oModelXT1:GetValue("XT1_BAIRRO")		,	Nil	})
+	aAdd(_aArray ,	{"A1_CEP"		,	_oModelXT1:GetValue("XT1_CEP")			,	Nil	})
+    aAdd(_aArray ,	{"A1_ENDCOB"	,	_oModelXT1:GetValue("XT1_END")			,	Nil	})
+    aAdd(_aArray ,	{"A1_ESTCOB"	,	_oModelXT1:GetValue("XT1_EST")			,	Nil	})
+    aAdd(_aArray ,	{"A1_MUNCOB"	,	_oModelXT1:GetValue("XT1_MUN")			,	Nil	})
+    aAdd(_aArray ,	{"A1_BAIRROC"	,	_oModelXT1:GetValue("XT1_BAIRRO")		,	Nil	})
+    aAdd(_aArray ,	{"A1_CEPCOB"	,	_oModelXT1:GetValue("XT1_CEP")			,	Nil	})  
+    aAdd(_aArray ,	{"A1_ENDENT"	,	_oModelXT1:GetValue("XT1_END")			,	Nil	})
+    aAdd(_aArray ,	{"A1_ESTE"		,	_oModelXT1:GetValue("XT1_EST")			,	Nil	})
+    aAdd(_aArray ,	{"A1_MUNE"		,	_oModelXT1:GetValue("XT1_MUN")			,	Nil	})
+    aAdd(_aArray ,	{"A1_BAIRROE"	,	_oModelXT1:GetValue("XT1_BAIRRO")		,	Nil	})
+    aAdd(_aArray ,	{"A1_CEPE"		,	_oModelXT1:GetValue("XT1_CEP")			,	Nil	})
+    aAdd(_aArray ,	{"A1_TIPO"		,	"R"								        ,	Nil	})
+    aAdd(_aArray ,	{"A1_DDD"		,	_oModelXT1:GetValue("XT1_DDD")			,	Nil	})
+    aAdd(_aArray ,	{"A1_TEL"		,	_oModelXT1:GetValue("XT1_TEL")			,	Nil	})
+    aAdd(_aArray ,	{"A1_PAIS"		,	_oModelXT1:GetValue("XT1_PAIS")			,	Nil	})
+    aAdd(_aArray ,	{"A1_CGC"		,	_oModelXT1:GetValue("XT1_CGC")			,	Nil	})
+    aAdd(_aArray ,	{"A1_EMAIL"		,	_oModelXT1:GetValue("XT1_EMAIL")		,	Nil	})
+    aAdd(_aArray ,	{"A1_DTNASC"	,	_oModelXT1:GetValue("XT1_DTNASC")		,	Nil	})
+    aAdd(_aArray ,	{"A1_CLIENTE"	,	"S"										,	Nil	})
+    aAdd(_aArray ,	{"A1_CONTRIB"	,	"2"								        ,	Nil	})  
+    aAdd(_aArray ,	{"A1_INSCR"	    ,	_oModelXT1:GetValue("XT1_INSCR")		,	"AllWaysTrue()"	})
+    aAdd(_aArray ,  {"A1_CODPAIS"	,   "01058"									,	Nil	})
+    aAdd(_aArray ,  {"A1_ATIVO"     ,   _cAtivo                                 ,   Nil })
+    aAdd(_aArray ,  {"A1_CLASSIF"   ,   _cClassif                               ,   Nil })
+    aAdd(_aArray ,  {"A1_FATORPR"   ,   _nFatorPr                               ,   Nil })
+    aAdd(_aArray ,  {"A1_XIDLOGI"   ,   _oModelXT1:GetValue("XT1_IDLOG")        ,   Nil })
+
+//-----------------+
+// Gera Fornecedor | 
+//-----------------+
+ElseIf _nType == 2
+    dbSelectArea("SA2")
+    SA2->( dbSetOrder(1) )
+    If Empty(_oModelXT1:GetValue("XT1_CODFOR")) .And. Empty(_oModelXT1:GetValue("XT1_LOJFOR"))  
+        _cCodigo    := GetSxeNum("SA2","A2_COD")
+        _cLoja	    := "01"
+        While SA2->( dbSeek(xFilial("SA2") +_cCodigo + _cLoja ) )
+            ConfirmSx8()
+            _cCodigo	:= GetSxeNum("SA2","A2_COD","",1)
+        EndDo	
+        _nOpcA  := 3 
+    Else
+        _cCodigo    := _oModelXT1:GetValue("XT1_CODFOR")
+        _cLoja	    := _oModelXT1:GetValue("XT1_LOJFOR")
+        SA2->( dbSeek(xFilial("SA2") +_cCodigo + _cLoja ) )
+        _nOpcA      := 4   
+	EndIf
+
+    //--------------------------------------+
+    // Cria Array para cadastro de clientes |
+    //--------------------------------------+
+    aAdd(_aArray ,	{"A2_FILIAL"	,	xFilial("SA1")							,	Nil	})
+    aAdd(_aArray ,	{"A2_COD"		,	_cCodigo								,	Nil	})
+    aAdd(_aArray ,	{"A2_LOJA"		,	_cLoja									,	Nil	})
+    aAdd(_aArray ,	{"A2_NOME"		,	RTrim(_oModelXT1:GetValue("XT1_NOME"))	,	Nil	})
+    aAdd(_aArray ,	{"A2_NREDUZ"	,	RTrim(_oModelXT1:GetValue("XT1_NREDUZ")),	Nil	})
+    aAdd(_aArray ,	{"A2_END"		,	RTrim(_oModelXT1:GetValue("XT1_END"))   ,	Nil	})
+	aAdd(_aArray ,	{"A2_EST"		,	_oModelXT1:GetValue("XT1_EST") 		    ,	Nil	})
+	aAdd(_aArray ,	{"A2_COD_MUN"	,	_oModelXT1:GetValue("XT1_CODMUN") 		,	Nil	})
+	aAdd(_aArray ,	{"A2_MUN"		,	RTrim(_oModelXT1:GetValue("XT1_MUN"))	,	Nil	})
+	aAdd(_aArray ,	{"A2_BAIRRO"	,	RTrim(_oModelXT1:GetValue("XT1_BAIRRO")),	Nil	})
+	aAdd(_aArray ,	{"A2_CEP"		,	_oModelXT1:GetValue("XT1_CEP")			,	Nil	})
+    aAdd(_aArray ,	{"A2_TIPO"		,	"J"								        ,	Nil	})
+    aAdd(_aArray ,	{"A2_DDD"		,	_oModelXT1:GetValue("XT1_DDD")			,	Nil	})
+    aAdd(_aArray ,	{"A2_TEL"		,	_oModelXT1:GetValue("XT1_TEL")			,	Nil	})
+    aAdd(_aArray ,	{"A2_PAIS"		,	_oModelXT1:GetValue("XT1_PAIS")			,	Nil	})
+    aAdd(_aArray ,	{"A2_CGC"		,	_oModelXT1:GetValue("XT1_CGC")			,	Nil	})
+    aAdd(_aArray ,	{"A2_EMAIL"		,	RTrim(_oModelXT1:GetValue("XT1_EMAIL"))	,	Nil	})
+    aAdd(_aArray ,	{"A2_INSCR"	    ,	_oModelXT1:GetValue("XT1_INSCR")		,	"AllWaysTrue()"	})
+    aAdd(_aArray ,  {"A2_CODPAIS"	,   "01058"									,	Nil	})
+    aAdd(_aArray ,  {"A2_XIDLOGI"   ,   _oModelXT1:GetValue("XT1_IDLOG")        ,   Nil }) 
+
+EndIf
+
+//-------------------+
+// Processa ExecAuto | 
+//-------------------+
+If Len(_aArray) > 0
+    
+    lMsErroAuto := .F. 
+
+    //-------------------+
+    // Processa Clientes |
+    //-------------------+
+    If _nType == 1
+        _aArray := FWVetByDic(_aArray, "SA2")
+        MsExecAuto({|x,y| Mata030(x,y)}, _aArray, _nOpcA)
+
+    //-----------------------+
+    // Processa fornecedores |
+    //-----------------------+
+    Else
+        _aArray := FWVetByDic(_aArray, "SA2")
+        MsExecAuto({|x,y| Mata020(x,y)}, _aArray, _nOpcA)
+    EndIf 
+
+    //---------------+
+    // Erro gravação | 
+    //---------------+
+    If lMsErroAuto
+        //-------------------+
+        // Retorna numeração |
+        //-------------------+
+        RollBackSx8()
+
+        //----------------------+
+        // Mostra erro ExecAuto | 
+        //----------------------+
+        MostraErro()
+
+        //-------------------------------+
+        // Desarma controle de transação | 
+        //-------------------------------+
+        DisarmTransaction()
+        _lRet := .F.
+
+    //----------------------+
+    // Gravação com sucesso | 
+    //----------------------+
+    Else
+        ConfirmSx8()
+        RecLock("XT1",.F.)
+            If _nType == 1
+                XT1->XT1_CODCLI := SA1->A1_COD
+                XT1->XT1_LOJCLI := SA1->A1_LOJA
+            Else
+                XT1->XT1_CODFOR := SA2->A2_COD
+                XT1->XT1_LOJFOR := SA2->A2_LOJA
+            EndIf
+        XT1->( MsUnlock() )
+
+        //-------------+
+        // Atualiza ID |
+        //-------------+
+        
+
+        _lRet := .T.
+    EndIf
+
+EndIf
 
 Return _lRet 
 

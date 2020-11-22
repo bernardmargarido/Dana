@@ -162,10 +162,12 @@ EndIf
 //-----------------------------+
 // Atualiza dados da alteração |
 //-----------------------------+
-RecLock("SA1",.F.)
-	SA1->A1_XDTALT	:= dDatabase
-	SA1->A1_XHRALT	:= Time()
-SA1->( MsUnLock() )
-	
+If ALTERA
+	RecLock("SA1",.F.)
+		SA1->A1_XDTALT	:= dDatabase
+		SA1->A1_XHRALT	:= Time()
+	SA1->( MsUnLock() )
+EndIf
+
 RestArea(aAreaSA1)
 Return lRet
