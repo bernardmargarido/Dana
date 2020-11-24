@@ -7,20 +7,19 @@
 Static _cCodInt		:= "001"
 Static _cDescInt	:= "TOKEN"
 Static _cDirRaiz 	:= "\danalog\"
-Static _nTCnpj 		:= TamSx3("A1_CGC")[1]
 
 /************************************************************************************/
 /*/{Protheus.doc} 
-    @description API - Login do corretor
+    @description API - Solicitação de Token
     @author Bernard M. Margarido
-    @since 23/03/2018
+    @since 22/11/2020
     @version 1.0
     @type function
 /*/
 /************************************************************************************/
 WSRESTFUL API_TOKEN DESCRIPTION " Servico DanaLog - Retorna Token."
 						
-	WSMETHOD POST  DESCRIPTION "Retorna Token." WSSYNTAX "/TOKEN"
+	WSMETHOD POST  DESCRIPTION "Retorna Token." WSSYNTAX "/API_TOKEN"
 
 END WSRESTFUL
 
@@ -35,20 +34,22 @@ END WSRESTFUL
 /************************************************************************************/
 WSMETHOD POST WSSERVICE API_TOKEN
 Local _aArea		:= GetArea()
-Local _aRet			:= {.F.,""}
 
-Local _cClientId	:= ""
-Local _cSecret		:= ""
-Local _cGrant		:= ""
-Local _cToken		:= ""
 Local _cBody        := ""
 
-Local _nCodRet		:= 400
-
-Local _oJson		:= Nil	
 Local _oDLog        := Nil 
 
 Private _cArqLog	:= ""
+
+//-----------------------+
+// Abre empresa / filial |
+//-----------------------+
+If cEmpAnt == "01"
+    RpcClearEnv()
+EndIf
+
+RPCSetType(3)
+RPCSetEnv("02", "01", Nil, Nil, "FRT")
 
 //------------------------------+
 // Inicializa Log de Integracao |
@@ -76,9 +77,11 @@ _oDLog  := DanaLog():New()
 _oDLog:cJSon := _cBody
 
 If _oDLog:Token()
+    LogExec("TOKEN RETORNADO COM SUCESSO")
     ::SetResponse(_oDLog:cJSonRet)
 	HTTPSetStatus(_oDLog:nCodeHttp,"OK")
 Else
+    LogExec("ERRO AO GERAR TOKEN")
     ::SetResponse(_oDLog:cJSonRet)
 	HTTPSetStatus(_oDLog:nCodeHttp,_oDLog:cError)
 EndIf	
@@ -86,6 +89,11 @@ EndIf
 LogExec("FINALIZA CONSULTA DE TOKEN - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
 LogExec(Replicate("-",80))
 ConOut("")
+
+//-------------------+
+// Finaliza Ambiente |
+//-------------------+
+RpcClearEnv()
 
 RestArea(_aArea)
 Return .T.
