@@ -4,8 +4,8 @@
 #INCLUDE "AARRAY.CH"
 #INCLUDE "JSON.CH"
 
-Static _cCodInt		:= "002"
-Static _cDescInt	:= "PRODUTO"
+Static _cCodInt		:= "003"
+Static _cDescInt	:= "CLIENTE"
 Static _cDirRaiz 	:= "\danalog\"
 
 /************************************************************************************/
@@ -17,30 +17,31 @@ Static _cDirRaiz 	:= "\danalog\"
     @type function
 /*/
 /************************************************************************************/
-WSRESTFUL API_PRODUTOS DESCRIPTION " Servico DanaLog - Atualização produtos."
+WSRESTFUL API_CLIENTES DESCRIPTION " Servico DanaLog - Atualização clientes."
     
-    WSDATA CODIGO 	    AS STRING
-    WSDATA IDCLIENTE    AS STRING
-    WSDATA DATAHORA		AS STRING
+    WSDATA CNPJ_CPF 	AS STRING
+	WSDATA CODIGO		AS STRING
+	WSDATA LOJA			AS STRING	
+	WSDATA DATAHORA		AS STRING
 	WSDATA PERPAGE 		AS STRING	
 	WSDATA PAGE			AS STRING
 
-    WSMETHOD GET    DESCRIPTION "Realiza consulta dos produtos."    WSSYNTAX "/API_PRODUTOS/GET"
-	WSMETHOD POST   DESCRIPTION "Realiza gravação dos produtos."    WSSYNTAX "/API_PRODUTOS/POST"
-    WSMETHOD PUT    DESCRIPTION "Realiza atualização dos produtos." WSSYNTAX "/API_PRODUTOS/PUT"
+    WSMETHOD GET    DESCRIPTION "Realiza consulta dos clientes."    WSSYNTAX "/API_CLIENTES/GET"
+	WSMETHOD POST   DESCRIPTION "Realiza gravação dos clientes."    WSSYNTAX "/API_CLIENTES/POST"
+    WSMETHOD PUT    DESCRIPTION "Realiza atualização dos clientes." WSSYNTAX "/API_CLIENTES/PUT"
     
 END WSRESTFUL
 
 /************************************************************************************/
 /*/{Protheus.doc} POST
-    @description Metodo - realiza o cadastro de produtos
+    @description Metodo - realiza o cadastro de clientes
     @author Bernard M. Margarido
     @since 23/03/2018
     @version 1.0
     @type function
 /*/
 /************************************************************************************/
-WSMETHOD POST WSSERVICE API_PRODUTOS
+WSMETHOD POST WSSERVICE API_CLIENTES
 Local _aArea    := GetArea()
 
 Local _cBody        := ""
@@ -64,10 +65,10 @@ RPCSetEnv("02", "01", Nil, Nil, "FRT")
 // Inicializa Log de Integracao |
 //------------------------------+
 MakeDir(_cDirRaiz)
-_cArqLog := _cDirRaiz + "API_PRODUTO_POST" + cEmpAnt + cFilAnt + ".LOG"
+_cArqLog := _cDirRaiz + "API_CLIENTES_POST" + cEmpAnt + cFilAnt + ".LOG"
 ConOut("")	
 LogExec(Replicate("-",80))
-LogExec("INICIA API DE PRODUTO METODO POST - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
+LogExec("INICIA API DE CLIENTES METODO POST - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
 
 //--------------------+
 // Seta o contenttype |
@@ -88,17 +89,17 @@ _oDLog:cAuth    := _cAuth
 _oDLog:cJSon    := _cBody
 _oDLog:cMetodo  := "POST"
 
-If _oDLog:Produtos()
-    LogExec("PRODUTO SALVO COM SUCESSO")
+If _oDLog:Clientes()
+    LogExec("CLIENTE SALVO COM SUCESSO")
     ::SetResponse(_oDLog:cJSonRet)
 	HTTPSetStatus(_oDLog:nCodeHttp,"OK")
 Else
-    LogExec("ERRO AO SALVAR PRODUTO")
+    LogExec("ERRO AO SALVAR CLIENTE")
     ::SetResponse(_oDLog:cJSonRet)
 	HTTPSetStatus(_oDLog:nCodeHttp,_oDLog:cError)
 EndIf	
 
-LogExec("FINALIZA API DE PRODUTO METODO POST - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
+LogExec("FINALIZA API DE CLIENTE METODO POST - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
 LogExec(Replicate("-",80))
 ConOut("")
 
@@ -112,19 +113,21 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} GET
-    @description Metodo - Consulta produtos cadastrados
+    @description Metodo - Consulta clientes cadastrados
     @author Bernard M. Margarido
     @since 23/03/2018
     @version 1.0
     @type function
 /*/
 /************************************************************************************/
-WSMETHOD GET WSRECEIVE CODIGO,IDCLIENTE,DATAHORA,PERPAGE,PAGE WSSERVICE API_PRODUTOS
+WSMETHOD GET WSRECEIVE CNPJ_CPF,CODIGO,LOJA,DATAHORA,PERPAGE,PAGE WSSERVICE API_CLIENTES
 Local _aArea    := GetArea()
 
 Local _cBody        := ""
 Local _cAuth        := ""
-Local _cCodProd     := IIF(Empty(::CODIGO),"",::CODIGO)
+Local _cCliCod      := IIF(Empty(::CODIGO),"",::CODIGO)
+Local _cCliLoja     := IIF(Empty(::LOJA),"",::LOJA)
+Local _cCnpj_Cpf    := IIF(Empty(::CNPJ_CPF),"",::CNPJ_CPF)
 
 Local _oDLog        := Nil 
 
@@ -144,10 +147,10 @@ RPCSetEnv("02", "01", Nil, Nil, "FRT")
 // Inicializa Log de Integracao |
 //------------------------------+
 MakeDir(_cDirRaiz)
-_cArqLog := _cDirRaiz + "API_PRODUTO_GET" + cEmpAnt + cFilAnt + ".LOG"
+_cArqLog := _cDirRaiz + "API_CLIENTE_GET" + cEmpAnt + cFilAnt + ".LOG"
 ConOut("")	
 LogExec(Replicate("-",80))
-LogExec("INICIA API DE PRODUTO METODO GET - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
+LogExec("INICIA API DE CLIENTE METODO GET - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
 
 //--------------------+
 // Seta o contenttype |
@@ -166,20 +169,22 @@ _cAuth	:= Self:GetHeader('Authorization')
 _oDLog  := DanaLog():New()
 _oDLog:cAuth    := _cAuth
 _oDLog:cJSon    := _cBody
-_oDLog:cCodProd := _cCodProd
+_oDLog:cCliCod  := _cCliCod
+_oDLog:cCliLoja := _cCliLoja
+_oDLog:cCnpj    := _cCnpj_Cpf
 _oDLog:cMetodo  := "GET"
 
-If _oDLog:Produtos()
-    LogExec("PRODUTO RETORNADO COM SUCESSO")
+If _oDLog:Clientes()
+    LogExec("CLIENTE RETORNADO COM SUCESSO")
     ::SetResponse(_oDLog:cJSonRet)
 	HTTPSetStatus(_oDLog:nCodeHttp,"OK")
 Else
-    LogExec("ERRO AO CONSULTAR PRODUTO")
+    LogExec("ERRO AO CONSULTAR CLIENTE")
     ::SetResponse(_oDLog:cJSonRet)
 	HTTPSetStatus(_oDLog:nCodeHttp,_oDLog:cError)
 EndIf	
 
-LogExec("FINALIZA API DE PRODUTO METODO GET - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
+LogExec("FINALIZA API DE CLIENTE METODO GET - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
 LogExec(Replicate("-",80))
 ConOut("")
 
@@ -193,14 +198,14 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} PUT
-    @description Metodo - realiza a atualização dos produtos
+    @description Metodo - realiza a atualização dos clientes
     @author Bernard M. Margarido
     @since 23/03/2018
     @version 1.0
     @type function
 /*/
 /************************************************************************************/
-WSMETHOD PUT WSSERVICE API_PRODUTOS
+WSMETHOD PUT WSSERVICE API_CLIENTES
 Local _aArea        := GetArea()
 
 Local _cBody        := ""
@@ -224,10 +229,10 @@ RPCSetEnv("02", "01", Nil, Nil, "FRT")
 // Inicializa Log de Integracao |
 //------------------------------+
 MakeDir(_cDirRaiz)
-_cArqLog := _cDirRaiz + "API_PRODUTO_PUT" + cEmpAnt + cFilAnt + ".LOG"
+_cArqLog := _cDirRaiz + "API_CLIENTE_PUT" + cEmpAnt + cFilAnt + ".LOG"
 ConOut("")	
 LogExec(Replicate("-",80))
-LogExec("INICIA API DE PRODUTO METODO PUT - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
+LogExec("INICIA API DE CLIENTE METODO PUT - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
 
 //--------------------+
 // Seta o contenttype |
@@ -249,16 +254,16 @@ _oDLog:cJSon    := _cBody
 _oDLog:cMetodo  := "PUT"
 
 If _oDLog:Produtos()
-    LogExec("PRODUTO SALVO COM SUCESSO")
+    LogExec("CLIENTE SALVO COM SUCESSO")
     ::SetResponse(_oDLog:cJSonRet)
 	HTTPSetStatus(_oDLog:nCodeHttp,"OK")
 Else
-    LogExec("ERRO AO ATUALIZAR PRODUTO")
+    LogExec("ERRO AO ATUALIZAR CLIENTE")
     ::SetResponse(_oDLog:cJSonRet)
 	HTTPSetStatus(_oDLog:nCodeHttp,_oDLog:cError)
 EndIf	
 
-LogExec("FINALIZA API DE PRODUTO METODO PUT - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
+LogExec("FINALIZA API DE CLIENTE METODO PUT - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
 LogExec(Replicate("-",80))
 ConOut("")
 

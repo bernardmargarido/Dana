@@ -29,6 +29,8 @@ Class DanaLog
     Data cAuth      As String
     Data cMetodo    As String
     Data cHoraExp   As String
+    Data cCodProd   As String
+    Data cIdCliente As String
 
     Data nCodeHttp  As Integer 
     Data nTExpires  As Integer
@@ -39,9 +41,11 @@ Class DanaLog
     Method Token()
     Method SetToken()
     Method ValidaToken()
+    Method GetJSon()
     Method GetUserID()
     Method GeraToken()
-    Method Produto()
+    Method Produtos()
+    Method Clientes()
     Method ClearObj()
 
 End Class
@@ -61,11 +65,42 @@ Method New() Class DanaLog
     ::cAuth     := ""
     ::cMetodo   := ""
     ::cHoraExp  := ""
+    ::cCodProd  := ""
+    ::cIdCliente:= ""
 
     ::nCodeHttp := 0
     ::nTExpires := 0
 
     ::dDtaExp   := Nil 
+
+Return Nil 
+
+/****************************************************************************************/
+/*/{Protheus.doc} GetJSon
+    @description Metodo - Monta JSON de retorno 
+    @author    Bernard M. Margarido
+    @since     22/11/2020
+/*/
+/****************************************************************************************/
+Method GetJSon() Class DanaLog
+Local _nX       := 0
+
+Local _oJSon    := Nil 
+Local _oMessage := Nil 
+
+_oJSon                  := Array(#)
+_oJSon[#"messages"]     := {}
+For _nX := 1 To Len(_aMsgErro)
+    aAdd(_oJson[#"messages"],Array(#))
+    _oMessage                   := aTail(_oJson[#"messages"])
+    _oMessage[#"status"]        := _aMsgErro[_nX][1]
+    _oMessage[#"codigo"]        := _aMsgErro[_nX][2]
+    _oMessage[#"message"]       := _aMsgErro[_nX][3]
+Next _nX 
+
+::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+::cError                := ""
+::nCodeHttp             := SUCESS
 
 Return Nil 
 
@@ -86,9 +121,10 @@ Local _oJSon    := Nil
 //--------------------------------+
 If Empty(::cJSon)
 
-    _oJSon                  := Array(#)
-    _oJSon[#"status"]       := "1"
-    _oJSon[#"message"]      := "Usuário e senha não informados."
+    _oJSon                              := Array(#)
+    _oJSon[#"messages"]                 := Array(#)
+    _oJSon[#"messages"][#"status"]      := "1"
+    _oJSon[#"messages"][#"message"]     := "Usuário e senha não informados."
 
     ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
     ::cError                := "Usuário e senha não informados."
@@ -106,9 +142,10 @@ _oJSon  := xFromJson(::cJSon)
 //--------------------------------------------------+
 If Empty(_oJSon[#"user"]) .Or. Empty(_oJSon[#"password"])
 
-    _oJSon                  := Array(#)
-    _oJSon[#"status"]       := "1"
-    _oJSon[#"message"]      := "Usuário ou senha não informados."
+    _oJSon                          := Array(#)
+    _oJSon[#"messages"]             := Array(#)
+    _oJSon[#"messages"][#"status"]  := "1"
+    _oJSon[#"messages"][#"message"] := "Usuário ou senha não informados."
 
     ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
     ::cError                := "Usuário ou senha não informados."
@@ -120,9 +157,10 @@ EndIf
 // Valida usuário e senha | 
 //------------------------+
 If !::GetUserID(_oJSon[#"user"],_oJSon[#"password"])
-    _oJSon                  := Array(#)
-    _oJSon[#"status"]       := "1"
-    _oJSon[#"message"]      := "Usuário ou senha incorreto."
+    _oJSon                              := Array(#)
+    _oJSon[#"messages"]                 := Array(#)
+    _oJSon[#"messages"][#"status"]      := "1"
+    _oJSon[#"messages"][#"message"]     := "Usuário ou senha incorreto."
 
     ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
     ::cError                := "Usuário ou senha incorreto."
@@ -145,9 +183,10 @@ If _lRet
         ::nCodeHttp             := SUCESS
         _lRet                   := .T.
     Else
-        _oJSon                  := Array(#)
-        _oJSon[#"status"]       := "0"
-        _oJSon[#"message"]      := "Usuário sem autorização."
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "0"
+        _oJSon[#"messages"][#"message"] := "Usuário sem autorização."
 
         ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
         ::cError                := "Usuário sem autorização."
@@ -337,18 +376,23 @@ Local _dDta		:= dTos(Date())
 Local _aToken   := {}
 
 Local _oJson    := Nil 
+Local _oJSonRet := Nil 
 
 //-------------------------------------------------+
 // Valida se tipo de autenticação é do tipo Bearer |
 //-------------------------------------------------+
 If At("Bearer",::cAuth) == 0
-    _oJSon                  := Array(#)
-    _oJSon[#"status"]       := "1"
-    _oJSon[#"message"]      := "Tipo de autenticação inválida."
+    _oJSonRet                          := Array(#)
+    _oJSonRet[#"messages"]             := Array(#)
+    _oJSonRet[#"messages"][#"status"]  := "1"
+    _oJSonRet[#"messages"][#"message"] := "Tipo de autenticação inválida."
 
-    ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+    ::cJSonRet              := EncodeUTF8(xToJson(_oJSonRet))
     ::cError                := "Tipo de autenticação inválida."
     ::nCodeHttp             := BADREQUEST
+
+    CoNout("<< DANALOG >> VALIDATOKEN - TIPO DE AUTENTICACAO INVALIDA")    
+
     Return .F.
 EndIf
 
@@ -368,19 +412,23 @@ _cSecret    := _aToken[3]
 //----------------+
 _cPayLoad			:= Decode64(_aToken[2])
 _oJson  			:= xFromJson(_cPayLoad)
-_cUser              := _oJson[#"sub"]
+::cIdCliente        := _oJson[#"sub"]
 
 //--------------------+
 // Valida data e hora | 
 //--------------------+
-If _dDta >= _oJson[#"dtf"] .And. _cTime > _oJson[#"hrf"]
-    _oJSon                  := Array(#)
-    _oJSon[#"status"]       := "1"
-    _oJSon[#"message"]      := "Token expirado."
+If ( _dDta > _oJson[#"dtf"] ) .Or. ( _cTime > _oJson[#"hrf"] )
+    _oJSonRet                          := Array(#)
+    _oJSonRet[#"messages"]             := Array(#)
+    _oJSonRet[#"messages"][#"status"]  := "1"
+    _oJSonRet[#"messages"][#"message"] := "Token expirado."
 
-    ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+    ::cJSonRet              := EncodeUTF8(xToJson(_oJSonRet))
     ::cError                := "Token expirado."
     ::nCodeHttp             := BADREQUEST
+
+    CoNout("<< DANALOG >> VALIDATOKEN - TOKEN EXPIRADO")    
+
     Return .F.
 EndIf
 
@@ -389,14 +437,18 @@ EndIf
 //----------------+
 dbSelectArea("XT2")
 XT2->( dbSetOrder(1) )
-If !XT2->( dbSeek(xFilial("XT2") + _cUser) )
-    _oJSon                  := Array(#)
-    _oJSon[#"status"]       := "1"
-    _oJSon[#"message"]      := "Dados do token inválidos."
+If !XT2->( dbSeek(xFilial("XT2") + ::cIdCliente) )
+    _oJSonRet                          := Array(#)
+    _oJSonRet[#"messages"]             := Array(#)
+    _oJSonRet[#"messages"][#"status"]  := "1"
+    _oJSonRet[#"messages"][#"message"] := "Dados do token inválidos."
 
-    ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+    ::cJSonRet              := EncodeUTF8(xToJson(_oJSonRet))
     ::cError                := "Dados do token inválidos."
     ::nCodeHttp             := BADREQUEST
+    
+    CoNout("<< DANALOG >> VALIDATOKEN - DADOS DO TOKEN INVALIDO")    
+
     Return .F.
 EndIf
 
@@ -404,29 +456,37 @@ EndIf
 // Valida Token |
 //--------------+
 If RTrim(SubStr(::cAuth,8)) <> RTrim(XT2->XT2_TOKEN)
-    _oJSon                  := Array(#)
-    _oJSon[#"status"]       := "1"
-    _oJSon[#"message"]      := "Token inválido."
+    _oJSonRet                          := Array(#)
+    _oJSonRet[#"messages"]             := Array(#)
+    _oJSonRet[#"messages"][#"status"]  := "1"
+    _oJSonRet[#"messages"][#"message"] := "Token inválido."
 
-    ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+    ::cJSonRet              := EncodeUTF8(xToJson(_oJSonRet))
     ::cError                := "Token inválido."
     ::nCodeHttp             := BADREQUEST
+
+    CoNout("<< DANALOG >> VALIDATOKEN - TOKEN INVALIDO")    
+
     Return .F.
 EndIf
 
 Return _lRet 
 
 /****************************************************************************************/
-/*/{Protheus.doc} ValidaToken
-    @description Metodo - Valida Token
+/*/{Protheus.doc} Produtos
+    @description Metodo - Grava / Atualiza e consulta produtos DanaLog
     @author    Bernard M. Margarido
     @since     22/11/2020
 /*/
 /****************************************************************************************/
-Method Produto() Class DanaLog
-Local _aArea    := GetArea()
+Method Produtos() Class DanaLog
+Local _aArea        := GetArea()
 
-Local _lRet     := .T.
+Local _cRest        := ""
+
+Local _lRet         := .T.
+
+Private _aMsgErro   := {}
 
 //--------------+
 // Valida Token | 
@@ -440,20 +500,437 @@ EndIf
 // Valida se JSON veio preenchido | 
 //--------------------------------+
 If Empty(::cJSon)
-    _oJSon                  := Array(#)
-    _oJSon[#"status"]       := "1"
-    _oJSon[#"message"]      := "JSON não enviado."
+    _oJSon                          := Array(#)
+    _oJSon[#"messages"]             := Array(#)
+    _oJSon[#"messages"][#"status"]  := "1"
+    _oJSon[#"messages"][#"message"] := "JSON não enviado."
 
     ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
     ::cError                := "JSON não enviado."
     ::nCodeHttp             := BADREQUEST
     _lRet                   := .F.
+
+    CoNout("<< DANALOG >> PRODUTOS - JSON NAO ENVIADO ")    
+
 EndIf
 
+//---------------+
+// Metodo - POST |
+//---------------+
+If ::cMetodo == "POST"
+    CoNout("<< DANALOG >> PRODUTOS - METODO POST ")    
+    Begin Transaction 
+        ProdutoPost(::cJSon,3)
+    End Transaction 
+//--------------+
+// Metodo - PUT |
+//--------------+
+ElseIf ::cMetodo == "PUT"
+    CoNout("<< DANALOG >> PRODUTOS - METODO PUT ")    
+    Begin Transaction 
+        ProdutoPost(::cJSon,4)
+    End Transaction
+//--------------+
+// Metodo - GET |
+//--------------+
+ElseIf ::cMetodo == "GET"
+    CoNout("<< DANALOG >> PRODUTOS - METODO GET ")    
+    ProdutoGet(::cCodProd,::cIdCliente,@_cRest)
+EndIf
 
+//----------------+
+// Array de erros |
+//----------------+
+If Len(_aMsgErro) > 0 .And. Empty(_cRest)
+    ::GetJSon()
+ElseIf !Empty(_cRest) .And. Len(_aMsgErro) == 0
+    ::cJSonRet              := _cRest
+    ::cError                := ""
+    ::nCodeHttp             := SUCESS
+EndIf
 
 RestArea(_aArea)
 Return _lRet 
+
+/****************************************************************************************/
+/*/{Protheus.doc} ProdutoPost
+    @description Realiza a gravação do produto cliente logistico
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/****************************************************************************************/
+Static Function ProdutoPost(_cJSon,_nOpc)
+Local _cIDCliente       := ""
+Local _cCodProd         := ""
+Local _cDescri          := ""
+Local _cTpProd          := ""
+Local _cUnidade_1       := ""
+Local _cUnidade_2       := ""
+Local _cTpConv          := ""
+Local _cCodBar          := ""
+Local _cCodCaixa        := ""
+Local _cArmazem         := ""
+Local _cLote            := ""
+Local _cNCM             := ""
+Local _cTpEmb           := ""
+Local _cBloq            := ""
+Local _cMsgErro         := ""
+
+Local _nFator           := 0
+Local _nPesoLiq         := 0
+Local _nPesoBru         := 0
+Local _nAltura          := 0
+Local _nLargura         := 0
+Local _nCompr           := 0
+Local _nPesLEmb         := 0
+Local _nPesBEmb         := 0
+Local _nAlturaE         := 0
+Local _nLarguraE        := 0
+Local _nComprE          := 0
+Local _nQtdEmb          := 0
+Local _nTotEmp          := 0
+Local _nTotPalet        := 0
+Local _nX               := 0 
+
+Local _lRet             := .T.
+Local _lMvcMata010      := TableInDic( "G3Q", .F. )
+
+Local _aArray           := {}
+Local _aErroAuto        := {}
+
+Local _oJSon            := Nil 
+Local _oProduto         := Nil 
+
+Private lMsErroAuto     := .F.
+Private lAutoErrNoFile  := .T.
+
+Default _nOpc           := 3
+
+//------------------+
+// Dados do produto |
+//------------------+
+_oJSon      := xFromJson(_cJSon)
+_cIDCliente := _oJSon[#"id_cliente"]
+_oProduto   := _oJSon[#"produtos"]
+
+If ValType(_oProduto) == "A"
+
+    //----------------+
+    // SB1 - Produtos |
+    //----------------+
+    dbSelectArea("SB1")
+    SB1->( dbSetOrder(1) )
+
+    //---------------------------------+
+    // XT3 - Armazens Cliente Dana LOG |
+    //---------------------------------+
+    dbSelectArea("XT3")
+    XT3->( dbSetOrder(1))
+
+    For _nX := 1 To Len(_oProduto)
+        
+        _aArray     := {}
+        _cCodProd   := _oProduto[_nX][#"codigo"]
+        _cDescri    := _oProduto[_nX][#"descricao"]
+        _cTpProd    := _oProduto[_nX][#"tipo_produto"]
+        _cUnidade_1 := _oProduto[_nX][#"unidade"]
+        _cUnidade_2 := _oProduto[_nX][#"unidade_2"]
+        _nFator     := _oProduto[_nX][#"fator_conv"]
+        _cTpConv    := _oProduto[_nX][#"tipo_conv"]
+        _cCodBar    := _oProduto[_nX][#"codigo_barras"]
+        _cCodCaixa  := _oProduto[_nX][#"codigo_barras_caixa"]
+        _cArmazem   := "01"
+        _cLote      := _oProduto[_nX][#"lote"]
+        _cNCM       := _oProduto[_nX][#"ncm"]
+        _cBloq      := _oProduto[_nX][#"ativo"]
+        _cOrigem    := _oProduto[_nX][#"origem"]
+        _nPesoLiq   := _oProduto[_nX][#"peso_liquido"]
+        _nPesoBru   := _oProduto[_nX][#"peso_bruto"]
+        _nAltura    := _oProduto[_nX][#"altura"]
+        _nLargura   := _oProduto[_nX][#"largura"]
+        _nCompr     := _oProduto[_nX][#"comprimento"]
+        _nPesLEmb   := _oProduto[_nX][#"peso_liquido_emb"]
+        _nPesBEmb   := _oProduto[_nX][#"peso_bruto_emb"]
+        _nAlturaE   := _oProduto[_nX][#"altura_embalagem"]
+        _nLarguraE  := _oProduto[_nX][#"largura_embalagem"]
+        _nComprE    := _oProduto[_nX][#"comprimento_embalagem"]
+        _cTpEmb     := _oProduto[_nX][#"tipo_embalagem"]
+        _nQtdEmb    := _oProduto[_nX][#"quantidade_embalagem"]
+        _nTotEmp    := _oProduto[_nX][#"empilhamento_maximo"]
+        _nTotPalet  := _oProduto[_nX][#"total_pallet"]
+
+        //-----------------------------------+
+        // Valida se produto está cadastrado | 
+        //-----------------------------------+
+        If SB1->( dbSeek(xFilial("SB1") + _cCodProd) ) .And. _nOpc == 3
+            aAdd(_aMsgErro,{"1",RTrim(_cCodProd), "Produto já cadastro utiliza o método PUT para atualização do produto."})
+            Loop 
+        EndIf
+
+        aAdd(_aArray, {"B1_FILIAL"  , xFilial("SB1")              , Nil })
+        aAdd(_aArray, {"B1_COD"     , _cCodProd                   , Nil })
+        aAdd(_aArray, {"B1_DESC"    , _cDescri                    , Nil })
+        aAdd(_aArray, {"B1_TIPO"    , _cTpProd                    , Nil })
+        aAdd(_aArray, {"B1_UM"      , _cUnidade_1                 , Nil })
+        aAdd(_aArray, {"B1_SEGUM"   , _cUnidade_2                 , Nil })
+        aAdd(_aArray, {"B1_CONV"    , _nFator                     , Nil })
+        aAdd(_aArray, {"B1_TIPCONV" , _cTpConv                    , Nil })
+        aAdd(_aArray, {"B1_CODGTIN" , _cCodBar                    , Nil })
+        aAdd(_aArray, {"B1_XEANCX"  , _cCodCaixa                  , Nil })
+        aAdd(_aArray, {"B1_LOCPAD"  , _cArmazem                   , Nil })
+        aAdd(_aArray, {"B1_RASTRO"  , _cLote                      , Nil })
+        aAdd(_aArray, {"B1_POSIPI"  , _cNCM                       , Nil })
+        aAdd(_aArray, {"B1_PESO"    , _nPesoLiq                   , Nil })
+        aAdd(_aArray, {"B1_PESBRU"  , _nPesoBru                   , Nil })
+        aAdd(_aArray, {"B1_MSBLQL"  , IIF(_cBloq == "A","2","1")  , Nil })
+        aAdd(_aArray, {"B1_ORIGEM"  , _cOrigem                    , Nil })
+        aAdd(_aArray, {"B1_XIDLOGI" , _cIDCliente                 , Nil })
+
+        lMsErroAuto := .F.
+        MSExecAuto({|x,y| Mata010(x,y)}, _aArray, _nOpc)
+
+        //--------------------------+
+        // Erro gravação de produto | 
+        //--------------------------+
+        If lMsErroAuto  
+            //-------------------+
+            // Log erro ExecAuto |
+            //-------------------+
+            _aErroAuto := GetAutoGRLog()
+
+            //------------------------------------+
+            // Retorna somente a linha com o erro | 
+            //------------------------------------+
+            ErroAuto(_aErroAuto,@_cMsgErro)
+            
+            //------------------------+
+            // Grava array de retorno | 
+            //------------------------+
+            aAdd(_aMsgErro,{"1",RTrim(_cCodProd), Alltrim(_cMsgErro)})
+        //-----------------------------+
+        // Produto gravado com sucesso | 
+        //-----------------------------+
+        Else
+            
+            //---------------------------------+ 
+            // Adiciona complemento do produto | 
+            //---------------------------------+
+            If ProdutoCompl(_cIDCliente,_cCodProd,_cDescri,_nPesoLiq,_nPesoBru,_nAltura,_nLargura,;
+                            _nCompr,_nPesLEmb,_nPesBEmb,_nAlturaE,_nLarguraE,_nComprE,;
+                            _cTpEmb,_nQtdEmb,_nTotEmp,_nTotPalet,@_cMsgErro)
+                //------------------------+
+                // Grava array de retorno | 
+                //------------------------+
+                aAdd(_aMsgErro,{"0",RTrim(_cCodProd), "Produto gravado com sucesso."})
+            EndIf
+
+        EndIf
+           
+    Next _nX
+
+EndIf
+
+Return _lRet 
+
+/*************************************************************************************/
+/*/{Protheus.doc} nomeStaticFunction
+    @description Retorna dados do produto
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 25/11/2020
+/*/
+/*************************************************************************************/
+Static Function ProdutoGet(_cCodProd,_cIdCliente,_cRest)
+Local _cAlias   := ""
+
+Local _lRet     := .T.
+
+Local _oJSon    := Nil 
+Local _oProduto := Nil 
+
+//------------------+
+// Consulta produto |
+//------------------+
+If !PrdGetQry(@_cAlias,_cCodProd,_cIdCliente)
+    aAdd(_aMsgErro,{"1",RTrim(_cCodProd), "Produto não localizado."})
+    Return .F.
+EndIf 
+
+_oJSon              := Array(#)
+_oJSon[#"produtos"] := {}
+
+While (_cAlias)->( !Eof() )
+
+    aAdd(_oJSon[#"produtos"],Array(#))
+    _oProduto := aTail(_oJSon[#"produtos"])
+
+    _oProduto[#"codigo"]                := (_cAlias)->B1_COD
+	_oProduto[#"descricao"]             := (_cAlias)->B1_DESC
+	_oProduto[#"tipo_produto"]          := (_cAlias)->B1_TIPO
+	_oProduto[#"unidade"]               := (_cAlias)->B1_UM
+	_oProduto[#"unidade_2"]             := (_cAlias)->B1_SEGUM
+	_oProduto[#"fator_conv"]            := (_cAlias)->B1_CONV
+	_oProduto[#"tipo_conv"]             := (_cAlias)->B1_TIPCONV
+	_oProduto[#"codigo_barras"]         := (_cAlias)->B1_CODGTIN
+	_oProduto[#"codigo_barras_caixa"]   := (_cAlias)->B1_XEANCX    
+	_oProduto[#"lote"]                  := (_cAlias)->B1_RASTRO
+	_oProduto[#"ncm"]                   := (_cAlias)->B1_POSIPI
+	_oProduto[#"ativo"]                 := (_cAlias)->B1_MSBLQL
+	_oProduto[#"origem"]                := (_cAlias)->B1_ORIGEM
+	_oProduto[#"peso_liquido"]          := (_cAlias)->B1_PESO
+	_oProduto[#"peso_bruto"]            := (_cAlias)->B1_PESBRU
+	_oProduto[#"altura"]                := (_cAlias)->B5_ALTURA
+	_oProduto[#"largura"]               := (_cAlias)->B5_LARG
+	_oProduto[#"comprimento"]           := (_cAlias)->B5_COMPR
+	_oProduto[#"peso_liquido_emb"]      := (_cAlias)->B1_PESO
+	_oProduto[#"peso_bruto_emb"]        := (_cAlias)->B1_PESBRU
+	_oProduto[#"altura_embalagem"]      := (_cAlias)->B5_ALTURLC
+	_oProduto[#"largura_embalagem"]     := (_cAlias)->B5_LARGLC
+	_oProduto[#"comprimento_embalagem"] := (_cAlias)->B5_COMPRLC
+	_oProduto[#"tipo_embalagem"]        := (_cAlias)->B5_EMB1
+	_oProduto[#"quantidade_embalagem"]  := (_cAlias)->B5_QE1
+	_oProduto[#"empilhamento_maximo"]   := (_cAlias)->B5_EMPMAX0
+	_oProduto[#"total_pallet"]          := (_cAlias)->B5_EMPMAX0 * (_cAlias)->B5_FATARMA
+
+    (_cAlias)->( dbSkip() )
+EndDo
+
+//--------------+
+// Cria retorno | 
+//--------------+
+_cRest  := EncodeUTF8(xToJson(_oJSon))
+
+//---------------------+
+// Encerra temposrário |
+//---------------------+
+(_cAlias)->( dbCloseArea() )
+
+Return _lRet 
+
+/*************************************************************************************/
+/*/{Protheus.doc} PrdGetQry
+    @description Consulta produto 
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 25/11/2020
+/*/
+/*************************************************************************************/
+Static Function PrdGetQry(_cAlias,_cCodProd,_cIdCliente)
+Local _cQuery := ""
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	B1.B1_COD, " + CRLF
+_cQuery += "	B1.B1_DESC, " + CRLF
+_cQuery += "	B1.B1_TIPO, " + CRLF
+_cQuery += "	B1.B1_UM, " + CRLF
+_cQuery += "	B1.B1_SEGUM, " + CRLF
+_cQuery += "	B1.B1_CONV, " + CRLF
+_cQuery += "	B1.B1_TIPCONV, " + CRLF
+_cQuery += "	B1.B1_CODGTIN, " + CRLF 
+_cQuery += "	B1.B1_XEANCX, " + CRLF
+_cQuery += "	B1.B1_LOCPAD, " + CRLF
+_cQuery += "	B1.B1_RASTRO, " + CRLF
+_cQuery += "	B1.B1_POSIPI, " + CRLF
+_cQuery += "	B1.B1_PESO, " + CRLF
+_cQuery += "	B1.B1_PESBRU, " + CRLF
+_cQuery += "	B1.B1_MSBLQL, " + CRLF
+_cQuery += "	B1.B1_ORIGEM, " + CRLF
+_cQuery += "	B1.B1_XIDLOGI, " + CRLF
+_cQuery += "    COALESCE(B5.B5_COMPR,0) B5_COMPR, " + CRLF
+_cQuery += "	COALESCE(B5.B5_ALTURA,0) B5_ALTURA, " + CRLF
+_cQuery += "	COALESCE(B5.B5_LARG,0) B5_LARG, " + CRLF
+_cQuery += "	COALESCE(B5.B5_EMB1,'') B5_EMB1, " + CRLF
+_cQuery += "	COALESCE(B5.B5_QE1,0) B5_QE1, " + CRLF
+_cQuery += "	COALESCE(B5.B5_COMPRLC,0) B5_COMPRLC, " + CRLF
+_cQuery += "	COALESCE(B5.B5_LARGLC,0) B5_LARGLC, " + CRLF
+_cQuery += "	COALESCE(B5.B5_ALTURLC,0) B5_ALTURLC, " + CRLF
+_cQuery += "	COALESCE(B5.B5_FATARMA,0) B5_FATARMA, " + CRLF
+_cQuery += "	COALESCE(B5.B5_EMPMAX,0) B5_EMPMAX0 " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += "	" + RetSqlName("SB1") + " B1 " + CRLF
+_cQuery += "	LEFT JOIN " + RetSqlName("SB5") + " B5 ON B5.B5_FILIAL = '" + xFilial("SB5") + "' AND B5.B5_COD = B1.B1_COD AND B5.B5_XIDLOGI = B1.B1_XIDLOGI AND B5.D_E_L_E_T_ = '' " + CRLF
+_cQuery += " WHERE " + CRLF
+_cQuery += "	B1.B1_FILIAL = '" + xFilial("SB1") + "' AND " + CRLF
+_cQuery += "	B1.B1_COD = '" + _cCodProd + "' AND " + CRLF
+_cQuery += "	B1.B1_XIDLOGI = '" + _cIdCliente + "' AND " + CRLF
+_cQuery += "	B1.D_E_L_E_T_ = '' "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+If (_cAlias)->( Eof() )
+    (_cAlias)->( dbCloseArea() )
+    Return .F.
+EndIf
+
+Return .T.
+
+/*************************************************************************************/
+/*/{Protheus.doc} ProdutoCompl
+    @description Grava informações de complemento de produto 
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/*************************************************************************************/
+Static Function ProdutoCompl(_cIDCliente,_cCodProd,_cDescri,_nPesoLiq,_nPesoBru,_nAltura,_nLargura,;
+                             _nCompr,_nPesLEmb,_nPesBEmb,_nAlturaE,_nLarguraE,_nComprE,;
+                             _cTpEmb,_nQtdEmb,_nTotEmp,_nTotPalet,_cMsgErro)
+Local _lRet     := .T.
+
+Local _nFator   := Int(_nTotPalet/_nTotEmp)
+Local _nOpc     := 3
+
+Local _aCompPrd := {}
+
+dbSelectArea("SB5")
+SB5->( dbSetOrder(1) )
+If SB5->( dbSeek(xFilial("SB5") + _cCodProd) )
+    _nOpc := 4
+EndIf
+
+aAdd(_aCompPrd, {"B5_COD"       , _cCodProd     ,   Nil })
+aAdd(_aCompPrd, {"B5_CEME"      , _cDescri      ,   Nil })
+aAdd(_aCompPrd, {"B5_COMPR"     , _nCompr       ,   Nil })
+aAdd(_aCompPrd, {"B5_ESPESS"    , _nCompr       ,   Nil })
+aAdd(_aCompPrd, {"B5_ALTURA"    , _nAltura      ,   Nil })
+aAdd(_aCompPrd, {"B5_LARG"      , _nLargura     ,   Nil })
+aAdd(_aCompPrd, {"B5_EMB1"      , _cTpEmb       ,   Nil })
+aAdd(_aCompPrd, {"B5_QE1"       , _nQtdEmb      ,   Nil })
+aAdd(_aCompPrd, {"B5_COMPRLC"   , _nComprE      ,   Nil })
+aAdd(_aCompPrd, {"B5_LARGLC"    , _nLarguraE    ,   Nil })
+aAdd(_aCompPrd, {"B5_ALTURLC"   , _nAlturaE     ,   Nil })
+aAdd(_aCompPrd, {"B5_FATARMA"   , _nFator       ,   Nil })
+aAdd(_aCompPrd, {"B5_EMPMAX"    , _nTotEmp      ,   Nil })
+aAdd(_aCompPrd, {"B5_XIDLOGI"   , _cIDCliente   ,  Nil  })
+
+lMsErroAuto     := .F.
+lAutoErrNoFile  := .T.
+
+MSExecAuto({|x,y| Mata180(x,y)},_aCompPrd, _nOpc)
+
+//--------------------------+
+// Erro gravação de produto | 
+//--------------------------+
+If lMsErroAuto  
+    //-------------------+
+    // Log erro ExecAuto |
+    //-------------------+
+    _aErroAuto  := GetAutoGRLog()
+    _lRet       := .F.
+    //------------------------------------+
+    // Retorna somente a linha com o erro | 
+    //------------------------------------+
+    ErroAuto(_aErroAuto,@_cMsgErro)
+    
+    //------------------------+
+    // Grava array de retorno | 
+    //------------------------+
+    aAdd(_aMsgErro,{"1",RTrim(_cCodProd), Alltrim(_cMsgErro)})
+
+EndIf
+
+Return _lRet  
 
 /*************************************************************************************/
 /*/{Protheus.doc} SumTime
@@ -514,3 +991,60 @@ _cSegundo	:= StrZero(Int(Mod(_nTotHr,60)),2)
 _cNewHora	:= _cHora + ":" + _cMinuto + ":" + _cSegundo
 
 Return _cNewHora
+
+/*************************************************************************************/
+/*/{Protheus.doc} ErroAuto
+    @description Tratamento da mensagem de erro ExecAuto 
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/*************************************************************************************/
+Static Function ErroAuto(_aErroAuto,_cMsgErro)
+Local _lHelp    := .F.
+Local _lTabela  := .F.
+Local _lAjuda   := .F.
+Local _lHelpMvc := .F.
+
+Local _cLinha   := ""
+Local _nX       := 0
+
+For _nX := 1 To Len(_aErroAuto)
+
+	_cLinha  := Upper(_aErroAuto[_nX])
+	_cLinha  := StrTran( _cLinha, Chr(13), " " )
+	_cLinha  := StrTran( _cLinha, Chr(10), " " )
+	
+	If SubStr( _cLinha, 1, 4 ) == 'HELP'
+		_lHelp := .T.
+	EndIf
+	
+	If SubStr( _cLinha, 1, 6 ) == 'TABELA'
+		_lHelp   := .F.
+		_lTabela := .T.
+	EndIf
+
+    If SubStr( _cLinha, 1, 5 ) == 'AJUDA'
+		_lHelp   := .F.
+		_lTabela := .F.
+        _lAjuda  := .T.
+	EndIf
+
+    If  SubStr(_cLinha,1,82 ) == "  --------------------------------------------------------------------------------"
+        _lHelp   := .F.
+		_lTabela := .F.
+        _lAjuda  := .F.
+        _lHelpMvc:= .T.
+    EndIf
+
+	If (_lHelp .Or. _lTabela .Or. _lAjuda) .And. ( '< -- INVALIDO' $ _cLinha )
+		_cMsgErro := _cLinha
+	EndIf
+
+    If _lHelpMvc
+        _cMsgErro := SubStr(_cLinha,83)
+    EndIf
+	
+Next _nX
+
+Return Nil 
