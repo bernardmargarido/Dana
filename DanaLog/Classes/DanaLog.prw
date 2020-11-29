@@ -46,6 +46,7 @@ Class DanaLog
     Method GeraToken()
     Method Produtos()
     Method Clientes()
+    Method Fornecedor()
     Method ClearObj()
 
 End Class
@@ -633,6 +634,87 @@ RestArea(_aArea)
 Return _lRet 
 
 /****************************************************************************************/
+/*/{Protheus.doc} Fornecedor
+    @description Realiza a atualização dos fornecedores logistico
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/****************************************************************************************/
+Method Fornecedor() Class DanaLog
+Local _aArea        := GetArea()
+
+Local _cRest        := ""
+
+Local _lRet         := .T.
+
+Private _aMsgErro   := {}
+
+//--------------+
+// Valida Token | 
+//--------------+
+If !::ValidaToken()
+    RestArea(_aArea)
+    Return .F.
+EndIf
+
+//--------------------------------+
+// Valida se JSON veio preenchido | 
+//--------------------------------+
+If Empty(::cJSon)
+    _oJSon                          := Array(#)
+    _oJSon[#"messages"]             := Array(#)
+    _oJSon[#"messages"][#"status"]  := "1"
+    _oJSon[#"messages"][#"message"] := "JSON não enviado."
+
+    ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+    ::cError                := "JSON não enviado."
+    ::nCodeHttp             := BADREQUEST
+    _lRet                   := .F.
+
+    CoNout("<< DANALOG >> FORNECEDOR - JSON NAO ENVIADO ")    
+
+EndIf
+
+//---------------+
+// Metodo - POST |
+//---------------+
+If ::cMetodo == "POST"
+    CoNout("<< DANALOG >> FORNECEDOR - METODO POST ")    
+    Begin Transaction 
+        ForneceP(::cJSon,3)
+    End Transaction 
+//--------------+
+// Metodo - PUT |
+//--------------+
+ElseIf ::cMetodo == "PUT"
+    CoNout("<< DANALOG >> FORNECEDOR - METODO PUT ")    
+    Begin Transaction 
+        ForneceP(::cJSon,4)
+    End Transaction
+//--------------+
+// Metodo - GET |
+//--------------+
+ElseIf ::cMetodo == "GET"
+    CoNout("<< DANALOG >> FORNECEDOR - METODO GET ")    
+    ForneceG(::cCodProd,::cIdCliente,@_cRest)
+EndIf
+
+//----------------+
+// Array de erros |
+//----------------+
+If Len(_aMsgErro) > 0 .And. Empty(_cRest)
+    ::GetJSon()
+ElseIf !Empty(_cRest) .And. Len(_aMsgErro) == 0
+    ::cJSonRet              := _cRest
+    ::cError                := ""
+    ::nCodeHttp             := SUCESS
+EndIf
+
+RestArea(_aArea)
+Return _lRet 
+
+/****************************************************************************************/
 /*/{Protheus.doc} ProdutoPost
     @description Realiza a gravação do produto cliente logistico
     @type  Static Function
@@ -1010,7 +1092,7 @@ If ValType(_oCliente) == "A"
         aAdd(_aArray, {"A1_MSBLQL"  , IIF(_cSituacao == "A","2","1")    , Nil })
         aAdd(_aArray, {"A1_INSCR"   , _cInscR                           , Nil })
         aAdd(_aArray, {"A1_EMAIL"   , _cEMail                           , Nil })
-        aAdd(_aArray, {"A1_XIDLOG"  , _cIDCliente                       , Nil })
+        aAdd(_aArray, {"A1_XIDLOGI" , _cIDCliente                       , Nil })
         aAdd(_aArray, {"A1_CLASSIF" , _cClassif                         , Nil })
         aAdd(_aArray, {"A1_FATORPR" , _nFatorPr                         , Nil })
         aAdd(_aArray, {"A1_ATIVO"   , _cAtivo                           , Nil })
@@ -1064,6 +1146,178 @@ If ValType(_oCliente) == "A"
 EndIf
 
 Return _lRet 
+
+/*************************************************************************************/
+/*/{Protheus.doc} ForneceP
+    @description Realiza a gravação e atualização de fornecedores logistico
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 28/11/2020
+/*/
+/*************************************************************************************/
+Static Function ForneceP(_cJSon,_nOpc)
+Local _cCodFor          := ""
+Local _cLoja            := ""
+Local _cCnpj            := ""
+Local _cNome            := ""
+Local _cFantasia        := ""
+Local _cInscR           := ""
+Local _cCep             := ""
+Local _cEndereco        := ""
+Local _cNumero          := ""
+Local _cComple          := ""
+Local _cBairro          := ""
+Local _cMunicipio       := ""
+Local _cUF              := ""
+Local _cDDD             := ""
+Local _cTelefone        := ""
+Local _cEMail           := ""
+Local _cSituacao        := ""
+Local _cMsgErro         := ""
+
+Local _nX               := 0
+
+Local _lRet             := .T.
+
+Local _aArray           := {}
+Local _aErroAuto        := {}
+
+Local _oJSon            := Nil 
+Local _oFornece         := Nil 
+
+Private lMsErroAuto     := .F.
+Private lAutoErrNoFile  := .T.
+
+Default _nOpc           := 3
+
+//--------------------------+
+// SA1 - Tabela de Clientes |
+//--------------------------+
+dbSelectArea("SA2")
+SA2->( dbSetOrder(3) )
+
+//------------------+
+// Dados do produto |
+//------------------+
+_oJSon      := xFromJson(DecodeUTF8(_cJSon))
+_cIDCliente := _oJSon[#"id_cliente"]
+_oFornece   := _oJSon[#"fornecedores"]
+
+If ValType(_oFornece) == "A"
+
+    //----------------+
+    // SB1 - Produtos |
+    //----------------+
+    dbSelectArea("SA2")
+    SA2->( dbSetOrder(1) )
+
+    For _nX := 1 To Len(_oFornece)
+        
+        _aArray     := {}
+        
+        _cCnpj      := u_EcFormat(_oFornece[_nX][#"cnpj_cpf"],"A2_CGC",.T.)
+        _cTipo      := IIF(Len(Alltrim(_cCnpj)) < 14, "F", "J") 
+        _cNome      := u_EcAcento(_oFornece[_nX][#"nome"],.T.)
+        _cFantasia  := u_EcAcento(_oFornece[_nX][#"fantasia"],.T.)
+        _cInscR     := _oFornece[_nX][#"inscricao"]
+        _cCep       := u_EcFormat(_oFornece[_nX][#"cep"],"A2_CEP",.T.)
+        _cEndereco  := u_EcAcento(_oFornece[_nX][#"endereco"],.T.)
+        _cNumero    := _oFornece[_nX][#"numero"]
+        _cComple    := u_EcAcento(_oFornece[_nX][#"complemento"],.T.)
+        _cBairro    := u_EcAcento(_oFornece[_nX][#"bairro"],.T.)
+        _cMunicipio := u_EcAcento(_oFornece[_nX][#"municipio"],.T.)
+        _cUF        := _oFornece[_nX][#"uf"]
+        _cDDD       := _oFornece[_nX][#"ddd"]
+        _cTelefone  := u_EcFormat(_oFornece[_nX][#"telefone"],"A2_TEL",.T.)
+        _cEMail     := _oFornece[_nX][#"email"]
+        _cSituacao  := _oFornece[_nX][#"situacao"]
+        _cCodMun    := EcCodMun(_cUF,_cMunicipio)
+
+        //-----------------------------------+
+        // Valida se produto está cadastrado | 
+        //-----------------------------------+
+        If SA2->( dbSeek(xFilial("SA2") + _cCnpj) ) 
+            If _nOpc == 3
+                aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Fornecedor já cadastro utiliza o método PUT para atualização."})
+                Loop 
+            ElseIf _nOpc == 4
+                _cCodFor    := SA2->A2_COD
+                _cLoja      := SA2->A2_LOJA
+            EndIf
+        Else
+            ForneceCod(_cCnpj,@_cCodFor,@_cLoja)          
+        EndIf
+                
+        aAdd(_aArray, {"A2_COD"     , _cCodFor                          , Nil })
+        aAdd(_aArray, {"A2_LOJA"    , _cLoja                            , Nil })
+        aAdd(_aArray, {"A2_NOME"    , _cNome                            , Nil })
+        aAdd(_aArray, {"A2_NREDUZ"  , _cFantasia                        , Nil })
+        aAdd(_aArray, {"A2_TIPO"    , _cTipo                            , Nil })
+        aAdd(_aArray, {"A2_END"     , _cEndereco + ", " + _cNumero      , Nil })
+        aAdd(_aArray, {"A2_EST"     , _cUF                              , Nil })
+        aAdd(_aArray, {"A2_COD_MUN" , _cCodMun                          , Nil })
+        aAdd(_aArray, {"A2_MUN"     , _cMunicipio                       , Nil })
+        aAdd(_aArray, {"A2_BAIRRO"  , _cBairro                          , Nil })
+        aAdd(_aArray, {"A2_CEP"     , _cCep                             , Nil })
+        aAdd(_aArray, {"A2_DDD"     , _cDDD                             , Nil })
+        aAdd(_aArray, {"A2_TEL"     , _cTelefone                        , Nil })
+        aAdd(_aArray, {"A2_CGC"     , _cCnpj                            , Nil })
+        aAdd(_aArray, {"A2_MSBLQL"  , IIF(_cSituacao == "A","2","1")    , Nil })
+        aAdd(_aArray, {"A2_INSCR"   , _cInscR                           , Nil })
+        aAdd(_aArray, {"A2_EMAIL"   , _cEMail                           , Nil })
+        aAdd(_aArray, {"A2_CODPAIS" , "01058"                           , Nil })
+        aAdd(_aArray, {"A2_XIDLOGI" , _cIDCliente                       , Nil })
+        
+        lMsErroAuto := .F.
+        _aArray     := FWVetByDic(_aArray, "SA2")
+        MSExecAuto({|x,y| Mata020(x,y)}, _aArray, _nOpc)
+
+        //--------------------------+
+        // Erro gravação de produto | 
+        //--------------------------+
+        If lMsErroAuto  
+            //-------------------+
+            // Retorna numeracao |
+            //-------------------+
+            RollBackSx8()
+
+            //-------------------+
+            // Log erro ExecAuto |
+            //-------------------+
+            _aErroAuto := GetAutoGRLog()
+
+            //------------------------------------+
+            // Retorna somente a linha com o erro | 
+            //------------------------------------+
+            ErroAuto(_aErroAuto,@_cMsgErro)
+            
+            //------------------------+
+            // Grava array de retorno | 
+            //------------------------+
+            aAdd(_aMsgErro,{"1",RTrim(_cCnpj), Alltrim(_cMsgErro)})
+        //-----------------------------+
+        // Produto gravado com sucesso | 
+        //-----------------------------+
+        Else
+
+            //--------------------+
+            // Confirma numeracao |
+            //--------------------+
+            ConfirmSx8()            
+            
+            //------------------------+
+            // Grava array de retorno | 
+            //------------------------+
+            aAdd(_aMsgErro,{"0",RTrim(_cCnpj), "Fornecedor gravado com sucesso."})
+
+        EndIf
+           
+    Next _nX
+
+EndIf
+
+Return _lRet 
+
 
 /*************************************************************************************/
 /*/{Protheus.doc} PrdGetQry
@@ -1291,6 +1545,74 @@ _cLoja    := _cLojaNew
 RestArea(_aArea)
 Return Nil 
 
+/***********************************************************************************/
+/*/{Protheus.doc} ForneceCod
+    @description Valida codigo e loja do fornecedor
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 29/11/2020
+/*/
+/***********************************************************************************/
+Static Function ForneceCod(_cCnpj,_cCodFor,_cLoja) 
+Local _aArea    := GetArea()
+Local _cCodNew  := ""
+Local _cLojaNew := PadL("1",TamSx3("A2_LOJA")[1],"0")
+
+//---------------------------+
+// Valida se é pessoa Fisica | 
+//---------------------------+  
+If Len(RTrim(_cCnpj)) <= 11
+    dbSelectArea("SA2")
+    SA2->( dbSetOrder(1) )
+
+    _cCodNew := GetSxeNum("SA2","A2_COD")
+    While SA2->( dbSeek(xFilial("SA2") + _cCodNew + _cLojaNew ) )
+        ConfirmSx8()
+        _cCodNew := GetSxeNum("SA2","A2_COD","",1)
+    EndDo
+
+//-----------------+
+// Pessoa Juridica | 
+//-----------------+
+Else
+    //--------------------------+
+    // Posiciona CNPJ pela raiz |
+    //--------------------------+
+    dbSelectArea("SA2")
+    SA2->( dbSetOrder(3) )
+    If SA2->( dbSeek(xFilial("SA2") + SubStr(_cCnpj,1,8) ) )
+        
+        _cCodNew    := SA2->A2_COD
+
+        While SA2->( !Eof() .And. xFilial("SA2") + SubStr(_cCnpj,1,8) == SA2->A2_FILIAL + SubStr(SA2->A2_CGC,1,8) )
+            _cCodNew    := SA2->A2_COD
+            Exit
+            SA2->( dbSkip() )
+        EndDo
+        
+        dbSelectArea("SA2")
+        SA2->( dbSetOrder(1) )
+        While SA2->( dbSeek(xFilial("SA2") + _cCodNew + _cLojaNew ) )
+            ConfirmSx8()
+            _cLojaNew := Soma1(_cLojaNew)
+        EndDo
+    Else
+        dbSelectArea("SA2")
+        SA2->( dbSetOrder(1) )
+
+        _cCodNew := GetSxeNum("SA2","A2_COD")
+        While SA2->( dbSeek(xFilial("SA2") + _cCodNew + _cLojaNew ) )
+            ConfirmSx8()
+            _cCodNew := GetSxeNum("SA2","A2_COD","",1)
+        EndDo
+    EndIf
+EndIf
+
+_cCodFor  := _cCodNew
+_cLoja    := _cLojaNew
+
+RestArea(_aArea)
+Return Nil
 /***********************************************************************************/
 /*/{Protheus.doc} EcCodMun
     @description Retorna codigo do municipio

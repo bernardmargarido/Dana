@@ -89,7 +89,7 @@ _oDLog:cAuth    := _cAuth
 _oDLog:cJSon    := _cBody
 _oDLog:cMetodo  := "POST"
 
-If _oDLog:Fornecedores()
+If _oDLog:Fornecedor()
     LogExec("FORNECEDOR SALVO COM SUCESSO")
     ::SetResponse(_oDLog:cJSonRet)
 	HTTPSetStatus(_oDLog:nCodeHttp,"OK")
@@ -174,7 +174,7 @@ _oDLog:cCliLoja := _cCliLoja
 _oDLog:cCnpj    := _cCnpj_Cpf
 _oDLog:cMetodo  := "GET"
 
-If _oDLog:Fornecedores()
+If _oDLog:Fornecedor()
     LogExec("FORNECEDOR RETORNADO COM SUCESSO")
     ::SetResponse(_oDLog:cJSonRet)
 	HTTPSetStatus(_oDLog:nCodeHttp,"OK")
@@ -253,7 +253,7 @@ _oDLog:cAuth    := _cAuth
 _oDLog:cJSon    := _cBody
 _oDLog:cMetodo  := "PUT"
 
-If _oDLog:Fornecedores()
+If _oDLog:Fornecedor()
     LogExec("FORNECEDOR SALVO COM SUCESSO")
     ::SetResponse(_oDLog:cJSonRet)
 	HTTPSetStatus(_oDLog:nCodeHttp,"OK")
