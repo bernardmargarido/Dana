@@ -10,14 +10,14 @@ Static _cDirRaiz 	:= "\danalog\"
 
 /************************************************************************************/
 /*/{Protheus.doc} 
-    @description API - Cadastro de produtos cliente logistico
+    @description API - Cadastro de clientes logistico
     @author Bernard M. Margarido
     @since 23/11/2020
     @version 1.0
     @type function
 /*/
 /************************************************************************************/
-WSRESTFUL API_CLIENTES DESCRIPTION " Servico DanaLog - Atualização clientes."
+WSRESTFUL API_CLIENTE DESCRIPTION " Servico DanaLog - Atualização clientes."
     
     WSDATA CNPJ_CPF 	AS STRING
 	WSDATA CODIGO		AS STRING
@@ -26,9 +26,9 @@ WSRESTFUL API_CLIENTES DESCRIPTION " Servico DanaLog - Atualização clientes."
 	WSDATA PERPAGE 		AS STRING	
 	WSDATA PAGE			AS STRING
 
-    WSMETHOD GET    DESCRIPTION "Realiza consulta dos clientes."    WSSYNTAX "/API_CLIENTES/GET"
-	WSMETHOD POST   DESCRIPTION "Realiza gravação dos clientes."    WSSYNTAX "/API_CLIENTES/POST"
-    WSMETHOD PUT    DESCRIPTION "Realiza atualização dos clientes." WSSYNTAX "/API_CLIENTES/PUT"
+    WSMETHOD GET    DESCRIPTION "Realiza consulta dos clientes."    WSSYNTAX "/API_CLIENTE/GET"
+	WSMETHOD POST   DESCRIPTION "Realiza gravação dos clientes."    WSSYNTAX "/API_CLIENTE/POST"
+    WSMETHOD PUT    DESCRIPTION "Realiza atualização dos clientes." WSSYNTAX "/API_CLIENTE/PUT"
     
 END WSRESTFUL
 
@@ -41,7 +41,7 @@ END WSRESTFUL
     @type function
 /*/
 /************************************************************************************/
-WSMETHOD POST WSSERVICE API_CLIENTES
+WSMETHOD POST WSSERVICE API_CLIENTE
 Local _aArea    := GetArea()
 
 Local _cBody        := ""
@@ -65,7 +65,7 @@ RPCSetEnv("02", "01", Nil, Nil, "FRT")
 // Inicializa Log de Integracao |
 //------------------------------+
 MakeDir(_cDirRaiz)
-_cArqLog := _cDirRaiz + "API_CLIENTES_POST" + cEmpAnt + cFilAnt + ".LOG"
+_cArqLog := _cDirRaiz + "API_CLIENTE_POST" + cEmpAnt + cFilAnt + ".LOG"
 ConOut("")	
 LogExec(Replicate("-",80))
 LogExec("INICIA API DE CLIENTES METODO POST - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
@@ -120,7 +120,7 @@ Return .T.
     @type function
 /*/
 /************************************************************************************/
-WSMETHOD GET WSRECEIVE CNPJ_CPF,CODIGO,LOJA,DATAHORA,PERPAGE,PAGE WSSERVICE API_CLIENTES
+WSMETHOD GET WSRECEIVE CNPJ_CPF,CODIGO,LOJA,DATAHORA,PERPAGE,PAGE WSSERVICE API_CLIENTE
 Local _aArea    := GetArea()
 
 Local _cBody        := ""
@@ -205,7 +205,7 @@ Return .T.
     @type function
 /*/
 /************************************************************************************/
-WSMETHOD PUT WSSERVICE API_CLIENTES
+WSMETHOD PUT WSSERVICE API_CLIENTE
 Local _aArea        := GetArea()
 
 Local _cBody        := ""
