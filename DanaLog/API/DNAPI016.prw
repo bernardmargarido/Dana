@@ -21,7 +21,6 @@ WSRESTFUL API_TRANSPORTADORA DESCRIPTION " Servico DanaLog - Atualização transpo
     
     WSDATA CNPJ_CPF 	AS STRING
 	WSDATA CODIGO		AS STRING
-	WSDATA LOJA			AS STRING	
 	WSDATA DATAHORA		AS STRING
 	WSDATA PERPAGE 		AS STRING	
 	WSDATA PAGE			AS STRING
@@ -89,7 +88,7 @@ _oDLog:cAuth    := _cAuth
 _oDLog:cJSon    := _cBody
 _oDLog:cMetodo  := "POST"
 
-If _oDLog:Transportadoras()
+If _oDLog:Transportadora()
     LogExec("TRANSPORTADORA SALVA COM SUCESSO")
     ::SetResponse(_oDLog:cJSonRet)
 	HTTPSetStatus(_oDLog:nCodeHttp,"OK")
@@ -173,7 +172,7 @@ _oDLog:cCliLoja := _cCliLoja
 _oDLog:cCnpj    := _cCnpj_Cpf
 _oDLog:cMetodo  := "GET"
 
-If _oDLog:Transportadoras()
+If _oDLog:Transportadora()
     LogExec("TRANSPORTADORA RETORNADA COM SUCESSO")
     ::SetResponse(_oDLog:cJSonRet)
 	HTTPSetStatus(_oDLog:nCodeHttp,"OK")
@@ -252,7 +251,7 @@ _oDLog:cAuth    := _cAuth
 _oDLog:cJSon    := _cBody
 _oDLog:cMetodo  := "PUT"
 
-If _oDLog:Transportadoras()
+If _oDLog:Transportadora()
     LogExec("TRANSPORTADORA SALVO COM SUCESSO")
     ::SetResponse(_oDLog:cJSonRet)
 	HTTPSetStatus(_oDLog:nCodeHttp,"OK")

@@ -47,6 +47,7 @@ Class DanaLog
     Method Produtos()
     Method Clientes()
     Method Fornecedor()
+    Method Transportadora()
     Method ClearObj()
 
 End Class
@@ -698,6 +699,87 @@ ElseIf ::cMetodo == "PUT"
 ElseIf ::cMetodo == "GET"
     CoNout("<< DANALOG >> FORNECEDOR - METODO GET ")    
     ForneceG(::cCodProd,::cIdCliente,@_cRest)
+EndIf
+
+//----------------+
+// Array de erros |
+//----------------+
+If Len(_aMsgErro) > 0 .And. Empty(_cRest)
+    ::GetJSon()
+ElseIf !Empty(_cRest) .And. Len(_aMsgErro) == 0
+    ::cJSonRet              := _cRest
+    ::cError                := ""
+    ::nCodeHttp             := SUCESS
+EndIf
+
+RestArea(_aArea)
+Return _lRet 
+
+/****************************************************************************************/
+/*/{Protheus.doc} Transportadora
+    @description Metodo realiza a gravação/atualização das transportadoras logisticas
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/****************************************************************************************/
+Method Transportadora() Class DanaLog
+Local _aArea        := GetArea()
+
+Local _cRest        := ""
+
+Local _lRet         := .T.
+
+Private _aMsgErro   := {}
+
+//--------------+
+// Valida Token | 
+//--------------+
+If !::ValidaToken()
+    RestArea(_aArea)
+    Return .F.
+EndIf
+
+//--------------------------------+
+// Valida se JSON veio preenchido | 
+//--------------------------------+
+If Empty(::cJSon)
+    _oJSon                          := Array(#)
+    _oJSon[#"messages"]             := Array(#)
+    _oJSon[#"messages"][#"status"]  := "1"
+    _oJSon[#"messages"][#"message"] := "JSON não enviado."
+
+    ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+    ::cError                := "JSON não enviado."
+    ::nCodeHttp             := BADREQUEST
+    _lRet                   := .F.
+
+    CoNout("<< DANALOG >> TRANSPORTADORA - JSON NAO ENVIADO ")    
+
+EndIf
+
+//---------------+
+// Metodo - POST |
+//---------------+
+If ::cMetodo == "POST"
+    CoNout("<< DANALOG >> TRANSPORTADORA - METODO POST ")    
+    Begin Transaction 
+        TransportP(::cJSon,3)
+    End Transaction 
+//--------------+
+// Metodo - PUT |
+//--------------+
+ElseIf ::cMetodo == "PUT"
+    CoNout("<< DANALOG >> TRANSPORTADORA - METODO PUT ")    
+    Begin Transaction 
+        TransportP(::cJSon,4)
+    End Transaction
+//--------------+
+// Metodo - GET |
+//--------------+
+ElseIf ::cMetodo == "GET"
+    CoNout("<< DANALOG >> TRANSPORTADORA - METODO GET ")    
+    TransportG(::cCodProd,::cIdCliente,@_cRest)
 EndIf
 
 //----------------+
