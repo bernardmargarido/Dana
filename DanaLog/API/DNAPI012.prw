@@ -41,16 +41,6 @@ Local _oDLog        := Nil
 
 Private _cArqLog	:= ""
 
-//-----------------------+
-// Abre empresa / filial |
-//-----------------------+
-If cEmpAnt == "01"
-    RpcClearEnv()
-EndIf
-
-RPCSetType(3)
-RPCSetEnv("02", "01", Nil, Nil, "FRT")
-
 //------------------------------+
 // Inicializa Log de Integracao |
 //------------------------------+
@@ -89,11 +79,6 @@ EndIf
 LogExec("FINALIZA CONSULTA DE TOKEN - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
 LogExec(Replicate("-",80))
 ConOut("")
-
-//-------------------+
-// Finaliza Ambiente |
-//-------------------+
-RpcClearEnv()
 
 RestArea(_aArea)
 Return .T.

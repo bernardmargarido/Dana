@@ -17,7 +17,7 @@ Static _cDirRaiz 	:= "\danalog\"
     @type function
 /*/
 /************************************************************************************/
-WSRESTFUL API_RECEBIMENTO DESCRIPTION " Servico DanaLog - Realiza recebimento de notas."
+WSRESTFUL RECEBIMENTO DESCRIPTION " Servico DanaLog - Realiza recebimento de notas."
     
     WSDATA IDCLIENTE 	AS STRING
 	WSDATA NOTA		    AS STRING
@@ -26,8 +26,8 @@ WSRESTFUL API_RECEBIMENTO DESCRIPTION " Servico DanaLog - Realiza recebimento de
 	WSDATA PERPAGE 		AS STRING	
 	WSDATA PAGE			AS STRING
 
-    WSMETHOD GET    DESCRIPTION "Realiza consulta dos recebimentos."    WSSYNTAX "/API_RECEBIMENTO/GET"
-	WSMETHOD POST   DESCRIPTION "Realiza gravação das recebimentos."    WSSYNTAX "/API_RECEBIMENTO/POST"
+    WSMETHOD GET    DESCRIPTION "Realiza consulta dos recebimentos."    WSSYNTAX "/RECEBIMENTO/GET"
+	WSMETHOD POST   DESCRIPTION "Realiza gravação das recebimentos."    WSSYNTAX "/RECEBIMENTO/POST"
     
 END WSRESTFUL
 
@@ -40,7 +40,7 @@ END WSRESTFUL
     @type function
 /*/
 /************************************************************************************/
-WSMETHOD POST WSSERVICE API_RECEBIMENTO
+WSMETHOD POST WSSERVICE RECEBIMENTO
 Local _aArea        := GetArea()
 
 Local _cBody        := ""
@@ -49,16 +49,6 @@ Local _cAuth        := ""
 Local _oDLog        := Nil 
 
 Private _cArqLog	:= ""
-
-//-----------------------+
-// Abre empresa / filial |
-//-----------------------+
-If cEmpAnt == "01"
-    RpcClearEnv()
-EndIf
-
-RPCSetType(3)
-RPCSetEnv("02", "01", Nil, Nil, "FRT")
 
 //------------------------------+
 // Inicializa Log de Integracao |
@@ -88,7 +78,7 @@ _oDLog:cAuth    := _cAuth
 _oDLog:cJSon    := _cBody
 _oDLog:cMetodo  := "POST"
 
-If _oDLog:Recebimentos()
+If _oDLog:Recebimento()
     LogExec("RECEBIMENTO SALVA COM SUCESSO")
     ::SetResponse(_oDLog:cJSonRet)
 	HTTPSetStatus(_oDLog:nCodeHttp,"OK")
@@ -102,10 +92,6 @@ LogExec("FINALIZA API DE RECEBIMENTO METODO POST - DATA/HORA: " + dToc( Date() )
 LogExec(Replicate("-",80))
 ConOut("")
 
-//-------------------+
-// Finaliza Ambiente |
-//-------------------+
-RpcClearEnv()
 
 RestArea(_aArea)
 Return .T.
@@ -119,7 +105,7 @@ Return .T.
     @type function
 /*/
 /************************************************************************************/
-WSMETHOD GET WSRECEIVE IDCLIENTE,NOTA,SERIE,DATAHORA,PERPAGE,PAGE WSSERVICE API_RECEBIMENTO
+WSMETHOD GET WSRECEIVE IDCLIENTE,NOTA,SERIE,DATAHORA,PERPAGE,PAGE WSSERVICE RECEBIMENTO
 Local _aArea    := GetArea()
 
 Local _cBody        := ""
@@ -131,16 +117,6 @@ Local _cSerie       := IIF(Empty(::SERIE),"",::SERIE)
 Local _oDLog        := Nil 
 
 Private _cArqLog	:= ""
-
-//-----------------------+
-// Abre empresa / filial |
-//-----------------------+
-If cEmpAnt == "01"
-    RpcClearEnv()
-EndIf
-
-RPCSetType(3)
-RPCSetEnv("02", "01", Nil, Nil, "FRT")
 
 //------------------------------+
 // Inicializa Log de Integracao |
@@ -186,11 +162,6 @@ EndIf
 LogExec("FINALIZA API DE RECEBIMENTO METODO GET - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
 LogExec(Replicate("-",80))
 ConOut("")
-
-//-------------------+
-// Finaliza Ambiente |
-//-------------------+
-RpcClearEnv()
 
 RestArea(_aArea)
 Return .T.

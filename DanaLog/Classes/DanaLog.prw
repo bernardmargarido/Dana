@@ -48,6 +48,7 @@ Class DanaLog
     Method Clientes()
     Method Fornecedor()
     Method Transportadora()
+    Method Recebimento()
     Method ClearObj()
 
 End Class
@@ -617,7 +618,7 @@ ElseIf ::cMetodo == "PUT"
 //--------------+
 ElseIf ::cMetodo == "GET"
     CoNout("<< DANALOG >> CLIENTES - METODO GET ")    
-    ClientesG(::cCodProd,::cIdCliente,@_cRest)
+    ClientesG(::cCodigo,::cLoja,::cCNPJ,::cIdCliente,@_cRest)
 EndIf
 
 //----------------+
@@ -698,7 +699,7 @@ ElseIf ::cMetodo == "PUT"
 //--------------+
 ElseIf ::cMetodo == "GET"
     CoNout("<< DANALOG >> FORNECEDOR - METODO GET ")    
-    ForneceG(::cCodProd,::cIdCliente,@_cRest)
+    ForneceG(::cCodigo,::cLoja,::cCNPJ,::cIdCliente,@_cRest)
 EndIf
 
 //----------------+
@@ -779,7 +780,80 @@ ElseIf ::cMetodo == "PUT"
 //--------------+
 ElseIf ::cMetodo == "GET"
     CoNout("<< DANALOG >> TRANSPORTADORA - METODO GET ")    
-    TransportG(::cCodProd,::cIdCliente,@_cRest)
+    TransportG(::cCodigo,,::cCNPJ,::cIdCliente,@_cRest)
+EndIf
+
+//----------------+
+// Array de erros |
+//----------------+
+If Len(_aMsgErro) > 0 .And. Empty(_cRest)
+    ::GetJSon()
+ElseIf !Empty(_cRest) .And. Len(_aMsgErro) == 0
+    ::cJSonRet              := _cRest
+    ::cError                := ""
+    ::nCodeHttp             := SUCESS
+EndIf
+
+RestArea(_aArea)
+Return _lRet 
+
+/****************************************************************************************/
+/*/{Protheus.doc} Recebimento
+    @description Realiza a gravação do produto cliente logistico
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/****************************************************************************************/
+Method Recebimento() Class DanaLog
+Local _aArea        := GetArea()
+
+Local _cRest        := ""
+
+Local _lRet         := .T.
+
+Private _aMsgErro   := {}
+
+//--------------+
+// Valida Token | 
+//--------------+
+If !::ValidaToken()
+    RestArea(_aArea)
+    Return .F.
+EndIf
+
+//--------------------------------+
+// Valida se JSON veio preenchido | 
+//--------------------------------+
+If Empty(::cJSon)
+    _oJSon                          := Array(#)
+    _oJSon[#"messages"]             := Array(#)
+    _oJSon[#"messages"][#"status"]  := "1"
+    _oJSon[#"messages"][#"message"] := "JSON não enviado."
+
+    ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+    ::cError                := "JSON não enviado."
+    ::nCodeHttp             := BADREQUEST
+    _lRet                   := .F.
+
+    CoNout("<< DANALOG >> RECEBIMENTO - JSON NAO ENVIADO ")    
+
+EndIf
+
+//---------------+
+// Metodo - POST |
+//---------------+
+If ::cMetodo == "POST"
+    CoNout("<< DANALOG >> RECEBIMENTO - METODO POST ")    
+    Begin Transaction 
+        EntradaP(::cJSon,3)
+    End Transaction 
+//--------------+
+// Metodo - GET |
+//--------------+
+ElseIf ::cMetodo == "GET"
+    CoNout("<< DANALOG >> RECEBIMENTO - METODO GET ")    
+    EntradaG(::cNota,::cSerie,::cIdCliente,@_cRest)
 EndIf
 
 //----------------+
@@ -907,7 +981,7 @@ If ValType(_oProduto) == "A"
         // Valida se produto está cadastrado | 
         //-----------------------------------+
         If SB1->( dbSeek(xFilial("SB1") + _cCodProd) ) .And. _nOpc == 3
-            aAdd(_aMsgErro,{"1",RTrim(_cCodProd), "Produto já cadastro utiliza o método PUT para atualização do produto."})
+            aAdd(_aMsgErro,{"1",RTrim(_cCodProd), "Produto já cadastrado favor utilizar o método PUT para atualização."})
             Loop 
         EndIf
 
@@ -1062,6 +1136,8 @@ Return _lRet
 Static Function ClientesP(_cJSon,_nOpc)
 Local _cCodCli          := ""
 Local _cLoja            := ""
+Local _cTipo            := ""
+Local _cTipo_Cli        := ""
 Local _cCnpj            := ""
 Local _cNome            := ""
 Local _cFantasia        := ""
@@ -1146,7 +1222,7 @@ If ValType(_oCliente) == "A"
         //-----------------------------------+
         If SA1->( dbSeek(xFilial("SA1") + _cCnpj) ) 
             If _nOpc == 3
-                aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Cliente já cadastro utiliza o método PUT para atualização."})
+                aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Cliente já cadastrado favor utilizar o método PUT para atualização."})
                 Loop 
             ElseIf _nOpc == 4
                 _cCodCli    := SA1->A1_COD
@@ -1240,6 +1316,7 @@ Return _lRet
 Static Function ForneceP(_cJSon,_nOpc)
 Local _cCodFor          := ""
 Local _cLoja            := ""
+Local _cTipo            := ""
 Local _cCnpj            := ""
 Local _cNome            := ""
 Local _cFantasia        := ""
@@ -1320,7 +1397,7 @@ If ValType(_oFornece) == "A"
         //-----------------------------------+
         If SA2->( dbSeek(xFilial("SA2") + _cCnpj) ) 
             If _nOpc == 3
-                aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Fornecedor já cadastro utiliza o método PUT para atualização."})
+                aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Fornecedor já cadastrado favor utilizar o método PUT para atualização."})
                 Loop 
             ElseIf _nOpc == 4
                 _cCodFor    := SA2->A2_COD
@@ -1400,6 +1477,331 @@ EndIf
 
 Return _lRet 
 
+/*************************************************************************************/
+/*/{Protheus.doc} TransportP
+    @description Realiza cadastro/atualização de transportadoras
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 02/12/2020
+/*/
+/*************************************************************************************/
+Static Function TransportP(_cJSon,_nOpc)
+Local _cCodigo          := ""
+Local _cCnpj            := ""
+Local _cNome            := ""
+Local _cFantasia        := ""
+Local _cInscR           := ""
+Local _cCep             := ""
+Local _cEndereco        := ""
+Local _cNumero          := ""
+Local _cComple          := ""
+Local _cBairro          := ""
+Local _cMunicipio       := ""
+Local _cUF              := ""
+Local _cDDD             := ""
+Local _cTelefone        := ""
+Local _cEMail           := ""
+Local _cSituacao        := ""
+Local _cMsgErro         := ""
+
+Local _nX               := 0
+
+Local _lRet             := .T.
+
+Local _aArray           := {}
+Local _aErroAuto        := {}
+
+Local _oJSon            := Nil 
+Local _oTransp          := Nil 
+
+Private lMsErroAuto     := .F.
+Private lAutoErrNoFile  := .T.
+
+Default _nOpc           := 3
+
+//--------------------------+
+// SA1 - Tabela de Clientes |
+//--------------------------+
+dbSelectArea("SA4")
+SA4->( dbSetOrder(3) )
+
+//------------------+
+// Dados do produto |
+//------------------+
+_oJSon      := xFromJson(DecodeUTF8(_cJSon))
+_cIDCliente := _oJSon[#"id_cliente"]
+_oTransp   := _oJSon[#"transportadoras"]
+
+If ValType(_oTransp) == "A"
+
+    For _nX := 1 To Len(_oTransp)
+        
+        _aArray     := {}
+        
+        _cCnpj      := u_EcFormat(_oTransp[_nX][#"cnpj_cpf"],"A4_CGC",.T.)
+        _cNome      := u_EcAcento(_oTransp[_nX][#"nome"],.T.)
+        _cFantasia  := u_EcAcento(_oTransp[_nX][#"fantasia"],.T.)
+        _cInscR     := _oTransp[_nX][#"inscricao"]
+        _cCep       := u_EcFormat(_oTransp[_nX][#"cep"],"A4_CEP",.T.)
+        _cEndereco  := u_EcAcento(_oTransp[_nX][#"endereco"],.T.)
+        _cNumero    := _oTransp[_nX][#"numero"]
+        _cComple    := u_EcAcento(_oTransp[_nX][#"complemento"],.T.)
+        _cBairro    := u_EcAcento(_oTransp[_nX][#"bairro"],.T.)
+        _cMunicipio := u_EcAcento(_oTransp[_nX][#"municipio"],.T.)
+        _cUF        := _oTransp[_nX][#"uf"]
+        _cDDD       := _oTransp[_nX][#"ddd"]
+        _cTelefone  := u_EcFormat(_oTransp[_nX][#"telefone"],"A4_TEL",.T.)
+        _cEMail     := _oTransp[_nX][#"email"]
+        _cSituacao  := _oTransp[_nX][#"situacao"]
+        _cCodMun    := EcCodMun(_cUF,_cMunicipio)
+
+        //-----------------------------------+
+        // Valida se produto está cadastrado | 
+        //-----------------------------------+
+        If SA4->( dbSeek(xFilial("SA4") + _cCnpj) ) 
+            If _nOpc == 3
+                aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Transportadora já cadastrada favor utilizar o método PUT para atualização."})
+                Loop 
+            ElseIf _nOpc == 4
+                _cCodigo    := SA4->A4_COD
+            EndIf
+        Else
+            TranspCod(_cCnpj,@_cCodigo)          
+        EndIf
+                
+        aAdd(_aArray, {"A4_COD"     , _cCodigo                          , Nil })
+        aAdd(_aArray, {"A4_NOME"    , _cNome                            , Nil })
+        aAdd(_aArray, {"A4_NREDUZ"  , _cFantasia                        , Nil })
+        aAdd(_aArray, {"A4_END"     , _cEndereco + ", " + _cNumero      , Nil })
+        aAdd(_aArray, {"A4_EST"     , _cUF                              , Nil })
+        aAdd(_aArray, {"A4_COD_MUN" , _cCodMun                          , Nil })
+        aAdd(_aArray, {"A4_MUN"     , _cMunicipio                       , Nil })
+        aAdd(_aArray, {"A4_BAIRRO"  , _cBairro                          , Nil })
+        aAdd(_aArray, {"A4_CEP"     , _cCep                             , Nil })
+        aAdd(_aArray, {"A4_DDD"     , _cDDD                             , Nil })
+        aAdd(_aArray, {"A4_TEL"     , _cTelefone                        , Nil })
+        aAdd(_aArray, {"A4_CGC"     , _cCnpj                            , Nil })
+        aAdd(_aArray, {"A4_MSBLQL"  , IIF(_cSituacao == "A","2","1")    , Nil })
+        aAdd(_aArray, {"A4_INSCR"   , _cInscR                           , Nil })
+        aAdd(_aArray, {"A4_EMAIL"   , _cEMail                           , Nil })
+        aAdd(_aArray, {"A4_CODPAIS" , "0105"                            , Nil })
+        aAdd(_aArray, {"A4_XIDLOGI" , _cIDCliente                       , Nil })
+        
+        lMsErroAuto := .F.
+        _aArray     := FWVetByDic(_aArray, "SA4")
+        MSExecAuto({|x,y| Mata050(x,y)}, _aArray, _nOpc)
+
+        //--------------------------+
+        // Erro gravação de produto | 
+        //--------------------------+
+        If lMsErroAuto  
+            //-------------------+
+            // Retorna numeracao |
+            //-------------------+
+            RollBackSx8()
+
+            //-------------------+
+            // Log erro ExecAuto |
+            //-------------------+
+            _aErroAuto := GetAutoGRLog()
+
+            //------------------------------------+
+            // Retorna somente a linha com o erro | 
+            //------------------------------------+
+            ErroAuto(_aErroAuto,@_cMsgErro)
+            
+            //------------------------+
+            // Grava array de retorno | 
+            //------------------------+
+            aAdd(_aMsgErro,{"1",RTrim(_cCnpj), Alltrim(_cMsgErro)})
+        //-----------------------------+
+        // Produto gravado com sucesso | 
+        //-----------------------------+
+        Else
+
+            //--------------------+
+            // Confirma numeracao |
+            //--------------------+
+            ConfirmSx8()            
+            
+            //------------------------+
+            // Grava array de retorno | 
+            //------------------------+
+            aAdd(_aMsgErro,{"0",RTrim(_cCnpj), "Transportadora gravada com sucesso."})
+
+        EndIf
+           
+    Next _nX
+
+EndIf
+
+Return _lRet 
+
+/*************************************************************************************/
+/*/{Protheus.doc} EntradaP
+    @description Recebimento mercadorias DanaLog
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 08/12/2020
+/*/
+/*************************************************************************************/
+Static Function EntradaP(_cJSon,_nOpc)
+Local _aArea            := GetArea()
+
+Local _aCabec           := {}
+Local _aItem            := {}
+Local _aItems           := {}
+
+Local _cIDCliente       := ""
+Local _cTipo            := ""
+Local _cCnpj            := ""
+Local _cCnpjT           := ""
+Local _cNota            := ""
+Local _cSerie           := ""
+Local _cCliFor          := ""
+Local _cLoja            := ""
+Local _cTransp          := ""
+Local _cCondPg          := ""
+
+Local _dDtEmiss         := ""
+
+Local _lRet             := .T.
+
+Local _oJSon            := Nil 
+Local _oPNfe            := Nil 
+Local _oItems           := Nil 
+
+Private lMsErroAuto     := .F.
+Private lAutoErrNoFile  := .F.
+
+//--------------------+
+// SA2 - Fornecedores |
+//--------------------+
+dbSelectArea("SA2")
+SA2->( dbSetOrder(3) )
+
+//----------------+
+// SA1 - Clientes |
+//----------------+
+dbSelectArea("SA1")
+SA1->( dbSetOrder(3) )
+
+//----------------------+
+// SA4 - Transportadora |
+//----------------------+
+dbSelectArea("SA4")
+SA4->( dbSetOrder(3) )
+
+//-----------------------+
+// SF1 - Nota de Entrada | 
+//-----------------------+
+dbSelectArea("SF1")
+SF1->( dbSetOrder(1) )
+
+//----------------+
+// SB1 - Produtos |
+//----------------+
+dbSelectArea("SB1")
+SB1->( dbSetOrder(1) )
+
+//-----------------------+
+// JSON - Desesserializa |
+//-----------------------+
+_oJSon      := xFromJson(DecodeUTF8(_cJSon))
+_cIDCliente := _oJSon[#"id_cliente"]
+_oPNfe      := _oJSon[#"recebimento"]
+_oItems     := _oPNfe[#"items"]
+
+//--------------+
+// Tipo de Nota | 
+//--------------+
+_cTipo      := IIF(_oPNfe[#"tipo"] == "FOR","N","D")
+_cCnpj      := _oPNfe[#"cnpj_cpf"]
+_cCnpjT     := _oPNfe[#"transportadora"]
+_cNota      := _oPNfe[#"nota"] 
+_cSerie     := _oPNfe[#"serie"]
+_dDtEmiss   := _oPNfe[#"dt_emissao"]
+
+//---------------------------+
+// Valida cliente/fornecedor |
+//---------------------------+
+If _cTipo == "N"
+    If !SA2->( dbSeek(xFilial("SA2") + _cCnpj) )
+
+    EndIf
+ElseIf _cTipo == "D"
+    If !SA1->( dbSeek(xFilial("SA1") + _cCnpj) )
+        
+    EndIf
+EndIf
+
+//-----------------------+
+// Valida transportadora |
+//-----------------------+
+If !SA4->( dbSeek(xFilial("SA4") + _cCnpjT) )
+
+EndIf
+
+//-----------------------------------------+
+// Dados Cliente/Fornecedor/Transportadora |
+//-----------------------------------------+
+_cCliFor          := IIF(_cTipo == "N", SA2->A2_COD, SA1->A1_COD)
+_cLoja            := IIF(_cTipo == "N", SA2->A2_LOJA, SA1->A1_LOJA)
+_cTransp          := SA4->A4_COD
+
+//-------------------------+
+// Cria cabeçalho pré nota |
+//-------------------------+
+aAdd(_aCabec, {"F1_DOC"     , _cNota            , Nil   })
+aAdd(_aCabec, {"F1_SERIE"   , _cSerie           , Nil   })
+aAdd(_aCabec, {"F1_TIPO"    , _cTipo            , Nil   })
+aAdd(_aCabec, {"F1_FORNECE" , _cCliFor          , Nil   })
+aAdd(_aCabec, {"F1_LOJA"    , _cLoja            , Nil   })
+aAdd(_aCabec, {"F1_EMISSAO" , _dDtEmiss         , Nil   })
+aAdd(_aCabec, {"F1_FORMUL"  , "N"               , Nil   })
+aAdd(_aCabec, {"F1_ESPECIE"	, "SPED"			, Nil   })
+aAdd(_aCabec, {"F1_COND"	, _cCondPg			, Nil   })
+aAdd(_aCabec, {"F1_TRANSP"	, _cTransp			, Nil   })
+aAdd(_aCabec, {"F1_XENVWMS" , "1"			    , Nil   })
+aAdd(_aCabec, {"F1_XIDLOG"  , _cIDCliente       , Nil   })
+
+//---------------------+
+// Cria itens pré nota |
+//---------------------+
+For _nX := 1 To Len(_oItems)
+    _aItem  := {}
+
+    //---------------------+
+    // Dados itens da nota | 
+    //---------------------+
+    _cProduto   := _oItems[_nX][#"produto"]
+
+    //----------------+
+    // Valida produto |
+    //----------------+
+    If !SB1->( dbSeek(xFilial("SB1") + _cProduto) )
+
+    EndIf
+
+    _cUM        := SB1->B1_UM
+    _cLocal     := ""
+    _cLote      := _oItems[_nX][#"lote"]
+    _dDtVldLote := _oItems[_nX][#"dt_vld_lote"]
+    _nQuant     := _oItems[_nX][#"quantidade"]
+    _nVlrUni    := _oItems[_nX][#"valor_unitario"]
+
+    //----------------------------+
+    // Adiciona itens da Pré nota |
+    //----------------------------+
+    aAdd(_aItems,_aItem)
+Next _nX
+
+//---------------+
+// Cria pré nota | 
+//---------------+
+
+RestArea(_aArea)
+Return _lRet 
 
 /*************************************************************************************/
 /*/{Protheus.doc} PrdGetQry
@@ -1695,6 +2097,30 @@ _cLoja    := _cLojaNew
 
 RestArea(_aArea)
 Return Nil
+
+/***********************************************************************************/
+/*/{Protheus.doc} TranspCod
+    @description Valida codigo transportadora
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 29/11/2020
+/*/
+/***********************************************************************************/
+Static Function TranspCod(_cCnpj,_cCodigo)
+Local _aArea    := GetArea()
+
+dbSelectArea("SA4")
+SA4->( dbSetOrder(1) )
+
+_cCodigo := GetSxeNum("SA4","A4_COD")
+While SA2->( dbSeek(xFilial("SA4") + _cCodigo) )
+    ConfirmSx8()
+    _cCodigo := GetSxeNum("SA4","A4_COD","",1)
+EndDo
+
+RestArea(_aArea)
+Return Nil 
+
 /***********************************************************************************/
 /*/{Protheus.doc} EcCodMun
     @description Retorna codigo do municipio

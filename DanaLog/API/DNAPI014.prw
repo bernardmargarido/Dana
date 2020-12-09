@@ -17,7 +17,7 @@ Static _cDirRaiz 	:= "\danalog\"
     @type function
 /*/
 /************************************************************************************/
-WSRESTFUL API_CLIENTE DESCRIPTION " Servico DanaLog - Atualização clientes."
+WSRESTFUL CLIENTES DESCRIPTION " Servico DanaLog - Atualização clientes."
     
     WSDATA CNPJ_CPF 	AS STRING
 	WSDATA CODIGO		AS STRING
@@ -26,9 +26,9 @@ WSRESTFUL API_CLIENTE DESCRIPTION " Servico DanaLog - Atualização clientes."
 	WSDATA PERPAGE 		AS STRING	
 	WSDATA PAGE			AS STRING
 
-    WSMETHOD GET    DESCRIPTION "Realiza consulta dos clientes."    WSSYNTAX "/API_CLIENTE/GET"
-	WSMETHOD POST   DESCRIPTION "Realiza gravação dos clientes."    WSSYNTAX "/API_CLIENTE/POST"
-    WSMETHOD PUT    DESCRIPTION "Realiza atualização dos clientes." WSSYNTAX "/API_CLIENTE/PUT"
+    WSMETHOD GET    DESCRIPTION "Realiza consulta dos clientes."    WSSYNTAX "/CLIENTES/GET"
+	WSMETHOD POST   DESCRIPTION "Realiza gravação dos clientes."    WSSYNTAX "/CLIENTES/POST"
+    WSMETHOD PUT    DESCRIPTION "Realiza atualização dos clientes." WSSYNTAX "/CLIENTES/PUT"
     
 END WSRESTFUL
 
@@ -41,7 +41,7 @@ END WSRESTFUL
     @type function
 /*/
 /************************************************************************************/
-WSMETHOD POST WSSERVICE API_CLIENTE
+WSMETHOD POST WSSERVICE CLIENTES
 Local _aArea    := GetArea()
 
 Local _cBody        := ""
@@ -50,16 +50,6 @@ Local _cAuth        := ""
 Local _oDLog        := Nil 
 
 Private _cArqLog	:= ""
-
-//-----------------------+
-// Abre empresa / filial |
-//-----------------------+
-If cEmpAnt == "01"
-    RpcClearEnv()
-EndIf
-
-RPCSetType(3)
-RPCSetEnv("02", "01", Nil, Nil, "FRT")
 
 //------------------------------+
 // Inicializa Log de Integracao |
@@ -103,11 +93,6 @@ LogExec("FINALIZA API DE CLIENTE METODO POST - DATA/HORA: " + dToc( Date() )+ " 
 LogExec(Replicate("-",80))
 ConOut("")
 
-//-------------------+
-// Finaliza Ambiente |
-//-------------------+
-RpcClearEnv()
-
 RestArea(_aArea)
 Return .T.
 
@@ -120,7 +105,7 @@ Return .T.
     @type function
 /*/
 /************************************************************************************/
-WSMETHOD GET WSRECEIVE CNPJ_CPF,CODIGO,LOJA,DATAHORA,PERPAGE,PAGE WSSERVICE API_CLIENTE
+WSMETHOD GET WSRECEIVE CNPJ_CPF,CODIGO,LOJA,DATAHORA,PERPAGE,PAGE WSSERVICE CLIENTES
 Local _aArea    := GetArea()
 
 Local _cBody        := ""
@@ -132,16 +117,6 @@ Local _cCnpj_Cpf    := IIF(Empty(::CNPJ_CPF),"",::CNPJ_CPF)
 Local _oDLog        := Nil 
 
 Private _cArqLog	:= ""
-
-//-----------------------+
-// Abre empresa / filial |
-//-----------------------+
-If cEmpAnt == "01"
-    RpcClearEnv()
-EndIf
-
-RPCSetType(3)
-RPCSetEnv("02", "01", Nil, Nil, "FRT")
 
 //------------------------------+
 // Inicializa Log de Integracao |
@@ -188,11 +163,6 @@ LogExec("FINALIZA API DE CLIENTE METODO GET - DATA/HORA: " + dToc( Date() )+ " A
 LogExec(Replicate("-",80))
 ConOut("")
 
-//-------------------+
-// Finaliza Ambiente |
-//-------------------+
-RpcClearEnv()
-
 RestArea(_aArea)
 Return .T.
 
@@ -205,7 +175,7 @@ Return .T.
     @type function
 /*/
 /************************************************************************************/
-WSMETHOD PUT WSSERVICE API_CLIENTE
+WSMETHOD PUT WSSERVICE CLIENTES
 Local _aArea        := GetArea()
 
 Local _cBody        := ""
@@ -214,16 +184,6 @@ Local _cAuth        := ""
 Local _oDLog        := Nil 
 
 Private _cArqLog	:= ""
-
-//-----------------------+
-// Abre empresa / filial |
-//-----------------------+
-If cEmpAnt == "01"
-    RpcClearEnv()
-EndIf
-
-RPCSetType(3)
-RPCSetEnv("02", "01", Nil, Nil, "FRT")
 
 //------------------------------+
 // Inicializa Log de Integracao |
@@ -267,14 +227,8 @@ LogExec("FINALIZA API DE CLIENTE METODO PUT - DATA/HORA: " + dToc( Date() )+ " A
 LogExec(Replicate("-",80))
 ConOut("")
 
-//-------------------+
-// Finaliza Ambiente |
-//-------------------+
-RpcClearEnv()
-
 RestArea(_aArea)
 Return .T. 
-
 
 /************************************************************************************/
 /*/{Protheus.doc} LogExec

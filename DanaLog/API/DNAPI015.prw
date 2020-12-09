@@ -5,7 +5,7 @@
 #INCLUDE "JSON.CH"
 
 Static _cCodInt		:= "004"
-Static _cDescInt	:= "FORNECEDOR"
+Static _cDescInt	:= "FORNECEDORES"
 Static _cDirRaiz 	:= "\danalog\"
 
 /************************************************************************************/
@@ -17,7 +17,7 @@ Static _cDirRaiz 	:= "\danalog\"
     @type function
 /*/
 /************************************************************************************/
-WSRESTFUL API_FORNECEDOR DESCRIPTION " Servico DanaLog - Atualização fornecedores."
+WSRESTFUL FORNECEDORES DESCRIPTION " Servico DanaLog - Atualização fornecedores."
     
     WSDATA CNPJ_CPF 	AS STRING
 	WSDATA CODIGO		AS STRING
@@ -26,9 +26,9 @@ WSRESTFUL API_FORNECEDOR DESCRIPTION " Servico DanaLog - Atualização fornecedore
 	WSDATA PERPAGE 		AS STRING	
 	WSDATA PAGE			AS STRING
 
-    WSMETHOD GET    DESCRIPTION "Realiza consulta dos fornecedores."    WSSYNTAX "/API_FORNECEDOR/GET"
-	WSMETHOD POST   DESCRIPTION "Realiza gravação dos fornecedores."    WSSYNTAX "/API_FORNECEDOR/POST"
-    WSMETHOD PUT    DESCRIPTION "Realiza atualização dos fornecedores." WSSYNTAX "/API_FORNECEDOR/PUT"
+    WSMETHOD GET    DESCRIPTION "Realiza consulta dos fornecedores."    WSSYNTAX "/FORNECEDORES/GET"
+	WSMETHOD POST   DESCRIPTION "Realiza gravação dos fornecedores."    WSSYNTAX "/FORNECEDORES/POST"
+    WSMETHOD PUT    DESCRIPTION "Realiza atualização dos fornecedores." WSSYNTAX "/FORNECEDORES/PUT"
     
 END WSRESTFUL
 
@@ -41,7 +41,7 @@ END WSRESTFUL
     @type function
 /*/
 /************************************************************************************/
-WSMETHOD POST WSSERVICE API_FORNECEDOR
+WSMETHOD POST WSSERVICE FORNECEDORES
 Local _aArea    := GetArea()
 
 Local _cBody        := ""
@@ -50,16 +50,6 @@ Local _cAuth        := ""
 Local _oDLog        := Nil 
 
 Private _cArqLog	:= ""
-
-//-----------------------+
-// Abre empresa / filial |
-//-----------------------+
-If cEmpAnt == "01"
-    RpcClearEnv()
-EndIf
-
-RPCSetType(3)
-RPCSetEnv("02", "01", Nil, Nil, "FRT")
 
 //------------------------------+
 // Inicializa Log de Integracao |
@@ -103,24 +93,19 @@ LogExec("FINALIZA API DE FORNECEDOR METODO POST - DATA/HORA: " + dToc( Date() )+
 LogExec(Replicate("-",80))
 ConOut("")
 
-//-------------------+
-// Finaliza Ambiente |
-//-------------------+
-RpcClearEnv()
-
 RestArea(_aArea)
 Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} GET
-    @description Metodo - Consulta clientes cadastrados
+    @description Metodo - Consulta fornecedores cadastrados
     @author Bernard M. Margarido
     @since 23/03/2018
     @version 1.0
     @type function
 /*/
 /************************************************************************************/
-WSMETHOD GET WSRECEIVE CNPJ_CPF,CODIGO,LOJA,DATAHORA,PERPAGE,PAGE WSSERVICE API_FORNECEDOR
+WSMETHOD GET WSRECEIVE CNPJ_CPF,CODIGO,LOJA,DATAHORA,PERPAGE,PAGE WSSERVICE FORNECEDORES
 Local _aArea    := GetArea()
 
 Local _cBody        := ""
@@ -132,16 +117,6 @@ Local _cCnpj_Cpf    := IIF(Empty(::CNPJ_CPF),"",::CNPJ_CPF)
 Local _oDLog        := Nil 
 
 Private _cArqLog	:= ""
-
-//-----------------------+
-// Abre empresa / filial |
-//-----------------------+
-If cEmpAnt == "01"
-    RpcClearEnv()
-EndIf
-
-RPCSetType(3)
-RPCSetEnv("02", "01", Nil, Nil, "FRT")
 
 //------------------------------+
 // Inicializa Log de Integracao |
@@ -188,24 +163,19 @@ LogExec("FINALIZA API DE FORNECEDOR METODO GET - DATA/HORA: " + dToc( Date() )+ 
 LogExec(Replicate("-",80))
 ConOut("")
 
-//-------------------+
-// Finaliza Ambiente |
-//-------------------+
-RpcClearEnv()
-
 RestArea(_aArea)
 Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} PUT
-    @description Metodo - realiza a atualização dos clientes
+    @description Metodo - realiza a atualização dos fornecedores
     @author Bernard M. Margarido
     @since 23/03/2018
     @version 1.0
     @type function
 /*/
 /************************************************************************************/
-WSMETHOD PUT WSSERVICE API_FORNECEDOR
+WSMETHOD PUT WSSERVICE FORNECEDORES
 Local _aArea        := GetArea()
 
 Local _cBody        := ""
@@ -214,16 +184,6 @@ Local _cAuth        := ""
 Local _oDLog        := Nil 
 
 Private _cArqLog	:= ""
-
-//-----------------------+
-// Abre empresa / filial |
-//-----------------------+
-If cEmpAnt == "01"
-    RpcClearEnv()
-EndIf
-
-RPCSetType(3)
-RPCSetEnv("02", "01", Nil, Nil, "FRT")
 
 //------------------------------+
 // Inicializa Log de Integracao |
@@ -267,14 +227,8 @@ LogExec("FINALIZA API DE FORNECEDOR METODO PUT - DATA/HORA: " + dToc( Date() )+ 
 LogExec(Replicate("-",80))
 ConOut("")
 
-//-------------------+
-// Finaliza Ambiente |
-//-------------------+
-RpcClearEnv()
-
 RestArea(_aArea)
 Return .T. 
-
 
 /************************************************************************************/
 /*/{Protheus.doc} LogExec

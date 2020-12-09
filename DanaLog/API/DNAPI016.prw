@@ -17,7 +17,7 @@ Static _cDirRaiz 	:= "\danalog\"
     @type function
 /*/
 /************************************************************************************/
-WSRESTFUL API_TRANSPORTADORA DESCRIPTION " Servico DanaLog - Atualização transportadoras."
+WSRESTFUL TRANSPORTADORAS DESCRIPTION " Servico DanaLog - Atualização transportadoras."
     
     WSDATA CNPJ_CPF 	AS STRING
 	WSDATA CODIGO		AS STRING
@@ -25,9 +25,9 @@ WSRESTFUL API_TRANSPORTADORA DESCRIPTION " Servico DanaLog - Atualização transpo
 	WSDATA PERPAGE 		AS STRING	
 	WSDATA PAGE			AS STRING
 
-    WSMETHOD GET    DESCRIPTION "Realiza consulta das transportadoras."    WSSYNTAX "/API_TRANSPORTADORA/GET"
-	WSMETHOD POST   DESCRIPTION "Realiza gravação das transportadoras."    WSSYNTAX "/API_TRANSPORTADORA/POST"
-    WSMETHOD PUT    DESCRIPTION "Realiza atualização das transportadoras." WSSYNTAX "/API_TRANSPORTADORA/PUT"
+    WSMETHOD GET    DESCRIPTION "Realiza consulta das transportadoras."    WSSYNTAX "/TRANSPORTADORAS/GET"
+	WSMETHOD POST   DESCRIPTION "Realiza gravação das transportadoras."    WSSYNTAX "/TRANSPORTADORAS/POST"
+    WSMETHOD PUT    DESCRIPTION "Realiza atualização das transportadoras." WSSYNTAX "/TRANSPORTADORAS/PUT"
     
 END WSRESTFUL
 
@@ -40,7 +40,7 @@ END WSRESTFUL
     @type function
 /*/
 /************************************************************************************/
-WSMETHOD POST WSSERVICE API_TRANSPORTADORA
+WSMETHOD POST WSSERVICE TRANSPORTADORAS
 Local _aArea        := GetArea()
 
 Local _cBody        := ""
@@ -49,16 +49,6 @@ Local _cAuth        := ""
 Local _oDLog        := Nil 
 
 Private _cArqLog	:= ""
-
-//-----------------------+
-// Abre empresa / filial |
-//-----------------------+
-If cEmpAnt == "01"
-    RpcClearEnv()
-EndIf
-
-RPCSetType(3)
-RPCSetEnv("02", "01", Nil, Nil, "FRT")
 
 //------------------------------+
 // Inicializa Log de Integracao |
@@ -102,11 +92,6 @@ LogExec("FINALIZA API DE TRANSPORTADORA METODO POST - DATA/HORA: " + dToc( Date(
 LogExec(Replicate("-",80))
 ConOut("")
 
-//-------------------+
-// Finaliza Ambiente |
-//-------------------+
-RpcClearEnv()
-
 RestArea(_aArea)
 Return .T.
 
@@ -119,7 +104,7 @@ Return .T.
     @type function
 /*/
 /************************************************************************************/
-WSMETHOD GET WSRECEIVE CNPJ_CPF,CODIGO,DATAHORA,PERPAGE,PAGE WSSERVICE API_TRANSPORTADORA
+WSMETHOD GET WSRECEIVE CNPJ_CPF,CODIGO,DATAHORA,PERPAGE,PAGE WSSERVICE TRANSPORTADORAS
 Local _aArea    := GetArea()
 
 Local _cBody        := ""
@@ -130,16 +115,6 @@ Local _cCnpj_Cpf    := IIF(Empty(::CNPJ_CPF),"",::CNPJ_CPF)
 Local _oDLog        := Nil 
 
 Private _cArqLog	:= ""
-
-//-----------------------+
-// Abre empresa / filial |
-//-----------------------+
-If cEmpAnt == "01"
-    RpcClearEnv()
-EndIf
-
-RPCSetType(3)
-RPCSetEnv("02", "01", Nil, Nil, "FRT")
 
 //------------------------------+
 // Inicializa Log de Integracao |
@@ -186,11 +161,6 @@ LogExec("FINALIZA API DE TRANSPORTADORA METODO GET - DATA/HORA: " + dToc( Date()
 LogExec(Replicate("-",80))
 ConOut("")
 
-//-------------------+
-// Finaliza Ambiente |
-//-------------------+
-RpcClearEnv()
-
 RestArea(_aArea)
 Return .T.
 
@@ -203,7 +173,7 @@ Return .T.
     @type function
 /*/
 /************************************************************************************/
-WSMETHOD PUT WSSERVICE API_TRANSPORTADORA
+WSMETHOD PUT WSSERVICE TRANSPORTADORAS
 Local _aArea        := GetArea()
 
 Local _cBody        := ""
@@ -212,16 +182,6 @@ Local _cAuth        := ""
 Local _oDLog        := Nil 
 
 Private _cArqLog	:= ""
-
-//-----------------------+
-// Abre empresa / filial |
-//-----------------------+
-If cEmpAnt == "01"
-    RpcClearEnv()
-EndIf
-
-RPCSetType(3)
-RPCSetEnv("02", "01", Nil, Nil, "FRT")
 
 //------------------------------+
 // Inicializa Log de Integracao |
@@ -264,11 +224,6 @@ EndIf
 LogExec("FINALIZA API DE TRANSPORTADORA METODO PUT - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
 LogExec(Replicate("-",80))
 ConOut("")
-
-//-------------------+
-// Finaliza Ambiente |
-//-------------------+
-RpcClearEnv()
 
 RestArea(_aArea)
 Return .T. 
