@@ -15,7 +15,7 @@ User Function XDNALTSA1()
 Local lRet		:= .T.
 Local cUsuFin	:= GETMV("MV_XFINSA1")
 Local cCodUsu	:= RetCodUsr()
-Local cNomUsr   := RTrim(UsrRetName( __cUserID ))
+Local cNomUsr   := PswChave(RetCodUsr())
 
 Private cConta	:= AllTrim(GetMv("MV_XMAIFIN"))
 Private cMsgCam := ""
@@ -23,12 +23,8 @@ Private cPulaLin:= Chr(13) + Chr(10)
 Private cDescAbt:= ""
 Private cLimCred:= ""
 
-If l030Auto
-    Return .T.
-EndIf
-
 If ALTERA 
-    If !cCodUsu $ cUsuFin
+    If !cCodUsu $cUsuFin
         If MsgYesNo("Caso confirme a manutenção nesse campo. O cadastro será bloqueado e será enviado um e-mail informando o departamento financeiro! Confirma a Manutenção?","XDNALTSA1")
             M->A1_MSBLQL    := "1"
             M->A1_XBLQFIN   := "1"
@@ -113,7 +109,7 @@ If ALTERA
             
             cTable+= '<td style="text-align: center; width: 15%;" height="53">
             cTable+= '<img border="0" src="http://187.94.58.102:1346/emp01/wfpc/Logo_Dana.jpg"></td>
-            cTable+= '<br><br><br><p align="left"><span lang="pt-br"><font face="Arial" size="1">'+cMsgCam+'</font></span></p>'
+            cTable+= '<br><br><br><p align="left"><span lang="pt-br"><font face="Arial" size="3">'+cMsgCam+'</font></span></p>'
             cTable+= '<br><br><br><p align="left"><span lang="pt-br"><font face="Arial" size="1">Destinatários: '+cConta+'</font></span></p>'
             cTable+= '<br><br><br><p align="left"><span lang="pt-br"><font face="Arial" size="1">DANA COSMÉTICOS</font></span></p>'
             cTable+= '</html>'

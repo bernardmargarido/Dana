@@ -374,7 +374,7 @@ cHtml += '		<br>'
 cHtml += '		<table width="100%" cellspacing=0 border=1>'
 cHtml += '			<tbody>'
 cHtml += '				<tr>'
-cHtml += '					<td class=s_t width="100%" colspan="13"><p align=center><b>Itens Pré Nota</b></p></td>
+cHtml += '					<td class=s_t width="100%" colspan="13"><p align=center><b>Itens Pré Nota</b></p></td>'
 cHtml += '				</tr>'
 cHtml += '				<tr>'  					
 cHtml += '					<td class=s_u colspan = "1"><b>Item</b></td>'

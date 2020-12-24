@@ -10,7 +10,7 @@ Static _cDirRaiz 	:= "\danalog\"
 
 /************************************************************************************/
 /*/{Protheus.doc} 
-    @description API - Cadastro de transportadoras logistico
+    @description API - Recebimento de mercadoria
     @author Bernard M. Margarido
     @since 23/11/2020
     @version 1.0
