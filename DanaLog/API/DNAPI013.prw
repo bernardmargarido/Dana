@@ -21,7 +21,6 @@ WSRESTFUL PRODUTOS DESCRIPTION " Servico DanaLog - Atualização produtos."
     
     WSDATA CODIGO 	    AS STRING
     WSDATA IDCLIENTE    AS STRING
-    WSDATA DATAHORA		AS STRING
 	WSDATA PERPAGE 		AS STRING	
 	WSDATA PAGE			AS STRING
 
@@ -104,12 +103,15 @@ Return .T.
     @type function
 /*/
 /************************************************************************************/
-WSMETHOD GET WSRECEIVE CODIGO,IDCLIENTE,DATAHORA,PERPAGE,PAGE WSSERVICE PRODUTOS
+WSMETHOD GET WSRECEIVE CODIGO,IDCLIENTE,PERPAGE,PAGE WSSERVICE PRODUTOS
 Local _aArea    := GetArea()
 
-Local _cBody        := ""
 Local _cAuth        := ""
 Local _cCodProd     := IIF(Empty(::CODIGO),"",::CODIGO)
+Local _cIdCiente    := IIF(Empty(::IDCLIENTE),"",::IDCLIENTE)
+
+Local _cPage        := IIF(Empty(::PAGE),"1",::PAGE)
+Local _cParPage     := IIF(Empty(::PERPAGE),"10",::PERPAGE)
 
 Local _oDLog        := Nil 
 
@@ -132,17 +134,18 @@ LogExec("INICIA API DE PRODUTO METODO GET - DATA/HORA: " + dToc( Date() )+ " AS 
 //------------------------------------------+
 // Valida se existe arquivo no corpo do GET | 
 //------------------------------------------+
-_cBody  := Self:GetContent()
 _cAuth	:= Self:GetHeader('Authorization')
 
 //----------------+
 // Classe Danalog | 
 //----------------+
 _oDLog  := DanaLog():New()
-_oDLog:cAuth    := _cAuth
-_oDLog:cJSon    := _cBody
-_oDLog:cCodProd := _cCodProd
-_oDLog:cMetodo  := "GET"
+_oDLog:cAuth        := _cAuth
+_oDLog:cIdCliente   := _cIdCiente
+_oDLog:cCodigo      := _cCodProd
+_oDLog:cPage        := _cPage
+_oDLog:cPerPage     := _cParPage
+_oDLog:cMetodo      := "GET"
 
 If _oDLog:Produtos()
     LogExec("PRODUTO RETORNADO COM SUCESSO")

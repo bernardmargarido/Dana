@@ -18,6 +18,7 @@ Static _nTCNPJ  := TamSx3("A1_CGC")[1]
 Static _nTPedD  := TamSx3("C5_XNUMDL")[1]
 Static _nTNota  := TamSx3("F1_DOC")[1]
 Static _nTSerie := TamSx3("F1_SERIE")[1]
+Static _nTDoc   := TamSx3("F2_DOC")[1]
 
 /****************************************************************************************/
 /*/{Protheus.doc} DanaLog
@@ -35,11 +36,15 @@ Class DanaLog
     Data cAuth      As String
     Data cMetodo    As String
     Data cHoraExp   As String
-    Data cCodProd   As String
+    Data cCodigo    As String
     Data cIdCliente As String
+    Data cPage      As String 
+    Data cPerPage   As String
 
     Data nCodeHttp  As Integer 
     Data nTExpires  As Integer
+    Data nTotPage   As Integer
+    Data nTotQry    As Integer
 
     Data dDtaExp    As Date 
 
@@ -76,9 +81,13 @@ Method New() Class DanaLog
     ::cAuth     := ""
     ::cMetodo   := ""
     ::cHoraExp  := ""
-    ::cCodProd  := ""
+    ::cCodigo   := ""
     ::cIdCliente:= ""
+    ::cPage     := ""
+    ::cPerPage  := ""
 
+    ::nTotPage  := 0
+    ::nTotQry   := 0
     ::nCodeHttp := 0
     ::nTExpires := 0
 
@@ -506,29 +515,32 @@ If !::ValidaToken()
     Return .F.
 EndIf
 
-//--------------------------------+
-// Valida se JSON veio preenchido | 
-//--------------------------------+
-If Empty(::cJSon)
-    _oJSon                          := Array(#)
-    _oJSon[#"messages"]             := Array(#)
-    _oJSon[#"messages"][#"status"]  := "1"
-    _oJSon[#"messages"][#"message"] := "JSON não enviado."
-
-    ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
-    ::cError                := "JSON não enviado."
-    ::nCodeHttp             := BADREQUEST
-    _lRet                   := .F.
-
-    CoNout("<< DANALOG >> PRODUTOS - JSON NAO ENVIADO ")    
-
-EndIf
-
 //---------------+
 // Metodo - POST |
 //---------------+
 If ::cMetodo == "POST"
     CoNout("<< DANALOG >> PRODUTOS - METODO POST ")    
+
+    //--------------------------------+
+    // Valida se JSON veio preenchido | 
+    //--------------------------------+
+    If Empty(::cJSon)
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "JSON não enviado."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "JSON não enviado."
+        ::nCodeHttp             := BADREQUEST
+        
+        RestArea(_aArea)
+        Return .F.
+
+        CoNout("<< DANALOG >> PRODUTOS - JSON NAO ENVIADO ")    
+
+    EndIf
+
     Begin Transaction 
         ProdutoPost(::cJSon,3)
     End Transaction 
@@ -537,6 +549,27 @@ If ::cMetodo == "POST"
 //--------------+
 ElseIf ::cMetodo == "PUT"
     CoNout("<< DANALOG >> PRODUTOS - METODO PUT ")    
+
+    //--------------------------------+
+    // Valida se JSON veio preenchido | 
+    //--------------------------------+
+    If Empty(::cJSon)
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "JSON não enviado."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "JSON não enviado."
+        ::nCodeHttp             := BADREQUEST
+
+        RestArea(_aArea)
+        Return .F.
+
+        CoNout("<< DANALOG >> PRODUTOS - JSON NAO ENVIADO ")    
+
+    EndIf
+
     Begin Transaction 
         ProdutoPost(::cJSon,4)
     End Transaction
@@ -545,7 +578,26 @@ ElseIf ::cMetodo == "PUT"
 //--------------+
 ElseIf ::cMetodo == "GET"
     CoNout("<< DANALOG >> PRODUTOS - METODO GET ")    
-    ProdutoGet(::cCodProd,::cIdCliente,@_cRest)
+    //------------------------------+
+    // Valida se ID veio preenchido | 
+    //------------------------------+
+    If Empty(::cIdCliente)
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "ID cliente não preenchido."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "ID cliente não preenchido."
+        ::nCodeHttp             := BADREQUEST
+        
+        RestArea(_aArea)
+        Return .F.
+
+        CoNout("<< DANALOG >> PRODUTOS - JSON NAO ENVIADO ")    
+
+    EndIf
+    ProdutoGet(::cCodigo,::cIdCliente,::cPage,::cPerPage,@_cRest)
 EndIf
 
 //----------------+
@@ -1238,7 +1290,7 @@ Return _lRet
     @since 25/11/2020
 /*/
 /*************************************************************************************/
-Static Function ProdutoGet(_cCodProd,_cIdCliente,_cRest)
+Static Function ProdutoGet(_cCodigo,_cIdCliente,_cPage,_cPerPage,_cRest)
 Local _cAlias   := ""
 
 Local _lRet     := .T.
@@ -1249,7 +1301,7 @@ Local _oProduto := Nil
 //------------------+
 // Consulta produto |
 //------------------+
-If !PrdGetQry(@_cAlias,_cCodProd,_cIdCliente)
+If !PrdGetQry(@_cAlias,_cCodigo,_cIdCliente,_cPage,_cPerPage)
     aAdd(_aMsgErro,{"1",RTrim(_cCodProd), "Produto não localizado."})
     Return .F.
 EndIf 
@@ -1262,37 +1314,46 @@ While (_cAlias)->( !Eof() )
     aAdd(_oJSon[#"produtos"],Array(#))
     _oProduto := aTail(_oJSon[#"produtos"])
 
-    _oProduto[#"codigo"]                := (_cAlias)->B1_COD
-	_oProduto[#"descricao"]             := (_cAlias)->B1_DESC
-	_oProduto[#"tipo_produto"]          := (_cAlias)->B1_TIPO
-	_oProduto[#"unidade"]               := (_cAlias)->B1_UM
-	_oProduto[#"unidade_2"]             := (_cAlias)->B1_SEGUM
-	_oProduto[#"fator_conv"]            := (_cAlias)->B1_CONV
-	_oProduto[#"tipo_conv"]             := (_cAlias)->B1_TIPCONV
-	_oProduto[#"codigo_barras"]         := (_cAlias)->B1_CODGTIN
-	_oProduto[#"codigo_barras_caixa"]   := (_cAlias)->B1_XEANCX    
-	_oProduto[#"lote"]                  := (_cAlias)->B1_RASTRO
-	_oProduto[#"ncm"]                   := (_cAlias)->B1_POSIPI
-	_oProduto[#"ativo"]                 := (_cAlias)->B1_MSBLQL
-	_oProduto[#"origem"]                := (_cAlias)->B1_ORIGEM
-	_oProduto[#"peso_liquido"]          := (_cAlias)->B1_PESO
-	_oProduto[#"peso_bruto"]            := (_cAlias)->B1_PESBRU
-	_oProduto[#"altura"]                := (_cAlias)->B5_ALTURA
-	_oProduto[#"largura"]               := (_cAlias)->B5_LARG
-	_oProduto[#"comprimento"]           := (_cAlias)->B5_COMPR
-	_oProduto[#"peso_liquido_emb"]      := (_cAlias)->B1_PESO
-	_oProduto[#"peso_bruto_emb"]        := (_cAlias)->B1_PESBRU
-	_oProduto[#"altura_embalagem"]      := (_cAlias)->B5_ALTURLC
-	_oProduto[#"largura_embalagem"]     := (_cAlias)->B5_LARGLC
-	_oProduto[#"comprimento_embalagem"] := (_cAlias)->B5_COMPRLC
-	_oProduto[#"tipo_embalagem"]        := (_cAlias)->B5_EMB1
-	_oProduto[#"quantidade_embalagem"]  := (_cAlias)->B5_QE1
-	_oProduto[#"empilhamento_maximo"]   := (_cAlias)->B5_EMPMAX0
-	_oProduto[#"total_pallet"]          := (_cAlias)->B5_EMPMAX0 * (_cAlias)->B5_FATARMA
+    _oProduto[#"codigo"]                := (_cAlias)->CODIGO
+	_oProduto[#"descricao"]             := (_cAlias)->DESCRICAO
+	_oProduto[#"tipo_produto"]          := (_cAlias)->TIPO
+	_oProduto[#"unidade"]               := (_cAlias)->UNIDADE
+	_oProduto[#"unidade_2"]             := (_cAlias)->SEG_UNIDADE
+	_oProduto[#"fator_conv"]            := (_cAlias)->FATOR
+	_oProduto[#"tipo_conv"]             := (_cAlias)->TIPO_FATOR
+	_oProduto[#"codigo_barras"]         := (_cAlias)->COD_BARRAS
+	_oProduto[#"codigo_barras_caixa"]   := (_cAlias)->COD_CAIXA
+	_oProduto[#"lote"]                  := (_cAlias)->RASTRO
+	_oProduto[#"ncm"]                   := (_cAlias)->NCM
+	_oProduto[#"situacao"]              := IIF((_cAlias)->SITUACAO == "1","I","A")
+	_oProduto[#"origem"]                := (_cAlias)->ORIGEM
+	_oProduto[#"peso_liquido"]          := (_cAlias)->PESO_LIQUIDO
+	_oProduto[#"peso_bruto"]            := (_cAlias)->PESO_BRUTO
+	_oProduto[#"altura"]                := (_cAlias)->ALTURA_PRODUTO
+	_oProduto[#"largura"]               := (_cAlias)->LARGURA_PRODUTO
+	_oProduto[#"comprimento"]           := (_cAlias)->COMP_PRODUTO
+	_oProduto[#"peso_liquido_emb"]      := (_cAlias)->PESO_LIQUIDO
+	_oProduto[#"peso_bruto_emb"]        := (_cAlias)->PESO_BRUTO
+	_oProduto[#"altura_embalagem"]      := (_cAlias)->ALTURA_CAIXA
+	_oProduto[#"largura_embalagem"]     := (_cAlias)->LARGURA_CAIXA
+	_oProduto[#"comprimento_embalagem"] := (_cAlias)->COMP_CAIXA
+	_oProduto[#"tipo_embalagem"]        := (_cAlias)->QTD_EMB
+	_oProduto[#"quantidade_embalagem"]  := (_cAlias)->QTD_QE
+    _oProduto[#"caixas_camada"]         := (_cAlias)->FATARMA
+	_oProduto[#"empilhamento_maximo"]   := (_cAlias)->EMPMAX0
+	_oProduto[#"total_pallet"]          := (_cAlias)->EMPMAX0 * (_cAlias)->FATARMA
 
     (_cAlias)->( dbSkip() )
 EndDo
 
+//-----------+
+// Paginação |
+//-----------+
+_oJSon[#"pagina"]								:= Array(#)
+_oJSon[#"pagina"][#"total_itens_pagina"]		:= Val(_cPerPage)
+_oJSon[#"pagina"][#"total_produtos"]			:= 10
+_oJSon[#"pagina"][#"total_paginas"]				:= 01
+_oJSon[#"pagina"][#"pagina_atual"]				:= Val(_cPage)
 //--------------+
 // Cria retorno | 
 //--------------+
@@ -2530,6 +2591,7 @@ Local _cNota            := ""
 Local _cSerie           := ""
 Local _cSituacao        := ""
 Local _cNumPedD         := ""
+Local _cPedido          := ""
 Local _cDocCli          := ""
 Local _cSerCli          := ""
 Local _cChaveNFe        := ""
@@ -2537,9 +2599,14 @@ Local _cCnpjT           := ""
 Local _cTipo            := ""
 Local _cCliFor          := ""
 Local _cLoja            := ""
+Local _cPDFNfe          := ""
+Local _cArqPDF          := ""
+Local _cDirArq          := ""
 
 Local _dDtEmiss         := ""
 
+Local _nBytes           := 0
+Local _nHdl             := 0
 Local _nX               := 0
 Local _nItemNf	        := 0
 Local _nCalAcrs   	    := 1	
@@ -2556,8 +2623,6 @@ Local _lReajuste	    := .F.
 Local _lECF			    := .F.
 
 Local _dDataMoe		    := Nil
-
-Local _nOpcA            := 0
 
 Local _oJSon            := Nil 
 Local _oRemessa         := Nil 
@@ -2636,12 +2701,20 @@ _oRemessa   := _oJSon[#"remessa"]
 // Dados Remessa| 
 //--------------+
 _cSituacao  := _oRemessa[#"situacao"]
-_cNumPedD   := _oRemessa[#"pedido"]
+_cNumPedD   := PadR(_oRemessa[#"pedido"],_nTPedD)
 _cDocCli    := _oRemessa[#"nota"]
 _cSerCli    := _oRemessa[#"serie"]
 _cChaveNFe  := _oRemessa[#"chave_nfe"]
+_cPDFNfe    := Decode64(_oRemessa[#"pdf_nfe"])
+_cDirArq    := "/" + _cIDCliente + "/"
+_cArqPDF    := _cDocCli + "_" + _cSerCli + ".pdf"
 _cCnpjT     := PadR(_oRemessa[#"transportadora"],_nTCNPJ)
 _dDtEmiss   := cTod(_oRemessa[#"dt_emissao"])
+
+//----------------+
+// Cria diretorio |
+//----------------+
+MakeDir(_cDirArq)
 
 //-----------------------+
 // Cria pedido separação | 
@@ -2651,13 +2724,20 @@ If _cSituacao == "1"
     //----------------------------+
     // Valida se já existe pedido |
     //----------------------------+
-    If SC5->( dbSeek(xFilial("SC5") + _cNumPedD + _cIDCliente) )
-        If Rtrim(SC5->C5_XIDLOGI) <> RTrim(_cIDCliente) 
-            aAdd(_aMsgErro,{"1",RTrim(_cNumPedD), "Pedido não localizado."})
-            RestArea(_aArea)
-            Return .F.
-        EndIf
-    EndIf    
+    If !SC5->( dbSeek(xFilial("SC5") + _cNumPedD + _cIDCliente) )
+        aAdd(_aMsgErro,{"1",RTrim(_cNumPedD), "Pedido não localizado."})
+        RestArea(_aArea)
+        Return .F.
+    EndIf   
+
+    //---------------------------------------+
+    // Valida se pedido pertence ao mesmo ID |
+    //---------------------------------------+
+    If Rtrim(SC5->C5_XIDLOGI) <> RTrim(_cIDCliente) 
+        aAdd(_aMsgErro,{"1",RTrim(_cNumPedD), "Pedido não localizado."})
+        RestArea(_aArea)
+        Return .F.
+    EndIf 
 
     If ( !Empty(SC5->C5_NOTA) .And. !Empty(SC5->C5_SERIE) ) .And. ( RTrim(SC5->C5_NOTA) <> "XXXXXX" .And.  RTrim(SC5->C5_SERIE) <> "XXX" ) 
         aAdd(_aMsgErro,{"1",RTrim(_cNumPedD), "Pedido já expedido."})
@@ -2671,6 +2751,37 @@ If _cSituacao == "1"
     _cTipo  := SC5->C5_TIPO 
     _cCliFor:= SC5->C5_CLIENTE
     _cLoja  := SC5->C5_LOJACLI
+    _cPedido:= SC5->C5_NUM 
+
+    //----------------+
+    // Salva PDF nota | 
+    //----------------+
+    If File(_cDirArq + _cArqPDF)
+        FErase(_cDirArq + _cArqPDF)
+    EndIf
+
+    _nHdl := MsFCreate( _cDirArq + _cArqPDF,,,.F.)
+    If _nHdl <= 0 
+        aAdd(_aMsgErro,{"1",RTrim(_cIDCliente), "Erro ao salvar PDF da nota."})
+        RestArea(_aArea)
+        Return .F.
+    EndIf
+
+    //---------------+
+    // Grava Arquivo |
+    //---------------+
+    _nBytes := FWrite(_nHdl, _cPDFNfe, Len(_cPDFNfe) + 2) 
+
+    If _nBytes <= 0 
+        aAdd(_aMsgErro,{"1",RTrim(_cIDCliente), "Erro ao salvar PDF da nota."})
+        RestArea(_aArea)
+        Return .F.
+    EndIf
+    
+    //---------------+
+    // Fecha Arquivo |
+    //---------------+
+    FClose(_nHdl)
 
 //-------------------+
 // Cancela separação | 
@@ -2686,7 +2797,16 @@ ElseIf _cSituacao == "2"
         Return .F.
     EndIf  
 
-     If ( !Empty(SC5->C5_NOTA) .And. !Empty(SC5->C5_SERIE) ) .And. ( RTrim(SC5->C5_NOTA) <> "XXXXXX" .And.  RTrim(SC5->C5_SERIE) <> "XXX" ) 
+    //---------------------------------------+
+    // Valida se pedido pertence ao mesmo ID |
+    //---------------------------------------+
+    If Rtrim(SC5->C5_XIDLOGI) <> RTrim(_cIDCliente) 
+        aAdd(_aMsgErro,{"1",RTrim(_cNumPedD), "Pedido não localizado."})
+        RestArea(_aArea)
+        Return .F.
+    EndIf 
+
+    If ( !Empty(SC5->C5_NOTA) .And. !Empty(SC5->C5_SERIE) ) .And. ( RTrim(SC5->C5_NOTA) <> "XXXXXX" .And.  RTrim(SC5->C5_SERIE) <> "XXX" ) 
         aAdd(_aMsgErro,{"1",RTrim(_cNumPedD), "Pedido já expedido."})
         RestArea(_aArea)
         Return .F.
@@ -2699,6 +2819,13 @@ ElseIf _cSituacao == "2"
         aAdd(_aMsgErro,{"1",RTrim(_cNumPedD), "Pedido já cancelado."})
         RestArea(_aArea)
         Return .F.
+    EndIf
+
+    //--------------------+
+    // Deleta PDF da nota | 
+    //--------------------+
+    If File(_cDirArq + _cArqPDF)
+       FErase(_cDirArq + _cArqPDF)
     EndIf
 
 EndIf
@@ -2738,9 +2865,18 @@ EndIf
 // Valida transportadora |
 //-----------------------+
 If !SA4->( dbSeek(xFilial("SA4") + _cCnpjT + _cIDCliente) )
-    aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Transportadora não localizado."})
+    aAdd(_aMsgErro,{"1",RTrim(_cCnpjT), "Transportadora não localizado."})
     RestArea(_aArea)
     Return .F.
+EndIf
+
+//--------------------------------+
+// Valida se mudou transportadora | 
+//--------------------------------+
+If SC5->C5_TRANSP <> SA4->A4_COD
+    RecLock("SC5",.F.)
+        SC5->C5_TRANSP := SA4->A4_COD
+    SC5->( MsUnLock() )
 EndIf
 
 //-----------------+
@@ -2748,15 +2884,29 @@ EndIf
 //-----------------+
 _cTransp    := SA4->A4_COD
 _cSerie     := GetSerie(_cIDCliente)
+
+//-------------------------------------------+
+// Se não existe serie nao permite continuar | 
+//-------------------------------------------+
+If Empty(_cSerie)
+    aAdd(_aMsgErro,{"1",RTrim(_cIDCliente), "Serie da nota nao localizada."})
+    RestArea(_aArea)
+    Return .F.
+EndIf
+
 _nItemNf	:= a460NumIt(_cSerie)
 
-// Valida se mudou transportadora 
+//-----------------------+
+// SC5 - Pedido de Venda | 
+//-----------------------+
+SC5->( dbSetOrder(1) ) 
+SC5->( dbSeek(xFilial("SC5") + _cPedido) )
 
 //---------------------------+
 // Posiciona Itens liberados |
 //---------------------------+
-SC9->( dbSeek(xFilial("SC9") + SC5->C5_NUM) )
-While SC9->( !Eof() .And. xFilial("SC9") + SC5->C5_NUM == SC9->C9_FILIAL + SC9->C9_PEDIDO )
+SC9->( dbSeek(xFilial("SC9") + _cPedido) )
+While SC9->( !Eof() .And. xFilial("SC9") + _cPedido == SC9->C9_FILIAL + SC9->C9_PEDIDO )
 
 	//----------------------------------------+
 	// Valida se está com bloqueio de estoque | 
@@ -2968,45 +3118,80 @@ Return Nil
     @since 25/11/2020
 /*/
 /*************************************************************************************/
-Static Function PrdGetQry(_cAlias,_cCodProd,_cIdCliente)
+Static Function PrdGetQry(_cAlias,_cCodigo,_cIdCliente,_cPage,_cPerPage)
+
 Local _cQuery := ""
 
 _cQuery := " SELECT " + CRLF
-_cQuery += "	B1.B1_COD, " + CRLF
-_cQuery += "	B1.B1_DESC, " + CRLF
-_cQuery += "	B1.B1_TIPO, " + CRLF
-_cQuery += "	B1.B1_UM, " + CRLF
-_cQuery += "	B1.B1_SEGUM, " + CRLF
-_cQuery += "	B1.B1_CONV, " + CRLF
-_cQuery += "	B1.B1_TIPCONV, " + CRLF
-_cQuery += "	B1.B1_CODGTIN, " + CRLF 
-_cQuery += "	B1.B1_XEANCX, " + CRLF
-_cQuery += "	B1.B1_LOCPAD, " + CRLF
-_cQuery += "	B1.B1_RASTRO, " + CRLF
-_cQuery += "	B1.B1_POSIPI, " + CRLF
-_cQuery += "	B1.B1_PESO, " + CRLF
-_cQuery += "	B1.B1_PESBRU, " + CRLF
-_cQuery += "	B1.B1_MSBLQL, " + CRLF
-_cQuery += "	B1.B1_ORIGEM, " + CRLF
-_cQuery += "	B1.B1_XIDLOGI, " + CRLF
-_cQuery += "    COALESCE(B5.B5_COMPR,0) B5_COMPR, " + CRLF
-_cQuery += "	COALESCE(B5.B5_ALTURA,0) B5_ALTURA, " + CRLF
-_cQuery += "	COALESCE(B5.B5_LARG,0) B5_LARG, " + CRLF
-_cQuery += "	COALESCE(B5.B5_EMB1,'') B5_EMB1, " + CRLF
-_cQuery += "	COALESCE(B5.B5_QE1,0) B5_QE1, " + CRLF
-_cQuery += "	COALESCE(B5.B5_COMPRLC,0) B5_COMPRLC, " + CRLF
-_cQuery += "	COALESCE(B5.B5_LARGLC,0) B5_LARGLC, " + CRLF
-_cQuery += "	COALESCE(B5.B5_ALTURLC,0) B5_ALTURLC, " + CRLF
-_cQuery += "	COALESCE(B5.B5_FATARMA,0) B5_FATARMA, " + CRLF
-_cQuery += "	COALESCE(B5.B5_EMPMAX,0) B5_EMPMAX0 " + CRLF
-_cQuery += " FROM " + CRLF
-_cQuery += "	" + RetSqlName("SB1") + " B1 " + CRLF
-_cQuery += "	LEFT JOIN " + RetSqlName("SB5") + " B5 ON B5.B5_FILIAL = '" + xFilial("SB5") + "' AND B5.B5_COD = B1.B1_COD AND B5.B5_XIDLOGI = B1.B1_XIDLOGI AND B5.D_E_L_E_T_ = '' " + CRLF
-_cQuery += " WHERE " + CRLF
-_cQuery += "	B1.B1_FILIAL = '" + xFilial("SB1") + "' AND " + CRLF
-_cQuery += "	B1.B1_COD = '" + _cCodProd + "' AND " + CRLF
-_cQuery += "	B1.B1_XIDLOGI = '" + _cIdCliente + "' AND " + CRLF
-_cQuery += "	B1.D_E_L_E_T_ = '' "
+_cQuery += "	TOP(" + _cPerPage + ") RNUM, " + CRLF
+_cQuery += "	CODIGO, " + CRLF
+_cQuery += "	DESCRICAO, " + CRLF
+_cQuery += "	TIPO, " + CRLF
+_cQuery += "	UNIDADE, " + CRLF
+_cQuery += "	SEG_UNIDADE, " + CRLF
+_cQuery += "	FATOR, " + CRLF
+_cQuery += "	TIPO_FATOR, " + CRLF
+_cQuery += "	COD_BARRAS, " + CRLF
+_cQuery += "	COD_CAIXA, " + CRLF
+_cQuery += "	ARMAZEM, " + CRLF
+_cQuery += "	RASTRO, " + CRLF
+_cQuery += "	NCM, " + CRLF
+_cQuery += "	PESO_LIQUIDO, " + CRLF
+_cQuery += "	PESO_BRUTO, " + CRLF
+_cQuery += "	SITUACAO, " + CRLF
+_cQuery += "	ORIGEM, " + CRLF
+_cQuery += "	COMP_PRODUTO, " + CRLF
+_cQuery += "	ALTURA_PRODUTO, " + CRLF
+_cQuery += "	LARGURA_PRODUTO, " + CRLF
+_cQuery += "	QTD_EMB, " + CRLF
+_cQuery += "	QTD_QE, " + CRLF
+_cQuery += "	COMP_CAIXA, " + CRLF
+_cQuery += "	LARGURA_CAIXA, " + CRLF
+_cQuery += "	ALTURA_CAIXA, " + CRLF
+_cQuery += "	FATARMA, " + CRLF
+_cQuery += "	EMPMAX0 " + CRLF
+_cQuery += " FROM ( " + CRLF
+_cQuery += "    SELECT " + CRLF
+_cQuery += "		ROW_NUMBER() OVER(ORDER BY B1.B1_COD) RNUM, " + CRLF     
+_cQuery += "	    B1.B1_COD CODIGO, " + CRLF
+_cQuery += "	    B1.B1_DESC DESCRICAO, " + CRLF
+_cQuery += "	    B1.B1_TIPO TIPO, " + CRLF
+_cQuery += "	    B1.B1_UM UNIDADE, " + CRLF
+_cQuery += "	    B1.B1_SEGUM SEG_UNIDADE, " + CRLF
+_cQuery += "	    B1.B1_CONV FATOR, " + CRLF
+_cQuery += "	    B1.B1_TIPCONV TIPO_FATOR, " + CRLF
+_cQuery += "	    B1.B1_CODGTIN COD_BARRAS, " + CRLF 
+_cQuery += "	    B1.B1_XEANCX COD_CAIXA, " + CRLF
+_cQuery += "	    B1.B1_LOCPAD ARMAZEM, " + CRLF
+_cQuery += "	    B1.B1_RASTRO RASTRO, " + CRLF
+_cQuery += "	    B1.B1_POSIPI NCM, " + CRLF
+_cQuery += "	    B1.B1_PESO PESO_LIQUIDO, " + CRLF
+_cQuery += "	    B1.B1_PESBRU PESO_BRUTO, " + CRLF
+_cQuery += "	    B1.B1_MSBLQL SITUACAO, " + CRLF
+_cQuery += "	    B1.B1_ORIGEM ORIGEM, " + CRLF
+_cQuery += "        COALESCE(B5.B5_COMPR,0) COMP_PRODUTO, " + CRLF
+_cQuery += "	    COALESCE(B5.B5_ALTURA,0) ALTURA_PRODUTO, " + CRLF
+_cQuery += "	    COALESCE(B5.B5_LARG,0) LARGURA_PRODUTO, " + CRLF
+_cQuery += "	    COALESCE(B5.B5_EMB1,'') QTD_EMB, " + CRLF
+_cQuery += "	    COALESCE(B5.B5_QE1,0) QTD_QE, " + CRLF
+_cQuery += "	    COALESCE(B5.B5_COMPRLC,0) COMP_CAIXA, " + CRLF
+_cQuery += "	    COALESCE(B5.B5_LARGLC,0) LARGURA_CAIXA, " + CRLF
+_cQuery += "	    COALESCE(B5.B5_ALTURLC,0) ALTURA_CAIXA, " + CRLF
+_cQuery += "	    COALESCE(B5.B5_FATARMA,0) FATARMA, " + CRLF
+_cQuery += "	    COALESCE(B5.B5_EMPMAX,0) EMPMAX0 " + CRLF
+_cQuery += "    FROM " + CRLF
+_cQuery += "	    " + RetSqlName("SB1") + " B1 " + CRLF
+_cQuery += "	    LEFT JOIN " + RetSqlName("SB5") + " B5 ON B5.B5_FILIAL = '" + xFilial("SB5") + "' AND B5.B5_COD = B1.B1_COD AND B5.B5_XIDLOGI = B1.B1_XIDLOGI AND B5.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "    WHERE " + CRLF
+_cQuery += "    	B1.B1_FILIAL = '" + xFilial("SB1") + "' AND " + CRLF
+If !Empty(_cCodigo)
+    _cQuery += "    	B1.B1_COD = '" + _cCodigo + "' AND " + CRLF
+EndIf
+_cQuery += "    	B1.B1_XIDLOGI = '" + _cIdCliente + "' AND " + CRLF
+_cQuery += "    	B1.D_E_L_E_T_ = '' "
+_cQuery += "	) PRODUTOS " + CRLF
+_cQuery += "	WHERE RNUM > " + _cPerPage + " * (" + _cPage + " - 1) " 
+_cQuery += "	ORDER BY CODIGO "
 
 _cAlias := MPSysOpenQuery(_cQuery)
 
@@ -3119,6 +3304,36 @@ EndIf
 _cArmazem   := (_cAlias)->XT3_CODIGO
 
 Return _cArmazem
+
+/***********************************************************************************/
+/*/{Protheus.doc} GetSerie
+    @description Cria codigo e loja cliente lojistico 
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 28/11/2020
+/*/
+/***********************************************************************************/
+Static Function GetSerie(_cIDCliente)
+Local _cQuery   := ""
+Local _cAlias   := ""
+Local _cSerie   := ""
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	XT1_SERIE " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += "	" + RetSqlName("XT1") + " " + CRLF 
+_cQuery += " WHERE " + CRLF
+_cQuery += "	XT1_FILIAL = '" + xFilial("XT1") + "' AND " + CRLF
+_cQuery += "	XT1_IDLOG = '" + _cIDCliente + "' AND " + CRLF
+_cQuery += "	D_E_L_E_T_ = '' "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+_cSerie := (_cAlias)->XT1_SERIE
+
+(_cAlias)->( dbCloseArea() )
+
+Return _cSerie 
 
 /***********************************************************************************/
 /*/{Protheus.doc} ClienteCod
