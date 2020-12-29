@@ -22,7 +22,6 @@ WSRESTFUL RECEBIMENTO DESCRIPTION " Servico DanaLog - Realiza recebimento de not
     WSDATA IDCLIENTE 	AS STRING
 	WSDATA NOTA		    AS STRING
 	WSDATA SERIE		AS STRING	
-	WSDATA DATAHORA		AS STRING
 	WSDATA PERPAGE 		AS STRING	
 	WSDATA PAGE			AS STRING
 
@@ -105,14 +104,15 @@ Return .T.
     @type function
 /*/
 /************************************************************************************/
-WSMETHOD GET WSRECEIVE IDCLIENTE,NOTA,SERIE,DATAHORA,PERPAGE,PAGE WSSERVICE RECEBIMENTO
+WSMETHOD GET WSRECEIVE IDCLIENTE,NOTA,SERIE,PERPAGE,PAGE WSSERVICE RECEBIMENTO
 Local _aArea    := GetArea()
 
-Local _cBody        := ""
 Local _cAuth        := ""
 Local _cIdCiente    := IIF(Empty(::IDCLIENTE),"",::IDCLIENTE)
 Local _cNota        := IIF(Empty(::NOTA),"",::NOTA)
 Local _cSerie       := IIF(Empty(::SERIE),"",::SERIE)
+Local _cPage        := IIF(Empty(::PAGE),"1",::PAGE)
+Local _cParPage     := IIF(Empty(::PERPAGE),"10",::PERPAGE)
 
 Local _oDLog        := Nil 
 
@@ -135,19 +135,19 @@ LogExec("INICIA API DE RECEBIMENTO METODO GET - DATA/HORA: " + dToc( Date() )+ "
 //------------------------------------------+
 // Valida se existe arquivo no corpo do GET | 
 //------------------------------------------+
-_cBody  := Self:GetContent()
 _cAuth	:= Self:GetHeader('Authorization')
 
 //----------------+
 // Classe Danalog | 
 //----------------+
 _oDLog  := DanaLog():New()
-_oDLog:cAuth    := _cAuth
-_oDLog:cJSon    := _cBody
-_oDLog:cCliCod  := _cIdCiente
-_oDLog:cCliLoja := _cNota
-_oDLog:cCnpj    := _cSerie
-_oDLog:cMetodo  := "GET"
+_oDLog:cAuth        := _cAuth
+_oDLog:cIdCliente   := _cIdCiente
+_oDLog:cNota        := _cNota
+_oDLog:cSerie       := _cSerie
+_oDLog:cPage        := _cPage
+_oDLog:cPerPage     := _cParPage
+_oDLog:cMetodo      := "GET"
 
 If _oDLog:Recebimentos()
     LogExec("RECEBIMENTO RETORNADA COM SUCESSO")

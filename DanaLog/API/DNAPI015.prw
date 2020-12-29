@@ -20,9 +20,7 @@ Static _cDirRaiz 	:= "\danalog\"
 WSRESTFUL FORNECEDORES DESCRIPTION " Servico DanaLog - Atualização fornecedores."
     
     WSDATA CNPJ_CPF 	AS STRING
-	WSDATA CODIGO		AS STRING
-	WSDATA LOJA			AS STRING	
-	WSDATA DATAHORA		AS STRING
+    WSDATA IDCLIENTE    AS STRING
 	WSDATA PERPAGE 		AS STRING	
 	WSDATA PAGE			AS STRING
 
@@ -105,14 +103,14 @@ Return .T.
     @type function
 /*/
 /************************************************************************************/
-WSMETHOD GET WSRECEIVE CNPJ_CPF,CODIGO,LOJA,DATAHORA,PERPAGE,PAGE WSSERVICE FORNECEDORES
+WSMETHOD GET WSRECEIVE CNPJ_CPF,IDCLIENTE,PERPAGE,PAGE WSSERVICE FORNECEDORES
 Local _aArea    := GetArea()
 
-Local _cBody        := ""
 Local _cAuth        := ""
-Local _cCliCod      := IIF(Empty(::CODIGO),"",::CODIGO)
-Local _cCliLoja     := IIF(Empty(::LOJA),"",::LOJA)
+Local _cIdCiente    := IIF(Empty(::IDCLIENTE),"",::IDCLIENTE)
 Local _cCnpj_Cpf    := IIF(Empty(::CNPJ_CPF),"",::CNPJ_CPF)
+Local _cPage        := IIF(Empty(::PAGE),"1",::PAGE)
+Local _cParPage     := IIF(Empty(::PERPAGE),"10",::PERPAGE)
 
 Local _oDLog        := Nil 
 
@@ -135,19 +133,18 @@ LogExec("INICIA API DE CLIENTE METODO GET - DATA/HORA: " + dToc( Date() )+ " AS 
 //------------------------------------------+
 // Valida se existe arquivo no corpo do GET | 
 //------------------------------------------+
-_cBody  := Self:GetContent()
 _cAuth	:= Self:GetHeader('Authorization')
 
 //----------------+
 // Classe Danalog | 
 //----------------+
 _oDLog  := DanaLog():New()
-_oDLog:cAuth    := _cAuth
-_oDLog:cJSon    := _cBody
-_oDLog:cCliCod  := _cCliCod
-_oDLog:cCliLoja := _cCliLoja
-_oDLog:cCnpj    := _cCnpj_Cpf
-_oDLog:cMetodo  := "GET"
+_oDLog:cAuth        := _cAuth
+_oDLog:cIdCliente   := _cIdCiente
+_oDLog:cCnpj        := _cCnpj_Cpf
+_oDLog:cPage        := _cPage
+_oDLog:cPerPage     := _cParPage
+_oDLog:cMetodo      := "GET"
 
 If _oDLog:Fornecedor()
     LogExec("FORNECEDOR RETORNADO COM SUCESSO")

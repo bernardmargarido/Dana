@@ -40,6 +40,9 @@ Class DanaLog
     Data cIdCliente As String
     Data cPage      As String 
     Data cPerPage   As String
+    Data cCnpj      As String
+    Data cNota      As String 
+    Data cSerie     As String
 
     Data nCodeHttp  As Integer 
     Data nTExpires  As Integer
@@ -85,6 +88,7 @@ Method New() Class DanaLog
     ::cIdCliente:= ""
     ::cPage     := ""
     ::cPerPage  := ""
+    ::cCnpj     := ""
 
     ::nTotPage  := 0
     ::nTotQry   := 0
@@ -590,7 +594,7 @@ ElseIf ::cMetodo == "GET"
         ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
         ::cError                := "ID cliente não preenchido."
         ::nCodeHttp             := BADREQUEST
-        
+
         RestArea(_aArea)
         Return .F.
 
@@ -639,29 +643,31 @@ If !::ValidaToken()
     Return .F.
 EndIf
 
-//--------------------------------+
-// Valida se JSON veio preenchido | 
-//--------------------------------+
-If Empty(::cJSon)
-    _oJSon                          := Array(#)
-    _oJSon[#"messages"]             := Array(#)
-    _oJSon[#"messages"][#"status"]  := "1"
-    _oJSon[#"messages"][#"message"] := "JSON não enviado."
-
-    ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
-    ::cError                := "JSON não enviado."
-    ::nCodeHttp             := BADREQUEST
-    _lRet                   := .F.
-
-    CoNout("<< DANALOG >> CLIENTES - JSON NAO ENVIADO ")    
-
-EndIf
-
 //---------------+
 // Metodo - POST |
 //---------------+
 If ::cMetodo == "POST"
     CoNout("<< DANALOG >> CLIENTES - METODO POST ")    
+
+    //--------------------------------+
+    // Valida se JSON veio preenchido | 
+    //--------------------------------+
+    If Empty(::cJSon)
+        CoNout("<< DANALOG >> CLIENTES - JSON NAO ENVIADO ")    
+
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "JSON não enviado."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "JSON não enviado."
+        ::nCodeHttp             := BADREQUEST
+
+        RestArea(_aARea)
+        Return .F.
+    EndIf
+
     Begin Transaction 
         ClientesP(::cJSon,3)
     End Transaction 
@@ -670,6 +676,26 @@ If ::cMetodo == "POST"
 //--------------+
 ElseIf ::cMetodo == "PUT"
     CoNout("<< DANALOG >> CLIENTES - METODO PUT ")    
+
+    //--------------------------------+
+    // Valida se JSON veio preenchido | 
+    //--------------------------------+
+    If Empty(::cJSon)
+        CoNout("<< DANALOG >> CLIENTES - JSON NAO ENVIADO ")    
+
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "JSON não enviado."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "JSON não enviado."
+        ::nCodeHttp             := BADREQUEST
+
+        RestArea(_aARea)
+        Return .F.
+    EndIf
+
     Begin Transaction 
         ClientesP(::cJSon,4)
     End Transaction
@@ -678,7 +704,7 @@ ElseIf ::cMetodo == "PUT"
 //--------------+
 ElseIf ::cMetodo == "GET"
     CoNout("<< DANALOG >> CLIENTES - METODO GET ")    
-    ClientesG(::cCodigo,::cLoja,::cCNPJ,::cIdCliente,@_cRest)
+    ClientesG(::cCnpj,::cIdCliente,::cPage,::cPerPage,@_cRest)
 EndIf
 
 //----------------+
@@ -720,29 +746,31 @@ If !::ValidaToken()
     Return .F.
 EndIf
 
-//--------------------------------+
-// Valida se JSON veio preenchido | 
-//--------------------------------+
-If Empty(::cJSon)
-    _oJSon                          := Array(#)
-    _oJSon[#"messages"]             := Array(#)
-    _oJSon[#"messages"][#"status"]  := "1"
-    _oJSon[#"messages"][#"message"] := "JSON não enviado."
-
-    ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
-    ::cError                := "JSON não enviado."
-    ::nCodeHttp             := BADREQUEST
-    _lRet                   := .F.
-
-    CoNout("<< DANALOG >> FORNECEDOR - JSON NAO ENVIADO ")    
-
-EndIf
-
 //---------------+
 // Metodo - POST |
 //---------------+
 If ::cMetodo == "POST"
     CoNout("<< DANALOG >> FORNECEDOR - METODO POST ")    
+
+    //--------------------------------+
+    // Valida se JSON veio preenchido | 
+    //--------------------------------+
+    If Empty(::cJSon)   
+        CoNout("<< DANALOG >> FORNECEDOR - JSON NAO ENVIADO ")    
+
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "JSON não enviado."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "JSON não enviado."
+        ::nCodeHttp             := BADREQUEST
+        
+        RestArea(_aArea)
+        Return .F.
+    EndIf
+
     Begin Transaction 
         ForneceP(::cJSon,3)
     End Transaction 
@@ -751,6 +779,26 @@ If ::cMetodo == "POST"
 //--------------+
 ElseIf ::cMetodo == "PUT"
     CoNout("<< DANALOG >> FORNECEDOR - METODO PUT ")    
+
+    //--------------------------------+
+    // Valida se JSON veio preenchido | 
+    //--------------------------------+
+    If Empty(::cJSon)   
+        CoNout("<< DANALOG >> FORNECEDOR - JSON NAO ENVIADO ")    
+        
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "JSON não enviado."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "JSON não enviado."
+        ::nCodeHttp             := BADREQUEST
+        
+        RestArea(_aArea)
+        Return .F.
+    EndIf
+
     Begin Transaction 
         ForneceP(::cJSon,4)
     End Transaction
@@ -759,7 +807,7 @@ ElseIf ::cMetodo == "PUT"
 //--------------+
 ElseIf ::cMetodo == "GET"
     CoNout("<< DANALOG >> FORNECEDOR - METODO GET ")    
-    ForneceG(::cCodigo,::cLoja,::cCNPJ,::cIdCliente,@_cRest)
+    ForneceG(::cCnpj,::cIdCliente,::cPage,::cPerPage,@_cRest)
 EndIf
 
 //----------------+
@@ -801,29 +849,31 @@ If !::ValidaToken()
     Return .F.
 EndIf
 
-//--------------------------------+
-// Valida se JSON veio preenchido | 
-//--------------------------------+
-If Empty(::cJSon)
-    _oJSon                          := Array(#)
-    _oJSon[#"messages"]             := Array(#)
-    _oJSon[#"messages"][#"status"]  := "1"
-    _oJSon[#"messages"][#"message"] := "JSON não enviado."
-
-    ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
-    ::cError                := "JSON não enviado."
-    ::nCodeHttp             := BADREQUEST
-    _lRet                   := .F.
-
-    CoNout("<< DANALOG >> TRANSPORTADORA - JSON NAO ENVIADO ")    
-
-EndIf
-
 //---------------+
 // Metodo - POST |
 //---------------+
 If ::cMetodo == "POST"
     CoNout("<< DANALOG >> TRANSPORTADORA - METODO POST ")    
+    //--------------------------------+
+    // Valida se JSON veio preenchido | 
+    //--------------------------------+
+    If Empty(::cJSon)
+        CoNout("<< DANALOG >> TRANSPORTADORA - JSON NAO ENVIADO ")    
+
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "JSON não enviado."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "JSON não enviado."
+        ::nCodeHttp             := BADREQUEST
+        
+        RestArea(_aArea)
+        Return .F.  
+
+    EndIf
+
     Begin Transaction 
         TransportP(::cJSon,3)
     End Transaction 
@@ -832,6 +882,27 @@ If ::cMetodo == "POST"
 //--------------+
 ElseIf ::cMetodo == "PUT"
     CoNout("<< DANALOG >> TRANSPORTADORA - METODO PUT ")    
+
+    //--------------------------------+
+    // Valida se JSON veio preenchido | 
+    //--------------------------------+
+    If Empty(::cJSon)
+        CoNout("<< DANALOG >> TRANSPORTADORA - JSON NAO ENVIADO ")    
+
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "JSON não enviado."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "JSON não enviado."
+        ::nCodeHttp             := BADREQUEST
+        
+        RestArea(_aArea)
+        Return .F.  
+
+    EndIf
+
     Begin Transaction 
         TransportP(::cJSon,4)
     End Transaction
@@ -840,7 +911,7 @@ ElseIf ::cMetodo == "PUT"
 //--------------+
 ElseIf ::cMetodo == "GET"
     CoNout("<< DANALOG >> TRANSPORTADORA - METODO GET ")    
-    TransportG(::cCodigo,,::cCNPJ,::cIdCliente,@_cRest)
+    TransportG(::cCnpj,::cIdCliente,::cPage,::cPerPage,@_cRest)
 EndIf
 
 //----------------+
@@ -882,29 +953,31 @@ If !::ValidaToken()
     Return .F.
 EndIf
 
-//--------------------------------+
-// Valida se JSON veio preenchido | 
-//--------------------------------+
-If Empty(::cJSon)
-    _oJSon                          := Array(#)
-    _oJSon[#"messages"]             := Array(#)
-    _oJSon[#"messages"][#"status"]  := "1"
-    _oJSon[#"messages"][#"message"] := "JSON não enviado."
-
-    ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
-    ::cError                := "JSON não enviado."
-    ::nCodeHttp             := BADREQUEST
-    _lRet                   := .F.
-
-    CoNout("<< DANALOG >> RECEBIMENTO - JSON NAO ENVIADO ")    
-
-EndIf
-
 //---------------+
 // Metodo - POST |
 //---------------+
 If ::cMetodo == "POST"
     CoNout("<< DANALOG >> RECEBIMENTO - METODO POST ")    
+
+    //--------------------------------+
+    // Valida se JSON veio preenchido | 
+    //--------------------------------+
+    If Empty(::cJSon)
+        CoNout("<< DANALOG >> RECEBIMENTO - JSON NAO ENVIADO ")    
+
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "JSON não enviado."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "JSON não enviado."
+        ::nCodeHttp             := BADREQUEST
+
+        RestArea(_aArea)
+        Return .F.   
+    EndIf
+
     Begin Transaction 
         EntradaP(::cJSon,3)
     End Transaction 
@@ -913,7 +986,7 @@ If ::cMetodo == "POST"
 //--------------+
 ElseIf ::cMetodo == "GET"
     CoNout("<< DANALOG >> RECEBIMENTO - METODO GET ")    
-    EntradaG(::cNota,::cSerie,::cIdCliente,@_cRest)
+    EntradaG(::cNota,::cSerie,::cIdCliente,::cPage,::cPerPage,@_cRest)
 EndIf
 
 //----------------+
@@ -1291,18 +1364,21 @@ Return _lRet
 /*/
 /*************************************************************************************/
 Static Function ProdutoGet(_cCodigo,_cIdCliente,_cPage,_cPerPage,_cRest)
-Local _cAlias   := ""
+Local _cAlias       := ""
 
-Local _lRet     := .T.
+Local _lRet         := .T.
 
-Local _oJSon    := Nil 
-Local _oProduto := Nil 
+Local _oJSon        := Nil 
+Local _oProduto     := Nil 
+
+Private _nTotQry    := 0
+Private _nTotPag    := 0
 
 //------------------+
 // Consulta produto |
 //------------------+
 If !PrdGetQry(@_cAlias,_cCodigo,_cIdCliente,_cPage,_cPerPage)
-    aAdd(_aMsgErro,{"1",RTrim(_cCodProd), "Produto não localizado."})
+    aAdd(_aMsgErro,{"1",RTrim(_cCodigo), "Produto não localizado."})
     Return .F.
 EndIf 
 
@@ -1351,8 +1427,8 @@ EndDo
 //-----------+
 _oJSon[#"pagina"]								:= Array(#)
 _oJSon[#"pagina"][#"total_itens_pagina"]		:= Val(_cPerPage)
-_oJSon[#"pagina"][#"total_produtos"]			:= 10
-_oJSon[#"pagina"][#"total_paginas"]				:= 01
+_oJSon[#"pagina"][#"total_produtos"]			:= _nTotQry
+_oJSon[#"pagina"][#"total_paginas"]				:= _nTotPag
 _oJSon[#"pagina"][#"pagina_atual"]				:= Val(_cPage)
 //--------------+
 // Cria retorno | 
@@ -1551,6 +1627,82 @@ EndIf
 Return _lRet 
 
 /*************************************************************************************/
+/*/{Protheus.doc} ClientesG
+    @description Realiza a consulta dos clientes DanaLog
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 28/11/2020
+/*/
+/*************************************************************************************/
+Static Function ClientesG(_cCnpj,_cIdCliente,_cPage,_cPerPage,_cRest)
+Local _cAlias       := ""
+
+Local _lRet         := .T.
+
+Local _oJSon        := Nil 
+Local _oClientes    := Nil 
+
+Private _nTotQry    := 0
+Private _nTotPag    := 0
+
+//------------------+
+// Consulta produto |
+//------------------+
+If !CliGetQry(@_cAlias,_cCnpj,_cIdCliente,_cPage,_cPerPage)
+    aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Cliente não localizado."})
+    Return .F.
+EndIf 
+
+_oJSon              := Array(#)
+_oJSon[#"clientes"] := {}
+
+While (_cAlias)->( !Eof() )
+
+    aAdd(_oJSon[#"clientes"],Array(#))
+    _oClientes := aTail(_oJSon[#"clientes"])
+
+    _oClientes[#"cnpj_cpf"]     := (_cAlias)->CNPJ_CPF
+	_oClientes[#"tipo_cli"]     := (_cAlias)->TIPO
+	_oClientes[#"nome"]         := (_cAlias)->RAZAO
+	_oClientes[#"fantasia"]     := (_cAlias)->NREDUZ
+	_oClientes[#"inscricao"]    := (_cAlias)->INSCRICAO
+	_oClientes[#"cep"]          := (_cAlias)->CEP
+	_oClientes[#"endereco"]     := (_cAlias)->ENDERECO
+	_oClientes[#"numero"]       := IIF(At(",",(_cAlias)->ENDERECO) > 0,SubStr((_cAlias)->ENDERECO,At(",",(_cAlias)->ENDERECO) + 1),"")
+	_oClientes[#"complemento"]  := (_cAlias)->COMPLEMENTO
+	_oClientes[#"bairro"]       := (_cAlias)->BAIRRO
+	_oClientes[#"municipio"]    := (_cAlias)->MUNICIPIO
+	_oClientes[#"uf"]           := (_cAlias)->ESTADO
+	_oClientes[#"ddd"]          := (_cAlias)->DDD
+	_oClientes[#"telefone"]     := (_cAlias)->TELEFONE
+	_oClientes[#"email"]        := (_cAlias)->EMAIL
+	_oClientes[#"situacao"]     := IIF((_cAlias)->SITUACAO == "1","I","A")
+
+    (_cAlias)->( dbSkip() )
+EndDo
+
+//-----------+
+// Paginação |
+//-----------+
+_oJSon[#"pagina"]								:= Array(#)
+_oJSon[#"pagina"][#"total_itens_pagina"]		:= Val(_cPerPage)
+_oJSon[#"pagina"][#"total_clientes"]			:= _nTotQry
+_oJSon[#"pagina"][#"total_paginas"]				:= _nTotPag
+_oJSon[#"pagina"][#"pagina_atual"]				:= Val(_cPage)
+
+//--------------+
+// Cria retorno | 
+//--------------+
+_cRest  := EncodeUTF8(xToJson(_oJSon))
+
+//---------------------+
+// Encerra temposrário |
+//---------------------+
+(_cAlias)->( dbCloseArea() )
+
+Return _lRet 
+
+/*************************************************************************************/
 /*/{Protheus.doc} ForneceP
     @description Realiza a gravação e atualização de fornecedores logistico
     @type  Static Function
@@ -1723,6 +1875,81 @@ EndIf
 Return _lRet 
 
 /*************************************************************************************/
+/*/{Protheus.doc} ForneceG
+    @description Realiza a consulta de fornecedores logistico
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 28/11/2020
+/*/
+/*************************************************************************************/
+Static Function ForneceG(_cCnpj,_cIdCliente,_cPage,_cPerPage,_cRest)
+Local _cAlias       := ""
+
+Local _lRet         := .T.
+
+Local _oJSon        := Nil 
+Local _oFornece     := Nil 
+
+Private _nTotQry    := 0
+Private _nTotPag    := 0
+
+//------------------+
+// Consulta produto |
+//------------------+
+If !ForGetQry(@_cAlias,_cCnpj,_cIdCliente,_cPage,_cPerPage)
+    aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Fornecedor não localizado."})
+    Return .F.
+EndIf 
+
+_oJSon              := Array(#)
+_oJSon[#"fornecedores"] := {}
+
+While (_cAlias)->( !Eof() )
+
+    aAdd(_oJSon[#"fornecedores"],Array(#))
+    _oFornece := aTail(_oJSon[#"fornecedores"])
+
+    _oFornece[#"cnpj_cpf"]     := (_cAlias)->CNPJ_CPF
+	_oFornece[#"tipo"]         := (_cAlias)->TIPO
+	_oFornece[#"nome"]         := (_cAlias)->RAZAO
+	_oFornece[#"fantasia"]     := (_cAlias)->NREDUZ
+	_oFornece[#"inscricao"]    := (_cAlias)->INSCRICAO
+	_oFornece[#"cep"]          := (_cAlias)->CEP
+	_oFornece[#"endereco"]     := (_cAlias)->ENDERECO
+	_oFornece[#"numero"]       := IIF(At(",",(_cAlias)->ENDERECO) > 0,SubStr((_cAlias)->ENDERECO,At(",",(_cAlias)->ENDERECO) + 1),"")
+	_oFornece[#"complemento"]  := (_cAlias)->COMPLEMENTO
+	_oFornece[#"bairro"]       := (_cAlias)->BAIRRO
+	_oFornece[#"municipio"]    := (_cAlias)->MUNICIPIO
+	_oFornece[#"uf"]           := (_cAlias)->ESTADO
+	_oFornece[#"ddd"]          := (_cAlias)->DDD
+	_oFornece[#"telefone"]     := (_cAlias)->TELEFONE
+	_oFornece[#"email"]        := (_cAlias)->EMAIL
+	_oFornece[#"situacao"]     := IIF((_cAlias)->SITUACAO == "1","I","A")
+
+    (_cAlias)->( dbSkip() )
+EndDo
+
+//-----------+
+// Paginação |
+//-----------+
+_oJSon[#"pagina"]								:= Array(#)
+_oJSon[#"pagina"][#"total_itens_pagina"]		:= Val(_cPerPage)
+_oJSon[#"pagina"][#"total_fornecedores"]		:= _nTotQry
+_oJSon[#"pagina"][#"total_paginas"]				:= _nTotPag
+_oJSon[#"pagina"][#"pagina_atual"]				:= Val(_cPage)
+
+//--------------+
+// Cria retorno | 
+//--------------+
+_cRest  := EncodeUTF8(xToJson(_oJSon))
+
+//---------------------+
+// Encerra temposrário |
+//---------------------+
+(_cAlias)->( dbCloseArea() )
+Return _lRet 
+
+/*************************************************************************************/
 /*/{Protheus.doc} TransportP
     @description Realiza cadastro/atualização de transportadoras
     @type  Static Function
@@ -1881,6 +2108,79 @@ If ValType(_oTransp) == "A"
 
 EndIf
 
+Return _lRet 
+
+/*************************************************************************************/
+/*/{Protheus.doc} TransportG
+    @description Realiza consulta das transportadoras
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 02/12/2020
+/*/
+/*************************************************************************************/
+Static Function TransportG(_cCnpj,_cIdCliente,_cPage,_cPerPage,_cRest)
+Local _cAlias       := ""
+
+Local _lRet         := .T.
+
+Local _oJSon        := Nil 
+Local _oTransp      := Nil 
+
+Private _nTotQry    := 0
+Private _nTotPag    := 0
+
+//------------------+
+// Consulta produto |
+//------------------+
+If !TraGetQry(@_cAlias,_cCnpj,_cIdCliente,_cPage,_cPerPage)
+    aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Transportadora não localizado."})
+    Return .F.
+EndIf 
+
+_oJSon              := Array(#)
+_oJSon[#"transportadoras"] := {}
+
+While (_cAlias)->( !Eof() )
+
+    aAdd(_oJSon[#"transportadoras"],Array(#))
+    _oTransp := aTail(_oJSon[#"transportadoras"])
+
+    _oTransp[#"cnpj_cpf"]     := (_cAlias)->CNPJ_CPF
+	_oTransp[#"nome"]         := (_cAlias)->RAZAO
+	_oTransp[#"fantasia"]     := (_cAlias)->NREDUZ
+	_oTransp[#"cep"]          := (_cAlias)->CEP
+	_oTransp[#"endereco"]     := (_cAlias)->ENDERECO
+	_oTransp[#"numero"]       := IIF(At(",",(_cAlias)->ENDERECO) > 0,SubStr((_cAlias)->ENDERECO,At(",",(_cAlias)->ENDERECO) + 1),"")
+	_oTransp[#"complemento"]  := (_cAlias)->COMPLEMENTO
+	_oTransp[#"bairro"]       := (_cAlias)->BAIRRO
+	_oTransp[#"municipio"]    := (_cAlias)->MUNICIPIO
+	_oTransp[#"uf"]           := (_cAlias)->ESTADO
+	_oTransp[#"ddd"]          := (_cAlias)->DDD
+	_oTransp[#"telefone"]     := (_cAlias)->TELEFONE
+	_oTransp[#"email"]        := (_cAlias)->EMAIL
+	_oTransp[#"situacao"]     := IIF((_cAlias)->SITUACAO == "1","I","A")
+
+    (_cAlias)->( dbSkip() )
+EndDo
+
+//-----------+
+// Paginação |
+//-----------+
+_oJSon[#"pagina"]								:= Array(#)
+_oJSon[#"pagina"][#"total_itens_pagina"]		:= Val(_cPerPage)
+_oJSon[#"pagina"][#"total_transportadoras"]		:= _nTotQry
+_oJSon[#"pagina"][#"total_paginas"]				:= _nTotPag
+_oJSon[#"pagina"][#"pagina_atual"]				:= Val(_cPage)
+
+//--------------+
+// Cria retorno | 
+//--------------+
+_cRest  := EncodeUTF8(xToJson(_oJSon))
+
+//---------------------+
+// Encerra temposrário |
+//---------------------+
+(_cAlias)->( dbCloseArea() )
 Return _lRet 
 
 /*************************************************************************************/
@@ -2088,6 +2388,8 @@ aAdd(_aCabec, {"F1_ESPECIE"	, "SPED"			, Nil   })
 aAdd(_aCabec, {"F1_COND"	, _cCondPg			, Nil   })
 aAdd(_aCabec, {"F1_TRANSP"	, _cTransp			, Nil   })
 aAdd(_aCabec, {"F1_XENVWMS" , "1"			    , Nil   })
+aAdd(_aCabec, {"F1_XDTALT"  , Date()		    , Nil   })
+aAdd(_aCabec, {"F1_XHRALT"  , Time()		    , Nil   })
 aAdd(_aCabec, {"F1_XIDLOGI" , _cIDCliente       , Nil   })
 
 //---------------------+
@@ -2219,7 +2521,129 @@ If Len(_aCabec) > 0 .And. Len(_aItems) > 0
     EndIf
 
 EndIf
+
 RestArea(_aArea)
+Return _lRet 
+
+/*************************************************************************************/
+/*/{Protheus.doc} EntradaG
+    @description Gera pedidos de remessa DanaLog
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 16/12/2020
+/*/
+/*************************************************************************************/
+Static Function EntradaG(_cNota,_cSerie,_cIdCliente,_cPage,_cPerPage,_cRest)
+Local _cAlias       := ""
+Local _cNotaR       := ""
+Local _cSerieR      := ""
+Local _cCliFor      := ""
+Local _cLoja        := ""
+Local _cSituacao    := ""
+Local _cTipo        := ""
+Local _cCnpj        := ""
+Local _cRazao       := ""
+Local _cCnpj_Trans  := ""
+Local _cNome_Trans  := ""
+
+Local _dDtEmissao   := ""
+Local _dDtEntrada   := ""
+
+Local _lRet         := .T.
+
+Local _oJSon        := Nil 
+Local _oEntrada     := Nil 
+Local _oItems       := Nil 
+
+Private _nTotQry    := 0
+Private _nTotPag    := 0
+
+//------------------+
+// Consulta produto |
+//------------------+
+If !NfeGetQry(@_cAlias,_cNota,_cSerie,_cIdCliente,_cPage,_cPerPage)
+    aAdd(_aMsgErro,{"1",RTrim(_cNota) + RTrim(_cSerie) , "Nota não localizado."})
+    Return .F.
+EndIf 
+
+_oJSon                  := Array(#)
+_oJSon[#"recebimentos"] := {}
+
+While (_cAlias)->( !Eof() )
+
+    aAdd(_oJSon[#"recebimentos"],Array(#))
+    _oEntrada := aTail(_oJSon[#"recebimentos"])
+    
+    _cNotaR         := (_cAlias)->DOCUMENTO
+    _cSerieR        := (_cAlias)->SERIE
+    _cCliFor        := (_cAlias)->CODIGO
+    _cLoja          := (_cAlias)->LOJA
+    _cSituacao      := (_cAlias)->SITUACAO
+    _cTipo          := (_cAlias)->TIPO
+    _cCnpj          := (_cAlias)->CNPJ_CPF
+    _cRazao         := (_cAlias)->NOME_CLIFOR
+    _cCnpj_Trans    := (_cAlias)->CNPJ_TRANSP
+    _cNome_Trans    := (_cAlias)->NOME_TRANSP
+    _dDtEmissao     := dToc(sTod((_cAlias)->DT_EMISSAO))
+    _dDtEntrada     := dToc(sTod((_cAlias)->DT_ENTRADA))
+
+    _oEntrada[#"situacao"]              := _cSituacao
+    _oEntrada[#"cnpj_cpf"]              := _cCnpj
+    _oEntrada[#"nome_for"]              := _cRazao
+    _oEntrada[#"tipo"]                  := IIF(_cTipo == "N", "FOR","DEV")
+    _oEntrada[#"nota"]                  := _cNotaR
+    _oEntrada[#"serie"]                 := _cSerieR
+    _oEntrada[#"transportadora"]        := _cCnpj_Trans
+    _oEntrada[#"nome_transportadora"]   := _cNome_Trans
+    _oEntrada[#"dt_emissao"]            := _dDtEmissao
+    _oEntrada[#"dt_entrada"]            := _dDtEntrada
+
+    _oEntrada[#"items"]                 := {}
+
+    If SD1->( dbSeek(xFilial("SD1") + _cNotaR + _cSerieR + _cCliFor + _cLoja) )
+
+		While SD1->( !Eof() .And. xFilial("SD1") + _cNotaR + _cSerieR + _cCliFor + _cLoja == SD1->D1_FILIAL + SD1->D1_DOC + SD1->D1_SERIE + SD1->D1_FORNECE + SD1->D1_LOJA )
+            //---------------+
+			// Itens da Nota |
+			//---------------+
+			aAdd(_oEntrada[#"items"],Array(#))
+			_oItems := aTail(_oEntrada[#"items"])
+
+            _oItems[#"item"]            := SD1->D1_ITEM
+            _oItems[#"produto"]         := SD1->D1_COD
+            _oItems[#"desc_prod"]       := Posicione("SB1",1,xFilial("SB1") + SD1->D1_COD,"B1_DESC")
+            _oItems[#"qtd_nota"]        := SD1->D1_QUANT
+            _oItems[#"qtd_conferida"]   := 0
+            _oItems[#"armazem"]         := SD1->D1_LOCAL
+            _oItems[#"lote"]            := SD1->D1_LOTECTL
+            _oItems[#"dt_vld_lote"]     := SD1->D1_DTVALID
+
+            SD1->( dbSkip() )
+        EndDo
+    EndIf
+
+    (_cAlias)->( dbSkip() )
+EndDo
+
+//-----------+
+// Paginação |
+//-----------+
+_oJSon[#"pagina"]								:= Array(#)
+_oJSon[#"pagina"][#"total_itens_pagina"]		:= Val(_cPerPage)
+_oJSon[#"pagina"][#"total_recebimentos"]		:= _nTotQry
+_oJSon[#"pagina"][#"total_paginas"]				:= _nTotPag
+_oJSon[#"pagina"][#"pagina_atual"]				:= Val(_cPage)
+
+//--------------+
+// Cria retorno | 
+//--------------+
+_cRest  := EncodeUTF8(xToJson(_oJSon))
+
+//---------------------+
+// Encerra temposrário |
+//---------------------+
+(_cAlias)->( dbCloseArea() )
+
 Return _lRet 
 
 /*************************************************************************************/
@@ -3122,6 +3546,10 @@ Static Function PrdGetQry(_cAlias,_cCodigo,_cIdCliente,_cPage,_cPerPage)
 
 Local _cQuery := ""
 
+If !PrdGetQryT(_cCodigo,_cIdCliente,_cPage,_cPerPage)
+    Return .F.
+EndIf
+
 _cQuery := " SELECT " + CRLF
 _cQuery += "	TOP(" + _cPerPage + ") RNUM, " + CRLF
 _cQuery += "	CODIGO, " + CRLF
@@ -3199,6 +3627,548 @@ If (_cAlias)->( Eof() )
     (_cAlias)->( dbCloseArea() )
     Return .F.
 EndIf
+
+Return .T.
+
+/*************************************************************************************/
+/*/{Protheus.doc} PrdGetQryT
+    @description 
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/*************************************************************************************/
+Static Function PrdGetQryT(_cCodigo,_cIdCliente,_cPage,_cPerPage)
+Local _cAlias   := ""
+Local _cQuery   := ""
+
+_nTotQry        := 0
+_nTotPag        := 0
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	COUNT(B1.B1_COD) TOTREG " + CRLF     
+_cQuery += "    FROM " + CRLF
+_cQuery += "	    " + RetSqlName("SB1") + " B1 " + CRLF
+_cQuery += "	    LEFT JOIN " + RetSqlName("SB5") + " B5 ON B5.B5_FILIAL = '" + xFilial("SB5") + "' AND B5.B5_COD = B1.B1_COD AND B5.B5_XIDLOGI = B1.B1_XIDLOGI AND B5.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "    WHERE " + CRLF
+_cQuery += "    	B1.B1_FILIAL = '" + xFilial("SB1") + "' AND " + CRLF
+If !Empty(_cCodigo)
+    _cQuery += "    	B1.B1_COD = '" + _cCodigo + "' AND " + CRLF
+EndIf
+_cQuery += "    	B1.B1_XIDLOGI = '" + _cIdCliente + "' AND " + CRLF
+_cQuery += "    	B1.D_E_L_E_T_ = '' "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+If (_cAlias)->( Eof() )
+    (_cAlias)->( dbCloseArea() )
+    Return .F.
+EndIf
+
+_nTotQry := (_cAlias)->TOTREG
+
+If _nTotQry <= Val(_cPerPage)
+	_nTotPag := 1 
+Else
+	If Mod(_nTotQry,Val(_cPerPage)) <> 0
+		_nTotPag := Int(_nTotQry/Val(_cPerPage)) + 1
+	Else
+		_nTotPag := Int(_nTotQry/Val(_cPerPage))	
+	EndIf
+EndIf
+
+(_cAlias)->( dbCloseArea() )
+
+Return .T.
+
+/*************************************************************************************/
+/*/{Protheus.doc} CliGetQry
+    @description Consulta clientes DanaLog
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/*************************************************************************************/
+Static Function CliGetQry(_cAlias,_cCnpj,_cIdCliente,_cPage,_cPerPage)
+Local _cQuery := ""
+
+If !CliGetQryT(_cCnpj,_cIdCliente,_cPage,_cPerPage)
+    Return .F.
+EndIf
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	TOP(" + _cPerPage + ") RNUM, " + CRLF
+_cQuery += "	RAZAO, " + CRLF
+_cQuery += "	NREDUZ, " + CRLF
+_cQuery += "	CNPJ_CPF, " + CRLF
+_cQuery += "	TIPO, " + CRLF
+_cQuery += "	INSCRICAO, " + CRLF
+_cQuery += "	ENDERECO, " + CRLF
+_cQuery += "	BAIRRO, " + CRLF
+_cQuery += "	MUNICIPIO, " + CRLF
+_cQuery += "	CEP, " + CRLF
+_cQuery += "	ESTADO, " + CRLF
+_cQuery += "	COMPLEMENTO, " + CRLF
+_cQuery += "	TELEFONE, " + CRLF
+_cQuery += "	DDD, " + CRLF
+_cQuery += "	EMAIL, " + CRLF
+_cQuery += "	SITUACAO " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += " ( " + CRLF
+_cQuery += "	SELECT " + CRLF 
+_cQuery += "		ROW_NUMBER() OVER(ORDER BY A1.A1_CGC) RNUM, " + CRLF 
+_cQuery += "		A1.A1_NOME RAZAO, " + CRLF
+_cQuery += "		A1.A1_NREDUZ NREDUZ, " + CRLF
+_cQuery += "		A1.A1_CGC CNPJ_CPF, " + CRLF
+_cQuery += "		A1.A1_TIPO TIPO, " + CRLF
+_cQuery += "		A1.A1_INSCR INSCRICAO, " + CRLF
+_cQuery += "		A1.A1_END ENDERECO, " + CRLF
+_cQuery += "		A1.A1_BAIRRO BAIRRO, " + CRLF
+_cQuery += "		A1.A1_MUN MUNICIPIO, " + CRLF
+_cQuery += "		A1.A1_CEP CEP, " + CRLF
+_cQuery += "		A1.A1_EST ESTADO, " + CRLF
+_cQuery += "		A1.A1_COMPLEM COMPLEMENTO, " + CRLF
+_cQuery += "		A1.A1_TEL TELEFONE, " + CRLF
+_cQuery += "		A1.A1_DDD DDD, " + CRLF
+_cQuery += "		A1.A1_EMAIL EMAIL, " + CRLF
+_cQuery += "		A1.A1_MSBLQL SITUACAO " + CRLF
+_cQuery += "	FROM " + CRLF
+_cQuery += "		" + RetSqlName("SA1") + " A1 " + CRLF  
+_cQuery += "	WHERE " + CRLF
+_cQuery += "		A1.A1_FILIAL = '" + xFilial("SA1") + "' AND " + CRLF
+If !Empty(_cCnpj)	 
+    _cQuery += "			A1.A1_CGC = '" + _cCnpj + "' AND " + CRLF
+EndIf
+_cQuery += "	    A1.A1_XIDLOGI = '" + _cIdCliente + "' AND " + CRLF
+_cQuery += "	    A1.D_E_L_E_T_ = '' " + CRLF	
+_cQuery += " ) CLIENTES " + CRLF
+_cQuery += " WHERE RNUM > " + _cPerPage + " * (" + _cPage + " - 1) " + CRLF
+_cQuery += " ORDER BY RAZAO "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+If (_cAlias)->( Eof() )
+    (_cAlias)->( dbCloseArea() )
+    Return .F.
+EndIf
+
+Return .T.
+
+/*************************************************************************************/
+/*/{Protheus.doc} CliGetQryT
+    @description Calcula total de registros para retorno dos dados dos clientes
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/*************************************************************************************/
+Static Function CliGetQryT(_cCnpj,_cIdCliente,_cPage,_cPerPage)
+Local _cAlias   := ""
+Local _cQuery   := ""
+
+_nTotQry        := 0
+_nTotPag        := 0
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	COUNT(A1.A1_CGC) TOTREG " + CRLF     
+_cQuery += "	FROM " + CRLF
+_cQuery += "		" + RetSqlName("SA1") + " A1 " + CRLF  
+_cQuery += "	WHERE " + CRLF
+_cQuery += "		A1.A1_FILIAL = '" + xFilial("SA1") + "' AND " + CRLF
+If !Empty(_cCnpj)	 
+    _cQuery += "			A1.A1_CGC = '" + _cCnpj + "' AND " + CRLF
+EndIf
+_cQuery += "	    A1.A1_XIDLOGI = '" + _cIdCliente + "' AND " + CRLF
+_cQuery += "	    A1.D_E_L_E_T_ = '' " 
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+If (_cAlias)->( Eof() )
+    (_cAlias)->( dbCloseArea() )
+    Return .F.
+EndIf
+
+_nTotQry := (_cAlias)->TOTREG
+
+If _nTotQry <= Val(_cPerPage)
+	_nTotPag := 1 
+Else
+	If Mod(_nTotQry,Val(_cPerPage)) <> 0
+		_nTotPag := Int(_nTotQry/Val(_cPerPage)) + 1
+	Else
+		_nTotPag := Int(_nTotQry/Val(_cPerPage))	
+	EndIf
+EndIf
+
+(_cAlias)->( dbCloseArea() )
+Return .T.
+
+/*************************************************************************************/
+/*/{Protheus.doc} ForGetQry
+    @description Consulta fornecedores DanaLog
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/*************************************************************************************/
+Static Function ForGetQry(_cAlias,_cCnpj,_cIdCliente,_cPage,_cPerPage)
+Local _cQuery := ""
+
+If !ForGetQryT(_cCnpj,_cIdCliente,_cPage,_cPerPage)
+    Return .F.
+EndIf
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	TOP(" + _cPerPage + ") RNUM, " + CRLF
+_cQuery += "	RAZAO, " + CRLF
+_cQuery += "	NREDUZ, " + CRLF
+_cQuery += "	CNPJ_CPF, " + CRLF
+_cQuery += "	TIPO, " + CRLF
+_cQuery += "	INSCRICAO, " + CRLF
+_cQuery += "	ENDERECO, " + CRLF
+_cQuery += "	BAIRRO, " + CRLF
+_cQuery += "	MUNICIPIO, " + CRLF
+_cQuery += "	CEP, " + CRLF
+_cQuery += "	ESTADO, " + CRLF
+_cQuery += "	COMPLEMENTO, " + CRLF
+_cQuery += "	TELEFONE, " + CRLF
+_cQuery += "	DDD, " + CRLF
+_cQuery += "	EMAIL, " + CRLF
+_cQuery += "	SITUACAO " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += " ( " + CRLF
+_cQuery += "	SELECT " + CRLF 
+_cQuery += "		ROW_NUMBER() OVER(ORDER BY A2.A2_CGC) RNUM, " + CRLF 
+_cQuery += "		A2.A2_NOME RAZAO, " + CRLF
+_cQuery += "		A2.A2_NREDUZ NREDUZ, " + CRLF
+_cQuery += "		A2.A2_CGC CNPJ_CPF, " + CRLF
+_cQuery += "		A2.A2_TIPO TIPO, " + CRLF
+_cQuery += "		A2.A2_INSCR INSCRICAO, " + CRLF
+_cQuery += "		A2.A2_END ENDERECO, " + CRLF
+_cQuery += "		A2.A2_BAIRRO BAIRRO, " + CRLF
+_cQuery += "		A2.A2_MUN MUNICIPIO, " + CRLF
+_cQuery += "		A2.A2_CEP CEP, " + CRLF
+_cQuery += "		A2.A2_EST ESTADO, " + CRLF
+_cQuery += "		A2.A2_COMPLEM COMPLEMENTO, " + CRLF
+_cQuery += "		A2.A2_TEL TELEFONE, " + CRLF
+_cQuery += "		A2.A2_DDD DDD, " + CRLF
+_cQuery += "		A2.A2_EMAIL EMAIL, " + CRLF
+_cQuery += "		A2.A2_MSBLQL SITUACAO " + CRLF
+_cQuery += "	FROM " + CRLF
+_cQuery += "		" + RetSqlName("SA2") + " A2 " + CRLF  
+_cQuery += "	WHERE " + CRLF
+_cQuery += "		A2.A2_FILIAL = '" + xFilial("SA2") + "' AND " + CRLF
+If !Empty(_cCnpj)	 
+    _cQuery += "			A2.A2_CGC = '" + _cCnpj + "' AND " + CRLF
+EndIf
+_cQuery += "	    A2.A2_XIDLOGI = '" + _cIdCliente + "' AND " + CRLF
+_cQuery += "	    A2.D_E_L_E_T_ = '' " + CRLF	
+_cQuery += " ) FORNECEDORES " + CRLF
+_cQuery += " WHERE RNUM > " + _cPerPage + " * (" + _cPage + " - 1) " + CRLF
+_cQuery += " ORDER BY RAZAO "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+If (_cAlias)->( Eof() )
+    (_cAlias)->( dbCloseArea() )
+    Return .F.
+EndIf
+
+Return .T.
+
+/*************************************************************************************/
+/*/{Protheus.doc} ForGetQryT
+    @description Calcula total de registros para retorno dos dados dos fornecedores
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/*************************************************************************************/
+Static Function ForGetQryT(_cCnpj,_cIdCliente,_cPage,_cPerPage)
+Local _cAlias   := ""
+Local _cQuery   := ""
+
+_nTotQry        := 0
+_nTotPag        := 0
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	COUNT(A2.A2_CGC) TOTREG " + CRLF     
+_cQuery += "	FROM " + CRLF
+_cQuery += "		" + RetSqlName("SA2") + " A2 " + CRLF  
+_cQuery += "	WHERE " + CRLF
+_cQuery += "		A2.A2_FILIAL = '" + xFilial("SA2") + "' AND " + CRLF
+If !Empty(_cCnpj)	 
+    _cQuery += "			A2.A2_CGC = '" + _cCnpj + "' AND " + CRLF
+EndIf
+_cQuery += "	    A2.A2_XIDLOGI = '" + _cIdCliente + "' AND " + CRLF
+_cQuery += "	    A2.D_E_L_E_T_ = '' " 
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+If (_cAlias)->( Eof() )
+    (_cAlias)->( dbCloseArea() )
+    Return .F.
+EndIf
+
+_nTotQry := (_cAlias)->TOTREG
+
+If _nTotQry <= Val(_cPerPage)
+	_nTotPag := 1 
+Else
+	If Mod(_nTotQry,Val(_cPerPage)) <> 0
+		_nTotPag := Int(_nTotQry/Val(_cPerPage)) + 1
+	Else
+		_nTotPag := Int(_nTotQry/Val(_cPerPage))	
+	EndIf
+EndIf
+
+(_cAlias)->( dbCloseArea() )
+Return .T.
+
+/*************************************************************************************/
+/*/{Protheus.doc} TraGetQry
+    @description Calcula total de registros para retorno dos dados das transportadoras
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/*************************************************************************************/
+Static Function TraGetQry(_cAlias,_cCnpj,_cIdCliente,_cPage,_cPerPage)
+Local _cQuery := ""
+
+If !TraGetQryT(_cCnpj,_cIdCliente,_cPage,_cPerPage)
+    Return .F.
+EndIf
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	TOP(" + _cPerPage + ") RNUM, " + CRLF
+_cQuery += "	RAZAO, " + CRLF
+_cQuery += "	NREDUZ, " + CRLF
+_cQuery += "	CNPJ_CPF, " + CRLF
+_cQuery += "	ENDERECO, " + CRLF
+_cQuery += "	BAIRRO, " + CRLF
+_cQuery += "	MUNICIPIO, " + CRLF
+_cQuery += "	CEP, " + CRLF
+_cQuery += "	ESTADO, " + CRLF
+_cQuery += "	COMPLEMENTO, " + CRLF
+_cQuery += "	TELEFONE, " + CRLF
+_cQuery += "	DDD, " + CRLF
+_cQuery += "	EMAIL, " + CRLF
+_cQuery += "	SITUACAO " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += " ( " + CRLF
+_cQuery += "	SELECT " + CRLF 
+_cQuery += "		ROW_NUMBER() OVER(ORDER BY A4.A4_CGC) RNUM, " + CRLF 
+_cQuery += "		A4.A4_NOME RAZAO, " + CRLF
+_cQuery += "		A4.A4_NREDUZ NREDUZ, " + CRLF
+_cQuery += "		A4.A4_CGC CNPJ_CPF, " + CRLF
+_cQuery += "		A4.A4_END ENDERECO, " + CRLF
+_cQuery += "		A4.A4_BAIRRO BAIRRO, " + CRLF
+_cQuery += "		A4.A4_MUN MUNICIPIO, " + CRLF
+_cQuery += "		A4.A4_CEP CEP, " + CRLF
+_cQuery += "		A4.A4_EST ESTADO, " + CRLF
+_cQuery += "		A4.A4_COMPLEM COMPLEMENTO, " + CRLF
+_cQuery += "		A4.A4_TEL TELEFONE, " + CRLF
+_cQuery += "		A4.A4_DDD DDD, " + CRLF
+_cQuery += "		A4.A4_EMAIL EMAIL, " + CRLF
+_cQuery += "		A4.A4_MSBLQL SITUACAO " + CRLF
+_cQuery += "	FROM " + CRLF
+_cQuery += "		" + RetSqlName("SA4") + " A4 " + CRLF  
+_cQuery += "	WHERE " + CRLF
+_cQuery += "		A4.A4_FILIAL = '" + xFilial("SA4") + "' AND " + CRLF
+If !Empty(_cCnpj)	 
+    _cQuery += "			A4.A4_CGC = '" + _cCnpj + "' AND " + CRLF
+EndIf
+_cQuery += "	    A4.A4_XIDLOGI = '" + _cIdCliente + "' AND " + CRLF
+_cQuery += "	    A4.D_E_L_E_T_ = '' " + CRLF	
+_cQuery += " ) FORNECEDORES " + CRLF
+_cQuery += " WHERE RNUM > " + _cPerPage + " * (" + _cPage + " - 1) " + CRLF
+_cQuery += " ORDER BY RAZAO "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+If (_cAlias)->( Eof() )
+    (_cAlias)->( dbCloseArea() )
+    Return .F.
+EndIf
+
+Return .T.
+
+/*************************************************************************************/
+/*/{Protheus.doc} TraGetQryT
+    @description Calcula total de registros para retorno dos dados das transportadoras
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/*************************************************************************************/
+Static Function TraGetQryT(_cCnpj,_cIdCliente,_cPage,_cPerPage)
+Local _cAlias   := ""
+Local _cQuery   := ""
+
+_nTotQry        := 0
+_nTotPag        := 0
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	COUNT(A4.A4_CGC) TOTREG " + CRLF     
+_cQuery += "	FROM " + CRLF
+_cQuery += "		" + RetSqlName("SA4") + " A4 " + CRLF  
+_cQuery += "	WHERE " + CRLF
+_cQuery += "		A4.A4_FILIAL = '" + xFilial("SA4") + "' AND " + CRLF
+If !Empty(_cCnpj)	 
+    _cQuery += "			A4.A4_CGC = '" + _cCnpj + "' AND " + CRLF
+EndIf
+_cQuery += "	    A4.A4_XIDLOGI = '" + _cIdCliente + "' AND " + CRLF
+_cQuery += "	    A4.D_E_L_E_T_ = '' " 
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+If (_cAlias)->( Eof() )
+    (_cAlias)->( dbCloseArea() )
+    Return .F.
+EndIf
+
+_nTotQry := (_cAlias)->TOTREG
+
+If _nTotQry <= Val(_cPerPage)
+	_nTotPag := 1 
+Else
+	If Mod(_nTotQry,Val(_cPerPage)) <> 0
+		_nTotPag := Int(_nTotQry/Val(_cPerPage)) + 1
+	Else
+		_nTotPag := Int(_nTotQry/Val(_cPerPage))	
+	EndIf
+EndIf
+
+(_cAlias)->( dbCloseArea() )
+Return .T.
+
+/*************************************************************************************/
+/*/{Protheus.doc} NfeGetQry
+    @description Consulta nota de recebimento 
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/*************************************************************************************/
+Static Function NfeGetQry(_cAlias,_cNota,_cSerie,_cIdCliente,_cPage,_cPerPage)
+Local _cQuery := ""
+
+If !NfeGetQryT(_cNota,_cSerie,_cIdCliente,_cPage,_cPerPage)
+    Return .F.
+EndIf
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	TOP(" + _cPerPage + ") RNUM, " + CRLF
+_cQuery += "	DOCUMENTO, " + CRLF
+_cQuery += "	SERIE, " + CRLF
+_cQuery += "	SITUACAO, " + CRLF
+_cQuery += "	TIPO, " + CRLF
+_cQuery += "	DT_EMISSAO, " + CRLF
+_cQuery += "	DT_ENTRADA, " + CRLF
+_cQuery += "	CODIGO, " + CRLF
+_cQuery += "	LOJA, " + CRLF
+_cQuery += "	CNPJ_CPF, " + CRLF
+_cQuery += "	NOME_CLIFOR, " + CRLF
+_cQuery += "	CNPJ_TRANSP, " + CRLF
+_cQuery += "	NOME_TRANSP " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += " ( " + CRLF
+_cQuery += "	SELECT " + CRLF
+_cQuery += "		ROW_NUMBER() OVER(ORDER BY F1.F1_DOC) RNUM, " + CRLF
+_cQuery += "		F1.F1_DOC DOCUMENTO, " + CRLF
+_cQuery += "		F1.F1_SERIE SERIE, " + CRLF
+_cQuery += "		F1.F1_XENVWMS SITUACAO, " + CRLF
+_cQuery += "		F1.F1_TIPO TIPO, " + CRLF
+_cQuery += "		F1.F1_EMISSAO DT_EMISSAO, " + CRLF
+_cQuery += "		F1.F1_DTDIGIT DT_ENTRADA, " + CRLF
+_cQuery += "		CASE WHEN F1.F1_TIPO = 'N' THEN A2.A2_COD ELSE A1.A1_COD END CODIGO, " + CRLF
+_cQuery += "		CASE WHEN F1.F1_TIPO = 'N' THEN A2.A2_LOJA ELSE A1.A1_LOJA END LOJA, " + CRLF
+_cQuery += "		CASE WHEN F1.F1_TIPO = 'N' THEN A2.A2_CGC ELSE A1.A1_CGC END CNPJ_CPF, " + CRLF
+_cQuery += "		CASE WHEN F1.F1_TIPO = 'N' THEN A2.A2_NOME ELSE A1.A1_NOME END NOME_CLIFOR, " + CRLF
+_cQuery += "		A4.A4_CGC CNPJ_TRANSP, " + CRLF
+_cQuery += "		A4.A4_NOME NOME_TRANSP " + CRLF			 
+_cQuery += " FROM " + CRLF
+_cQuery += "		" + RetSqlName("SF1") + " F1 " + CRLF
+_cQuery += "		LEFT JOIN " + RetSqlName("SA2") + " A2 ON A2.A2_FILIAL = '" + xFilial("SA2") + "' AND A2.A2_COD = F1.F1_FORNECE AND A2.A2_LOJA = F1.F1_LOJA AND A2.A2_XIDLOGI = F1.F1_XIDLOGI AND A2.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "		LEFT JOIN " + RetSqlName("SA1") + " A1 ON A1.A1_FILIAL = '" + xFilial("SA1") + "' AND A1.A1_COD = F1.F1_FORNECE AND A1.A1_LOJA = F1.F1_LOJA AND A1.A1_XIDLOGI = F1.F1_XIDLOGI AND A1.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "		LEFT JOIN " + RetSqlName("SA4") + " A4 ON A4.A4_FILIAL = '" + xFilial("SA4") + "' AND A4.A4_COD = F1.F1_TRANSP AND A4.A4_XIDLOGI = F1.F1_XIDLOGI AND A1.D_E_L_E_T_ = '' " + CRLF
+_cQuery += " WHERE " + CRLF
+_cQuery += "		F1.F1_FILIAL = '" + xFilial("SF1") + "' AND " + CRLF
+_cQuery += "		F1.F1_XIDLOGI = '" + _cIdCliente + "' AND " + CRLF 
+
+If !Empty(_cNota) 
+    _cQuery += "		F1.F1_DOC = '" + _cNota  + "' AND " + CRLF
+EndIf
+If !Empty(_cSerie) 
+    _cQuery += "		F1.F1_SERIE = '" + _cSerie + "' AND " + CRLF
+EndIf
+
+_cQuery += "		F1.D_E_L_E_T_ = '' " + CRLF
+_cQuery += " ) RECEBIMENTO " + CRLF
+_cQuery += " ORDER BY DOCUMENTO,SERIE "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+If (_cAlias)->( Eof() )
+    (_cAlias)->( dbCloseArea() )
+    Return .F.
+EndIf
+
+Return .T.
+
+/*************************************************************************************/
+/*/{Protheus.doc} NfeGetQryT
+    @description Consulta nota de recebimento
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/*************************************************************************************/
+Static Function NfeGetQryT(_cNota,_cSerie,_cIdCliente,_cPage,_cPerPage)
+Local _cQuery   := ""
+Local _cAlias   := ""
+
+_cQuery := " SELECT 
+_cQuery += "    COUNT(F1.F1_DOC) TOTREG
+_cQuery += " FROM 
+_cQuery += "    " + RetSqlName("SF1") + " F1 
+_cQuery += "    LEFT JOIN " + RetSqlName("SA2") + " A2 ON A2.A2_FILIAL = '" + xFilial("SA2") + "' AND A2.A2_COD = F1.F1_FORNECE AND A2.A2_LOJA = F1.F1_LOJA AND A2.A2_XIDLOGI = F1.F1_XIDLOGI AND A2.D_E_L_E_T_ = ''
+_cQuery += "    LEFT JOIN " + RetSqlName("SA1") + " A1 ON A1.A1_FILIAL = '" + xFilial("SA1") + "' AND A1.A1_COD = F1.F1_FORNECE AND A1.A1_LOJA = F1.F1_LOJA AND A1.A1_XIDLOGI = F1.F1_XIDLOGI AND A1.D_E_L_E_T_ = ''
+_cQuery += "    LEFT JOIN " + RetSqlName("SA4") + " A4 ON A4.A4_FILIAL = '" + xFilial("SA4") + "' AND A4.A4_COD = F1.F1_TRANSP AND A4.A4_XIDLOGI = F1.F1_XIDLOGI AND A1.D_E_L_E_T_ = ''
+_cQuery += " WHERE 
+_cQuery += "		F1.F1_FILIAL = '" + xFilial("SF1") + "' AND " + CRLF
+_cQuery += "		F1.F1_XIDLOGI = '" + _cIdCliente + "' AND " + CRLF 
+
+If !Empty(_cNota) 
+    _cQuery += "		F1.F1_DOC = '" + _cNota  + "' AND " + CRLF
+EndIf
+If !Empty(_cSerie) 
+    _cQuery += "		F1.F1_SERIE = '" + _cSerie + "' AND " + CRLF
+EndIf
+
+_cQuery += "		F1.D_E_L_E_T_ = '' " + CRLF
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+If (_cAlias)->( Eof() )
+    (_cAlias)->( dbCloseArea() )
+    Return .F.
+EndIf
+
+_nTotQry := (_cAlias)->TOTREG
+
+If _nTotQry <= Val(_cPerPage)
+	_nTotPag := 1 
+Else
+	If Mod(_nTotQry,Val(_cPerPage)) <> 0
+		_nTotPag := Int(_nTotQry/Val(_cPerPage)) + 1
+	Else
+		_nTotPag := Int(_nTotQry/Val(_cPerPage))	
+	EndIf
+EndIf
+
+(_cAlias)->( dbCloseArea() )
 
 Return .T.
 
