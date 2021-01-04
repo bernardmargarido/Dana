@@ -38,6 +38,7 @@ Class DanaLog
     Data cHoraExp   As String
     Data cCodigo    As String
     Data cIdCliente As String
+    Data cIdCliTok  As String
     Data cPage      As String 
     Data cPerPage   As String
     Data cCnpj      As String
@@ -67,7 +68,6 @@ Class DanaLog
     Method Pedido()
     Method Remessa()
     Method Inventario()
-    Method ClearObj()
 
 End Class
 
@@ -88,6 +88,7 @@ Method New() Class DanaLog
     ::cHoraExp  := ""
     ::cCodigo   := ""
     ::cIdCliente:= ""
+    ::cIdCliTok := ""
     ::cPage     := ""
     ::cPerPage  := ""
     ::cCnpj     := ""
@@ -115,6 +116,8 @@ Local _nX       := 0
 Local _oJSon    := Nil 
 Local _oMessage := Nil 
 
+Local _lErro    := .F.
+
 _oJSon                  := Array(#)
 _oJSon[#"messages"]     := {}
 For _nX := 1 To Len(_aMsgErro)
@@ -123,11 +126,12 @@ For _nX := 1 To Len(_aMsgErro)
     _oMessage[#"status"]        := _aMsgErro[_nX][1]
     _oMessage[#"codigo"]        := _aMsgErro[_nX][2]
     _oMessage[#"message"]       := _aMsgErro[_nX][3]
+    _lErro                      := IIF(_aMsgErro[_nX][1] == "0",.F.,.T.)
 Next _nX 
 
 ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
 ::cError                := ""
-::nCodeHttp             := SUCESS
+::nCodeHttp             := IIF(_lErro,BADREQUEST,SUCESS)
 
 Return Nil 
 
@@ -438,7 +442,7 @@ _cSecret    := _aToken[3]
 //----------------+
 _cPayLoad			:= Decode64(_aToken[2])
 _oJson  			:= xFromJson(_cPayLoad)
-::cIdCliente        := _oJson[#"sub"]
+::cIdCliTok         := _oJson[#"sub"]
 
 //--------------------+
 // Valida data e hora | 
@@ -463,7 +467,7 @@ EndIf
 //----------------+
 dbSelectArea("XT2")
 XT2->( dbSetOrder(1) )
-If !XT2->( dbSeek(xFilial("XT2") + ::cIdCliente) )
+If !XT2->( dbSeek(xFilial("XT2") + ::cIdCliTok) )
     _oJSonRet                          := Array(#)
     _oJSonRet[#"messages"]             := Array(#)
     _oJSonRet[#"messages"][#"status"]  := "1"
@@ -549,7 +553,7 @@ If ::cMetodo == "POST"
     EndIf
 
     Begin Transaction 
-        ProdutoPost(::cJSon,3)
+        ProdutoPost(::cIdCliTok,::cJSon,3)
     End Transaction 
 //--------------+
 // Metodo - PUT |
@@ -578,13 +582,14 @@ ElseIf ::cMetodo == "PUT"
     EndIf
 
     Begin Transaction 
-        ProdutoPost(::cJSon,4)
+        ProdutoPost(::cIdCliTok,::cJSon,4)
     End Transaction
 //--------------+
 // Metodo - GET |
 //--------------+
 ElseIf ::cMetodo == "GET"
-    CoNout("<< DANALOG >> PRODUTOS - METODO GET ")    
+    CoNout("<< DANALOG >> PRODUTOS - METODO GET ")   
+
     //------------------------------+
     // Valida se ID veio preenchido | 
     //------------------------------+
@@ -601,9 +606,29 @@ ElseIf ::cMetodo == "GET"
         RestArea(_aArea)
         Return .F.
 
-        CoNout("<< DANALOG >> PRODUTOS - JSON NAO ENVIADO ")    
+        CoNout("<< DANALOG >> PRODUTOS - ID NAO ENVIADO ")    
 
     EndIf
+
+    //-----------------------------------------------+
+    // Valida Id cliente digitado com usado no Token |
+    //-----------------------------------------------+
+    If ( !Empty(::cIdCliente) .And. !Empty(::cIdCliTok) ) .And. ( RTrim(::cIdCliTok) <> RTrim(::cIdCliente)  )
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "ID Cliente divergente."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "ID Cliente divergente."
+        ::nCodeHttp             := BADREQUEST
+
+        RestArea(_aArea)
+        Return .F.
+
+        CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ")    
+    EndIf
+
     ProdutoGet(::cCodigo,::cIdCliente,::cPage,::cPerPage,@_cRest)
 EndIf
 
@@ -672,7 +697,7 @@ If ::cMetodo == "POST"
     EndIf
 
     Begin Transaction 
-        ClientesP(::cJSon,3)
+        ClientesP(::cIdCliTok,::cJSon,3)
     End Transaction 
 //--------------+
 // Metodo - PUT |
@@ -700,13 +725,53 @@ ElseIf ::cMetodo == "PUT"
     EndIf
 
     Begin Transaction 
-        ClientesP(::cJSon,4)
+        ClientesP(::cIdCliTok,::cJSon,4)
     End Transaction
 //--------------+
 // Metodo - GET |
 //--------------+
 ElseIf ::cMetodo == "GET"
     CoNout("<< DANALOG >> CLIENTES - METODO GET ")    
+
+    //------------------------------+
+    // Valida se ID veio preenchido | 
+    //------------------------------+
+    If Empty(::cIdCliente)
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "ID cliente não preenchido."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "ID cliente não preenchido."
+        ::nCodeHttp             := BADREQUEST
+
+        RestArea(_aArea)
+        Return .F.
+
+        CoNout("<< DANALOG >> PRODUTOS - ID NAO ENVIADO ")    
+
+    EndIf
+
+    //-----------------------------------------------+
+    // Valida Id cliente digitado com usado no Token |
+    //-----------------------------------------------+
+    If ( !Empty(::cIdCliente) .And. !Empty(::cIdCliTok) ) .And. ( RTrim(::cIdCliTok) <> RTrim(::cIdCliente)  )
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "ID Cliente divergente."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "ID Cliente divergente."
+        ::nCodeHttp             := BADREQUEST
+
+        RestArea(_aArea)
+        Return .F.
+
+        CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ")    
+    EndIf
+
     ClientesG(::cCnpj,::cIdCliente,::cPage,::cPerPage,@_cRest)
 EndIf
 
@@ -775,7 +840,7 @@ If ::cMetodo == "POST"
     EndIf
 
     Begin Transaction 
-        ForneceP(::cJSon,3)
+        ForneceP(::cIdCliTok,::cJSon,3)
     End Transaction 
 //--------------+
 // Metodo - PUT |
@@ -803,13 +868,53 @@ ElseIf ::cMetodo == "PUT"
     EndIf
 
     Begin Transaction 
-        ForneceP(::cJSon,4)
+        ForneceP(::cIdCliTok,::cJSon,4)
     End Transaction
 //--------------+
 // Metodo - GET |
 //--------------+
 ElseIf ::cMetodo == "GET"
     CoNout("<< DANALOG >> FORNECEDOR - METODO GET ")    
+
+    //------------------------------+
+    // Valida se ID veio preenchido | 
+    //------------------------------+
+    If Empty(::cIdCliente)
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "ID cliente não preenchido."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "ID cliente não preenchido."
+        ::nCodeHttp             := BADREQUEST
+
+        RestArea(_aArea)
+        Return .F.
+
+        CoNout("<< DANALOG >> PRODUTOS - ID NAO ENVIADO ")    
+
+    EndIf
+
+    //-----------------------------------------------+
+    // Valida Id cliente digitado com usado no Token |
+    //-----------------------------------------------+
+    If ( !Empty(::cIdCliente) .And. !Empty(::cIdCliTok) ) .And. ( RTrim(::cIdCliTok) <> RTrim(::cIdCliente)  )
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "ID Cliente divergente."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "ID Cliente divergente."
+        ::nCodeHttp             := BADREQUEST
+
+        RestArea(_aArea)
+        Return .F.
+
+        CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ")    
+    EndIf
+
     ForneceG(::cCnpj,::cIdCliente,::cPage,::cPerPage,@_cRest)
 EndIf
 
@@ -878,7 +983,7 @@ If ::cMetodo == "POST"
     EndIf
 
     Begin Transaction 
-        TransportP(::cJSon,3)
+        TransportP(::cIdCliTok,::cJSon,3)
     End Transaction 
 //--------------+
 // Metodo - PUT |
@@ -907,13 +1012,53 @@ ElseIf ::cMetodo == "PUT"
     EndIf
 
     Begin Transaction 
-        TransportP(::cJSon,4)
+        TransportP(::cIdCliTok,::cJSon,4)
     End Transaction
 //--------------+
 // Metodo - GET |
 //--------------+
 ElseIf ::cMetodo == "GET"
-    CoNout("<< DANALOG >> TRANSPORTADORA - METODO GET ")    
+    CoNout("<< DANALOG >> TRANSPORTADORA - METODO GET ") 
+
+    //------------------------------+
+    // Valida se ID veio preenchido | 
+    //------------------------------+
+    If Empty(::cIdCliente)
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "ID cliente não preenchido."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "ID cliente não preenchido."
+        ::nCodeHttp             := BADREQUEST
+
+        RestArea(_aArea)
+        Return .F.
+
+        CoNout("<< DANALOG >> PRODUTOS - ID NAO ENVIADO ")    
+
+    EndIf
+
+    //-----------------------------------------------+
+    // Valida Id cliente digitado com usado no Token |
+    //-----------------------------------------------+
+    If ( !Empty(::cIdCliente) .And. !Empty(::cIdCliTok) ) .And. ( RTrim(::cIdCliTok) <> RTrim(::cIdCliente)  )
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "ID Cliente divergente."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "ID Cliente divergente."
+        ::nCodeHttp             := BADREQUEST
+
+        RestArea(_aArea)
+        Return .F.
+
+        CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ")    
+    EndIf
+
     TransportG(::cCnpj,::cIdCliente,::cPage,::cPerPage,@_cRest)
 EndIf
 
@@ -982,13 +1127,53 @@ If ::cMetodo == "POST"
     EndIf
 
     Begin Transaction 
-        EntradaP(::cJSon,3)
+        EntradaP(::cIdCliTok,::cJSon,3)
     End Transaction 
 //--------------+
 // Metodo - GET |
 //--------------+
 ElseIf ::cMetodo == "GET"
-    CoNout("<< DANALOG >> RECEBIMENTO - METODO GET ")    
+    CoNout("<< DANALOG >> RECEBIMENTO - METODO GET ")   
+
+    //------------------------------+
+    // Valida se ID veio preenchido | 
+    //------------------------------+
+    If Empty(::cIdCliente)
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "ID cliente não preenchido."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "ID cliente não preenchido."
+        ::nCodeHttp             := BADREQUEST
+
+        RestArea(_aArea)
+        Return .F.
+
+        CoNout("<< DANALOG >> PRODUTOS - ID NAO ENVIADO ")    
+
+    EndIf
+
+    //-----------------------------------------------+
+    // Valida Id cliente digitado com usado no Token |
+    //-----------------------------------------------+
+    If ( !Empty(::cIdCliente) .And. !Empty(::cIdCliTok) ) .And. ( RTrim(::cIdCliTok) <> RTrim(::cIdCliente)  )
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "ID Cliente divergente."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "ID Cliente divergente."
+        ::nCodeHttp             := BADREQUEST
+
+        RestArea(_aArea)
+        Return .F.
+
+        CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ")    
+    EndIf
+
     EntradaG(::cNota,::cSerie,::cIdCliente,::cPage,::cPerPage,@_cRest)
 EndIf
 
@@ -1058,13 +1243,53 @@ If ::cMetodo == "POST"
     EndIf
 
     Begin Transaction 
-        PedidoP(::cJSon,3)
+        PedidoP(::cIdCliTok,::cJSon,3)
     End Transaction 
 //--------------+
 // Metodo - GET |
 //--------------+
 ElseIf ::cMetodo == "GET"
-    CoNout("<< DANALOG >> PEDIDOREMESSA - METODO GET ")    
+    CoNout("<< DANALOG >> PEDIDOREMESSA - METODO GET ")  
+
+    //------------------------------+
+    // Valida se ID veio preenchido | 
+    //------------------------------+
+    If Empty(::cIdCliente)
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "ID cliente não preenchido."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "ID cliente não preenchido."
+        ::nCodeHttp             := BADREQUEST
+
+        RestArea(_aArea)
+        Return .F.
+
+        CoNout("<< DANALOG >> PRODUTOS - ID NAO ENVIADO ")    
+
+    EndIf
+
+    //-----------------------------------------------+
+    // Valida Id cliente digitado com usado no Token |
+    //-----------------------------------------------+
+    If ( !Empty(::cIdCliente) .And. !Empty(::cIdCliTok) ) .And. ( RTrim(::cIdCliTok) <> RTrim(::cIdCliente)  )
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "ID Cliente divergente."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "ID Cliente divergente."
+        ::nCodeHttp             := BADREQUEST
+
+        RestArea(_aArea)
+        Return .F.
+
+        CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ")    
+    EndIf
+
     PedidoG(::cPedido,::cIdCliente,::cPage,::cPerPage,@_cRest)
 EndIf
 
@@ -1134,13 +1359,53 @@ If ::cMetodo == "POST"
     EndIf
 
     Begin Transaction 
-        RemessaP(::cJSon,3)
+        RemessaP(::cIdCliTok,::cJSon,3)
     End Transaction 
 //--------------+
 // Metodo - GET |
 //--------------+
 ElseIf ::cMetodo == "GET"
     CoNout("<< DANALOG >> REMESSA - METODO GET ")    
+    
+    //------------------------------+
+    // Valida se ID veio preenchido | 
+    //------------------------------+
+    If Empty(::cIdCliente)
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "ID cliente não preenchido."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "ID cliente não preenchido."
+        ::nCodeHttp             := BADREQUEST
+
+        RestArea(_aArea)
+        Return .F.
+
+        CoNout("<< DANALOG >> PRODUTOS - ID NAO ENVIADO ")    
+
+    EndIf
+
+    //-----------------------------------------------+
+    // Valida Id cliente digitado com usado no Token |
+    //-----------------------------------------------+
+    If ( !Empty(::cIdCliente) .And. !Empty(::cIdCliTok) ) .And. ( RTrim(::cIdCliTok) <> RTrim(::cIdCliente)  )
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "ID Cliente divergente."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "ID Cliente divergente."
+        ::nCodeHttp             := BADREQUEST
+
+        RestArea(_aArea)
+        Return .F.
+
+        CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ")    
+    EndIf
+
     RemessaG(::cPedido,::cIdCliente,::cPage,::cPerPage,@_cRest)
 EndIf
 
@@ -1188,6 +1453,46 @@ EndIf
 //--------------+
 If ::cMetodo == "GET"
     CoNout("<< DANALOG >> REMESSA - METODO GET ")    
+    
+    //------------------------------+
+    // Valida se ID veio preenchido | 
+    //------------------------------+
+    If Empty(::cIdCliente)
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "ID cliente não preenchido."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "ID cliente não preenchido."
+        ::nCodeHttp             := BADREQUEST
+
+        RestArea(_aArea)
+        Return .F.
+
+        CoNout("<< DANALOG >> PRODUTOS - ID NAO ENVIADO ")    
+
+    EndIf
+
+    //-----------------------------------------------+
+    // Valida Id cliente digitado com usado no Token |
+    //-----------------------------------------------+
+    If ( !Empty(::cIdCliente) .And. !Empty(::cIdCliTok) ) .And. ( RTrim(::cIdCliTok) <> RTrim(::cIdCliente)  )
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "ID Cliente divergente."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "ID Cliente divergente."
+        ::nCodeHttp             := BADREQUEST
+
+        RestArea(_aArea)
+        Return .F.
+
+        CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ")    
+    EndIf
+
     InventG(::cCodigo,::cIdCliente,::cPage,::cPerPage,@_cRest)
 EndIf
 
@@ -1238,7 +1543,7 @@ Return _lRet
     @since 24/11/2020
 /*/
 /****************************************************************************************/
-Static Function ProdutoPost(_cJSon,_nOpc)
+Static Function ProdutoPost(_cIdCliTok,_cJSon,_nOpc)
 Local _cIDCliente       := ""
 Local _cCodProd         := ""
 Local _cDescri          := ""
@@ -1290,6 +1595,15 @@ Default _nOpc           := 3
 _oJSon      := xFromJson(_cJSon)
 _cIDCliente := _oJSon[#"id_cliente"]
 _oProduto   := _oJSon[#"produtos"]
+
+//-----------------------------------------------+
+// Valida Id cliente digitado com usado no Token |
+//-----------------------------------------------+
+If ( !Empty(_cIDCliente) .And. !Empty(_cIdCliTok) ) .And. ( RTrim(_cIdCliTok) <> RTrim(_cIDCliente)  )
+    aAdd(_aMsgErro,{"1",RTrim(_cIDCliente), "ID Cliente divergente."})
+    Return .F.
+    CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ")    
+EndIf
 
 If ValType(_oProduto) == "A"
 
@@ -1506,7 +1820,7 @@ Return _lRet
     @since 28/11/2020
 /*/
 /*************************************************************************************/
-Static Function ClientesP(_cJSon,_nOpc)
+Static Function ClientesP(_cIdCliTok,_cJSon,_nOpc)
 Local _cCodCli          := ""
 Local _cLoja            := ""
 Local _cTipo            := ""
@@ -1558,6 +1872,15 @@ SA1->( dbSetOrder(3) )
 _oJSon      := xFromJson(DecodeUTF8(_cJSon))
 _cIDCliente := _oJSon[#"id_cliente"]
 _oCliente   := _oJSon[#"clientes"]
+
+//-----------------------------------------------+
+// Valida Id cliente digitado com usado no Token |
+//-----------------------------------------------+
+If ( !Empty(_cIDCliente) .And. !Empty(_cIdCliTok) ) .And. ( RTrim(_cIdCliTok) <> RTrim(_cIDCliente)  )
+    aAdd(_aMsgErro,{"1",RTrim(_cIDCliente), "ID Cliente divergente."})
+    Return .F.
+    CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ")    
+EndIf
 
 If ValType(_oCliente) == "A"
 
@@ -1766,7 +2089,7 @@ Return _lRet
     @since 28/11/2020
 /*/
 /*************************************************************************************/
-Static Function ForneceP(_cJSon,_nOpc)
+Static Function ForneceP(_cIdCliTok,_cJSon,_nOpc)
 Local _cCodFor          := ""
 Local _cLoja            := ""
 Local _cTipo            := ""
@@ -1814,6 +2137,15 @@ SA2->( dbSetOrder(3) )
 _oJSon      := xFromJson(DecodeUTF8(_cJSon))
 _cIDCliente := _oJSon[#"id_cliente"]
 _oFornece   := _oJSon[#"fornecedores"]
+
+//-----------------------------------------------+
+// Valida Id cliente digitado com usado no Token |
+//-----------------------------------------------+
+If ( !Empty(_cIDCliente) .And. !Empty(_cIdCliTok) ) .And. ( RTrim(_cIdCliTok) <> RTrim(_cIDCliente)  )
+    aAdd(_aMsgErro,{"1",RTrim(_cIDCliente), "ID Cliente divergente."})
+    Return .F.
+    CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ")    
+EndIf
 
 If ValType(_oFornece) == "A"
 
@@ -2013,7 +2345,7 @@ Return _lRet
     @since 02/12/2020
 /*/
 /*************************************************************************************/
-Static Function TransportP(_cJSon,_nOpc)
+Static Function TransportP(_cIdCliTok,_cJSon,_nOpc)
 Local _cCodigo          := ""
 Local _cCnpj            := ""
 Local _cNome            := ""
@@ -2059,6 +2391,15 @@ SA4->( dbSetOrder(3) )
 _oJSon      := xFromJson(DecodeUTF8(_cJSon))
 _cIDCliente := _oJSon[#"id_cliente"]
 _oTransp   := _oJSon[#"transportadoras"]
+
+//-----------------------------------------------+
+// Valida Id cliente digitado com usado no Token |
+//-----------------------------------------------+
+If ( !Empty(_cIDCliente) .And. !Empty(_cIdCliTok) ) .And. ( RTrim(_cIdCliTok) <> RTrim(_cIDCliente)  )
+    aAdd(_aMsgErro,{"1",RTrim(_cIDCliente), "ID Cliente divergente."})
+    Return .F.
+    CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ")    
+EndIf
 
 If ValType(_oTransp) == "A"
 
@@ -2247,7 +2588,7 @@ Return _lRet
     @since 08/12/2020
 /*/
 /*************************************************************************************/
-Static Function EntradaP(_cJSon,_nOpc)
+Static Function EntradaP(_cIdCliTok,_cJSon,_nOpc)
 Local _aArea            := GetArea()
 
 Local _aCabec           := {}
@@ -2335,6 +2676,16 @@ _oJSon      := xFromJson(DecodeUTF8(_cJSon))
 _cIDCliente := _oJSon[#"id_cliente"]
 _oPNfe      := _oJSon[#"recebimento"]
 _oItems     := _oPNfe[#"items"]
+
+//-----------------------------------------------+
+// Valida Id cliente digitado com usado no Token |
+//-----------------------------------------------+
+If ( !Empty(_cIDCliente) .And. !Empty(_cIdCliTok) ) .And. ( RTrim(_cIdCliTok) <> RTrim(_cIDCliente)  )
+    aAdd(_aMsgErro,{"1",RTrim(_cIDCliente), "ID Cliente divergente."})
+    RestArea(_aArea)
+    Return .F.
+    CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ")    
+EndIf
 
 //--------------+
 // Tipo de Nota | 
@@ -2710,7 +3061,7 @@ Return _lRet
     @since 16/12/2020
 /*/
 /*************************************************************************************/
-Static Function PedidoP(_cJSon,_nOpc)
+Static Function PedidoP(_cIdCliTok,_cJSon,_nOpc)
 Local _aArea            := GetArea()
 
 Local _aCabec           := {}
@@ -2794,6 +3145,16 @@ _oJSon      := xFromJson(DecodeUTF8(_cJSon))
 _cIDCliente := _oJSon[#"id_cliente"]
 _oPedido    := _oJSon[#"pedido"]
 _oItems     := _oPedido[#"items"]
+
+//-----------------------------------------------+
+// Valida Id cliente digitado com usado no Token |
+//-----------------------------------------------+
+If ( !Empty(_cIDCliente) .And. !Empty(_cIdCliTok) ) .And. ( RTrim(_cIdCliTok) <> RTrim(_cIDCliente)  )
+    aAdd(_aMsgErro,{"1",RTrim(_cIDCliente), "ID Cliente divergente."})
+    RestArea(_aArea)
+    Return .F.
+    CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ")    
+EndIf
 
 //--------------+
 // Tipo de Nota | 
@@ -3184,7 +3545,7 @@ Return _lRet
     @since 23/12/2020
 /*/
 /*************************************************************************************/
-Static Function RemessaP(_cJSon,_nOpc)
+Static Function RemessaP(_cIdCliTok,_cJSon,_nOpc)
 Local _aArea            := GetArea()
 
 Local aPvlNfs	        := {}
@@ -3306,6 +3667,16 @@ SF4->( dbSetOrder(1) )
 _oJSon      := xFromJson(DecodeUTF8(_cJSon))
 _cIDCliente := _oJSon[#"id_cliente"]
 _oRemessa   := _oJSon[#"remessa"]
+
+//-----------------------------------------------+
+// Valida Id cliente digitado com usado no Token |
+//-----------------------------------------------+
+If ( !Empty(_cIDCliente) .And. !Empty(_cIdCliTok) ) .And. ( RTrim(_cIdCliTok) <> RTrim(_cIDCliente)  )
+    aAdd(_aMsgErro,{"1",RTrim(_cIDCliente), "ID Cliente divergente."})
+    RestArea(_aArea)
+    Return .F.
+    CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ")    
+EndIf
 
 //--------------+
 // Dados Remessa| 

@@ -301,7 +301,7 @@ Local _oModelXT2:= _oModel:GetModel("XT2_01")
 If _nType == 1
     CopytoClipboard(_oModelXT2:GetValue("XT2_SENHA"))
 ElseIf _nType == 2  
-    CopytoClipboard(_oModelXT2:GetValue("XT1_IDLOG"))
+    CopytoClipboard(_oModelXT1:GetValue("XT1_IDLOG"))
 EndIf
 
 Return Nil 
@@ -329,14 +329,14 @@ FwFormCommit(_oModel)
 //--------------+
 // Gera Cliente |
 //--------------+
-If _oModelXT1:GetValue("XT1_GERCLI") 
+If _oModelXT1:GetValue("XT1_GERCLI") .And. Empty(_oModelXT1:GetValue("XT1_CODCLI"))
     FwMsgRun(,{|| _lRet := DLogA01D(1,_oModel)}, "Aguarde...", "Incluindo Cliente")
 EndIf
 
 //-----------------+
 // Gera Fornecedor |
 //-----------------+
-If _oModelXT1:GetValue("XT1_GERFOR")
+If _oModelXT1:GetValue("XT1_GERFOR") .And. Empty(_oModelXT1:GetValue("XT1_CODFOR"))
     FwMsgRun(,{|| _lRet := DLogA01D(2,_oModel)}, "Aguarde...", "Incluindo Fornecedor")
 EndIf
 
