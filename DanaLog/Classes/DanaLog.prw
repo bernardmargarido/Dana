@@ -43,6 +43,7 @@ Class DanaLog
     Data cCnpj      As String
     Data cNota      As String 
     Data cSerie     As String
+    Data cPedido    As String 
 
     Data nCodeHttp  As Integer 
     Data nTExpires  As Integer
@@ -65,6 +66,7 @@ Class DanaLog
     Method Recebimento()
     Method Pedido()
     Method Remessa()
+    Method Inventario()
     Method ClearObj()
 
 End Class
@@ -89,6 +91,7 @@ Method New() Class DanaLog
     ::cPage     := ""
     ::cPerPage  := ""
     ::cCnpj     := ""
+    ::cPedido   := ""
 
     ::nTotPage  := 0
     ::nTotQry   := 0
@@ -1028,29 +1031,32 @@ If !::ValidaToken()
     Return .F.
 EndIf
 
-//--------------------------------+
-// Valida se JSON veio preenchido | 
-//--------------------------------+
-If Empty(::cJSon)
-    _oJSon                          := Array(#)
-    _oJSon[#"messages"]             := Array(#)
-    _oJSon[#"messages"][#"status"]  := "1"
-    _oJSon[#"messages"][#"message"] := "JSON não enviado."
-
-    ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
-    ::cError                := "JSON não enviado."
-    ::nCodeHttp             := BADREQUEST
-    _lRet                   := .F.
-
-    CoNout("<< DANALOG >> PEDIDOREMESSA - JSON NAO ENVIADO ")    
-
-EndIf
-
 //---------------+
 // Metodo - POST |
 //---------------+
 If ::cMetodo == "POST"
     CoNout("<< DANALOG >> PEDIDOREMESSA - METODO POST ")    
+    
+    //--------------------------------+
+    // Valida se JSON veio preenchido | 
+    //--------------------------------+
+    If Empty(::cJSon)
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "JSON não enviado."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "JSON não enviado."
+        ::nCodeHttp             := BADREQUEST
+        
+        RestArea(_aArea)
+        Return .F.
+
+        CoNout("<< DANALOG >> REMESSA - JSON NAO ENVIADO ")    
+
+    EndIf
+
     Begin Transaction 
         PedidoP(::cJSon,3)
     End Transaction 
@@ -1059,7 +1065,7 @@ If ::cMetodo == "POST"
 //--------------+
 ElseIf ::cMetodo == "GET"
     CoNout("<< DANALOG >> PEDIDOREMESSA - METODO GET ")    
-    PedidoG(::cPedido,::cIdCliente,@_cRest)
+    PedidoG(::cPedido,::cIdCliente,::cPage,::cPerPage,@_cRest)
 EndIf
 
 //----------------+
@@ -1101,29 +1107,32 @@ If !::ValidaToken()
     Return .F.
 EndIf
 
-//--------------------------------+
-// Valida se JSON veio preenchido | 
-//--------------------------------+
-If Empty(::cJSon)
-    _oJSon                          := Array(#)
-    _oJSon[#"messages"]             := Array(#)
-    _oJSon[#"messages"][#"status"]  := "1"
-    _oJSon[#"messages"][#"message"] := "JSON não enviado."
-
-    ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
-    ::cError                := "JSON não enviado."
-    ::nCodeHttp             := BADREQUEST
-    _lRet                   := .F.
-
-    CoNout("<< DANALOG >> REMESSA - JSON NAO ENVIADO ")    
-
-EndIf
-
 //---------------+
 // Metodo - POST |
 //---------------+
 If ::cMetodo == "POST"
+
     CoNout("<< DANALOG >> REMESSA - METODO POST ")    
+    //--------------------------------+
+    // Valida se JSON veio preenchido | 
+    //--------------------------------+
+    If Empty(::cJSon)
+        _oJSon                          := Array(#)
+        _oJSon[#"messages"]             := Array(#)
+        _oJSon[#"messages"][#"status"]  := "1"
+        _oJSon[#"messages"][#"message"] := "JSON não enviado."
+
+        ::cJSonRet              := EncodeUTF8(xToJson(_oJSon))
+        ::cError                := "JSON não enviado."
+        ::nCodeHttp             := BADREQUEST
+        
+        RestArea(_aArea)
+        Return .F.
+
+        CoNout("<< DANALOG >> REMESSA - JSON NAO ENVIADO ")    
+
+    EndIf
+
     Begin Transaction 
         RemessaP(::cJSon,3)
     End Transaction 
@@ -1132,7 +1141,54 @@ If ::cMetodo == "POST"
 //--------------+
 ElseIf ::cMetodo == "GET"
     CoNout("<< DANALOG >> REMESSA - METODO GET ")    
-    RemessaG(::cPedido,::cIdCliente,@_cRest)
+    RemessaG(::cPedido,::cIdCliente,::cPage,::cPerPage,@_cRest)
+EndIf
+
+//----------------+
+// Array de erros |
+//----------------+
+If Len(_aMsgErro) > 0 .And. Empty(_cRest)
+    ::GetJSon()
+ElseIf !Empty(_cRest) .And. Len(_aMsgErro) == 0
+    ::cJSonRet              := _cRest
+    ::cError                := ""
+    ::nCodeHttp             := SUCESS
+EndIf
+
+RestArea(_aArea)
+Return _lRet 
+
+/****************************************************************************************/
+/*/{Protheus.doc} Inventario
+    @description Realiza retorno do saldo atual dos produtos
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/****************************************************************************************/
+Method Inventario() Class DanaLog
+Local _aArea        := GetArea()
+
+Local _cRest        := ""
+
+Local _lRet         := .T.
+
+Private _aMsgErro   := {}
+
+//--------------+
+// Valida Token | 
+//--------------+
+If !::ValidaToken()
+    RestArea(_aArea)
+    Return .F.
+EndIf
+
+//--------------+
+// Metodo - GET |
+//--------------+
+If ::cMetodo == "GET"
+    CoNout("<< DANALOG >> REMESSA - METODO GET ")    
+    InventG(::cCodigo,::cIdCliente,::cPage,::cPerPage,@_cRest)
 EndIf
 
 //----------------+
@@ -1378,7 +1434,7 @@ Private _nTotPag    := 0
 // Consulta produto |
 //------------------+
 If !PrdGetQry(@_cAlias,_cCodigo,_cIdCliente,_cPage,_cPerPage)
-    aAdd(_aMsgErro,{"1",RTrim(_cCodigo), "Produto não localizado."})
+    aAdd(_aMsgErro,{"1",RTrim(_cCodigo), "Não foram encontrado dados para essa consulta."})
     Return .F.
 EndIf 
 
@@ -1649,7 +1705,7 @@ Private _nTotPag    := 0
 // Consulta produto |
 //------------------+
 If !CliGetQry(@_cAlias,_cCnpj,_cIdCliente,_cPage,_cPerPage)
-    aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Cliente não localizado."})
+    aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Não foram encontrado dados para essa consulta."})
     Return .F.
 EndIf 
 
@@ -1897,7 +1953,7 @@ Private _nTotPag    := 0
 // Consulta produto |
 //------------------+
 If !ForGetQry(@_cAlias,_cCnpj,_cIdCliente,_cPage,_cPerPage)
-    aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Fornecedor não localizado."})
+    aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Não foram encontrado dados para essa consulta."})
     Return .F.
 EndIf 
 
@@ -2133,7 +2189,7 @@ Private _nTotPag    := 0
 // Consulta produto |
 //------------------+
 If !TraGetQry(@_cAlias,_cCnpj,_cIdCliente,_cPage,_cPerPage)
-    aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Transportadora não localizado."})
+    aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Não foram encontrado dados para essa consulta."})
     Return .F.
 EndIf 
 
@@ -2562,7 +2618,7 @@ Private _nTotPag    := 0
 // Consulta produto |
 //------------------+
 If !NfeGetQry(@_cAlias,_cNota,_cSerie,_cIdCliente,_cPage,_cPerPage)
-    aAdd(_aMsgErro,{"1",RTrim(_cNota) + RTrim(_cSerie) , "Nota não localizado."})
+    aAdd(_aMsgErro,{"1",RTrim(_cNota) + RTrim(_cSerie) , "Não foram encontrado dados para essa consulta."})
     Return .F.
 EndIf 
 
@@ -2997,6 +3053,130 @@ RestArea(_aArea)
 Return _lRet 
 
 /*************************************************************************************/
+/*/{Protheus.doc} PedidoG
+    @description Realiza a consulta do pedido de remessa 
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 23/12/2020
+/*/
+/*************************************************************************************/
+Static Function PedidoG(_cPedido,_cIdCliente,_cPage,_cPerPage,_cRest)
+Local _cAlias       := ""
+Local _cCliFor      := ""
+Local _cLoja        := ""
+Local _cSituacao    := ""
+Local _cTipo        := ""
+Local _cCnpj        := ""
+Local _cRazao       := ""
+Local _cCnpj_Trans  := ""
+Local _cNome_Trans  := ""
+
+Local _dDtEmissao   := ""
+Local _dDtSeparac   := ""
+
+Local _lRet         := .T.
+
+Local _oJSon        := Nil 
+Local _oPedidos     := Nil 
+Local _oItems       := Nil 
+
+Private _nTotQry    := 0
+Private _nTotPag    := 0
+
+//------------------+
+// Consulta produto |
+//------------------+
+If !PedGetQry(@_cAlias,_cPedido,_cIdCliente,_cPage,_cPerPage)
+    aAdd(_aMsgErro,{"1",RTrim(_cPedido) , "Não foram encontrado dados para essa consulta."})
+    Return .F.
+EndIf 
+
+//-----------------------+
+// SC6 - Itens do pedido | 
+//-----------------------+
+dbSelectArea("SC6")
+SC6->( dbSetOrder(1) )
+
+_oJSon             := Array(#)
+_oJSon[#"pedidos"] := {}
+
+While (_cAlias)->( !Eof() )
+
+    aAdd(_oJSon[#"pedidos"],Array(#))
+    _oPedidos := aTail(_oJSon[#"pedidos"])
+    
+    _cNumero        := (_cAlias)->NUM_PV_DLOG
+    _cPedido        := (_cAlias)->NUM_PV_CLI
+    _cCliFor        := (_cAlias)->CODIGO
+    _cLoja          := (_cAlias)->LOJA
+    _cSituacao      := (_cAlias)->SITUACAO
+    _cTipo          := (_cAlias)->TIPO
+    _cCnpj          := (_cAlias)->CNPJ_CPF
+    _cRazao         := (_cAlias)->NOME_CLIFOR
+    _cCnpj_Trans    := (_cAlias)->CNPJ_TRANSP
+    _cNome_Trans    := (_cAlias)->NOME_TRANSP
+    _dDtEmissao     := dToc(sTod((_cAlias)->DT_EMISSAO))
+    _dDtSeparac     := dToc(sTod((_cAlias)->DT_SEPARACAO))
+
+    _oPedidos[#"situacao"]              := _cSituacao
+    _oPedidos[#"numero"]                := _cPedido
+    _oPedidos[#"cnpj_cpf"]              := _cCnpj
+    _oPedidos[#"nome_cliente"]          := _cRazao
+    _oPedidos[#"tipo"]                  := IIF(_cTipo == "N", "CLI","DEV")
+    _oPedidos[#"transportadora"]        := _cCnpj_Trans
+    _oPedidos[#"nome_transportadora"]   := _cNome_Trans
+    _oPedidos[#"dt_emissao"]            := _dDtEmissao
+    _oPedidos[#"dt_separacao"]          := _dDtSeparac
+
+    _oPedidos[#"items"]                 := {}
+
+    If SC6->( dbSeek(xFilial("SC6") + _cNumero ) )
+
+		While SC6->( !Eof() .And. xFilial("SC6") + _cNumero  == SC6->C6_FILIAL + SC6->C6_NUM)
+            //---------------+
+			// Itens da Nota |
+			//---------------+
+			aAdd(_oPedidos[#"items"],Array(#))
+			_oItems := aTail(_oPedidos[#"items"])
+
+            _oItems[#"item"]            := SC6->C6_ITEM
+            _oItems[#"produto"]         := SC6->C6_PRODUTO
+            _oItems[#"desc_prod"]       := Posicione("SB1",1,xFilial("SB1") + SC6->C6_PRODUTO,"B1_DESC")
+            _oItems[#"qtd_solicitada"]  := SC6->C6_QTDVEN
+            _oItems[#"qtd_separada"]    := 0
+            _oItems[#"armazem"]         := SC6->C6_LOCAL
+            _oItems[#"lote"]            := SC6->C6_LOTECTL
+            _oItems[#"dt_vld_lote"]     := SC6->C6_DTVALID
+
+            SC6->( dbSkip() )
+        EndDo
+    EndIf
+
+    (_cAlias)->( dbSkip() )
+EndDo
+
+//-----------+
+// Paginação |
+//-----------+
+_oJSon[#"pagina"]								:= Array(#)
+_oJSon[#"pagina"][#"total_itens_pagina"]		:= Val(_cPerPage)
+_oJSon[#"pagina"][#"total_pedidos"]		        := _nTotQry
+_oJSon[#"pagina"][#"total_paginas"]				:= _nTotPag
+_oJSon[#"pagina"][#"pagina_atual"]				:= Val(_cPage)
+
+//--------------+
+// Cria retorno | 
+//--------------+
+_cRest  := EncodeUTF8(xToJson(_oJSon))
+
+//---------------------+
+// Encerra temposrário |
+//---------------------+
+(_cAlias)->( dbCloseArea() )
+
+Return _lRet 
+
+/*************************************************************************************/
 /*/{Protheus.doc} RemessaP
     @description Realiza a remessa dos pedidos DanaLog
     @type  Static Function
@@ -3010,7 +3190,11 @@ Local _aArea            := GetArea()
 Local aPvlNfs	        := {}
 Local _aNotas	        := {}
 Local _aNfGerada        := {}
+Local _aRegSD2		    := {}
+Local _aRegSE1 	        := {}
+Local _aRegSE2 	        := {}
 
+Local _cAliasSF2 	    := "SF2"
 Local _cNota            := ""
 Local _cSerie           := ""
 Local _cSituacao        := ""
@@ -3045,6 +3229,8 @@ Local _lCtbOnLine	    := .F.
 Local _lCtbCusto	    := .F.
 Local _lReajuste	    := .F.
 Local _lECF			    := .F.
+Local _lEstorna         := .F.
+Local _lCarteira        := .T.
 
 Local _dDataMoe		    := Nil
 
@@ -3252,6 +3438,11 @@ ElseIf _cSituacao == "2"
        FErase(_cDirArq + _cArqPDF)
     EndIf
 
+    _lEstorna   := .T.
+    
+    _cNota      := SC5->C5_NOTA
+    _cSerie     := SC5->C5_SERIE
+
 EndIf
 
 //---------------------------+
@@ -3285,188 +3476,356 @@ ElseIf _cTipo == "N"
 
 EndIf
 
-//-----------------------+
-// Valida transportadora |
-//-----------------------+
-If !SA4->( dbSeek(xFilial("SA4") + _cCnpjT + _cIDCliente) )
-    aAdd(_aMsgErro,{"1",RTrim(_cCnpjT), "Transportadora não localizado."})
-    RestArea(_aArea)
-    Return .F.
-EndIf
+//-------------------+
+// Estorna expedição |
+//-------------------+
+If _lEstorna
 
-//--------------------------------+
-// Valida se mudou transportadora | 
-//--------------------------------+
-If SC5->C5_TRANSP <> SA4->A4_COD
-    RecLock("SC5",.F.)
-        SC5->C5_TRANSP := SA4->A4_COD
-    SC5->( MsUnLock() )
-EndIf
+    //----------------+
+    // Posiciona Nota | 
+    //----------------+
+    dbSelectArea("SF2")
+    SF2->( dbSetOrder(1) )
+    SF2->( dbSeek(xFilial("SF2") + _cNota + _cSerie) )
 
-//-----------------+
-// Parametros Nota | 
-//-----------------+
-_cTransp    := SA4->A4_COD
-_cSerie     := GetSerie(_cIDCliente)
+    //----------------------+
+    // Start nos Parametros |
+    //----------------------+
+    _aRegSD2	:= {}
+    _aRegSE1 	:= {}
+    _aRegSE2 	:= {}
 
-//-------------------------------------------+
-// Se não existe serie nao permite continuar | 
-//-------------------------------------------+
-If Empty(_cSerie)
-    aAdd(_aMsgErro,{"1",RTrim(_cIDCliente), "Serie da nota nao localizada."})
-    RestArea(_aArea)
-    Return .F.
-EndIf
+    //-----------------------------------+
+    // Valida se nota pode ser cancelada |
+    //-----------------------------------+
+    If !MaCanDelF2(_cAliasSF2, SF2->( RecNo() ), @_aRegSD2, @_aRegSE1, @_aRegSE2)
+        aAdd(_aMsgErro,{"1",RTrim(_cDocCli) + RTrim(_cSerCli), "Nota não pode ser cancelada. Favor informa a DanaLog."})
+        RestArea(_aArea)
+        Return .F.
+    EndIf
 
-_nItemNf	:= a460NumIt(_cSerie)
+    //---------------------+
+    // Estorna nota fiscal | 
+    //---------------------+
+    SF2->( MaDelNFS(_aRegSD2,_aRegSE1,_aRegSE2,_lMostraCtb,_lAglutCtb,_lCtbOnLine,_lCarteira) )
+    aAdd(_aMsgErro,{"0",RTrim(_cDocCli) + RTrim(_cSerCli), "Nota cancelada com sucesso."})
 
-//-----------------------+
-// SC5 - Pedido de Venda | 
-//-----------------------+
-SC5->( dbSetOrder(1) ) 
-SC5->( dbSeek(xFilial("SC5") + _cPedido) )
-
-//---------------------------+
-// Posiciona Itens liberados |
-//---------------------------+
-SC9->( dbSeek(xFilial("SC9") + _cPedido) )
-While SC9->( !Eof() .And. xFilial("SC9") + _cPedido == SC9->C9_FILIAL + SC9->C9_PEDIDO )
-
-	//----------------------------------------+
-	// Valida se está com bloqueio de estoque | 
-	//----------------------------------------+
-	If ( SC9->C9_BLEST <> "10" ) .AND. !Empty(SC9->C9_BLEST)
-		CoNout("<< DANALOG >> REMESSA - PEDIDO " + _cNumPedD + " PRODUTO " + SC9->C9_PRODUTO + " SEM SALDO EM ESTOQUE.")
-		_lBlqEst := .T.
-		Exit
-	EndIf
-				
-	//----------------------------------------+
-	// Valida se está com bloqueio de credito | 
-	//----------------------------------------+			
-	If (SC9->C9_BLCRED <> "10") .AND. !Empty(SC9->C9_BLCRED)
-		CoNout("<< DANALOG >> REMESSA - PEDIDO " + _cNumPedD + " PRODUTO " + SC9->C9_PRODUTO + " SEM CREDITO.")
-		_lBlqCred := .T.
-		Exit
-	EndIf
-
-	//--------------------------+
-	// Posiciona Item do Pedido |   
-	//--------------------------+
-	SC6->( dbSetOrder(1) )
-	SC6->( dbSeek(xFilial("SC6") + SC9->C9_PEDIDO + SC9->C9_ITEM + SC9->C9_PRODUTO) )
-
-	//---------------------------------+
-	// Posiciona Condição de Pagamento |   
-	//---------------------------------+
-	SE4->( dbSetOrder(1) )
-	SE4->( dbSeek(xFilial("SE4") + SC5->C5_CONDPAG) )
-
-	//-------------------+
-	// Posiciona Produto |   
-	//-------------------+
-	SB1->( dbSetOrder(1) )
-	SB1->( dbSeek(xFilial("SB1") + SC9->C9_PRODUTO) )
-
-	//------------------------------+
-	// Posiciona Estoque de Produto |   
-	//------------------------------+
-	SB2->( dbSetOrder(1) )
-	SB2->( dbSeek(xFilial("SB2") + SC9->C9_PRODUTO + SC9->C9_LOCAL) )
-
-	//---------------+
-	// Posiciona Tes |   
-	//---------------+
-	SF4->( dbSetOrder(1) )
-	SF4->( dbSeek(xFilial("SF4") + SC6->C6_TES) )
-
-	//----------------------------------+
-	// Adiciona itens a serem faturados |
-	//----------------------------------+
-	aAdd(aPvlNfs,{ 	SC9->C9_PEDIDO,;
-					SC9->C9_ITEM,;
-					SC9->C9_SEQUEN,;
-					SC9->C9_QTDLIB,;
-					SC9->C9_PRCVEN,;
-					SC9->C9_PRODUTO,;
-					.F.,;
-					SC9->(RecNo()),;
-					SC5->(RecNo()),;
-					SC6->(RecNo()),;
-					SE4->(RecNo()),;
-					SB1->(RecNo()),;
-					SB2->(RecNo()),;
-					SF4->(RecNo())})
-
-
-	SC9->( dbSkip() )
-EndDo
-
-//----------------------------------------------+
-// Exibe parametros para geração da Nota Fiscal |
-//----------------------------------------------+
-If !_lBlqCred .And. !_lBlqEst .And. Len(aPvlNfs) > 0
-	
-	//---------------------------+
-	// Cria array de notas vazio |
-	//---------------------------+
-	aAdd(_aNotas,{})
-
-	//----------------------------------------------------+
-	// Separa notas caso ultrapasse maximo total de itens |  
-	//----------------------------------------------------+
-	For _nX := 1 To Len(aPvlNfs)
-		If Len(_aNotas[Len(_aNotas)]) >= _nItemNf
-			aAdd(_aNotas,{})
-		EndIf
-		aAdd(_aNotas[Len(_aNotas)], aClone(aPvlNfs[_nX] ))
-	Next _nX
-	
-	//-----------------------+
-	// Gera notas e-Commerce |
-	//-----------------------+
-	For _nX := 1 To Len(_aNotas)	
-		_cNota := MaPvlNfs(_aNotas[_nX],_cSerie,_lMostraCtb,_lAglutCtb,_lCtbOnLine,_lCtbCusto,_lReajuste,_nCalAcrs,_nArredPrcLis,.F.,_lECF,,,,,,_dDataMoe)
-		_cSerie:= PadR(_cSerie,_nTSerie)
-		aAdd(_aNfGerada,PadR(_cNota,_nTDoc))
-	Next _nX
-
-	//----------------------+
-	// Valida notas geradas |
-	//----------------------+
-	dbSelectArea("SF2")
-	SF2->( dbSetOrder(1) )
-    
-	For _nX := 1 To Len(_aNfGerada)	
-		If Empty(_aNfGerada[_nX])
-			CoNout("<< DANALOG >> REMESSA - ERRO AO GERAR A NOTA PEDIDO " + _cNumPedD + " NOTA NAO GERADA.")
-            aAdd(_aMsgErro,{"1",RTrim(_cNumPedD), "Processo nao concluido. Nota nao processada."})            
-			_lRet	:= .F.
-		Else
-			If !SF2->( dbSeek(xFilial("SF2") + _aNfGerada[_nX] + PadR(_cSerie,_nTSerie)) )
-				CoNout("<< DANALOG >> REMESSA - NOTA " + _aNfGerada[_nX] + " SERIE " + _cSerie + " NAO LOCALIZADA PARA O PEDIDO " + _cNumPedD + " .")
-                aAdd(_aMsgErro,{"1",RTrim(_cNumPedD), "Processo nao concluido. Nota nao processada"})            
-				_lRet	:= .F.
-            Else
-                _lRet   := .T.
-                RecLock("SF2",.F.)
-                    SF2->F2_XCHVNFE := _cChaveNFe
-                    SF2->F2_XIDLOGI := _cIDCliente
-                SF2->( MsUnLock() )
-			EndIf
-		EndIf
-	Next _nX
 Else
-    aAdd(_aMsgErro,{"1",RTrim(_cNumPedD), "Processo nao concluido. Pedido com bloqueio de saldo."})            
-	CoNout("<< DANALOG >> REMESSA - PEDIDO " + _cNumPedD + " COM BLOQUEIO DE SALDO.")
-	_lRet	:= .F.
-EndIf
+    //-----------------------+
+    // Valida transportadora |
+    //-----------------------+
+    If !SA4->( dbSeek(xFilial("SA4") + _cCnpjT + _cIDCliente) )
+        aAdd(_aMsgErro,{"1",RTrim(_cCnpjT), "Transportadora não localizado."})
+        RestArea(_aArea)
+        Return .F.
+    EndIf
 
-If _lRet
-    aAdd(_aMsgErro,{"0",RTrim(_cNumPedD), "Nota processada com sucesso. "})
-EndIF
+    //--------------------------------+
+    // Valida se mudou transportadora | 
+    //--------------------------------+
+    If SC5->C5_TRANSP <> SA4->A4_COD
+        RecLock("SC5",.F.)
+            SC5->C5_TRANSP := SA4->A4_COD
+        SC5->( MsUnLock() )
+    EndIf
+
+    //-----------------+
+    // Parametros Nota | 
+    //-----------------+
+    _cTransp    := SA4->A4_COD
+    _cSerie     := GetSerie(_cIDCliente)
+
+    //-------------------------------------------+
+    // Se não existe serie nao permite continuar | 
+    //-------------------------------------------+
+    If Empty(_cSerie)
+        aAdd(_aMsgErro,{"1",RTrim(_cIDCliente), "Serie da nota nao localizada."})
+        RestArea(_aArea)
+        Return .F.
+    EndIf
+
+    _nItemNf	:= a460NumIt(_cSerie)
+
+    //-----------------------+
+    // SC5 - Pedido de Venda | 
+    //-----------------------+
+    SC5->( dbSetOrder(1) ) 
+    SC5->( dbSeek(xFilial("SC5") + _cPedido) )
+
+    //---------------------------+
+    // Posiciona Itens liberados |
+    //---------------------------+
+    SC9->( dbSeek(xFilial("SC9") + _cPedido) )
+    While SC9->( !Eof() .And. xFilial("SC9") + _cPedido == SC9->C9_FILIAL + SC9->C9_PEDIDO )
+
+        //----------------------------------------+
+        // Valida se está com bloqueio de estoque | 
+        //----------------------------------------+
+        If ( SC9->C9_BLEST <> "10" ) .AND. !Empty(SC9->C9_BLEST)
+            CoNout("<< DANALOG >> REMESSA - PEDIDO " + _cNumPedD + " PRODUTO " + SC9->C9_PRODUTO + " SEM SALDO EM ESTOQUE.")
+            _lBlqEst := .T.
+            Exit
+        EndIf
+                    
+        //----------------------------------------+
+        // Valida se está com bloqueio de credito | 
+        //----------------------------------------+			
+        If (SC9->C9_BLCRED <> "10") .AND. !Empty(SC9->C9_BLCRED)
+            CoNout("<< DANALOG >> REMESSA - PEDIDO " + _cNumPedD + " PRODUTO " + SC9->C9_PRODUTO + " SEM CREDITO.")
+            _lBlqCred := .T.
+            Exit
+        EndIf
+
+        //--------------------------+
+        // Posiciona Item do Pedido |   
+        //--------------------------+
+        SC6->( dbSetOrder(1) )
+        SC6->( dbSeek(xFilial("SC6") + SC9->C9_PEDIDO + SC9->C9_ITEM + SC9->C9_PRODUTO) )
+
+        //---------------------------------+
+        // Posiciona Condição de Pagamento |   
+        //---------------------------------+
+        SE4->( dbSetOrder(1) )
+        SE4->( dbSeek(xFilial("SE4") + SC5->C5_CONDPAG) )
+
+        //-------------------+
+        // Posiciona Produto |   
+        //-------------------+
+        SB1->( dbSetOrder(1) )
+        SB1->( dbSeek(xFilial("SB1") + SC9->C9_PRODUTO) )
+
+        //------------------------------+
+        // Posiciona Estoque de Produto |   
+        //------------------------------+
+        SB2->( dbSetOrder(1) )
+        SB2->( dbSeek(xFilial("SB2") + SC9->C9_PRODUTO + SC9->C9_LOCAL) )
+
+        //---------------+
+        // Posiciona Tes |   
+        //---------------+
+        SF4->( dbSetOrder(1) )
+        SF4->( dbSeek(xFilial("SF4") + SC6->C6_TES) )
+
+        //----------------------------------+
+        // Adiciona itens a serem faturados |
+        //----------------------------------+
+        aAdd(aPvlNfs,{ 	SC9->C9_PEDIDO,;
+                        SC9->C9_ITEM,;
+                        SC9->C9_SEQUEN,;
+                        SC9->C9_QTDLIB,;
+                        SC9->C9_PRCVEN,;
+                        SC9->C9_PRODUTO,;
+                        .F.,;
+                        SC9->(RecNo()),;
+                        SC5->(RecNo()),;
+                        SC6->(RecNo()),;
+                        SE4->(RecNo()),;
+                        SB1->(RecNo()),;
+                        SB2->(RecNo()),;
+                        SF4->(RecNo())})
+
+
+        SC9->( dbSkip() )
+    EndDo
+
+    //----------------------------------------------+
+    // Exibe parametros para geração da Nota Fiscal |
+    //----------------------------------------------+
+    If !_lBlqCred .And. !_lBlqEst .And. Len(aPvlNfs) > 0
+        
+        //---------------------------+
+        // Cria array de notas vazio |
+        //---------------------------+
+        aAdd(_aNotas,{})
+
+        //----------------------------------------------------+
+        // Separa notas caso ultrapasse maximo total de itens |  
+        //----------------------------------------------------+
+        For _nX := 1 To Len(aPvlNfs)
+            If Len(_aNotas[Len(_aNotas)]) >= _nItemNf
+                aAdd(_aNotas,{})
+            EndIf
+            aAdd(_aNotas[Len(_aNotas)], aClone(aPvlNfs[_nX] ))
+        Next _nX
+        
+        //-----------------------+
+        // Gera notas e-Commerce |
+        //-----------------------+
+        For _nX := 1 To Len(_aNotas)	
+            _cNota := MaPvlNfs(_aNotas[_nX],_cSerie,_lMostraCtb,_lAglutCtb,_lCtbOnLine,_lCtbCusto,_lReajuste,_nCalAcrs,_nArredPrcLis,.F.,_lECF,,,,,,_dDataMoe)
+            _cSerie:= PadR(_cSerie,_nTSerie)
+            aAdd(_aNfGerada,PadR(_cNota,_nTDoc))
+        Next _nX
+
+        //----------------------+
+        // Valida notas geradas |
+        //----------------------+
+        dbSelectArea("SF2")
+        SF2->( dbSetOrder(1) )
+        
+        For _nX := 1 To Len(_aNfGerada)	
+            If Empty(_aNfGerada[_nX])
+                CoNout("<< DANALOG >> REMESSA - ERRO AO GERAR A NOTA PEDIDO " + _cNumPedD + " NOTA NAO GERADA.")
+                aAdd(_aMsgErro,{"1",RTrim(_cNumPedD), "Processo nao concluido. Nota nao processada."})            
+                _lRet	:= .F.
+            Else
+                If !SF2->( dbSeek(xFilial("SF2") + _aNfGerada[_nX] + PadR(_cSerie,_nTSerie)) )
+                    CoNout("<< DANALOG >> REMESSA - NOTA " + _aNfGerada[_nX] + " SERIE " + _cSerie + " NAO LOCALIZADA PARA O PEDIDO " + _cNumPedD + " .")
+                    aAdd(_aMsgErro,{"1",RTrim(_cNumPedD), "Processo nao concluido. Nota nao processada"})            
+                    _lRet	:= .F.
+                Else
+                    _lRet   := .T.
+                    RecLock("SF2",.F.)
+                        SF2->F2_XCHVNFE := _cChaveNFe
+                        SF2->F2_XIDLOGI := _cIDCliente
+                    SF2->( MsUnLock() )
+                EndIf
+            EndIf
+        Next _nX
+    Else
+        aAdd(_aMsgErro,{"1",RTrim(_cNumPedD), "Processo nao concluido. Pedido com bloqueio de saldo."})            
+        CoNout("<< DANALOG >> REMESSA - PEDIDO " + _cNumPedD + " COM BLOQUEIO DE SALDO.")
+        _lRet	:= .F.
+    EndIf
+
+    If _lRet
+        aAdd(_aMsgErro,{"0",RTrim(_cNumPedD), "Nota processada com sucesso. "})
+    EndIf
+EndIf
 
 RestArea(_aArea)
+Return _lRet 
+
+/*************************************************************************************/
+/*/{Protheus.doc} InventG
+    @description Realiza a consulta do saldo atual dos produtos DanaLog
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 23/12/2020
+/*/
+/*************************************************************************************/
+Static Function InventG(_cCodigo,_cIdCliente,_cPage,_cPerPage,_cRest)
+Local _cAlias       := ""
+Local _cProduto     := ""
+Local _cDescri      := ""
+Local _cArmazem     := ""
+Local _cLote        := ""
+
+Local _dDtEmiss     := ""
+Local _dDtVldLote   := ""
+
+Local _nSaldoB2     := 0
+Local _nSaldoB8     := 0
+
+Local _lRet         := .T.
+Local _lLote        := .F.
+
+Local _oJSon        := Nil 
+Local _oIventario   := Nil 
+Local _oLotes       := Nil 
+
+Private _nTotQry    := 0
+Private _nTotPag    := 0
+
+//------------------+
+// Consulta produto |
+//------------------+
+If !InvGetQry(@_cAlias,_cCodigo,_cIdCliente,_cPage,_cPerPage)
+    aAdd(_aMsgErro,{"1",RTrim(_cCodigo) , "Não foram encontrado dados para essa consulta."})
+    Return .F.
+EndIf 
+
+//-------------------------+
+// SB2 - Saldos em estoque | 
+//-------------------------+
+dbSelectArea("SB2")
+SB2->( dbSetOrder(1) )
+
+//-------------------+
+// SB8 - Saldos lote | 
+//-------------------+
+dbSelectArea("SB8")
+SB8->( dbSetOrder(1) )
+
+_oJSon              := Array(#)
+_oJSon[#"produtos"] := {}
+
+While (_cAlias)->( !Eof() )
+
+    aAdd(_oJSon[#"produtos"],Array(#))
+    _oIventario := aTail(_oJSon[#"produtos"])
+    
+    _cProduto       := (_cAlias)->PRODUTO
+    _cDescri        := (_cAlias)->DESCRICAO
+    _cArmazem       := (_cAlias)->ARMAZEM
+    _dDtEmiss       := dToc(Date())
+    _lLote          := IIF((_cAlias)->RASTRO == "N", .F., .T.)
+
+    //-----------------------+
+    // Posiciona saldo atual |
+    //-----------------------+
+    SB2->( dbSeeK(xFilial("SB2") + _cProduto + _cArmazem) )
+
+    _nSaldoB2       := SaldoSb2()
+
+    _oIventario[#"produto"]              := _cProduto
+    _oIventario[#"descricao"]            := _cDescri
+    _oIventario[#"armazem"]              := _cArmazem
+    _oIventario[#"dt_consulta"]          := _dDtEmiss
+    _oIventario[#"saldo"]                := _nSaldoB2
+
+    //----------------------------+
+    // Valida se produto usa lote | 
+    //----------------------------+
+    If _lLote     
+        _oIventario[#"lotes"]            := {}
+
+        //-------------------------+
+        // Posiciona saldo em lote |
+        //-------------------------+
+        If SB8->( dbSeek(xFilial("SB8") + _cProduto + _cArmazem ) )
+
+            While SB8->( !Eof() .And. xFilial("SB8") + _cProduto + _cArmazem  == SB8->B8_FILIAL + SB8->B8_PRODUTO + SB8->B8_LOCAL )
+
+                _cLote      := SB8->B8_LOTECTL
+                _dDtVldLote := dToc(SB8->B8_DTVALID)
+                _nSaldoB8   := SB8Saldo(Nil,Nil,Nil,Nil,Nil,.F.)
+
+                //---------------+
+                // Lotes Produto |
+                //---------------+
+                aAdd(_oIventario[#"lotes"],Array(#))
+                _oLotes := aTail(_oIventario[#"lotes"])
+                _oLotes[#"lote"]        := _cLote
+                _oLotes[#"dt_vld_lote"] := _dDtVldLote
+                _oLotes[#"saldo"]       := _nSaldoB8
+                
+                SB8->( dbSkip() )
+            EndDo
+        EndIf
+    EndIf
+
+    (_cAlias)->( dbSkip() )
+EndDo
+
+//-----------+
+// Paginação |
+//-----------+
+_oJSon[#"pagina"]								:= Array(#)
+_oJSon[#"pagina"][#"total_itens_pagina"]		:= Val(_cPerPage)
+_oJSon[#"pagina"][#"total_inventario"]	        := _nTotQry
+_oJSon[#"pagina"][#"total_paginas"]				:= _nTotPag
+_oJSon[#"pagina"][#"pagina_atual"]				:= Val(_cPage)
+
+//--------------+
+// Cria retorno | 
+//--------------+
+_cRest  := EncodeUTF8(xToJson(_oJSon))
+
+//---------------------+
+// Encerra temposrário |
+//---------------------+
+(_cAlias)->( dbCloseArea() )
 Return _lRet 
 
 /*************************************************************************************/
@@ -4129,14 +4488,11 @@ Static Function NfeGetQryT(_cNota,_cSerie,_cIdCliente,_cPage,_cPerPage)
 Local _cQuery   := ""
 Local _cAlias   := ""
 
-_cQuery := " SELECT 
-_cQuery += "    COUNT(F1.F1_DOC) TOTREG
-_cQuery += " FROM 
-_cQuery += "    " + RetSqlName("SF1") + " F1 
-_cQuery += "    LEFT JOIN " + RetSqlName("SA2") + " A2 ON A2.A2_FILIAL = '" + xFilial("SA2") + "' AND A2.A2_COD = F1.F1_FORNECE AND A2.A2_LOJA = F1.F1_LOJA AND A2.A2_XIDLOGI = F1.F1_XIDLOGI AND A2.D_E_L_E_T_ = ''
-_cQuery += "    LEFT JOIN " + RetSqlName("SA1") + " A1 ON A1.A1_FILIAL = '" + xFilial("SA1") + "' AND A1.A1_COD = F1.F1_FORNECE AND A1.A1_LOJA = F1.F1_LOJA AND A1.A1_XIDLOGI = F1.F1_XIDLOGI AND A1.D_E_L_E_T_ = ''
-_cQuery += "    LEFT JOIN " + RetSqlName("SA4") + " A4 ON A4.A4_FILIAL = '" + xFilial("SA4") + "' AND A4.A4_COD = F1.F1_TRANSP AND A4.A4_XIDLOGI = F1.F1_XIDLOGI AND A1.D_E_L_E_T_ = ''
-_cQuery += " WHERE 
+_cQuery := " SELECT " + CRLF
+_cQuery += "    COUNT(F1.F1_DOC) TOTREG " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += "    " + RetSqlName("SF1") + " F1 " + CRLF
+_cQuery += " WHERE " + CRLF
 _cQuery += "		F1.F1_FILIAL = '" + xFilial("SF1") + "' AND " + CRLF
 _cQuery += "		F1.F1_XIDLOGI = '" + _cIdCliente + "' AND " + CRLF 
 
@@ -4148,6 +4504,225 @@ If !Empty(_cSerie)
 EndIf
 
 _cQuery += "		F1.D_E_L_E_T_ = '' " + CRLF
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+If (_cAlias)->( Eof() )
+    (_cAlias)->( dbCloseArea() )
+    Return .F.
+EndIf
+
+_nTotQry := (_cAlias)->TOTREG
+
+If _nTotQry <= Val(_cPerPage)
+	_nTotPag := 1 
+Else
+	If Mod(_nTotQry,Val(_cPerPage)) <> 0
+		_nTotPag := Int(_nTotQry/Val(_cPerPage)) + 1
+	Else
+		_nTotPag := Int(_nTotQry/Val(_cPerPage))	
+	EndIf
+EndIf
+
+(_cAlias)->( dbCloseArea() )
+
+Return .T.
+
+/*************************************************************************************/
+/*/{Protheus.doc} PedGetQry
+    @description Consulta pedidos de separação DanaLog
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/*************************************************************************************/
+Static Function PedGetQry(_cAlias,_cPedido,_cIdCliente,_cPage,_cPerPage)
+Local _cQuery := ""
+
+If !PedGetQryT(_cPedido,_cIdCliente,_cPage,_cPerPage)
+    Return .F.
+EndIf
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	TOP(" + _cPerPage + ") RNUM, " + CRLF
+_cQuery += "	NUM_PV_DLOG, " + CRLF
+_cQuery += "	NUM_PV_CLI, " + CRLF
+_cQuery += "	SITUACAO, " + CRLF
+_cQuery += "	TIPO, " + CRLF
+_cQuery += "	DT_EMISSAO, " + CRLF
+_cQuery += "	DT_SEPARACAO, " + CRLF
+_cQuery += "	CODIGO, " + CRLF
+_cQuery += "	LOJA, " + CRLF
+_cQuery += "	CNPJ_CPF, " + CRLF
+_cQuery += "	NOME_CLIFOR, " + CRLF
+_cQuery += "	CNPJ_TRANSP, " + CRLF
+_cQuery += "	NOME_TRANSP " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += " ( " + CRLF
+_cQuery += "	SELECT " + CRLF
+_cQuery += "		ROW_NUMBER() OVER(ORDER BY C5.C5_NUM) RNUM, " + CRLF
+_cQuery += "		C5.C5_NUM NUM_PV_DLOG, " + CRLF
+_cQuery += "		C5.C5_XNUMDL NUM_PV_CLI, " + CRLF
+_cQuery += "		C5.C5_XENVWMS SITUACAO, " + CRLF
+_cQuery += "		C5.C5_TIPO TIPO, " + CRLF
+_cQuery += "		C5.C5_EMISSAO DT_EMISSAO, " + CRLF
+_cQuery += "		C5.C5_XDTALT DT_SEPARACAO, " + CRLF
+_cQuery += "		CASE WHEN C5.C5_TIPO = 'N' THEN A2.A2_COD ELSE A1.A1_COD END CODIGO, " + CRLF
+_cQuery += "		CASE WHEN C5.C5_TIPO = 'N' THEN A2.A2_LOJA ELSE A1.A1_LOJA END LOJA, " + CRLF
+_cQuery += "		CASE WHEN C5.C5_TIPO = 'N' THEN A2.A2_CGC ELSE A1.A1_CGC END CNPJ_CPF, " + CRLF
+_cQuery += "		CASE WHEN C5.C5_TIPO = 'N' THEN A2.A2_NOME ELSE A1.A1_NOME END NOME_CLIFOR, " + CRLF
+_cQuery += "		A4.A4_CGC CNPJ_TRANSP, " + CRLF
+_cQuery += "		A4.A4_NOME NOME_TRANSP " + CRLF			 
+_cQuery += " FROM " + CRLF
+_cQuery += "		" + RetSqlName("SC5") + " C5 " + CRLF
+_cQuery += "		LEFT JOIN " + RetSqlName("SA2") + " A2 ON A2.A2_FILIAL = '" + xFilial("SA2") + "' AND A2.A2_COD = C5.C5_CLIENTE AND A2.A2_LOJA = C5.C5_LOJACLI AND A2.A2_XIDLOGI = C5.C5_XIDLOGI AND A2.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "		LEFT JOIN " + RetSqlName("SA1") + " A1 ON A1.A1_FILIAL = '" + xFilial("SA1") + "' AND A1.A1_COD = C5.C5_CLIENTE AND A1.A1_LOJA = C5.C5_LOJACLI AND A1.A1_XIDLOGI = C5.C5_XIDLOGI AND A1.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "		LEFT JOIN " + RetSqlName("SA4") + " A4 ON A4.A4_FILIAL = '" + xFilial("SA4") + "' AND A4.A4_COD = C5.C5_TRANSP AND A4.A4_XIDLOGI = C5.C5_XIDLOGI AND A1.D_E_L_E_T_ = '' " + CRLF
+_cQuery += " WHERE " + CRLF
+_cQuery += "		C5.C5_FILIAL = '" + xFilial("SC5") + "' AND " + CRLF
+_cQuery += "		C5.C5_XIDLOGI = '" + _cIdCliente + "' AND " + CRLF 
+
+If !Empty(_cPedido) 
+    _cQuery += "		C5.C5_XNUMDL = '" + _cPedido  + "' AND " + CRLF
+EndIf
+
+_cQuery += "		C5.D_E_L_E_T_ = '' " + CRLF
+_cQuery += " ) PEDIDO " + CRLF
+_cQuery += " ORDER BY NUM_PV_CLI "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+If (_cAlias)->( Eof() )
+    (_cAlias)->( dbCloseArea() )
+    Return .F.
+EndIf
+Return .T.
+
+/*************************************************************************************/
+/*/{Protheus.doc} PedGetQryT
+    @description Grava informações de complemento de produto 
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/*************************************************************************************/
+Static Function PedGetQryT(_cPedido,_cIdCliente,_cPage,_cPerPage)
+Local _cQuery   := ""
+Local _cAlias   := ""
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "    COUNT(C5.C5_NUM) TOTREG " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += "    " + RetSqlName("SC5") + " C5 " + CRLF
+_cQuery += " WHERE " + CRLF
+_cQuery += "		C5.C5_FILIAL = '" + xFilial("SC5") + "' AND " + CRLF
+_cQuery += "		C5.C5_XIDLOGI = '" + _cIdCliente + "' AND " + CRLF 
+
+If !Empty(_cPedido) 
+    _cQuery += "		C5.C5_XNUMDL = '" + _cPedido  + "' AND " + CRLF
+EndIf
+_cQuery += "		C5.D_E_L_E_T_ = '' " + CRLF
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+If (_cAlias)->( Eof() )
+    (_cAlias)->( dbCloseArea() )
+    Return .F.
+EndIf
+
+_nTotQry := (_cAlias)->TOTREG
+
+If _nTotQry <= Val(_cPerPage)
+	_nTotPag := 1 
+Else
+	If Mod(_nTotQry,Val(_cPerPage)) <> 0
+		_nTotPag := Int(_nTotQry/Val(_cPerPage)) + 1
+	Else
+		_nTotPag := Int(_nTotQry/Val(_cPerPage))	
+	EndIf
+EndIf
+
+(_cAlias)->( dbCloseArea() )
+
+Return .T.
+
+/*************************************************************************************/
+/*/{Protheus.doc} InvGetQry
+    @description Consulta saldo do produto DanaLog
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/*************************************************************************************/
+Static Function InvGetQry(_cAlias,_cCodigo,_cIdCliente,_cPage,_cPerPage)
+Local _cQuery := ""
+
+If !InvGetQryT(_cCodigo,_cIdCliente,_cPage,_cPerPage)
+    Return .F.
+EndIf
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	TOP(" + _cPerPage + ") RNUM, " + CRLF
+_cQuery += "	PRODUTO, " + CRLF
+_cQuery += "	DESCRICAO, " + CRLF
+_cQuery += "	ARMAZEM, " + CRLF
+_cQuery += "	RASTRO " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += " ( " + CRLF
+_cQuery += "	SELECT " + CRLF
+_cQuery += "		ROW_NUMBER() OVER(ORDER BY B2.B2_COD) RNUM, " + CRLF
+_cQuery += "		B2.B2_COD PRODUTO, " + CRLF
+_cQuery += "		B1.B1_DESC DESCRICAO, " + CRLF
+_cQuery += "		B2.B2_LOCAL ARMAZEM, " + CRLF
+_cQuery += "		B1.B1_RASTRO RASTRO " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += "		" + RetSqlName("SB2") + " B2 " + CRLF
+_cQuery += "		LEFT JOIN " + RetSqlName("SB1") + " B1 ON B1.B1_FILIAL = '" + xFilial("SB1") + "' AND B1.B1_COD = B2.B2_COD AND B1.B1_XIDLOGI = B2.B2_XIDLOGI AND B1.D_E_L_E_T_ = '' " + CRLF
+_cQuery += " WHERE " + CRLF
+_cQuery += "		B2.B2_FILIAL = '" + xFilial("SB2") + "' AND " + CRLF
+_cQuery += "		B2.B2_XIDLOGI = '" + _cIdCliente + "' AND " + CRLF 
+
+If !Empty(_cCodigo) 
+    _cQuery += "		B2.B2_COD = '" + _cCodigo  + "' AND " + CRLF
+EndIf
+
+_cQuery += "		B2.D_E_L_E_T_ = '' " + CRLF
+_cQuery += " ) INVENTARIO " + CRLF
+_cQuery += " ORDER BY PRODUTO "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+If (_cAlias)->( Eof() )
+    (_cAlias)->( dbCloseArea() )
+    Return .F.
+EndIf
+Return .T.
+
+/*************************************************************************************/
+/*/{Protheus.doc} InvGetQryT
+    @description Calcula total de produtos encontrados
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/*************************************************************************************/
+Static Function InvGetQryT(_cCodigo,_cIdCliente,_cPage,_cPerPage)
+Local _cQuery   := ""
+Local _cAlias   := ""
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "    COUNT(B2.B2_COD) TOTREG " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += "		" + RetSqlName("SB2") + " B2 " + CRLF
+_cQuery += " WHERE " + CRLF
+_cQuery += "		B2.B2_FILIAL = '" + xFilial("SB2") + "' AND " + CRLF
+_cQuery += "		B2.B2_XIDLOGI = '" + _cIdCliente + "' AND " + CRLF 
+
+If !Empty(_cCodigo) 
+    _cQuery += "		B2.B2_COD = '" + _cCodigo  + "' AND " + CRLF
+EndIf
+
+_cQuery += "		B2.D_E_L_E_T_ = '' "
 
 _cAlias := MPSysOpenQuery(_cQuery)
 

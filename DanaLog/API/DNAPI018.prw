@@ -21,7 +21,6 @@ WSRESTFUL PEDIDO DESCRIPTION " Servico DanaLog - Realiza pedido de separação."
     
     WSDATA IDCLIENTE 	AS STRING
 	WSDATA PEDIDO	    AS STRING
-	WSDATA DATAHORA		AS STRING
 	WSDATA PERPAGE 		AS STRING	
 	WSDATA PAGE			AS STRING
 
@@ -103,13 +102,15 @@ Return .T.
     @type function
 /*/
 /************************************************************************************/
-WSMETHOD GET WSRECEIVE IDCLIENTE,PEDIDO,DATAHORA,PERPAGE,PAGE WSSERVICE PEDIDO
+WSMETHOD GET WSRECEIVE IDCLIENTE,PEDIDO,PERPAGE,PAGE WSSERVICE PEDIDO
 Local _aArea    := GetArea()
 
 Local _cBody        := ""
 Local _cAuth        := ""
 Local _cIdCiente    := IIF(Empty(::IDCLIENTE),"",::IDCLIENTE)
 Local _cPedido      := IIF(Empty(::PEDIDO),"",::PEDIDO)
+Local _cPage        := IIF(Empty(::PAGE),"1",::PAGE)
+Local _cParPage     := IIF(Empty(::PERPAGE),"10",::PERPAGE)
 
 Local _oDLog        := Nil 
 
@@ -139,11 +140,12 @@ _cAuth	:= Self:GetHeader('Authorization')
 // Classe Danalog | 
 //----------------+
 _oDLog  := DanaLog():New()
-_oDLog:cAuth    := _cAuth
-_oDLog:cJSon    := _cBody
-_oDLog:cCliCod  := _cIdCiente
-_oDLog:cPedido  := _cPedido
-_oDLog:cMetodo  := "GET"
+_oDLog:cAuth        := _cAuth
+_oDLog:cIdCliente   := _cIdCiente
+_oDLog:cPedido      := _cPedido
+_oDLog:cPage        := _cPage
+_oDLog:cPerPage     := _cParPage
+_oDLog:cMetodo      := "GET"
 
 If _oDLog:Pedido()
     LogExec("PEDIDO RETORNADO COM SUCESSO")
