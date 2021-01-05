@@ -263,7 +263,7 @@ RestArea(_aArea)
 Return _lRet
 
 /***************************************************************************/
-/*/{Protheus.doc} nomeStaticFunction
+/*/{Protheus.doc} SigM04Qry
 	@description Consulta PLP a serem enviadas
 	@type  Static Function
 	@author Bernard M. Margarido

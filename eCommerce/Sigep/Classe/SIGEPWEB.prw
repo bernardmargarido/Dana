@@ -804,7 +804,7 @@ Return .T.
 
 /****************************************************************************************/
 /*/{Protheus.doc} GetIdPLP
-@description Retorna ID deidentificação da PLP 
+@description Retorna ID de identificação da PLP 
 @author Bernard M. Margarido
 @since 10/12/2019
 @version 1.0
