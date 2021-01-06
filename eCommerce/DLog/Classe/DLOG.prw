@@ -18,12 +18,15 @@ Class DLog
     Data cPassword As String 
     Data cToken    As String 
     Data cUrl      As String 
-    Data cRest     As String 
-    Data cResponse As String 
+    Data cJSon     As String 
+    Data cJSonRet  As String 
+    Data cCodigo   As String
 
     Data aNotas    As Array 
+    Data aHeadOut  As Array
 
     Data oJSon     As Object 
+    Data oFwRest   As Object
 
     Method New() Constructor
     Method GravaLista()
@@ -46,12 +49,15 @@ Method New() Class DLog
     ::cPassword := GetNewPar("DN_DLOGPAS")
     ::cToken    := GetNewPar("DN_DLOGTOK")
     ::cUrl      := GetNewPar("DN_DLOGURL")
-    ::cRest     := ""
-    ::cResponse := ""
+    ::cJSon     := ""
+    ::cJSonRet  := ""
+    ::cCodigo   := ""
 
     ::aNotas    := {}
+    ::aHeadOut  := {}
 
     ::oJSon     := Nil 
+    ::oFwRest   := Nil 
 
 Return Nil 
 
@@ -66,6 +72,8 @@ Method GravaLista() Class DLog
 Local _aArea    := GetArea() 
 
 Local _cNumID   := ""
+
+Local _nX       := 0
 
 Local _lRet     := .T.
 
@@ -130,6 +138,56 @@ Return _lRet
 /*/
 /****************************************************************************************/
 Method GeraLista() Class DLog
+Local _lRet     := .T.
+
+::aHeadOut  := {}
+aAdd(::aHeadOut,"Content-Type: application/json")
+aAdd(::aHeadOut,"Clie-Cod " + RTrim(::cUser))
+aAdd(::aHeadOut,"Login " + RTrim(::cPassword))
+aAdd(::aHeadOut,"Token " + RTrim(::cToken))
+
+//-------------------------+
+// Instancia classe FwRest |
+//-------------------------+
+::oFwRest   := FWRest():New(::cUrl)
+
+//---------------------+
+// TimeOut do processo |
+//---------------------+
+::oFwRest:nTimeOut := 600
+
+::oFwRest:SetPath("/GerarListaPostagem")
+::oFwRest:SetPostParams(EncodeUtf8(::cJSon))
+
+//-----------------+
+// Envia categoria |
+//-----------------+
+If ::oFwRest:Post(::aHeadOut)
+    ::cJSonRet	:= DecodeUtf8(::oFwRest:GetResult())
+    ::oJSon	    := xFromJson(::cJSonRet)
+    _lRet       := .T.
+
+Else
+    //---------------------------+
+    // Erro no envio da gravação |
+    //---------------------------+
+    If ValType(::oFwRest:GetResult()) <> "U"
+        ::cJSonRet	:= DecodeUtf8(::oFwRest:GetResult())
+        ::oJSon	:= xFromJson(::cJSonRet)
+
+        If ValType(::oJSon) <> "U"
+            _lRet       := .F.
+            ::cError    := ::oJSon[#"message"]
+        Else
+            _lRet       := .F.
+            ::cError    := "Erro ao enviar postagem DLog."
+        EndIf
+    Else
+        _lRet       := .F.
+        ::cError    := "Erro ao enviar postagem DLog."
+    EndIf
+EndIf
+
 Return _lRet 
 
 /****************************************************************************************/

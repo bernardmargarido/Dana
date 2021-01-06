@@ -50,7 +50,6 @@ Local _aArea        := GetArea()
 Local _cAlias       := GetNextAlias()
 
 Local _nToReg       := 0
-Local _nX           := 0
 
 Local _lRet         := .T.
 
@@ -157,7 +156,7 @@ _cQuery += "	WSA.WSA_SERPOS, " + CRLF
 _cQuery += "	WSA.R_E_C_N_O_ RECNOWSA " + CRLF
 _cQuery += " FROM " + CRLF
 _cQuery += "	" + RetSqlName("WSA") + " WSA  " + CRLF
-_cQuery += "    INNER JOIN " + RetSqlName("SF2") + " F2 ON F2.F2_FILIAL = WSA.WSA_FILIAL AND F2.F2_DOC = WSA.WSA_NOTA AND F2.F2_SERIE = WSA.WSA_SERIE AND F2.F2_CLIENTE = WSA.WSA_CLIENT AND F2.F2_LOJA = WSA.WSA_LOJA AND F2.F2_CHVNFE <> '' AND F2.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "    INNER JOIN " + RetSqlName("SF2") + " F2 ON F2.F2_FILIAL = WSA.WSA_FILIAL AND F2.F2_DOC = WSA.WSA_DOC AND F2.F2_SERIE = WSA.WSA_SERIE AND F2.F2_CLIENTE = WSA.WSA_CLIENT AND F2.F2_LOJA = WSA.WSA_LOJA AND F2.F2_CHVNFE <> '' AND F2.D_E_L_E_T_ = '' " + CRLF
 _cQuery += " WHERE " + CRLF
 _cQuery += "	WSA.WSA_FILIAL = '" + xFilial("WSA") + "' AND " + CRLF
 _cQuery += "	WSA.WSA_DOC <> '' AND " + CRLF 
