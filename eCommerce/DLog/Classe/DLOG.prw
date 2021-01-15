@@ -5,6 +5,9 @@
 
 #DEFINE CRLF            CHR(13) + CHR(10)
 
+Static _nTSerie     := TamSx3("F2_SERIE")[1]
+Static _nTDoc       := TamSx3("F2_DOC")[1]
+
 /****************************************************************************************/
 /*/{Protheus.doc} DLog
     @description Classe utilizada para integração DLog
@@ -14,21 +17,34 @@
 /****************************************************************************************/
 Class DLog 
 
-    Data cUser     As String 
-    Data cPassword As String 
-    Data cToken    As String 
-    Data cUrl      As String 
-    Data cJSon     As String 
-    Data cJSonRet  As String 
-    Data cCodigo   As String
+    Data cUser          As String 
+    Data cPassDlog      As String 
+    Data cToken         As String 
+    Data cUrl           As String 
+    Data cJSon          As String 
+    Data cJSonRet       As String 
+    Data cCodigo        As String
+    Data cPassword	    As String
+	Data cCertPath	    As String
+	Data cKeyPath		As String
+	Data cCACertPath	As String
 
-    Data aNotas    As Array 
-    Data aHeadOut  As Array
+    Data nSSL2		    As Integer
+	Data nSSL3		    As Integer
+	Data nTLS1		    As Integer
+	Data nHSM		    As Integer
+	Data nVerbose	    As Integer
+	Data nBugs		    As Integer
+	Data nState	        As Integer
 
-    Data oJSon     As Object 
-    Data oFwRest   As Object
+    Data aNotas         As Array 
+    Data aHeadOut       As Array
+
+    Data oJSon          As Object 
+    Data oFwRest        As Object
 
     Method New() Constructor
+    Method GetSSLCache()
     Method GravaLista()
     Method GeraLista() 
     Method StatusLista()
@@ -45,21 +61,54 @@ End Class
 /****************************************************************************************/
 Method New() Class DLog
 
-    ::cUser     := GetNewPar("DN_DLOGUSE")
-    ::cPassword := GetNewPar("DN_DLOGPAS")
-    ::cToken    := GetNewPar("DN_DLOGTOK")
-    ::cUrl      := GetNewPar("DN_DLOGURL")
-    ::cJSon     := ""
-    ::cJSonRet  := ""
-    ::cCodigo   := ""
+    ::cUser         := GetNewPar("DN_DLOGUSE")
+    ::cPassDlog     := GetNewPar("DN_DLOGPAS")
+    ::cToken        := GetNewPar("DN_DLOGTOK")
+    ::cUrl          := GetNewPar("DN_DLOGURL")
+    ::cJSon         := ""
+    ::cJSonRet      := ""
+    ::cCodigo       := ""
+    ::cPassword	    := ""
+	::cCertPath	    := "" 
+	::cKeyPath		:= "" 
+	::cCACertPath	:= ""
 
-    ::aNotas    := {}
-    ::aHeadOut  := {}
+    ::nSSL2		    := 1
+	::nSSL3		    := 1
+	::nTLS1		    := 1
+	::nHSM		    := 1
+	::nVerbose	    := 1
+	::nBugs		    := 1
+	::nState	    := 1
 
-    ::oJSon     := Nil 
-    ::oFwRest   := Nil 
+    ::aNotas        := {}
+    ::aHeadOut      := {}
+
+    ::oJSon         := Nil 
+    ::oFwRest       := Nil 
 
 Return Nil 
+
+/****************************************************************************************/
+/*/{Protheus.doc} GetSSLCache
+@description Define o uso em memoria da configuração SSL para integrações SIGEP
+@author Bernard M. Margarido
+@since 06/12/2019
+@version 1.0
+@type function
+/*/
+/****************************************************************************************/
+Method GetSSLCache() Class Dlog
+Local _lRet 	:= .F.
+
+//-------------------------------------+
+// Utiliza configurações SSL via Cache |
+//-------------------------------------+
+If HTTPSSLClient( ::nSSL2, ::nSSL3, ::nTLS1, ::cPassword, ::cCertPath, ::cKeyPath, ::nHSM, .F. , ::nVerbose, ::nBugs, ::nState)
+	_lRet := .T.
+EndIf
+
+Return _lRet 
 
 /****************************************************************************************/
 /*/{Protheus.doc} GravaLista
@@ -138,13 +187,42 @@ Return _lRet
 /*/
 /****************************************************************************************/
 Method GeraLista() Class DLog
-Local _lRet     := .T.
+Local _lRet         := .T.
+Local _lStatus      := .T.
+
+Local _cMemoRest    := ""
+Local _cChaveNfe    := ""
+Local _cCodSta      := ""
+Local _cDescSta     := ""
+Local _cRastreio    := ""
+
+Local _nX           := 0
+
+Local _oNotas       := Nil 
+
+//---------------+
+// Posiciona ZZB |
+//---------------+
+dbSelectArea("ZZB")
+ZZB->( dbSetOrder(1) )
+ZZB->( dbSeek(xFilial("ZZB") + ::cCodigo ) )
+
+//---------------+
+// Posiciona ZZC |
+//---------------+
+dbSelectArea("ZZC")
+ZZC->( dbSetOrder(2) )
+
+//-----------------+
+// Roda URL em SSL | 
+//-----------------+
+::GetSSLCache()
 
 ::aHeadOut  := {}
 aAdd(::aHeadOut,"Content-Type: application/json")
-aAdd(::aHeadOut,"Clie-Cod " + RTrim(::cUser))
-aAdd(::aHeadOut,"Login " + RTrim(::cPassword))
-aAdd(::aHeadOut,"Token " + RTrim(::cToken))
+aAdd(::aHeadOut,"Clie-Cod: " + RTrim(::cUser))
+aAdd(::aHeadOut,"Login: " + RTrim(::cPassDlog))
+aAdd(::aHeadOut,"Token: " + RTrim(::cToken))
 
 //-------------------------+
 // Instancia classe FwRest |
@@ -156,7 +234,7 @@ aAdd(::aHeadOut,"Token " + RTrim(::cToken))
 //---------------------+
 ::oFwRest:nTimeOut := 600
 
-::oFwRest:SetPath("/GerarListaPostagem")
+::oFwRest:SetPath("/GerarListaPostagem/")
 ::oFwRest:SetPostParams(EncodeUtf8(::cJSon))
 
 //-----------------+
@@ -165,15 +243,58 @@ aAdd(::aHeadOut,"Token " + RTrim(::cToken))
 If ::oFwRest:Post(::aHeadOut)
     ::cJSonRet	:= DecodeUtf8(::oFwRest:GetResult())
     ::oJSon	    := xFromJson(::cJSonRet)
-    _lRet       := .T.
 
+    If ValType(::oJSon) <> "U" 
+        //-----------------------+
+        // Grava JSON de retorno | 
+        //-----------------------+
+        _oNotas    := ::oJSon[#"response"][#"insertNf"]
+        For _nX := 1 To Len(_oNotas)
+
+            _cChaveNfe  := _oNotas[_nX][#"nfChave"]
+            _cCodSta    := _oNotas[_nX][#"codSubStatus"]
+            _cDescSta   := _oNotas[_nX][#"descrSubStatus"]
+            _cRastreio  := IIF(ValType(_oNotas[_nX][#"linkRastreamento"]) <> "U", _oNotas[_nX][#"linkRastreamento"], "")
+
+            _oResp                      := Nil 
+            _oResp                      := Array(#)
+            _oResp[#"nfChave"]          := _cChaveNfe
+            _oResp[#"codSubStatus"]     := _cCodSta
+            _oResp[#"descrSubStatus"]   := _cDescSta
+            _oResp[#"linkRastreamento"] := _cRastreio
+            _cMemoRest  := EncodeUTF8(xToJson(_oResp))
+            If _cCodSta <> 1
+                _lStatus := .F.
+            EndIf
+            //-----------------------------------------+
+            // Grava informações nos itens da postagem | 
+            //-----------------------------------------+
+            If ZZC->( dbSeek(xFilial("ZZC") + ::cCodigo + Padr(SubStr(_cChaveNfe,29,6),_nTDoc) + PadR(SubStr(_cChaveNfe,24,2),_nTSerie)))
+                RecLock("ZZC",.F.)
+                    ZZC->ZZC_JSON   := _cMemoRest
+                    ZZC->ZZC_STATUS := IIF(_cCodSta == 1 ,"2","3")
+                ZZC->( MsUnLock() )
+            EndIf
+        Next _nX 
+        
+        //-----------------------+
+        // Atualiza JSON enviado |
+        //-----------------------+
+        RecLock("ZZB",.F.)
+            ZZB->ZZB_JSON   := ::cJSon
+            ZZB->ZZB_STATUS := IIF(_lStatus,"2","3")
+        ZZB->( MsUnLock() )
+
+    EndIf
+    
+    _lRet       := .T.
 Else
     //---------------------------+
     // Erro no envio da gravação |
     //---------------------------+
     If ValType(::oFwRest:GetResult()) <> "U"
         ::cJSonRet	:= DecodeUtf8(::oFwRest:GetResult())
-        ::oJSon	:= xFromJson(::cJSonRet)
+        ::oJSon	    := xFromJson(::cJSonRet)
 
         If ValType(::oJSon) <> "U"
             _lRet       := .F.
@@ -198,6 +319,60 @@ Return _lRet
 /*/
 /****************************************************************************************/
 Method StatusLista() Class DLog
+Local _lRet         := .T.
+
+//-----------------+
+// Roda URL em SSL | 
+//-----------------+
+::GetSSLCache()
+
+::aHeadOut  := {}
+aAdd(::aHeadOut,"Content-Type: application/json")
+aAdd(::aHeadOut,"Clie-Cod: " + RTrim(::cUser))
+aAdd(::aHeadOut,"Login: " + RTrim(::cPassDlog))
+aAdd(::aHeadOut,"Token: " + RTrim(::cToken))
+
+//-------------------------+
+// Instancia classe FwRest |
+//-------------------------+
+::oFwRest   := FWRest():New(::cUrl)
+
+//---------------------+
+// TimeOut do processo |
+//---------------------+
+::oFwRest:nTimeOut := 600
+
+::oFwRest:SetPath("/RecuperarStatus/")
+::oFwRest:SetPostParams(EncodeUtf8(::cJSon))
+
+//-----------------+
+// Envia categoria |
+//-----------------+
+If ::oFwRest:Post(::aHeadOut)
+    ::cJSonRet	:= DecodeUtf8(::oFwRest:GetResult())
+    ::oJSon	    := xFromJson(::cJSonRet)
+    _lRet       := .T.
+Else
+    //---------------------------+
+    // Erro no envio da gravação |
+    //---------------------------+
+    If ValType(::oFwRest:GetResult()) <> "U"
+        ::cJSonRet	:= DecodeUtf8(::oFwRest:GetResult())
+        ::oJSon	    := xFromJson(::cJSonRet)
+
+        If ValType(::oJSon) <> "U"
+            _lRet       := .F.
+            ::cError    := "Erro ao enviar postagem DLog."
+        Else
+            _lRet       := .F.
+            ::cError    := "Erro ao enviar postagem DLog."
+        EndIf
+    Else
+        _lRet       := .F.
+        ::cError    := "Erro ao enviar postagem DLog."
+    EndIf
+EndIf
+
 Return _lRet 
 
 /****************************************************************************************/

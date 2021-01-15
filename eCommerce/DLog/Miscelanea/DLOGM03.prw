@@ -7,6 +7,8 @@
 
 #DEFINE CRLF CHR(13) + CHR(10)
 
+Static _nTCnpj := TamSx3("A1_CGC")[1]
+
 /***********************************************************************************/
 /*/{Protheus.doc} DLOGM03
     @description Envia lista de postagem DLog
@@ -51,8 +53,6 @@ Local _cCodPLP	:= ""
 
 Local _nToReg	:= 0
 Local _nRecnoZZB:= 0
-
-Local _aItPLP	:= {}
 
 Local _lRet		:= .T.
 
@@ -105,7 +105,7 @@ While (_cAlias)->( !Eof() )
 	_oJSon						:= Array(#)
 	_oJSon[#"listaPostagem"]	:= {}
 
-	While (_cAlias)->( !Eof() .And. _cCodPLP == (_cAlias)->ZZ2_CODIGO )
+	While (_cAlias)->( !Eof() .And. _cCodPLP == (_cAlias)->ZZB_CODIGO )
 		
 		aAdd(_oJSon[#"listaPostagem"],Array(#))
     	_oNotas := aTail(_oJSon[#"listaPostagem"])	
@@ -120,7 +120,7 @@ While (_cAlias)->( !Eof() )
 		_oNotas[#"notaFiscal"][#"nfPedidoVenda"]						:= RTrim((_cAlias)->ZZC_NUMSC5)
 		_oNotas[#"notaFiscal"][#"enderecoEntrega"] 						:= Array(#)
         _oNotas[#"notaFiscal"][#"enderecoEntrega"][#"pessoaJuridica"] 	:= IIF( (_cAlias)->A1_PESSOA == "F", .F., .T.)
-        _oNotas[#"notaFiscal"][#"enderecoEntrega"][#"cpfCnpjDest"]		:= PadL(RTrim((_cAlias)->A1_CGC),_nTCNPJ,"0")
+        _oNotas[#"notaFiscal"][#"enderecoEntrega"][#"cpfCnpjDest"]		:= IIF( (_cAlias)->A1_PESSOA == "F", RTrim((_cAlias)->A1_CGC), PadL(RTrim((_cAlias)->A1_CGC),_nTCnpj,"0"))
         _oNotas[#"notaFiscal"][#"enderecoEntrega"][#"ieDest"]			:= RTrim((_cAlias)->A1_INSCR)
         _oNotas[#"notaFiscal"][#"enderecoEntrega"][#"nomeDest"]			:= RTrim((_cAlias)->WSA_NOMDES)
         _oNotas[#"notaFiscal"][#"enderecoEntrega"][#"logradouroDest"]	:= SubStr((_cAlias)->WSA_ENDENT, 1, At(",",(_cAlias)->WSA_ENDENT) - 1)

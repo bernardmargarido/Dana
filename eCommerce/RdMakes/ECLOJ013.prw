@@ -5,19 +5,14 @@
 
 /************************************************************************************/
 /*/{Protheus.doc} ECLOJ013
-
-@description Campos especificos eCommerce
-
-@author Bernard M. Margarido
-
-@since 29/04/2019
-@version undefined
-
-@type function
+    @description Campos especificos eCommerce
+    @author Bernard M. Margarido
+    @since 29/04/2019
+    @version undefined
+    @type function
 /*/
 /************************************************************************************/
 User Function ECLOJ013()
-
 Private oBrowse	:= Nil
 
 //---------------------------------+

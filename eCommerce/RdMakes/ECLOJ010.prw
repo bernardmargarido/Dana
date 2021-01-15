@@ -73,6 +73,7 @@ Local _oPItem       := Nil
 Local _oMsMGet 		:= Nil
 Local _oMsMGetEnd	:= Nil
 Local _oMsGetDIt   	:= Nil
+Local _oMsGetDSt	:= Nil
 
 Private _oFolder    := Nil
 
@@ -80,6 +81,8 @@ Private _aHeadIt    := {}
 Private _aColsIt    := {}
 Private _aCab		:= {}
 Private _aEnd		:= {}
+Private _aHeadSta	:= {}
+Private _aColsSta	:= {}
 Private aField 		:= {}
 
 Private aTela[0][0]
@@ -149,6 +152,12 @@ _oDlg := MsDialog():New(_oSize:aWindSize[1], _oSize:aWindSize[2],_oSize:aWindSiz
 	//--------------+	 
 	_oMsMGetEnd := MsMGet():New("WSA",WSA->( Recno() ),2,,,,,{000,000,000,000},,,,,,_oFolder:aDialogs[2],,,,,,.T.,aField)
 	_oMsMGetEnd:oBox:Align := CONTROL_ALIGN_ALLCLIENT
+
+	//-----------+
+	// Historico |
+	//-----------+
+	_oMsGetDSt 	:= MsNewGetDados():New(000,000,000,000,2,/*cLinOk*/,/*cTudoOk1*/,/*cIniCpos*/,/*aAlterGda*/,/*nFreeze*/,/*nMax*/,/*cFieldOk*/,/*cSuperDel*/,/*cDelOk*/,_oFolder:aDialogs[3],_aHeadSta,_aColsSta)
+	_oMsGetDSt:oBrowse:Align := CONTROL_ALIGN_ALLCLIENT
 
 	//-----------------+
     // Enchoice Botoes |
@@ -249,6 +258,57 @@ If Len(_aColsIt) <= 0
 	_aColsIt[1][Len(_aHeadIt)+1]:= .F.
 EndIf
 
+//------------------+
+// Status do Pedido | 
+//------------------+
+_aHeadSta	:= {}
+_aColsSta	:= {}
+
+aAdd(_aHeadSta,{" "				,"WS2LEGEND"	,"@BMP"					,10							,0,""   ,"" ,"C",""," ","" } )
+aAdd(_aHeadSta,{"Status"		,"WS2STATUS"	,"@!"					,TamSx3("WS2_CODSTA")[1]	,0,".F.","û","C",""," ","" } )
+aAdd(_aHeadSta,{"Descricao"		,"WS2DESCRI"	,"@!"					,TamSx3("WS1_DESCRI")[1]	,0,".F.","û","C",""," ","" } )
+aAdd(_aHeadSta,{"Data"			,"WS2DATA"		,"@D"					,TamSx3("WS2_DATA")[1]		,0,".F.","û","D",""," ","" } )
+aAdd(_aHeadSta,{"Hora "			,"WS2HORA"		,""						,TamSx3("WS2_HORA")[1]		,0,".F.","û","C",""," ","" } )
+//aAdd(_aHeadSta,{"Observacao"	,"WS2OBS"		,""						,TamSx3("WS2_OBS")[1]		,0,".F.","û","M",""," ","" } )
+
+dbSelectArea("WS1")
+WS1->( dbSetOrder(1) )
+
+dbSelectArea("WS2")
+WS2->( dbSetOrder(2) )
+If WS2->( dbSeek(xFilial("WS2") + WSC->WSC_NUM ) )
+	While WS2->( !Eof() .And. xFilial("WS2") + WSC->WSC_NUM == WS2->WS2_FILIAL + WS2->WS2_NUMSL1)
+
+		WS1->( dbSeek(xFilial("WS1") + WS2->WS2_CODSTA ) )
+
+		aAdd(_aColsSta, Array(Len(_aHeadSta) + 1))
+		_aColsSta[Len(_aColsSta)][1] := WS1->WS1_CORSTA
+		_aColsSta[Len(_aColsSta)][2] := WS2->WS2_CODSTA
+		_aColsSta[Len(_aColsSta)][3] := WS1->WS1_DESCRI
+		_aColsSta[Len(_aColsSta)][4] := WS2->WS2_DATA
+		_aColsSta[Len(_aColsSta)][5] := WS2->WS2_HORA
+		//_aColsSta[Len(_aColsSta)][6] := WS2->WS2_OBS
+
+		_aColsSta[Len(_aColsSta)][Len(_aHeadSta) + 1]:= .F.
+
+		WS2->( dbSkip() )
+	EndDo
+EndIf
+
+If Len(_aColsSta) == 0
+	aAdd(_aColsSta, Array(Len(_aHeadSta) + 1))
+
+	_aColsSta[Len(_aColsSta)][1] := CriaVar("WS1_CORSTA",.F.)
+	_aColsSta[Len(_aColsSta)][2] := CriaVar("WS2_CODSTA",.F.)
+	_aColsSta[Len(_aColsSta)][3] := CriaVar("WS1_DESCRI",.F.)
+	_aColsSta[Len(_aColsSta)][4] := CriaVar("WS2_DATA",.F.)
+	_aColsSta[Len(_aColsSta)][5] := CriaVar("WS2_HORA",.F.)
+	_aColsSta[Len(_aColsSta)][6] := CriaVar("WS2_OBS",.F.)
+	
+	_aColsSta[Len(_aColsSta)][Len(_aHeadSta) + 1]:= .F.
+
+EndIf
+
 RestArea(_aArea)
 Return Nil
 
@@ -343,6 +403,7 @@ aAdd(aRotIbx, {"Envia NF. IBEX"		,"U_ECLOJM06"	, 0, 4 } )	// Envia Notas Ibex Lo
 aAdd(aRotina, {"Pesquisa"   	, "AxPesqui"    , 0, 1 })  // Pesquisa
 aAdd(aRotina, {"Visualizar" 	, "U_ECLOJ10A"  , 0, 2 })  // Visualizar
 aAdd(aRotina, {"Faturamento"	, aRotFat		, 0, 4 })  // Faturamento
+aAdd(aRotina, {"Rastreio DLog"	, "U_DLOGA02"	, 0, 4 })  // Faturamento
 //aAdd(aRotina, {"Canc / Troca"   , aRotTro  		, 0, 4 })  // Cancelamento / Troca Devolução
 //aAdd(aRotina, {"Env. IBEX"   	, aRotIbx  		, 0, 4 })  // Envia Pedidos Ibex Logistica
 Return aRotina
