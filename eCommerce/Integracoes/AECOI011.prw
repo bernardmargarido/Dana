@@ -3108,7 +3108,13 @@ Static Function AEcoUpdPv(cOrderId,cOrdPvCli,cNumOrc,cNumDoc,cNumSer,cNumPv,oRes
 	//---------------+
 	// Demais Status |
 	//---------------+
-	Else
+	ElseIf WS1->WS1_CODIGO == "007"
+		//--------------------------------+
+		// Envia status para o e-Commerce |
+		//--------------------------------+
+		lEnvStatus	:= IIF(WS1->WS1_ENVECO == "S",.T.,.F.)
+		lBaixaEco	:= .T.
+
 		RecLock("WSA",.F.)
 			WSA->WSA_CODSTA	:= WS1->WS1_CODIGO
 			WSA->WSA_DESTAT	:= Alltrim(WS1->WS1_DESCRI)
