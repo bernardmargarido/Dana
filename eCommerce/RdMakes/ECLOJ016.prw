@@ -312,12 +312,6 @@ Static Function EcLoj16A(_oModel,_aRet)
 Local _aArea    := GetArea()
 Local _aXTA     := {}
 
-//-----------------------------------+
-// Posiciona dados pedido e-Commerce |
-//-----------------------------------+
-dbSelectArea("WSA")
-WSA->( dbSetOrder(1) )
-
 //--------------------------+
 // Posiciona dados clientes |
 //--------------------------+
@@ -432,6 +426,8 @@ Static Function EcLoj16C(_oModel,_aRet)
 Local _cAlias   := ""
 Local _cObsSta  := ""
 
+Local _lProximo := .T.
+
 If !EcLoj16CQ(@_cAlias)
     aAdd(_aRet, { 0 , {"","",Date(),"",""}})
     Return Nil
@@ -450,17 +446,17 @@ dbSelectArea("SF2")
 SF2->( dbSetOrder(1) )
 
 While (_cAlias)->( !Eof() )
+    If _lProximo
+        EcLoj16CSta((_cAlias)->WS2_CODSTA,@_cObsSta,@_lProximo)
 
-    aAdd(_aRet, { (_cAlias)->RECNOWS2 , Array(5) })
-    
-    EcLoj16CSta((_cAlias)->WS2_CODSTA,@_cObsSta)
-    
-    _aRet[Len(_aRet)][2][1] := (_cAlias)->WS2_CODSTA
-    _aRet[Len(_aRet)][2][2] := (_cAlias)->WS1_DESCRI
-    _aRet[Len(_aRet)][2][3] := sTod((_cAlias)->WS2_DATA)
-    _aRet[Len(_aRet)][2][4] := (_cAlias)->WS2_HORA
-    _aRet[Len(_aRet)][2][5] := _cObsSta
-    
+        aAdd(_aRet, { (_cAlias)->RECNOWS2 , Array(5) })
+        
+        _aRet[Len(_aRet)][2][1] := (_cAlias)->WS2_CODSTA
+        _aRet[Len(_aRet)][2][2] := (_cAlias)->WS1_DESCRI
+        _aRet[Len(_aRet)][2][3] := sTod((_cAlias)->WS2_DATA)
+        _aRet[Len(_aRet)][2][4] := (_cAlias)->WS2_HORA
+        _aRet[Len(_aRet)][2][5] := _cObsSta
+    EndIf
     (_cAlias)->( dbSkip() )
 
 EndDo
@@ -514,10 +510,13 @@ Return Nil
     @since 15/01/2021
 /*/
 /************************************************************************************/
-Static Function EcLoj16CSta(_cCodSta,_cObsSta)
-Local _aArea    := GetArea() 
+Static Function EcLoj16CSta(_cCodSta,_cObsSta,_lProximo)
+Local _aArea        := GetArea() 
+
+Default _lProximo   := .T.
 
 _cObsSta        := ""
+
 //-----------------------+
 // Bloqueado por estoque |
 //-----------------------+
@@ -536,14 +535,16 @@ If _cCodSta == "004"
 //---------------------+
 // Faturado/Despachado |
 //---------------------+
-ElseIf _cCodSta $ "004/005"
+ElseIf _cCodSta $ "005"
     dbSelectArea("SF2")
     SF2->( dbSetOrder(1) )
     If SF2->( dbSeek(xFilial("SF2") + WSA->WSA_DOC + WSA->WSA_SERIE) )
         If SF2->F2_XENVWMS $ "1/2"
             _cObsSta += "Pedido encontra-se em separação."
+            _lProximo := .F.
         ElseIf SF2->F2_XENVWMS == "3"
-            _cObsSta += "Pedido separdo ou despachado."
+            _cObsSta += "Pedido já separado/despachado."
+            _lProximo:= .T.
         EndIf
     EndIf
 EndIf
@@ -1101,8 +1102,8 @@ _oDlg := TDialog():New(000,000,466,1185,"Dana Cosméticos - Historico pedido " + 
 	_oMsGetDSt 	:= MsNewGetDados():New(000,000,000,000,2,/*cLinOk*/,/*cTudoOk1*/,/*cIniCpos*/,/*aAlterGda*/,/*nFreeze*/,/*nMax*/,/*cFieldOk*/,/*cSuperDel*/,/*cDelOk*/,_oPanel_01,_aHeadSta,_aColsSta)
 	_oMsGetDSt:oBrowse:Align := CONTROL_ALIGN_ALLCLIENT
 
-    _oBtnOk	:= TButton():New( 003, 003 , "Atualiza"  , _oPanel_02, {|| FwMsgRun(,{||EcLoj16FR(_oMsGetDSt,_aHeadSta,_aColsSta) },"Aguarde...","Atualizando historido do pedido.")}	, 040,012,,,.F.,.T.,.F.,,.F.,,,.F. )
-    _oBtnCa	:= TButton():New( 020, 003 , "Sair" 	 , _oPanel_02, {|| _oDlg:End() }    , 040,012,,,.F.,.T.,.F.,,.F.,,,.F. )
+    _oBtnOk	:= TButton():New( 003, 003 , "Atualizar"  , _oPanel_02, {|| FwMsgRun(,{||EcLoj16FR(_oMsGetDSt,_aHeadSta,_aColsSta) },"Aguarde...","Atualizando historido do pedido.")}	, 040,012,,,.F.,.T.,.F.,,.F.,,,.F. )
+    _oBtnCa	:= TButton():New( 020, 003 , "Sair" 	  , _oPanel_02, {|| _oDlg:End() }    , 040,012,,,.F.,.T.,.F.,,.F.,,,.F. )
 
     _oDlg:lCentered := .T.
 
@@ -1140,6 +1141,8 @@ Local _cQuery 	:= ""
 Local _cAlias	:= ""
 Local _cObsSta  := ""
 
+Local _lProximo := .T.
+
 _cQuery := " SELECT " + CRLF
 _cQuery += "	WS2.WS2_CODSTA, " + CRLF
 _cQuery += "	WS1.WS1_DESCRI, " + CRLF
@@ -1173,16 +1176,20 @@ aAdd(_aHeadSta,{"Observacao"	,"WS2OBS"		,""						,TamSx3("WSA_OBSECO")[1]	,0,".F
 
 While (_cAlias)->( !Eof() )
 
-    EcLoj16CSta((_cAlias)->WS2_CODSTA,@_cObsSta)
+    If _lProximo
+        EcLoj16CSta((_cAlias)->WS2_CODSTA,@_cObsSta,@_lProximo)
 
-	aAdd(_aColsSta, Array(Len(_aHeadSta) + 1))
-	_aColsSta[Len(_aColsSta)][1] := RTrim((_cAlias)->WS1_CORSTA)
-	_aColsSta[Len(_aColsSta)][2] := (_cAlias)->WS2_CODSTA
-	_aColsSta[Len(_aColsSta)][3] := RTrim((_cAlias)->WS1_DESCRI)
-	_aColsSta[Len(_aColsSta)][4] := DToC(SToD((_cAlias)->WS2_DATA))
-	_aColsSta[Len(_aColsSta)][5] := (_cAlias)->WS2_HORA
-	_aColsSta[Len(_aColsSta)][6] := _cObsSta
-	_aColsSta[Len(_aColsSta)][Len(_aHeadSta) + 1]:= .F.
+        aAdd(_aColsSta, Array(Len(_aHeadSta) + 1))
+        _aColsSta[Len(_aColsSta)][1] := RTrim((_cAlias)->WS1_CORSTA)
+        _aColsSta[Len(_aColsSta)][2] := (_cAlias)->WS2_CODSTA
+        _aColsSta[Len(_aColsSta)][3] := RTrim((_cAlias)->WS1_DESCRI)
+        _aColsSta[Len(_aColsSta)][4] := DToC(SToD((_cAlias)->WS2_DATA))
+        _aColsSta[Len(_aColsSta)][5] := (_cAlias)->WS2_HORA
+        _aColsSta[Len(_aColsSta)][6] := _cObsSta
+        _aColsSta[Len(_aColsSta)][Len(_aHeadSta) + 1]:= .F.
+
+    EndIf
+
 	(_cAlias)->( dbSkip() )
 EndDo
 
