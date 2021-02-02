@@ -1596,6 +1596,15 @@ _oJSon      := xFromJson(_cJSon)
 _cIDCliente := _oJSon[#"id_cliente"]
 _oProduto   := _oJSon[#"produtos"]
 
+//-----------------------------------------+
+// Valida se ID do cliente veio preenchido |
+//-----------------------------------------+
+If Empty(_cIDCliente)
+    aAdd(_aMsgErro,{"1",RTrim(_cIDCliente), "Campo 'id_cliente' não informado."})
+    Return .F.
+    CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ") 
+EndIf
+
 //-----------------------------------------------+
 // Valida Id cliente digitado com usado no Token |
 //-----------------------------------------------+
@@ -1637,20 +1646,20 @@ If ValType(_oProduto) == "A"
         _cNCM       := _oProduto[_nX][#"ncm"]
         _cBloq      := _oProduto[_nX][#"situacao"]
         _cOrigem    := _oProduto[_nX][#"origem"]
-        _nPesoLiq   := _oProduto[_nX][#"peso_liquido"]
-        _nPesoBru   := _oProduto[_nX][#"peso_bruto"]
-        _nAltura    := _oProduto[_nX][#"altura"]
-        _nLargura   := _oProduto[_nX][#"largura"]
-        _nCompr     := _oProduto[_nX][#"comprimento"]
-        _nPesLEmb   := _oProduto[_nX][#"peso_liquido_emb"]
-        _nPesBEmb   := _oProduto[_nX][#"peso_bruto_emb"]
-        _nAlturaE   := _oProduto[_nX][#"altura_embalagem"]
-        _nLarguraE  := _oProduto[_nX][#"largura_embalagem"]
-        _nComprE    := _oProduto[_nX][#"comprimento_embalagem"]
-        _cTpEmb     := _oProduto[_nX][#"tipo_embalagem"]
-        _nQtdEmb    := _oProduto[_nX][#"quantidade_embalagem"]
-        _nTotEmp    := _oProduto[_nX][#"empilhamento_maximo"]
-        _nTotPalet  := _oProduto[_nX][#"total_pallet"]
+        _nPesoLiq   := IIF(ValType(_oProduto[_nX][#"peso_liquido"]) == "U", 0, _oProduto[_nX][#"peso_liquido"])
+        _nPesoBru   := IIF(ValType(_oProduto[_nX][#"peso_bruto"]) == "U", 0, _oProduto[_nX][#"peso_bruto"])
+        _nAltura    := IIF(ValType(_oProduto[_nX][#"altura"]) == "U", 0, _oProduto[_nX][#"altura"])
+        _nLargura   := IIF(ValType(_oProduto[_nX][#"largura"]) == "U", 0, _oProduto[_nX][#"largura"])
+        _nCompr     := IIF(ValType(_oProduto[_nX][#"comprimento"]) == "U", 0, _oProduto[_nX][#"comprimento"])
+        _nPesLEmb   := IIF(ValType(_oProduto[_nX][#"peso_liquido_emb"]) == "U", 0, _oProduto[_nX][#"peso_liquido_emb"])
+        _nPesBEmb   := IIF(ValType(_oProduto[_nX][#"peso_bruto_emb"]) == "U", 0, _oProduto[_nX][#"peso_bruto_emb"])
+        _nAlturaE   := IIF(ValType(_oProduto[_nX][#"altura_embalagem"]) == "U", 0, _oProduto[_nX][#"altura_embalagem"])
+        _nLarguraE  := IIF(ValType(_oProduto[_nX][#"largura_embalagem"]) == "U", 0, _oProduto[_nX][#"largura_embalagem"])
+        _nComprE    := IIF(ValType(_oProduto[_nX][#"comprimento_embalagem"]) == "U", 0, _oProduto[_nX][#"comprimento_embalagem"])
+        _cTpEmb     := IIF(ValType(_oProduto[_nX][#"tipo_embalagem"]) == "U", "", _oProduto[_nX][#"tipo_embalagem"])
+        _nQtdEmb    := IIF(ValType(_oProduto[_nX][#"quantidade_embalagem"]) == "U", 0, _oProduto[_nX][#"quantidade_embalagem"])
+        _nTotEmp    := IIF(ValType(_oProduto[_nX][#"empilhamento_maximo"]) == "U", 0, _oProduto[_nX][#"empilhamento_maximo"])
+        _nTotPalet  := IIF(ValType(_oProduto[_nX][#"total_pallet"]) == "U", 0, _oProduto[_nX][#"total_pallet"])
 
         //-----------------------------------+
         // Valida se produto está cadastrado | 
@@ -1872,6 +1881,15 @@ SA1->( dbSetOrder(3) )
 _oJSon      := xFromJson(DecodeUTF8(_cJSon))
 _cIDCliente := _oJSon[#"id_cliente"]
 _oCliente   := _oJSon[#"clientes"]
+
+//-----------------------------------------+
+// Valida se ID do cliente veio preenchido |
+//-----------------------------------------+
+If Empty(_cIDCliente)
+    aAdd(_aMsgErro,{"1",RTrim(_cIDCliente), "Campo 'id_cliente' não informado."})
+    Return .F.
+    CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ") 
+EndIf
 
 //-----------------------------------------------+
 // Valida Id cliente digitado com usado no Token |
@@ -2138,6 +2156,15 @@ _oJSon      := xFromJson(DecodeUTF8(_cJSon))
 _cIDCliente := _oJSon[#"id_cliente"]
 _oFornece   := _oJSon[#"fornecedores"]
 
+//-----------------------------------------+
+// Valida se ID do cliente veio preenchido |
+//-----------------------------------------+
+If Empty(_cIDCliente)
+    aAdd(_aMsgErro,{"1",RTrim(_cIDCliente), "Campo 'id_cliente' não informado."})
+    Return .F.
+    CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ") 
+EndIf
+
 //-----------------------------------------------+
 // Valida Id cliente digitado com usado no Token |
 //-----------------------------------------------+
@@ -2391,6 +2418,15 @@ SA4->( dbSetOrder(3) )
 _oJSon      := xFromJson(DecodeUTF8(_cJSon))
 _cIDCliente := _oJSon[#"id_cliente"]
 _oTransp   := _oJSon[#"transportadoras"]
+
+//-----------------------------------------+
+// Valida se ID do cliente veio preenchido |
+//-----------------------------------------+
+If Empty(_cIDCliente)
+    aAdd(_aMsgErro,{"1",RTrim(_cIDCliente), "Campo 'id_cliente' não informado."})
+    Return .F.
+    CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ") 
+EndIf
 
 //-----------------------------------------------+
 // Valida Id cliente digitado com usado no Token |
@@ -2676,6 +2712,15 @@ _oJSon      := xFromJson(DecodeUTF8(_cJSon))
 _cIDCliente := _oJSon[#"id_cliente"]
 _oPNfe      := _oJSon[#"recebimento"]
 _oItems     := _oPNfe[#"items"]
+
+//-----------------------------------------+
+// Valida se ID do cliente veio preenchido |
+//-----------------------------------------+
+If Empty(_cIDCliente)
+    aAdd(_aMsgErro,{"1",RTrim(_cIDCliente), "Campo 'id_cliente' não informado."})
+    Return .F.
+    CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ") 
+EndIf
 
 //-----------------------------------------------+
 // Valida Id cliente digitado com usado no Token |
@@ -3145,6 +3190,15 @@ _oJSon      := xFromJson(DecodeUTF8(_cJSon))
 _cIDCliente := _oJSon[#"id_cliente"]
 _oPedido    := _oJSon[#"pedido"]
 _oItems     := _oPedido[#"items"]
+
+//-----------------------------------------+
+// Valida se ID do cliente veio preenchido |
+//-----------------------------------------+
+If Empty(_cIDCliente)
+    aAdd(_aMsgErro,{"1",RTrim(_cIDCliente), "Campo 'id_cliente' não informado."})
+    Return .F.
+    CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ") 
+EndIf
 
 //-----------------------------------------------+
 // Valida Id cliente digitado com usado no Token |
@@ -3667,6 +3721,15 @@ SF4->( dbSetOrder(1) )
 _oJSon      := xFromJson(DecodeUTF8(_cJSon))
 _cIDCliente := _oJSon[#"id_cliente"]
 _oRemessa   := _oJSon[#"remessa"]
+
+//-----------------------------------------+
+// Valida se ID do cliente veio preenchido |
+//-----------------------------------------+
+If Empty(_cIDCliente)
+    aAdd(_aMsgErro,{"1",RTrim(_cIDCliente), "Campo 'id_cliente' não informado."})
+    Return .F.
+    CoNout("<< DANALOG >> PRODUTOS - VALIDA ID CLIENTE ") 
+EndIf
 
 //-----------------------------------------------+
 // Valida Id cliente digitado com usado no Token |
@@ -5129,6 +5192,7 @@ Return .T.
 Static Function ProdutoCompl(_cIDCliente,_cCodProd,_cDescri,_nPesoLiq,_nPesoBru,_nAltura,_nLargura,;
                              _nCompr,_nPesLEmb,_nPesBEmb,_nAlturaE,_nLarguraE,_nComprE,;
                              _cTpEmb,_nQtdEmb,_nTotEmp,_nTotPalet,_cMsgErro)
+
 Local _lRet     := .T.
 
 Local _nFator   := Int(_nTotPalet/_nTotEmp)

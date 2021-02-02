@@ -1210,7 +1210,7 @@ Local _aRotina := {}
 
     ADD OPTION _aRotina TITLE "Pesquisar"            	ACTION "PesqBrw"            		OPERATION 1 ACCESS 0  
     ADD OPTION _aRotina TITLE "Visualizar"           	ACTION "VIEWDEF.ECLOJ016" 			OPERATION 2 ACCESS 0 
-    //ADD OPTION _aRotina TITLE "Dashboard "           	ACTION "U_EcLoj16E"      			OPERATION 4 ACCESS 0 
+    ADD OPTION _aRotina TITLE "Monitor Status "        	ACTION "U_EcLoj017"      			OPERATION 4 ACCESS 0 
     ADD OPTION _aRotina TITLE "Historico "           	ACTION "U_EcLoj16F"      			OPERATION 4 ACCESS 0 
 
 Return _aRotina  //FwMVCMenu('ECLOJ016')

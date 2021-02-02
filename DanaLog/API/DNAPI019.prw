@@ -75,8 +75,8 @@ _cAuth	:= Self:GetHeader('Authorization')
 // Classe Danalog | 
 //----------------+
 _oDLog  := DanaLog():New()
-_oDLog:cAuth    := _cAuth
-_oDLog:cJSon    := _cBody
+_oDLog:cAuth    := IIF(ValType(_cAuth) == "U", "", _cAuth)
+_oDLog:cJSon    := IIF(ValType(_cBody) == "U", "", _cBody)
 _oDLog:cMetodo  := "POST"
 
 If _oDLog:Remessa()
@@ -143,8 +143,8 @@ _cAuth	:= Self:GetHeader('Authorization')
 // Classe Danalog | 
 //----------------+
 _oDLog  := DanaLog():New()
-_oDLog:cAuth    := _cAuth
-_oDLog:cJSon    := _cBody
+_oDLog:cAuth    := IIF(ValType(_cAuth) == "U", "", _cAuth)
+_oDLog:cJSon    := IIF(ValType(_cBody) == "U", "", _cBody)
 _oDLog:cCliCod  := _cIdCiente
 _oDLog:cPedido  := _cPedido
 _oDLog:cPedido  := _cNota

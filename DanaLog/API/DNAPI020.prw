@@ -76,7 +76,7 @@ _cAuth	:= Self:GetHeader('Authorization')
 // Classe Danalog | 
 //----------------+
 _oDLog  := DanaLog():New()
-_oDLog:cAuth        := _cAuth
+_oDLog:cAuth        := IIF(ValType(_cAuth) == "U", "", _cAuth)
 _oDLog:cIdCliente   := _cIdCiente
 _oDLog:cCodigo      := _cProduto
 _oDLog:cPage        := _cPage
