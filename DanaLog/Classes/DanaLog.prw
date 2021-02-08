@@ -2667,6 +2667,7 @@ Local _nDecTot          := TamSx3("D1_TOTAL")[2]
 Local _lUsaLote         := .F.
 Local _lRet             := .T.
 Local _lClassif         := .F.
+Local _lUsaTransp       := .F.
 
 Local _oJSon            := Nil 
 Local _oPNfe            := Nil 
@@ -2763,10 +2764,12 @@ EndIf
 //-----------------------+
 // Valida transportadora |
 //-----------------------+
-If !SA4->( dbSeek(xFilial("SA4") + _cCnpjT + _cIDCliente) )
-    aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Transportadora não localizado."})
-    RestArea(_aArea)
-    Return .F.
+If _lUsaTransp 
+    If  !SA4->( dbSeek(xFilial("SA4") + _cCnpjT + _cIDCliente) )
+        aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Transportadora não localizado."})
+        RestArea(_aArea)
+        Return .F.
+    EndIf
 EndIf
 
 //-----------------------------------------+

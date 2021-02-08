@@ -2,14 +2,11 @@
 
 /****************************************************************************/
 /*/{Protheus.doc} MT103LEG
-
-@description Ponto de Entrada - Adiciona Legenda customizada
-
-@author Bernard M. Margarido
-@since 19/11/2018
-@version 1.0
-
-@type function
+	@description Ponto de Entrada - Adiciona Legenda customizada
+	@author Bernard M. Margarido
+	@since 19/11/2018
+	@version 1.0
+	@type function
 /*/
 /****************************************************************************/
 User Function MT103LEG()

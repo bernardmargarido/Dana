@@ -21,14 +21,11 @@ Static nTProd	:= TamSx3("B1_COD")[1]
 
 /************************************************************************************/
 /*/{Protheus.doc} NFENTRADA
-
-@description API - Envia dados das notas de entrada
-
-@author Bernard M. Margarido
-@since 10/11/2018
-@version 1.0
-
-@type class
+	@description API - Envia dados das notas de entrada
+	@author Bernard M. Margarido
+	@since 10/11/2018
+	@version 1.0
+	@type class
 /*/
 /************************************************************************************/
 WSRESTFUL NFENTRADA DESCRIPTION " Servico Perfumes Dana - Processo Notas e Entrada."
@@ -47,14 +44,11 @@ END WSRESTFUL
 
 /************************************************************************************/
 /*/{Protheus.doc} GET
-
-@description Retorna string JSON com os dados das notas de entrada
-
-@author Bernard M. Margarido
-@since 10/11/2018
-@version 1.0
-
-@type function
+	@description Retorna string JSON com os dados das notas de entrada
+	@author Bernard M. Margarido
+	@since 10/11/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 WSMETHOD GET WSRECEIVE NOTA,SERIE,DATAHORA,PERPAGE,PAGE WSSERVICE NFENTRADA
@@ -114,15 +108,12 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} POST
-
-@description Metodo POST - Retorna dados conferidos da pre nota de entrada.
-
-@author Bernard M. Margarido
-@since 20/11/2018
-@version 1.0
-
-@type function
-/*/
+	@description Metodo POST - Retorna dados conferidos da pre nota de entrada.
+	@author Bernard M. Margarido
+	@since 20/11/2018
+	@version 1.0
+	@type function
+	/*/
 /************************************************************************************/
 WSMETHOD POST WSSERVICE NFENTRADA
 Local aArea			:= GetArea()
@@ -203,18 +194,14 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} PUT
-
-@description Realiza a baixa das pré notas de entrada. 
-
-@author Bernard M. Margarido
-@since 08/12/2018
-@version 1.0
-
-@type function
+	@description Realiza a baixa das pré notas de entrada. 
+	@author Bernard M. Margarido
+	@since 08/12/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 WSMETHOD PUT WSSERVICE NFENTRADA
-Local aArea		:= GetArea()
 
 Local nLen		:= Len(::aUrlParms)
 Local nNFE		:= 0
@@ -291,14 +278,11 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApi06A
-
-@description Consulta notas e monta arquivo e envio
-
-@author Bernard M. Margarido
-@since 10/11/2018
-@version 1.0
-
-@type function
+	@description Consulta notas e monta arquivo e envio
+	@author Bernard M. Margarido
+	@since 10/11/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApi06A(cNota,cSerie,cDataHora,cTamPage,cPage)
@@ -462,13 +446,11 @@ Return aRet
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApi06B
-
-@description Realiza conferencia das Pre Notas de Entrada Perfumes Dana
-
-@author Bernard M. Margarido
-@since 20/11/2018
-@version 1.0
-@type function
+	@description Realiza conferencia das Pre Notas de Entrada Perfumes Dana
+	@author Bernard M. Margarido
+	@since 20/11/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApi06B(_oPreNFE)
@@ -616,6 +598,8 @@ If _lContinua
 	
 		RecLock("SF1",.F.)
 			SF1->F1_XENVWMS := "3"
+			SF1->F1_XDTALT	:= Date()
+			SF1->F1_XHRALT	:= Time()
 		SF1->( MsUnLock() )
 		
 		//----------------------+	
@@ -637,14 +621,11 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApi06C
-
-@description atualiza status da pre nota de entrada.
-
-@author Bernard M. Margarido
-@since 08/12/2018
-@version 1.0
-
-@type function
+	@description atualiza status da pre nota de entrada.
+	@author Bernard M. Margarido
+	@since 08/12/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApi06C(_oPreNFE)
@@ -696,6 +677,8 @@ EndIf
 //-----------------------------+
 RecLock("SF1",.F.)
 	SF1->F1_XENVWMS := "2"
+	SF1->F1_XDTALT	:= Date()
+	SF1->F1_XHRALT	:= Time()
 SF1->( MsUnLock() )
 
 aAdd(aMsgErro,{cFilAnt,_cNota,_cSerie,.T.,"BAIXADA COM SUCESSO."})
@@ -710,14 +693,11 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApiQry
-
-@description Consulta pre notas de entrada para serem enviados 
-
-@author Bernard M. Margarido
-@since 27/10/2018
-@version 1.0
-
-@type function
+	@description Consulta pre notas de entrada para serem enviados 
+	@author Bernard M. Margarido
+	@since 27/10/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApiQry(cAlias,cNota,cSerie,cDataHora,cTamPage,cPage)
@@ -854,14 +834,11 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} ApiQryTot
-
-@description Retorna total de pre notas
-
-@author Bernard M. Margarido
-@since 27/10/2018
-@version 1.0
-
-@type function
+	@description Retorna total de pre notas
+	@author Bernard M. Margarido
+	@since 27/10/2018
+	@version 1.0
+	@type function
 /*/
 /*************************************************************************************/
 Static Function DnaQryTot(cNota,cSerie,cDataHora,cTamPage,cPage)
@@ -944,31 +921,18 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} DnaApi06P
-
-@description Estorna pré nota de entrada envia e-mail com as divergencias. 
-
-@author Bernard M. Margarido
-@since 20/11/2018
-@version 1.0
-
-@type function
-
+	@description Estorna pré nota de entrada envia e-mail com as divergencias. 
+	@author Bernard M. Margarido
+	@since 20/11/2018
+	@version 1.0
+	@type function
 /*/
 /*************************************************************************************/
 Static Function DnaApi06P(_cNota,_cSerie,_cCodFor,_cLojafor,_aDiverg)
 Local aArea			:= GetArea()
 
-Local cMsgErro 		:= ""
-Local cLiArq		:= ""
-Local cSD3Log		:= ""
-
-Local aCabec		:= {}
-Local aItem			:= {}
-Local aItems		:= {}
-
-Local nHndImp		:= 0
-
 Local lRet			:= .T.
+Local _lEstorna		:= GetNewPar("DN_DELNFE",.T.)
 
 //--------------+
 // Envia e-Mail |
@@ -1001,26 +965,33 @@ If !SF1->( dbSeek(xFilial("SF1") + _cNota + _cSerie + _cCodFor + _cLojafor) )
 	Return .F.
 EndIf
 
-//---------------------------------+
-// Permiti dar entrada na pre nota |
-//---------------------------------+
-RecLock("SF1",.F.)
-	SF1->F1_XENVWMS := "3"
-SF1->( MsUnLock() )
+//------------------+
+// Estorna pre nota |
+//------------------+
+If _lEstorna
+	LogExec("ESTORNANDO PRE NOTA COM DIVERGENCIA.")
+	lRet := u_DNEstM01(_cNota,_cSerie,_cCodFor,_cLojafor)
+Else
+	//---------------------------------+
+	// Permiti dar entrada na pre nota |
+	//---------------------------------+
+	RecLock("SF1",.F.)
+		SF1->F1_XENVWMS := "3"
+		SF1->F1_XDTALT	:= Date()
+		SF1->F1_XHRALT	:= Time()
+	SF1->( MsUnLock() )
+EndIf
 
 RestArea(aArea)
 Return lRet 
 
 /*************************************************************************************/
 /*/{Protheus.doc} DnaApi06E
-
-@description Processa retorno da conferencia pre nota de entrada 
-
-@author Bernard M. Margarido
-@since 20/11/2018
-@version 1.0
-
-@type function
+	@description Processa retorno da conferencia pre nota de entrada 
+	@author Bernard M. Margarido
+	@since 20/11/2018
+	@version 1.0
+	@type function
 /*/
 /*************************************************************************************/
 Static Function DnaApi06E(aMsgErro,cJsonRet)
@@ -1051,16 +1022,12 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} LogExec
-
-@description Grava log de integração
-
-@author TOTVS
-@since 05/06/2017
-@version undefined
-
-@param cMsg, characters, descricao
-
-@type function
+	@description Grava log de integração
+	@author TOTVS
+	@since 05/06/2017
+	@version undefined
+	@param cMsg, characters, descricao
+	@type function
 /*/
 /*************************************************************************************/
 Static Function LogExec(cMsg)

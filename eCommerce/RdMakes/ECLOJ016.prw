@@ -526,7 +526,7 @@ If _cCodSta == "004"
     If SC9->( dbSeek(xFilial("SC9") + WSA->WSA_NUMSC5) )
         While SC9->( !Eof() .And. xFilial("SC9") + WSA->WSA_NUMSC5 == SC9->C9_FILIAL + SC9->C9_PEDIDO)
             If !Empty(SC9->C9_BLEST)  .And. SC9->C9_BLEST <> '10'
-                _cObsSta += "Item " + SC9->C9_ITEMPV + " Produto " + SC9->C9_PRODUTO + " sem saldo disponivel para o pedido de venda " + WSA->WSA_NUMSC5 + " ."
+                _cObsSta += "Item " + SC9->C9_ITEM + " Produto " + SC9->C9_PRODUTO + " sem saldo disponivel para o pedido de venda " + WSA->WSA_NUMSC5 + " ."
             EndIf
             SC9->( dbSkip() )
         EndDo 

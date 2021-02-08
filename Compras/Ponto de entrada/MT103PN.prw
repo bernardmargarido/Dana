@@ -2,14 +2,11 @@
 
 /*****************************************************************************/
 /*/{Protheus.doc} MT103PN
-
-@description Ponto de Entrada - Valida se nota pode ser classificada 
-
-@author Bernard M. Margarido
-@since 19/11/2018
-@version 1.0
-
-@type function
+	@description Ponto de Entrada - Valida se nota pode ser classificada 
+	@author Bernard M. Margarido
+	@since 19/11/2018
+	@version 1.0
+	@type function
 /*/
 /*****************************************************************************/
 User Function MT103PN()

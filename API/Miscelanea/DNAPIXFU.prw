@@ -901,3 +901,116 @@ EndIf
 
 RestArea(_aArea)
 Return _lRet
+
+/*************************************************************************************/
+/*/{Protheus.doc} DNEstM01
+	@description Estorna pre nota com divergencia.
+	@type  Function
+	@author Bernard M. Margarido
+	@since 03/02/2021
+/*/
+/*************************************************************************************/
+User Function DNEstM01(_cNota,_cSerie,_cCodFor,_cLojafor,_cMsgErro)
+Local _aArea			:= GetArea()
+Local _aCabec           := {}
+Local _aItem            := {}
+Local _aItems           := {}
+Local _aErroAuto		:= {}
+
+Local _lRet 			:= .T.
+
+Private lMsErroAuto     := .F.
+Private lAutoErrNoFile  := .F.
+
+//---------------------------------+
+// Posiciona Cabeçalho da Pre Nota |
+//---------------------------------+
+dbSelectArea("SF1")
+SF1->( dbSetOrder(1) )
+
+//-----------------------------+
+// Posiciona Itens da Pre Nota | 
+//-----------------------------+
+dbSelectArea("SD1")
+SD1->( dbSetOrder(1) )
+
+//-----------------------------+
+// Adiciona dados do cabeçalho |
+//-----------------------------+
+If !SF1->( dbSeek(xFilial("SF1") + _cNota + _cSerie + _cCodFor + _cLojafor) )
+	RestArea(aArea)
+	Return .F.
+EndIf
+
+//-------------------------+
+// Cria cabeçalho pré nota |
+//-------------------------+
+aAdd(_aCabec, {"F1_DOC"     , SF1->F1_DOC           , Nil   })
+aAdd(_aCabec, {"F1_SERIE"   , SF1->F1_SERIE         , Nil   })
+aAdd(_aCabec, {"F1_TIPO"    , SF1->F1_TIPO          , Nil   })
+aAdd(_aCabec, {"F1_FORNECE" , SF1->F1_FORNECE       , Nil   })
+aAdd(_aCabec, {"F1_LOJA"    , SF1->F1_LOJA          , Nil   })
+
+//---------------------+
+// Cria itens pré nota |
+//---------------------+
+If SD1->( dbSeek(xFilial("SD1") + _cNota + _cSerie + _cCodFor + _cLojafor ))
+
+	While SD1->( !Eof() .And. xFilial("SD1") + _cNota + _cSerie + _cCodFor + _cLojafor == SD1->D1_FILIAL + SD1->D1_DOC + SD1->D1_SERIE + SD1->D1_FORNECE + SD1->D1_LOJA )
+    	_aItem  := {}
+    
+		aAdd(_aItem, { "D1_ITEM"    , SD1->D1_ITEM          , Nil })
+		aAdd(_aItem, { "D1_COD" 	, SD1->D1_COD			, Nil })
+		aAdd(_aItem, { "D1_QUANT" 	, SD1->D1_QUANT			, Nil })
+		aAdd(_aItem, { "D1_VUNIT" 	, SD1->D1_VUNIT 		, Nil })
+		aAdd(_aItem, { "D1_TOTAL" 	, SD1->D1_TOTAL 	    , Nil })
+		aAdd(_aItem, { "D1_TES" 	, SD1->D1_TES 			, Nil })
+		aAdd(_aItem, { "D1_UM"    	, SD1->D1_UM			, Nil })
+		aAdd(_aItem, { "D1_LOCAL" 	, SD1->D1_LOCAL			, Nil })
+
+		//----------------------------+
+		// Adiciona itens da Pré nota |
+		//----------------------------+
+		aAdd(_aItems,_aItem)
+		SD1->( dbSkip() )
+	EndDo
+EndIf
+
+//-----------------+
+// Deleta pré nota | 
+//-----------------+
+If Len(_aCabec) > 0 .And. Len(_aItems) > 0 
+
+    lMsErroAuto     := .F. 
+    lAutoErrNoFile  := .T.
+    
+    _aCabec         := FWVetByDic(_aCabec, "SF1")
+    _aItems         := FWVetByDic(_aItems, "SD1",.T.)
+
+    MSExecAuto({|x,y,z| Mata140(x,y,z) }, _aCabec, _aItems, 5)
+    
+    //--------------------------+
+    // Erro gravação de produto | 
+    //--------------------------+
+    If lMsErroAuto  
+        //-------------------+
+        // Retorna numeracao |
+        //-------------------+
+        RollBackSx8()
+
+        //-------------------+
+        // Log erro ExecAuto |
+        //-------------------+
+        _aErroAuto 	:= GetAutoGRLog()
+		_lRet		:= .F.	
+        //------------------------------------+
+        // Retorna somente a linha com o erro | 
+        //------------------------------------+
+        ErroAuto(_aErroAuto,@_cMsgErro)
+
+     EndIf
+
+EndIf
+
+RestArea(_aArea)
+Return _lRet
