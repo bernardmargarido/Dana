@@ -9,15 +9,11 @@
 
 /************************************************************************************/
 /*/{Protheus.doc} ECLOJ011
-
-@description Monitor de Integrações 
-
-@author Bernard M. Margarido
-
-@since 29/04/2019
-@version undefined
-
-@type function
+    @description Monitor de Integrações 
+    @author Bernard M. Margarido
+    @since 29/04/2019
+    @version undefined
+    @type function
 /*/
 /************************************************************************************/
 User Function ECLOJ011()
@@ -203,11 +199,11 @@ _cQuery := " SELECT " + CRLF
 _cQuery += "    COUNT(*) TOTAL " + CRLF
 _cQuery += " FROM " + CRLF
 _cQuery += "	" + RetSqlName("SB2") + " B2 " + CRLF
-_cQuery += "	INNER JOIN " + RetSqlName("SB1") + " B1 ON B1.B1_FILIAL = '" + xFilial("SB1") + "' AND B1.B1_COD = B2.B2_COD AND B1.B1_MSBLQL <> '1' AND B1.B1_LOCPAD IN " + _cLocal + " AND B1.D_E_L_E_T_ = '' " + CRLF 
+_cQuery += "	INNER JOIN " + RetSqlName("SB1") + " B1 ON B1.B1_FILIAL = '" + xFilial("SB1") + "' AND B1.B1_COD = B2.B2_COD AND B1.B1_MSBLQL <> '1' AND B1.D_E_L_E_T_ = '' " + CRLF 
 _cQuery += "	INNER JOIN " + RetSqlName("SB5") + " B5 ON B5.B5_FILIAL = '" + xFilial("SB5") + "' AND B5.B5_COD = B2.B2_COD AND B5.B5_XENVECO = '2' AND B5.B5_XENVSKU = '2' AND B5.B5_XUSAECO = 'S' AND B5.D_E_L_E_T_ = '' " + CRLF
 _cQuery += " WHERE " + CRLF
 _cQuery += "	B2.B2_FILIAL = '" + _cFilEst  + "' AND " + CRLF 
-_cQuery += "	B2.B2_LOCAL = B1.B1_LOCPAD AND " + CRLF
+_cQuery += "	B2.B2_LOCAL IN " + _cLocal + " AND " + CRLF
 _cQuery += "	B2.B2_MSEXP = '' AND " + CRLF
 _cQuery += "	B2.D_E_L_E_T_ = '' "
 
