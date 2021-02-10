@@ -195,25 +195,123 @@ Return Nil
 /*/
 /********************************************************************************************************/
 Static Function EcLoj017Qry(_oSay)
-_oSay:cCaption := "Salvando dados encontrados."
+Local _cQuery   := ""
+Local _cAlias   := ""
+Local _cPedido  := ""
+Local _cStatus  := ""
+Local _cCliente := ""
+
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	PEDIDO, " + CRLF
+_cQuery += "    STATUS, " + CRLF
+_cQuery += "	CLIENTE, " + CRLF
+_cQuery += "	CODSTA, " + CRLF
+_cQuery += "	TOTSTA " + CRLF
+/*
+_cQuery += "	COALESCE([002],0) PAGAMENTO_APROVADO, " + CRLF
+_cQuery += "	COALESCE([003],0) PEDIDO_LIBERADO, " + CRLF
+_cQuery += "	COALESCE([004],0) BOQUEIO_ESTOQUE, " + CRLF
+_cQuery += "	COALESCE([011],0) LIBERADO_FATURAMENTO, " + CRLF
+_cQuery += "	COALESCE([010],0) PEDIDO_SEPARACAO, " + CRLF
+_cQuery += "	COALESCE([005],0) FATURADO, " + CRLF
+_cQuery += "	COALESCE([006],0) DESPACHADO " + CRLF
+*/
+_cQuery += " FROM " + CRLF
+_cQuery += " ( " + CRLF
+_cQuery += "	SELECT " + CRLF
+_cQuery += "		WSA.WSA_NUMECO PEDIDO, " + CRLF
+_cQuery += "		WSA.WSA_CODSTA STATUS, " + CRLF
+_cQuery += "		A1.A1_NOME CLIENTE, " + CRLF
+_cQuery += "		STATUS_ECOMM.WS2_CODSTA CODSTA, " + CRLF
+_cQuery += "		COUNT(STATUS_ECOMM.WS2_CODSTA) TOTSTA " + CRLF
+_cQuery += "	FROM " + CRLF
+_cQuery += "		" + RetSqlName("WSA") + " WSA " + CRLF
+_cQuery += "		INNER JOIN " + RetSqlName("SA1") + " A1 ON A1.A1_FILIAL = '" + xFilial("SA1") + "' AND A1.A1_COD = WSA.WSA_CLIENT AND A1.A1_LOJA = WSA.WSA_LOJA AND A1.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "		CROSS APPLY( " + CRLF
+_cQuery += "					SELECT " + CRLF
+_cQuery += "						WS2.WS2_CODSTA," + CRLF
+_cQuery += "						WS2.WS2_DATA," + CRLF
+_cQuery += "						WS2.WS2_HORA" + CRLF
+_cQuery += "					FROM " + CRLF
+_cQuery += "						" + RetSqlName("ws2") + " WS2 " + CRLF
+_cQuery += "					WHERE " + CRLF
+_cQuery += "						WS2.WS2_FILIAL = WSA.WSA_FILIAL AND " + CRLF
+_cQuery += "						WS2.WS2_NUMSL1 = WSA.WSA_NUM AND " + CRLF
+_cQuery += "						WS2.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "				) STATUS_ECOMM " + CRLF
+_cQuery += "	WHERE " + CRLF
+_cQuery += "		WSA.WSA_FILIAL = '" + xFilial("WSA") + "' AND " + CRLF
+_cQuery += "		WSA.WSA_NUMECO BETWEEN '" + _cPedidoDe + "' AND '" + _cPedidoAte + "' AND " + CRLF
+_cQuery += "		WSA.WSA_EMISSA BETWEEN '" + dTos(_cEmissaoDe) + "' AND '" + dTos(_cEmissaoAte) + "' AND " + CRLF
+_cQuery += "		WSA.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "	GROUP BY WSA.WSA_NUMECO, WSA.WSA_CODSTA, A1.A1_NOME, STATUS_ECOMM.WS2_CODSTA " + CRLF
+_cQuery += " )HISTORICO " + CRLF
+/*
+_cQuery += " PIVOT ( SUM(TOTSTA) FOR CODSTA IN([002],[003],[004],[011],[010],[005],[006]) ) AS STAPROD " + CRLF
+_cQuery += " ORDER BY PEDIDO, CLIENTE "
+*/
+_cAlias := MPSysOpenQuery(_cQuery)
+
+dbSelectArea(_cAlias)
+(_cAlias)->( dbGoTop() )
+
+While (_cAlias)->(!Eof() )
+
+    _oSay:cCaption  := "Salvando dados encontrados."
+    _cPedido        := (_cAlias)->PEDIDO
+    _cStatus        := (_cAlias)->STATUS
+    _cCliente       := (_cAlias)->CLIENTE
 
     aAdd(_aCols,Array(Len(_aHeader) + 1)) 
-    _aCols[Len(_aCols)][COL_STATUS] := EcLoj017d("008")
-    _aCols[Len(_aCols)][COL_PEDIDO] := "123456789-0"
-    _aCols[Len(_aCols)][COL_CLIENTE]:= RTrim("Teste")
-    _aCols[Len(_aCols)][COL_STA01]  := EcLoj017e(1)
-    _aCols[Len(_aCols)][COL_STA02]  := EcLoj017e(1)
-    _aCols[Len(_aCols)][COL_STA03]  := EcLoj017e(1)
-    _aCols[Len(_aCols)][COL_STA04]  := EcLoj017e(1)
-    _aCols[Len(_aCols)][COL_STA05]  := EcLoj017e(1)
-    _aCols[Len(_aCols)][COL_STA06]  := EcLoj017e(1)
-    _aCols[Len(_aCols)][COL_STA07]  := EcLoj017e(1)
+    _aCols[Len(_aCols)][COL_STATUS] := EcLoj017d(_cStatus)
+    _aCols[Len(_aCols)][COL_PEDIDO] := _cPedido
+    _aCols[Len(_aCols)][COL_CLIENTE]:= RTrim(_cCliente)
+    _aCols[Len(_aCols)][COL_STA01]  := EcLoj017e(0)
+    _aCols[Len(_aCols)][COL_STA02]  := EcLoj017e(0)
+    _aCols[Len(_aCols)][COL_STA03]  := EcLoj017e(0)
+    _aCols[Len(_aCols)][COL_STA04]  := EcLoj017e(0)
+    _aCols[Len(_aCols)][COL_STA05]  := EcLoj017e(0)
+    _aCols[Len(_aCols)][COL_STA06]  := EcLoj017e(0)
+    _aCols[Len(_aCols)][COL_STA07]  := EcLoj017e(0)
     _aCols[Len(_aCols)][COL_VAZIO]  := ""
     
     _aCols[Len(_aCols)][Len(_aHeader) + 1]:= .F.
 
+    While (_cAlias)->(!Eof() .And. _cPedido == (_cAlias)->PEDIDO )
+        If (_cAlias)->CODSTA == "002"
+            _aCols[Len(_aCols)][COL_STA01]  := EcLoj017e(1)
+        ElseIf (_cAlias)->CODSTA == "003"
+            _aCols[Len(_aCols)][COL_STA02]  := EcLoj017e(1)
+        ElseIf (_cAlias)->CODSTA == "004"
+            _aCols[Len(_aCols)][COL_STA03]  := EcLoj017e(1)
+        ElseIf (_cAlias)->CODSTA == "005"
+            _aCols[Len(_aCols)][COL_STA06]  := EcLoj017e(1)
+            _aCols[Len(_aCols)][COL_STA05]  := EcLoj017e(1)
+        ElseIf (_cAlias)->CODSTA == "006"
+            _aCols[Len(_aCols)][COL_STA07]  := EcLoj017e(1)
+        ElseIf (_cAlias)->CODSTA == "010"
+            _aCols[Len(_aCols)][COL_STA05]  := EcLoj017e(1)
+        ElseIf (_cAlias)->CODSTA == "011"
+            _aCols[Len(_aCols)][COL_STA04]  := EcLoj017e(1)
+            _aCols[Len(_aCols)][COL_STA02]  := EcLoj017e(1)
+        EndIf
+        (_cAlias)->( dbSkip() )
+    EndDo
+EndDo
+
+(_cAlias)->( dbCloseArea() )
+
 Return Nil 
 
+/********************************************************************************************************/
+/*/{Protheus.doc} EcLoj017d
+    @description Consulta status atual do pedido
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 01/02/2021
+/*/
+/********************************************************************************************************/
 Static Function EcLoj017d(_cCodSta)
 Local _cCorSta  := ""
 
@@ -224,5 +322,13 @@ _cCorSta := WS1->WS1_CORSTA
 
 Return _cCorSta
 
+/********************************************************************************************************/
+/*/{Protheus.doc} EcLoj017e
+    @description Valida historico do pedido
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 01/02/2021
+/*/
+/********************************************************************************************************/
 Static Function EcLoj017e(_nStatus)
 Return IIF(_nStatus > 0,"CHECKOK","")

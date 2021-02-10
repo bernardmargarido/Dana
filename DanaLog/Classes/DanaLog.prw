@@ -2634,7 +2634,6 @@ Local _aItems           := {}
 Local _cItem            := StrZero(0,TamSx3("D1_ITEM")[1])
 Local _cTesDLog         := GetNewPar("DN_TESDLOG","007")
 Local _cIDCliente       := ""
-Local _cItemNF          := ""
 Local _cTipo            := ""
 Local _cCnpj            := ""
 Local _cCnpjT           := ""
@@ -2867,26 +2866,30 @@ For _nX := 1 To Len(_oItems)
         Return .F.
     EndIf
 
-    _cItemNF    := Soma1(_cItem,1)
+    _cItem      := Soma1(_cItem,1)
     _cUM        := SB1->B1_UM
     _cLocal     := GetArmazem(_cIDCliente,"1")
-    _cLote      := _oItems[_nX][#"lote"]
     _cTes       := _cTesDLog
     _cDocOri    := ""
     _cSerOri    := ""
     _cItemOri   := ""
-    _dDtVldLote := cToD(_oItems[_nX][#"dt_vld_lote"])
     _nQuant     := _oItems[_nX][#"quantidade"]
     _nVlrUni    := _oItems[_nX][#"valor_unitario"]
     _nVlrTot    := Round(_nQuant * _nVlrUni,_nDecTot)
+
     _lUsaLote   := IIF(SB1->B1_RASTRO == "L",.T.,.F.)
+
+    If _lUsaLote
+        _cLote      := IIF(ValType(_oItems[_nX][#"lote"]) <> "U", _oItems[_nX][#"lote"],"")
+        _dDtVldLote := IIF(ValType(_oItems[_nX][#"dt_vld_lote"]), cToD(_oItems[_nX][#"dt_vld_lote"]), Nil)
+    EndIF
 
     //-------------------------------------+
     // Valida se existe armazem criado SB2 |
     //-------------------------------------+
     CriaArmazem(_cProduto,_cLocal,_cIDCliente)
 
-    aAdd(_aItem, { "D1_ITEM"    , _cItemNF          , Nil })
+    aAdd(_aItem, { "D1_ITEM"    , _cItem            , Nil })
     aAdd(_aItem, { "D1_COD" 	, _cProduto			, Nil })
     aAdd(_aItem, { "D1_QUANT" 	, _nQuant			, Nil })
     aAdd(_aItem, { "D1_VUNIT" 	, _nVlrUni 			, Nil })

@@ -23,14 +23,15 @@ SetPrvt("_NPOSNATUREZ,_NPOSTES,_NPOSVUNIT,_NPOSTOTAL,_NPOSQUANT,_CTES")
 SetPrvt("_CNAT,ACOLS,_LRETURN,_CCC,CCOLORANT,CSAVESCR,_NPOSITORI,_CITORI,_NPOSSERORI,_CSERORI,_NPOSNFORI,_CNFORI")
 SetPrvt("CSAVEMENUH,")
 
-Private cString := .T.
-Private dEmiNF	:= M->DDEMISSAO
-Private dDtBase	:= dDataBase 
+Private cString 	:= .T.
+Private dEmiNF		:= M->DDEMISSAO
+Private dDtBase		:= dDataBase 
 
-Private cTpNF	:= M->C103TIPO
-Private cCliOri	:= M->CA100FOR
-Private cLojOri	:= M->CLOJA
+Private cTpNF		:= M->C103TIPO
+Private cCliOri		:= M->CA100FOR
+Private cLojOri		:= M->CLOJA
 
+Private _lDanaLog	:= (cEmpAnt == "02" .And. cFilAnt == "01")
 /*
 dEmiNF	:= DTOS(dEmiNF)
 dEmiNF	:= Substr(dEmiNF,7,2) + "/" + Substr(dEmiNF,5,2) + "/" + Substr(dEmiNF,1,4)
@@ -39,7 +40,7 @@ dDtBase	:= DTOS(dDtBase)
 dDtBase	:= Substr(dDtBase,7,2) + "/" + Substr(dDtBase,5,2) + "/" + Substr(dDtBase,1,4)
 */
 
-If altera .or. inclui
+If ( altera .or. inclui ) .And. !_lDanaLog
 /*	
 	If M->DDEMISSAO < dDataBase
 		Msginfo("A data de emissão da nota: "+dEmiNF+" não pode ser menor que a data de login do sistema: "+dDtBase,"P E R F U M E S  D A N A - MT100LOK")
