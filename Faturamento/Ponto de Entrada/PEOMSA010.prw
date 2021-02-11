@@ -41,9 +41,13 @@ If ValType(_aParam) <> "U"
     _cIdModel   := _aParam[3]
     _cClasse    := IIf( ValType(_oObj) == "O", _oObj:ClassName(),"")
     _lIsGrid    := ( Len(_aParam) > 3)
+
     If _lIsGrid
         _cValGrid := IIF(Len(_aParam) > 4 , _aParam[5], "")
         If _cIdPonto == "FORMLINEPRE" .And. _cValGrid == "SETVALUE"
+
+            _oModel := FwModelActive()
+            
             _cCpo       := _aParam[6]
             _nLinha     := _aParam[4]
 
@@ -57,7 +61,7 @@ If ValType(_aParam) <> "U"
             // Valida alteração de preço |
             //---------------------------+
             _xType  := ('M->'+_cCpo)
-            If Type(_xType) <> "U"
+            If Type(_xType) <> "U" .And. _oModel:nOperation == 4
                 _nPPrcAux   := _oObj:aCols[_nLinha][_nPPrcVen]
                 If !u_DnFatM02(_oObj:aCols[_nLinha][_nPPrcVen], _oObj:aCols[_nLinha][_nPPerDesc], _oObj:aCols[_nLinha][_nPValDesc],_cCpo,@_nPrcX) 
                     //Help(,,'OMSA010',, "Preço " + cValToChar(_nPrcX) + " do Produto " + RTrim(_oObj:aCols[_nLinha][_nPProd]) + " necessita de autorização do superior, será enviado um e-mail para autorização.", 1, 0)
@@ -94,12 +98,14 @@ If ValType(_aParam) <> "U"
         //--------------------------------------------+
         // Valida se obteve valores menores alterados | 
         //--------------------------------------------+
-        If u_DnFatM03(_oDa0:GetValue('DA0_CODTAB'),_oDa0:GetValue('DA0_FILIAL'),@_cMsg,@_aMsg)
-            If !Empty(_cMsg)
-                Help(,,'OMSA010',, _cMsg, 1, 0)
-                u_AEcoMail("PRC","Alteracao de Preços",_aMsg)
-            EndIf
-        EndIF
+        If _oModel:nOperation == 4
+            If u_DnFatM03(_oDa0:GetValue('DA0_CODTAB'),_oDa0:GetValue('DA0_FILIAL'),@_cMsg,@_aMsg) 
+                If !Empty(_cMsg)
+                    Help(,,'OMSA010',, _cMsg, 1, 0)
+                    u_AEcoMail("PRC","Alteracao de Preços",_aMsg)
+                EndIf
+            EndIF
+        EndIf
     EndIf
 EndIf
 
