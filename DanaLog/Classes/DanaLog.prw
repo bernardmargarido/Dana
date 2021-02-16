@@ -3374,13 +3374,16 @@ For _nX := 1 To Len(_oItems)
     _cItemPv    := Soma1(_cItem,1)
     _cUM        := SB1->B1_UM
     _cLocal     := GetArmazem(_cIDCliente,"1")
-    _cLote      := _oItems[_nX][#"lote"]
     _cTes       := _cTesDLog
-    _dDtVldLote := cToD(_oItems[_nX][#"dt_vld_lote"])
     _nQuant     := _oItems[_nX][#"quantidade"]
     _nVlrUni    := _oItems[_nX][#"valor_unitario"]
     _nVlrTot    := Round(_nQuant * _nVlrUni,_nDecTot)
     _lUsaLote   := IIF(SB1->B1_RASTRO == "L",.T.,.F.)
+    
+    If _lUsaLote
+        _cLote      := IIF(ValType(_oItems[_nX][#"lote"]) <> "U", _oItems[_nX][#"lote"],"")
+        _dDtVldLote := IIF(ValType(_oItems[_nX][#"dt_vld_lote"]), cToD(_oItems[_nX][#"dt_vld_lote"]), Nil)
+    EndIF
 
     //-------------------------------------+
     // Valida se existe armazem criado SB2 |
