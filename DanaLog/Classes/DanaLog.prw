@@ -3071,7 +3071,7 @@ While (_cAlias)->( !Eof() )
             _oItems[#"produto"]         := SD1->D1_COD
             _oItems[#"desc_prod"]       := Posicione("SB1",1,xFilial("SB1") + SD1->D1_COD,"B1_DESC")
             _oItems[#"qtd_nota"]        := SD1->D1_QUANT
-            _oItems[#"qtd_conferida"]   := 0
+            _oItems[#"qtd_conferida"]   := SD1->D1_QUANT
             _oItems[#"armazem"]         := SD1->D1_LOCAL
             _oItems[#"lote"]            := SD1->D1_LOTECTL
             _oItems[#"dt_vld_lote"]     := SD1->D1_DTVALID
@@ -3567,7 +3567,7 @@ While (_cAlias)->( !Eof() )
             _oItems[#"produto"]         := SC6->C6_PRODUTO
             _oItems[#"desc_prod"]       := Posicione("SB1",1,xFilial("SB1") + SC6->C6_PRODUTO,"B1_DESC")
             _oItems[#"qtd_solicitada"]  := SC6->C6_QTDVEN
-            _oItems[#"qtd_separada"]    := 0
+            _oItems[#"qtd_separada"]    := IIF(SC6->C6_XQTDSEP > 0, SC6->C6_XQTDSEP, SC6->C6_QTDVEN )
             _oItems[#"armazem"]         := SC6->C6_LOCAL
             _oItems[#"lote"]            := SC6->C6_LOTECTL
             _oItems[#"dt_vld_lote"]     := SC6->C6_DTVALID

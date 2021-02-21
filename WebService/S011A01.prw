@@ -2375,7 +2375,7 @@ While ! (cAliasQry)->(Eof())
 	::RetTabelaPreco:aTabelaPreco[nIdx]:DA0_CONDPG		:= Alltrim(DA0_CONDPG)
 	::RetTabelaPreco:aTabelaPreco[nIdx]:DA0_TPHORA		:= DA0_TPHORA
 	::RetTabelaPreco:aTabelaPreco[nIdx]:DA0_ATIVO		:= DA0_ATIVO
-	::RetTabelaPreco:aTabelaPreco[nIdx]:DA0_XTPTAB		:= DA0_ATIVO
+	::RetTabelaPreco:aTabelaPreco[nIdx]:DA0_XTPTAB		:= DA0_XTPTAB
 	::RetTabelaPreco:aTabelaPreco[nIdx]:OPERACAO		:= IF((cAliasQry)->DELET == '*' .or. DA0_X_SIM3 == "N","D","")
 	::RetTabelaPreco:aTabelaPreco[nIdx]:CAMPOS_ESPEC := {}
 	
