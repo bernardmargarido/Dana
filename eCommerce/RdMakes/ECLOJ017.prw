@@ -6,14 +6,15 @@
 #DEFINE COL_STATUS  01  
 #DEFINE COL_PEDIDO  02  
 #DEFINE COL_CLIENTE 03  
-#DEFINE COL_STA01   04
-#DEFINE COL_STA02   05
-#DEFINE COL_STA03   06
-#DEFINE COL_STA04   07
-#DEFINE COL_STA05   08
-#DEFINE COL_STA06   09
-#DEFINE COL_STA07   10
-#DEFINE COL_VAZIO   11
+#DEFINE COL_DTEMISS 04
+#DEFINE COL_STA01   05
+#DEFINE COL_STA02   06
+#DEFINE COL_STA03   07
+#DEFINE COL_STA04   08
+#DEFINE COL_STA05   09
+#DEFINE COL_STA06   10
+#DEFINE COL_STA07   11
+#DEFINE COL_VAZIO   12
 
 #DEFINE CRLF        CHR(13) + CHR(10)
 #DEFINE CLR_CINZA   RGB(230,230,230)
@@ -138,7 +139,7 @@ _oDlg := TDialog():New(_oSize:aWindSize[1], _oSize:aWindSize[2],_oSize:aWindSize
     _oFwLayer_01 := _oFWLayer:GetWinPanel("COL_GRID","WIN_GRID","LINE_GRID")
     
     _oBrowse 	:= MsNewGetDados():New(000,000,000,000,GD_UPDATE,/*_bLinOk*/,/*cTudoOk1*/,/*cIniCpos*/,/*aAlter*/,/*nFreeze*/,/*nMax*/,/*cFieldOk*/,/*cSuperDel*/,/*cDelOk*/,_oFwLayer_01,_aHeader,_aCols)
-	_oBrowse:oBrowse:bLDblClick		  	:= {|| EcLoj017c(_oBrowse) }
+	//_oBrowse:oBrowse:bLDblClick		  	:= {|| EcLoj017c(_oBrowse) }
 	_oBrowse:oBrowse:lUseDefaultColors 	:= .T.
 	_oBrowse:oBrowse:Align := CONTROL_ALIGN_ALLCLIENT	
     
@@ -175,6 +176,7 @@ _aHeader    := {}
 aAdd(_aHeader,{" "					,"HIS_STATUS"	,"@BMP"					        ,10						    ,0,""   ,"" ,"C",""," ","" } )
 aAdd(_aHeader,{"Pedido"		        ,"HIS_PEDVEN"	,PesqPict("WSA","WSA_NUMECO")   ,TamSx3("WSA_NUMECO")[1]	,0,".F.","û","C",""," ","" } )
 aAdd(_aHeader,{"Cliente"		    ,"HIS_CLIENT"	,PesqPict("SA1","A1_NOME") 	    ,TamSx3("A1_NREDUZ")[1]     ,0,".F.","û","C",""," ","" } )
+aAdd(_aHeader,{"Emissao"		    ,"HIS_DTEMIS"	,PesqPict("WSA","WSA_EMISSA")   ,TamSx3("WSA_EMISSA")[1]    ,0,".F.","û","C",""," ","" } )
 aAdd(_aHeader,{"Pgto. Aprovado"		,"HIS_STA01"	,"@BMP"					        ,10	                        ,0,".F.","û","C",""," ","" } )
 aAdd(_aHeader,{"Pedido Liberado"	,"HIS_STA02"	,"@BMP"					        ,10                         ,0,".F.","û","C",""," ","" } )
 aAdd(_aHeader,{"Ped. com Bloqueio"	,"HIS_STA03"	,"@BMP"             	        ,10	                        ,0,".F.","û","C",""," ","" } )
@@ -206,6 +208,7 @@ _cQuery := " SELECT " + CRLF
 _cQuery += "	PEDIDO, " + CRLF
 _cQuery += "    STATUS, " + CRLF
 _cQuery += "	CLIENTE, " + CRLF
+_cQuery += "    DTEMISSAO, " + CRLF
 _cQuery += "	CODSTA, " + CRLF
 _cQuery += "	TOTSTA " + CRLF
 /*
@@ -223,6 +226,7 @@ _cQuery += "	SELECT " + CRLF
 _cQuery += "		WSA.WSA_NUMECO PEDIDO, " + CRLF
 _cQuery += "		WSA.WSA_CODSTA STATUS, " + CRLF
 _cQuery += "		A1.A1_NOME CLIENTE, " + CRLF
+_cQuery += "		WSA.WSA_EMISSA DTEMISSAO, " + CRLF
 _cQuery += "		STATUS_ECOMM.WS2_CODSTA CODSTA, " + CRLF
 _cQuery += "		COUNT(STATUS_ECOMM.WS2_CODSTA) TOTSTA " + CRLF
 _cQuery += "	FROM " + CRLF
@@ -245,7 +249,7 @@ _cQuery += "		WSA.WSA_FILIAL = '" + xFilial("WSA") + "' AND " + CRLF
 _cQuery += "		WSA.WSA_NUMECO BETWEEN '" + _cPedidoDe + "' AND '" + _cPedidoAte + "' AND " + CRLF
 _cQuery += "		WSA.WSA_EMISSA BETWEEN '" + dTos(_cEmissaoDe) + "' AND '" + dTos(_cEmissaoAte) + "' AND " + CRLF
 _cQuery += "		WSA.D_E_L_E_T_ = '' " + CRLF
-_cQuery += "	GROUP BY WSA.WSA_NUMECO, WSA.WSA_CODSTA, A1.A1_NOME, STATUS_ECOMM.WS2_CODSTA " + CRLF
+_cQuery += "	GROUP BY WSA.WSA_NUMECO, WSA.WSA_CODSTA, A1.A1_NOME, WSA.WSA_EMISSA, STATUS_ECOMM.WS2_CODSTA " + CRLF
 _cQuery += " )HISTORICO " + CRLF
 /*
 _cQuery += " PIVOT ( SUM(TOTSTA) FOR CODSTA IN([002],[003],[004],[011],[010],[005],[006]) ) AS STAPROD " + CRLF
@@ -262,11 +266,13 @@ While (_cAlias)->(!Eof() )
     _cPedido        := (_cAlias)->PEDIDO
     _cStatus        := (_cAlias)->STATUS
     _cCliente       := (_cAlias)->CLIENTE
+    _dDtEmissao     := dToc(sTod((_cAlias)->DTEMISSAO))
 
     aAdd(_aCols,Array(Len(_aHeader) + 1)) 
     _aCols[Len(_aCols)][COL_STATUS] := EcLoj017d(_cStatus)
     _aCols[Len(_aCols)][COL_PEDIDO] := _cPedido
     _aCols[Len(_aCols)][COL_CLIENTE]:= RTrim(_cCliente)
+    _aCols[Len(_aCols)][COL_DTEMISS]:= _dDtEmissao
     _aCols[Len(_aCols)][COL_STA01]  := EcLoj017e(0)
     _aCols[Len(_aCols)][COL_STA02]  := EcLoj017e(0)
     _aCols[Len(_aCols)][COL_STA03]  := EcLoj017e(0)
