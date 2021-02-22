@@ -607,6 +607,7 @@ Local _nValTot      := 0
 Local _nQtdLib      := 0
 
 Local _lRet         := .T.
+Local _lBloq        := .F.
 
 Private lMsErroAuto := .F.
 
@@ -696,8 +697,12 @@ While SC6->( !Eof() .And. xFilial("SC6") + _cNumPv == SC6->C6_FILIAL + SC6->C6_N
                 // A liberação do credito é forçada pois o pagamento já foi realizado |
                 //--------------------------------------------------------------------+
 				RecLock("SC9",.F.)
-				    SC9->C9_BLCRED := " "
-				SC9->( MsUnlock() )										
+				    SC9->C9_BLCRED := "  "
+				SC9->( MsUnlock() )			
+
+                If !_lBloq
+                    _lBloq  := IIF(!Empty(SC9->C9_BLEST) .Or. SC9->C9_BLEST <> "10", .T., .F.)
+                EndIf
 			Else						
                 //------------------------------------------------------------------------------+ 
 				// Liberação do Credito/estoque do pedido de venda mais informações ver fatxfun |
@@ -719,7 +724,7 @@ EndDo
 //--------------------------------------------------------------------------+
 MaLiberOk( { SC6->C6_NUM } )
 SC5->(dbSeek(xFilial("SC5") + _cNumPv) )
-If !lMsErroAuto
+If !lMsErroAuto .And. !_lBloq
 	_lRet   := .T.
 Else
 	MostraErro("/erros/" + "SC5_LIB" + _cNumPv )
