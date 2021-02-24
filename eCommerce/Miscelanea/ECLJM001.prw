@@ -10,13 +10,11 @@ Static cBitmap	:= Space(30)
 
 /************************************************************
 {Protheus.doc} ECLJM001
-@description retorna imagem status pedido e-commerce
-
-@author Bernard M. Margarido
-@since 06/07/2016
-@version 1
-
-@type function
+	@description retorna imagem status pedido e-commerce
+	@author Bernard M. Margarido
+	@since 06/07/2016
+	@version 1
+	@type function
 *************************************************************/
 User Function ECLJM001()
 	Local aArea			:= GetArea()

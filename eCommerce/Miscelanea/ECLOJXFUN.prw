@@ -1091,8 +1091,6 @@ Local _aArea	:= GetArea()
 
 Local _cCodSta	:= "005"
 
-Local _lSigep	:= GetNewPar("EC_SIGEP",.T.)
-
 Local _oSigWeb	:= Nil
 
 //-------------------------------+
@@ -1125,9 +1123,9 @@ If WSA->( dbSeek(xFilial("WSA") +_cOrderId) )
 	RecLock("WSA",.F.)
 		WSA->WSA_DOC	:= _cDoc
 		WSA->WSA_SERIE	:= _cSerie
-		WSA->WSA_CODSTA	:= IIF(Empty(WSA->WSA_SERPOS),"006",_cCodSta)
+		WSA->WSA_CODSTA	:= IIF(Empty(WSA->WSA_TRANSP) ,"006", _cCodSta)
 		WSA->WSA_DESTAT	:= WS1->WS1_DESCRI
-		WSA->WSA_ENVLOG	:= IIF(Empty(WSA->WSA_SERPOS),"4","3")
+		WSA->WSA_ENVLOG	:= IIF(Empty(WSA->WSA_TRANSP), "4", "3")
 	WSA->( MsUnlock() )
 EndIf
 

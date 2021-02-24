@@ -81,8 +81,14 @@ If !EcLojM07B(@_cAlias)
     Return .T.
 EndIf
 
+//-------------------------------+
+// Atualiza status para faturado | 
+//-------------------------------+
+dbSelectArea("WS1")
+WS1->( dbSetOrder(1) )
+
 //--------------------------------+
-// WSA - Tabela pedidos eCommerce
+// WSA - Tabela pedidos eCommerce |
 //--------------------------------+
 dbSelectArea("WSA")
 WSA->( dbSetOrder(1) )
@@ -100,10 +106,21 @@ While (_cAlias)->( !Eof() )
     EndIf
 
     CoNout("<< ECLOJM07 >> - ENVIANDO PEDIDO ECOMMERCE " + RTrim(WSA->WSA_NUMECO) )
+    
     If U_AECOI013(WSA->WSA_NUMECO)
+        WS1->( dbSeek(xFilial("WS1") + "006") )
+        
         RecLock("WSA",.F.)
+            WSA->WSA_CODSTA	:= WS1->WS1_CODIGO
+		    WSA->WSA_DESTAT	:= WS1->WS1_DESCRI
             WSA->WSA_ENVLOG := "5"
         WSA->( MsUnLock() )
+
+        //------------------------+
+        // Grava Status do Pedido |
+        //------------------------+
+        u_AEcoStaLog(_cCodSta,_cOrderId,WSA->WSA_NUM,dDataBase,Time())
+
         CoNout("<< ECLOJM07 >> - PEDIDO ECOMMERCE " + RTrim(WSA->WSA_NUMECO) + "ENVIADO COM SUCESSO." )
     EndIf
 

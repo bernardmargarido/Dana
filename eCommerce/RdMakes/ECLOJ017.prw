@@ -18,6 +18,7 @@
 
 #DEFINE CRLF        CHR(13) + CHR(10)
 #DEFINE CLR_CINZA   RGB(230,230,230)
+#DEFINE CLR_BLACK   RGB(000,000,000)
 #DEFINE CLR_GREENL  RGB(122,193,65)
 #DEFINE CLR_WHITE   RGB(255,255,255)
 
@@ -44,10 +45,10 @@ Private _aTpCli     := CtbcBox("A1_TIPO")
 //---------------------------+
 // Cria parametros relatorio |
 //---------------------------+
-aAdd(_aParamBox,{1, "Pedido De?"        , Space(TamSx3("WSA_NUMECO")[1])   , PesqPict("WSA","WSA_NUMECO")       , "", "WSA"   , "", TamSx3("WSA_NUMECO")[1]     , .F.})
-aAdd(_aParamBox,{1, "Pedido Ate?"       , Space(TamSx3("WSA_NUMECO")[1])   , PesqPict("WSA","WSA_NUMECO")       , "", "WSA"   , "", TamSx3("WSA_NUMECO")[1]     , .T.})
-aAdd(_aParamBox,{1, "Emissao De?"       , StoD("")                         , "@D"                               , "", ""      , "", 50                          , .T.})
-aAdd(_aParamBox,{1, "Emissao Ate?"      , StoD("")                         , "@D"                               , "", ""      , "", 50                          , .T.})
+aAdd(_aParamBox,{1, "Pedido De?"        , Space(TamSx3("WSA_NUMECO")[1])   , PesqPict("WSA","WSA_NUMECO")       , "", "WSA"   , "", 80     , .F.})
+aAdd(_aParamBox,{1, "Pedido Ate?"       , Space(TamSx3("WSA_NUMECO")[1])   , PesqPict("WSA","WSA_NUMECO")       , "", "WSA"   , "", 80     , .T.})
+aAdd(_aParamBox,{1, "Emissao De?"       , StoD("")                         , "@D"                               , "", ""      , "", 50     , .T.})
+aAdd(_aParamBox,{1, "Emissao Ate?"      , StoD("")                         , "@D"                               , "", ""      , "", 50     , .T.})
 
 //-------------------+
 // Parametros rotina |
@@ -139,7 +140,7 @@ _oDlg := TDialog():New(_oSize:aWindSize[1], _oSize:aWindSize[2],_oSize:aWindSize
     _oFwLayer_01 := _oFWLayer:GetWinPanel("COL_GRID","WIN_GRID","LINE_GRID")
     
     _oBrowse 	:= MsNewGetDados():New(000,000,000,000,GD_UPDATE,/*_bLinOk*/,/*cTudoOk1*/,/*cIniCpos*/,/*aAlter*/,/*nFreeze*/,/*nMax*/,/*cFieldOk*/,/*cSuperDel*/,/*cDelOk*/,_oFwLayer_01,_aHeader,_aCols)
-	//_oBrowse:oBrowse:bLDblClick		  	:= {|| EcLoj017c(_oBrowse) }
+	_oBrowse:oBrowse:bLDblClick		  	:= {|| EcLoj017c(_oBrowse) }
 	_oBrowse:oBrowse:lUseDefaultColors 	:= .T.
 	_oBrowse:oBrowse:Align := CONTROL_ALIGN_ALLCLIENT	
     
@@ -187,6 +188,315 @@ aAdd(_aHeader,{"Despachado"	    	,"HIS_STA07"	,"@BMP"					        ,10	          
 aAdd(_aHeader,{""			        ,"HIS_VAZIO"	,"@!"					        ,10	                        ,0,".F.","û","C",""," ","" } )
 
 Return Nil 
+
+/********************************************************************************************************/
+/*/{Protheus.doc} EcLoj017c
+    @description Mostra status detalhado do pedido e-Commerce
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 23/02/2021
+/*/
+/********************************************************************************************************/
+Static Function EcLoj017c(_oBrowse)
+Local _cNumEc       := _aCols[_oBrowse:nAt][COL_PEDIDO]
+Local _cCodCli      := ""
+Local _cLojaCli     := ""
+Local _cRazao       := ""
+Local _dDtEmissao   := ""
+Local _cFileHtml    := ""
+Local _cCodImg      := "br_cinza_ocean.gif"
+Local _cSerStat     := "\ecommerce\status_img\"
+Local _cCliStat     := RTrim(GetTempPath())
+Local _cTmpHtml     := RTrim(GetTempPath())
+
+Local _oDlg         := Nil
+Local _oScroll      := Nil
+Local _oPanel_01    := Nil
+Local _oPanel_02    := Nil
+Local _oPanel_03    := Nil
+Local _oSay01       := Nil 
+Local _oSay02       := Nil 
+Local _oSay03       := Nil 
+Local _oSay04       := Nil 
+Local _oBtn_Sair    := Nil
+
+Local _oFont20N     := TFont():New("Arial Black",,-20,,.T.,,,,,.F. )
+
+//--------------------------------------------------+
+// Copia imagem status do servidor para pasta local |
+//--------------------------------------------------+
+CpyS2T(_cSerStat + _cCodImg, _cCliStat)
+
+//----------------------------+
+// Posiciona Pedido eCommerce |
+//----------------------------+
+dbSelectArea("WSA")
+WSA->( dbSetOrder(2) )
+If !WSA->( dbSeek(xFilial("WSA") + _cNumEc) )
+    MsgAlert("Pedido" + RTrim(_cNumEc) + " não localizado.")
+    Return .T.
+EndIf
+
+//---------------------------+
+// Grava dados nas variaveis |
+//---------------------------+
+_cCodCli      := WSA->WSA_CLIENT
+_cLojaCli     := WSA->WSA_LOJA
+_cRazao       := Capital(RTrim(Posicione("SA1",1,xFilial("SA1") + _cCodCli + _cLojaCli,"A1_NOME")))
+_dDtEmissao   := dToc(WSA->WSA_EMISSA)
+
+//----------------------------------------+
+// Cria Browser com os clientes filtrados |
+//----------------------------------------+
+_oDlg := TDialog():New(000,000,566,1185,"",,,,,,,,,.T.,,,,,,.F.)
+    //----------------------------------------+
+    // Scroll caso altere a resolucao da tela |
+    //----------------------------------------+
+    _oScroll := TScrollArea():New(_oDlg, 000, 000, 000, 000)
+    _oScroll:Align := CONTROL_ALIGN_ALLCLIENT
+    _oScroll:ReadClientCoors(.T.,.T.)
+
+    //-----------------------------------------+
+	// Nao permite fechar tela teclando no ESC |
+	//-----------------------------------------+
+	_oDlg:lEscClose := .F.
+
+    //---------------------------+
+	// Painel para as descrições | 
+	//---------------------------+
+	_oPanel_01 := TPanel():New(000,000,"",_oDlg,Nil,.T.,.F.,Nil,CLR_BLACK,000,040,.T.,.F.)
+	_oPanel_01:Align := CONTROL_ALIGN_TOP
+
+    //------------------+
+    // Dados do cliente |
+    //------------------+
+    _oSay01 := TSay():New( 003, 002, {|| "Pedido: " + _cNumEc } , _oPanel_01, "", _oFont20N, /*uParam7*/, /*uParam8*/, /*uParam9*/, .T., CLR_WHITE, /*nClrBack*/  , 200, 020, /*uParam15*/, /*uParam16*/, /*uParam17*/, /*uParam18*/, /*uParam19*/, /*lHTML*/, /*nTxtAlgHor*/, /*nTxtAlgVer*/ )
+    _oSay02 := TSay():New( 003, 300, {|| "Emissao: " + _dDtEmissao } , _oPanel_01, "", _oFont20N, /*uParam7*/, /*uParam8*/, /*uParam9*/, .T., CLR_WHITE, /*nClrBack*/  , 150, 020, /*uParam15*/, /*uParam16*/, /*uParam17*/, /*uParam18*/, /*uParam19*/, /*lHTML*/, /*nTxtAlgHor*/, /*nTxtAlgVer*/ )
+    _oSay03 := TSay():New( 018, 002, {|| "Cliente\Loja: " + _cCodCli + " \ " + _cLojaCli } , _oPanel_01, "", _oFont20N, /*uParam7*/, /*uParam8*/, /*uParam9*/, .T., CLR_WHITE, /*nClrBack*/  , 150, 020, /*uParam15*/, /*uParam16*/, /*uParam17*/, /*uParam18*/, /*uParam19*/, /*lHTML*/, /*nTxtAlgHor*/, /*nTxtAlgVer*/ )
+    _oSay04 := TSay():New( 018, 300, {|| "Nome: " + _cRazao } , _oPanel_01, "", _oFont20N, /*uParam7*/, /*uParam8*/, /*uParam9*/, .T., CLR_WHITE, /*nClrBack*/  , 500, 020, /*uParam15*/, /*uParam16*/, /*uParam17*/, /*uParam18*/, /*uParam19*/, /*lHTML*/, /*nTxtAlgHor*/, /*nTxtAlgVer*/ )
+
+    //---------------+
+	// Painel Imagem | 
+	//---------------+
+	_oPanel_02 := TPanel():New(000,000,"",_oDlg,Nil,.T.,.F.,Nil,CLR_WHITE,000,377,.T.,.F.)
+	_oPanel_02:Align := CONTROL_ALIGN_TOP
+
+    //----------------------------+
+    // Rotina monta status pedido |
+    //----------------------------+
+    _cFileHtml  := _cTmpHtml + CriaTrab(Nil, .F.) + ".htm"
+    EcLoj017f(_cNumEc,_dDtEmissao,_oPanel_02,_oBrowse,_oBrowse:nAt,@_cFileHtml)
+
+    //---------------+
+	// Painel Botoes | 
+	//---------------+
+	_oPanel_03 := TPanel():New(000,000,"",_oDlg,Nil,.T.,.F.,Nil,CLR_CINZA,000,020,.T.,.F.)
+	_oPanel_03:Align := CONTROL_ALIGN_BOTTOM
+
+    //---------+
+    // Legenda | 
+    //---------+
+    _oBtn_Sair	:= TButton():New( 003, 540 , "Sair"     , _oPanel_03, {|| FErase(_cFileHtml), _oDlg:End() }	, 042,015,,,.F.,.T.,.F.,,.F.,,,.F. )
+
+    _oDlg:lCentered := .T.
+_oDlg:Activate()
+
+Return Nil 
+
+/****************************************************************************/
+/*/{Protheus.doc} EcLoj017f
+    @description Monta imagem e status do pedido 
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 19/06/2020
+/*/
+/****************************************************************************/
+Static Function EcLoj017f(_cNumEc,_dDtEmissao,_oPanel_02,_oBrowse,_nLin,_cFileHtml)
+Local _aStatus  := {}
+
+Local _cStatus  := ""
+Local _cHtml    := ""
+
+Local _nTNumEc  := TamSx3("WS2_NUMECO")[1]
+Local _nTStatus := TamSx3("WS2_CODSTA")[1]
+Local _nPSta_01 := aScan(_oBrowse:aHeader,{|x| RTrim(x[2]) == "HIS_STA01"})
+Local _nPSta_02 := aScan(_oBrowse:aHeader,{|x| RTrim(x[2]) == "HIS_STA02"})
+Local _nPSta_03 := aScan(_oBrowse:aHeader,{|x| RTrim(x[2]) == "HIS_STA03"})
+Local _nPSta_04 := aScan(_oBrowse:aHeader,{|x| RTrim(x[2]) == "HIS_STA04"})
+Local _nPSta_05 := aScan(_oBrowse:aHeader,{|x| RTrim(x[2]) == "HIS_STA05"})
+Local _nPSta_06 := aScan(_oBrowse:aHeader,{|x| RTrim(x[2]) == "HIS_STA06"})
+Local _nPSta_07 := aScan(_oBrowse:aHeader,{|x| RTrim(x[2]) == "HIS_STA07"})
+
+Local _oTiBrowse:= Nil
+
+//-----------------------------
+// Posiciona historico pedido |
+//-----------------------------
+dbSelectArea("WS2")
+WS2->( dbSetOrder(1) )
+
+//--------------------+
+// Pagamento Aprovado | 
+//--------------------+
+If _oBrowse:aCols[_nLin][_nPSta_01] == "CHECKOK"
+    If WS2->( dbSeek(xFilial("WS2") + PadR(_cNumEc,_nTNumEc) + PadR("002",_nTStatus)))
+        aAdd(_aStatus,{WS2->WS2_CODSTA, FwNoAccent(Posicione("WS1", 1, xFilial("WS1") + "002","WS1_DESCRI")),dToc(ws2->WS2_DATA),WS2->WS2_HORA})
+    EndIf
+EndIf
+
+//-----------------+
+// Pedido liberado |
+//-----------------+
+If _oBrowse:aCols[_nLin][_nPSta_02] == "CHECKOK"
+    WS2->( dbSeek(xFilial("WS2") + PadR(_cNumEc,_nTNumEc) + PadR("002",_nTStatus)))
+    aAdd(_aStatus,{WS2->WS2_CODSTA, FwNoAccent(Posicione("WS1", 1, xFilial("WS1") + "003","WS1_DESCRI")),dToc(ws2->WS2_DATA),WS2->WS2_HORA})
+EndIf
+
+//----------------------------+
+// Pedido Bloqueio de Estoque |
+//----------------------------+
+If _oBrowse:aCols[_nLin][_nPSta_03] == "CHECKOK"
+    If WS2->( dbSeek(xFilial("WS2") + PadR(_cNumEc,_nTNumEc) + PadR("004",_nTStatus)))
+        aAdd(_aStatus,{WS2->WS2_CODSTA, FwNoAccent(Posicione("WS1", 1, xFilial("WS1") + "004","WS1_DESCRI")),dToc(ws2->WS2_DATA),WS2->WS2_HORA})
+    EndIf
+EndIf
+
+//----------------------+
+// Liberado Faturamento |
+//----------------------+
+If _oBrowse:aCols[_nLin][_nPSta_04] == "CHECKOK"
+    If WS2->( dbSeek(xFilial("WS2") + PadR(_cNumEc,_nTNumEc) + PadR("011",_nTStatus)))
+        aAdd(_aStatus,{WS2->WS2_CODSTA, FwNoAccent(Posicione("WS1", 1, xFilial("WS1") + "011","WS1_DESCRI")),dToc(ws2->WS2_DATA),WS2->WS2_HORA})
+    EndIf
+EndIf
+
+//---------------------+
+// Pedido em separação |
+//---------------------+
+If _oBrowse:aCols[_nLin][_nPSta_05] == "CHECKOK"
+    WS2->( dbSeek(xFilial("WS2") + PadR(_cNumEc,_nTNumEc) + PadR("011",_nTStatus)))
+    aAdd(_aStatus,{WS2->WS2_CODSTA, FwNoAccent(Posicione("WS1", 1, xFilial("WS1") + "010","WS1_DESCRI")),dToc(ws2->WS2_DATA),WS2->WS2_HORA})
+EndIf
+
+//----------+
+// Faturado |
+//----------+
+If _oBrowse:aCols[_nLin][_nPSta_06] == "CHECKOK"
+    If WS2->( dbSeek(xFilial("WS2") + PadR(_cNumEc,_nTNumEc) + PadR("005",_nTStatus)))
+        aAdd(_aStatus,{WS2->WS2_CODSTA, FwNoAccent(Posicione("WS1", 1, xFilial("WS1") + "005","WS1_DESCRI")),dToc(ws2->WS2_DATA),WS2->WS2_HORA})
+    EndIf
+EndIf
+
+//------------+
+// Despachado |
+//------------+
+If _oBrowse:aCols[_nLin][_nPSta_07] == "CHECKOK"
+    If WS2->( dbSeek(xFilial("WS2") + PadR(_cNumEc,_nTNumEc) + PadR("006",_nTStatus)))
+        aAdd(_aStatus,{WS2->WS2_CODSTA, FwNoAccent(Posicione("WS1", 1, xFilial("WS1") + "006","WS1_DESCRI")),dToc(ws2->WS2_DATA),WS2->WS2_HORA})
+    EndIf
+EndIf
+
+//--------------------------+
+// Monta HTML status pedido |
+//--------------------------+
+EcLoj017g(_cStatus,_aStatus,@_cHtml,@_cFileHtml)
+
+_oTiBrowse := TWebEngine():New(_oPanel_02, 000, 000, 000, 000)
+_oTiBrowse:Align := CONTROL_ALIGN_ALLCLIENT
+_oTiBrowse:Navigate(_cFileHtml)
+
+_oPanel_02:Refresh()
+
+Return .T.
+
+/****************************************************************************/
+/*/{Protheus.doc} EcLoj017g
+    @description Monta HTML do status dos pedidos
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 17/06/2020
+/*/
+/****************************************************************************/
+Static Function EcLoj017g(_cStatus,_aStatus,_cHtml,_cFileHtml)
+Local _nHdl := 0
+Local _nX   := 0
+
+_cHtml := '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
+_cHtml += '<html xmlns="http://www.w3.org/1999/xhtml">'
+_cHtml += '<head>'
+_cHtml += '    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>'
+_cHtml += '</head>'
+_cHtml += '<body>'
+_cHtml += '    <table align="center" style="margin: 0 auto; text-align: center" bgcolor="#FFFFFF" height="50" width="600" cellspacing="0" cellpadding="0" border="0">'
+_cHtml += '        <tr>'
+_cHtml += '            <td height="1px" style="border-bottom:5px solid #000000;"></td>'
+_cHtml += '        </tr>'
+_cHtml += '        <tr>'
+_cHtml += '            <td height="3px"></td>'
+_cHtml += '        </tr>'
+_cHtml += '        <tr>'
+_cHtml += '            <td bgcolor="#000000" height="60px"><span style=" font-size:25px; color: #FFF; font-weight:bold; font-family:Arial, Helvetica, sans-serif;">Historico Pedido</span></td>'
+_cHtml += '        </tr>'
+_cHtml += '        <tr>'
+_cHtml += '            <td>&nbsp;</td>'
+_cHtml += '        </tr>'
+_cHtml += '		   <tr>'
+_cHtml += '			<td>'
+_cHtml += ' 			  <table width="600" border="0" cellspacing="0" cellpadding="0" style="font-family:Ubuntu, Helvetica, Arial, sans-serif; text-align: center; font-size:10px;">'
+_cHtml += '				<tr>'
+
+//---------------+
+// Imagem Status |
+//---------------+
+For _nX := 1 To Len(_aStatus)
+    _cHtml += '   					<td height="60px" align = "center"><img src="' + RTrim(GetTempPath()) + 'br_cinza_ocean.gif" style=" border:0; display: block; text-align: center;" width="15" height="15" alt="#TEXTOSTATUS#"/></td>'
+Next _nX 
+
+_cHtml += '                 </tr>'
+_cHtml += ' 				<tr>'
+
+//------------------+
+// Descrição Status |
+//------------------+
+For _nX := 1 To Len(_aStatus)
+    _cHtml += '   					<td>' +  RTrim(_aStatus[_nX][2]) + '</td>'
+Next _nX 
+
+_cHtml += '                 </tr>'
+_cHtml += '				 <tr>'
+_cHtml += '					<td>&nbsp;</td>'
+_cHtml += '				 </tr>'
+_cHtml += '				 <tr>'
+
+//-------------+
+// Data Status |
+//-------------+
+For _nX := 1 To Len(_aStatus)
+    _cHtml += '					<td>' +  _aStatus[_nX][3] + '</td>'
+Next _nX 
+_cHtml += '              </tr>'
+_cHtml += '				 <tr>'
+
+//-------------+
+// Hora Status |
+//-------------+
+For _nX := 1 To Len(_aStatus)
+    _cHtml += '             <td>' +  RTrim(_aStatus[_nX][4]) + '</td>'
+Next _nX 					
+
+_cHtml += '                 </tr>'
+_cHtml += '			  </table>'
+_cHtml += '		   </td>'
+_cHtml += '		</tr>'
+_cHtml += '    </table>'
+_cHtml += '</body>'
+_cHtml += '</html>'
+
+_nHdl  := fCreate(_cFileHtml)
+FWrite(_nHdl, _cHtml)
+FClose(_nHdl)
+
+Return .T.
 
 /********************************************************************************************************/
 /*/{Protheus.doc} EcLoj017Qry
