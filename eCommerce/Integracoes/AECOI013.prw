@@ -104,6 +104,7 @@ Static Function AECOINT13(cOrderId)
 Local aArea		:= GetArea()
 Local aRet		:= {.F.,"",""}
 
+Local _cCodDLog := GetNewPar("DN_CODDLOG")
 Local cChaveNfe := ""
 Local cTracking := ""
 Local cUrlTrack := ""
@@ -140,6 +141,12 @@ aEcoI13DtaE(WSA->WSA_DOC,WSA->WSA_SERIE,WSA->WSA_CLIENT,WSA->WSA_LOJA,@cChaveNfe
 cTracking 	:= Alltrim(WSA->WSA_TRACKI)
 cNumTransp	:= WSA->WSA_TRANSP
 
+//------------------+
+// Valida se é DLog |
+//------------------+
+If Rtrim(cNumTransp) $ RTrim(_cCodDLog)
+	aEcoI13Url(WSA->WSA_NUMECO,@cUrlTrack,@cTracking)
+EndIf
 //-----------------------+
 // Monta String API Rest |
 //-----------------------+
@@ -235,20 +242,49 @@ RestArea(aArea)
 Return .T.
 
 /********************************************************************/
+/*/{Protheus.doc} aEcoI13Url
+	@description Retorna URL de rastreio 
+	@author Bernard M. Margarido
+	@since 14/02/2017
+	@version undefined
+	@type function
+/*/
+/********************************************************************/
+Static Function aEcoI13Url(_cNumEco,cUrlTrack,cTracking)
+Local _cAlias	:= ""
+Local _cQuery   := ""
+
+Local _oJSonUrl	:= Nil 
+
+_cQuery := " SELECT " + CRLF
+_cQuery	+= "	ZZC.R_E_C_N_O_ RECNOZZC, " + CRLF
+_cQuery	+= "	ZZC.ZZC_STATUS STATUS, " + CRLF
+_cQuery	+= "	CAST(CAST( ZZC.ZZC_JSON AS BINARY(1024)) AS VARCHAR(1024)) JSON_DLOG " + CRLF
+_cQuery	+= " FROM " + CRLF
+_cQuery	+= "	" + RetSqlName("ZZC") + " ZZC " + CRLF 
+_cQuery	+= " WHERE " + CRLF
+_cQuery	+= "	ZZC.ZZC_FILIAL = '" + xFilial("ZZC") + "' AND " + CRLF
+_cQuery	+= "	ZZC.ZZC_NUMECO = '" + _cNumEco + "' AND " + CRLF
+_cQuery	+= "	ZZC.D_E_L_E_T_ = '' " + CRLF
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+If (_cAlias)->STATUS == "2"
+	_oJSonUrl 	:= xFromJson(RTrim((_cAlias)->JSON_DLOG))
+	cUrlTrack	:= _oJSonUrl[#"linkRastreamento"]
+EndIf
+
+(_cAlias)->( dbCloseArea() )
+
+Return Nil 
+
+/********************************************************************/
 /*/{Protheus.doc} AEcoI13Inv
-
-@description Rotina realiza o envio da Invoice para o e-Commerce
-
-@author Bernard M. Margarido
-@since 14/02/2017
-@version undefined
-
-@param cDocNum	, characters, Numero do Documento
-@param cSerie	, characters, Serie Documento
-@param cOrderId	, characters, Numero pedido e-Commerce 
-@param cRest	, characters, String API REST
-
-@type function
+	@description Rotina realiza o envio da Invoice para o e-Commerce
+	@author Bernard M. Margarido
+	@since 14/02/2017
+	@version undefined
+	@type function
 /*/
 /********************************************************************/
 Static Function AEcoI13Inv(cDocNum,cSerie,cOrderId,cRest)
@@ -344,16 +380,11 @@ Return .T.
 
 /*******************************************************************/
 /*/{Protheus.doc} RetPrcUni
-
-@description Formata valor para envio ao eCommerce
-
-@author Bernard M. Margarido
-@since 13/02/2017
-@version undefined
-
-@param nVlrUnit, numeric, descricao
-
-@type function
+	@description Formata valor para envio ao eCommerce
+	@author Bernard M. Margarido
+	@since 13/02/2017
+	@version undefined
+	@type function
 /*/
 /*******************************************************************/
 Static Function RetPrcUni(nVlrUnit) 
@@ -363,18 +394,12 @@ Return nValor
 
 /*********************************************************************************/
 /*/{Protheus.doc} LogExec
-
-@description Grava Log do processo 
-
-@author SYMM Consultoria
-@since 26/01/2017
-@version undefined
-
-@param cMsg, characters, descricao
-
-@type function
+	@description Grava Log do processo 
+	@author SYMM Consultoria
+	@since 26/01/2017
+	@version undefined
+	@type function
 /*/
-
 /*********************************************************************************/
 Static Function LogExec(cMsg)
 	CONOUT(cMsg)

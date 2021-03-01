@@ -29,6 +29,17 @@ If _lJob
 	RpcSetEnv(_cEmpInt, _cFilInt,,,'LOJ')
 EndIf
 
+//--------------------------+
+// Cria arquivo de semaforo |
+//--------------------------+
+If !LockByName("SIGM005", .T., .T.)
+    CoNout("<< SIGM005 >> - ROTINA JA ESTA SENDO EXECUTADA.")
+    If _lJob
+        RpcClearEnv()
+    EndIf
+	Return Nil 
+EndIf
+
 //----------------------------------+
 // Criação de Pre Lista de Postagem |
 //----------------------------------+
@@ -42,6 +53,11 @@ CoNout("<< SIGM005 >> - FIM CRIA CRIA PRE LISTA DE POSTAGEM " + dTos( Date() ) +
 CoNout("<< SIGM005 >> - INICIO ENVIA PRE LISTA DE POSTAGEM " + dTos( Date() ) + " - " + Time() )
     U_SIGM004()
 CoNout("<< SIGM005 >> - FIM ENVIA PRE LISTA DE POSTAGEM " + dTos( Date() ) + " - " + Time() )
+
+//----------------------------+
+// Exclui arquivo de semaforo |
+//----------------------------+
+UnLockByName("SIGM005",.T.,.T.)
 
 //------------------------+
 // Fecha empresa / filial |

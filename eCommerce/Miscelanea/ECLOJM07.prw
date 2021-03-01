@@ -31,6 +31,17 @@ If _lJob
 	RpcSetEnv(_cEmpInt, _cFilInt,,,'LOJ')
 EndIf
 
+//--------------------------+
+// Cria arquivo de semaforo |
+//--------------------------+
+If !LockByName("ECLOJM07", .T., .T.)
+    CoNout("<< ECLOJM07 >> - ROTINA JA ESTA SENDO EXECUTADA.")
+    If _lJob
+        RpcClearEnv()
+    EndIf
+	Return Nil 
+EndIf
+
 //-----------------------+
 // Integração de Pedidos |
 //-----------------------+
@@ -43,6 +54,11 @@ Else
 EndIf
 
 CoNout("<< ECLOJM07 >> - FIM  ENVIO INVOICE ECOMMERCE " + dTos( Date() ) + " - " + Time() )
+
+//----------------------------+
+// Exclui arquivo de semaforo |
+//----------------------------+
+UnLockByName("ECLOJM07",.T.,.T.)
 
 //------------------------+
 // Fecha empresa / filial |
@@ -119,7 +135,7 @@ While (_cAlias)->( !Eof() )
         //------------------------+
         // Grava Status do Pedido |
         //------------------------+
-        u_AEcoStaLog(_cCodSta,_cOrderId,WSA->WSA_NUM,dDataBase,Time())
+        u_AEcoStaLog("006",WSA->WSA_NUMECO,WSA->WSA_NUM,dDataBase,Time())
 
         CoNout("<< ECLOJM07 >> - PEDIDO ECOMMERCE " + RTrim(WSA->WSA_NUMECO) + "ENVIADO COM SUCESSO." )
     EndIf

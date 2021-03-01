@@ -195,6 +195,7 @@ Local _cChaveNfe    := ""
 Local _cCodSta      := ""
 Local _cDescSta     := ""
 Local _cRastreio    := ""
+Local _cNumEco      := ""
 
 Local _nX           := 0
 
@@ -212,6 +213,12 @@ ZZB->( dbSeek(xFilial("ZZB") + ::cCodigo ) )
 //---------------+
 dbSelectArea("ZZC")
 ZZC->( dbSetOrder(2) )
+
+//---------------+
+// Posiciona WSA |
+//---------------+
+dbSelectArea("WSA")
+WSA->( dbSetOrder(2) )
 
 //-----------------+
 // Roda URL em SSL | 
@@ -270,10 +277,24 @@ If ::oFwRest:Post(::aHeadOut)
             // Grava informações nos itens da postagem | 
             //-----------------------------------------+
             If ZZC->( dbSeek(xFilial("ZZC") + ::cCodigo + Padr(SubStr(_cChaveNfe,29,6),_nTDoc) + PadR(SubStr(_cChaveNfe,24,2),_nTSerie)))
+                _cNumEco    := ZZC->ZZC_NUMECO
                 RecLock("ZZC",.F.)
                     ZZC->ZZC_JSON   := _cMemoRest
                     ZZC->ZZC_STATUS := IIF(_cCodSta == 1 ,"2","3")
                 ZZC->( MsUnLock() )
+
+                //-----------------------------------+    
+                // Atualiza status pedido e-Commerce |
+                //-----------------------------------+
+                If _cCodSta == 1
+                    If WSA->( dbSeek(xFilial("WSA") + _cNumEco) )
+                        RecLock("WSA",.F.)
+                            WSA->WSA_ENVLOG := "4"
+                            WSA->WSA_CODSTA := "005"
+                            WSA->WSA_DESTAT := Posicione("WS1",1,xFilial("WS1") + "005","WS1_DESCRI")
+                        WSA->( MsUnLock() )
+                    EndIf
+                EndIf
             EndIf
         Next _nX 
         
