@@ -561,6 +561,7 @@ _cQuery += "		WSA.WSA_EMISSA BETWEEN '" + dTos(_cEmissaoDe) + "' AND '" + dTos(_
 _cQuery += "		WSA.D_E_L_E_T_ = '' " + CRLF
 _cQuery += "	GROUP BY WSA.WSA_NUMECO, WSA.WSA_CODSTA, A1.A1_NOME, WSA.WSA_EMISSA, STATUS_ECOMM.WS2_CODSTA " + CRLF
 _cQuery += " )HISTORICO " + CRLF
+_cQuery += " ORDER BY  DTEMISSAO " + CRLF
 /*
 _cQuery += " PIVOT ( SUM(TOTSTA) FOR CODSTA IN([002],[003],[004],[011],[010],[005],[006]) ) AS STAPROD " + CRLF
 _cQuery += " ORDER BY PEDIDO, CLIENTE "

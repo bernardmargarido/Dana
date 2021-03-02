@@ -1,6 +1,8 @@
 #INCLUDE "TOTVS.CH"
 #INCLUDE "PROTHEUS.CH"
 #INCLUDE "FWMVCDEF.CH"
+#INCLUDE "AARRAY.CH"
+#INCLUDE "JSON.CH"
 
 /******************************************************************************/
 /*/{Protheus.doc} DLOGA01
@@ -66,7 +68,7 @@ _oStruZZC	:= FWFormStruct(1,"ZZC")
 //-------+
 // Model |
 //-------+
-_oModel 	:= MPFormModel():New('DLOGA_01', /*bPreValid*/ , /*_bPosValid*/ , _bCommit , /*_bCancel*/ )
+_oModel 	:= MPFormModel():New('DLOGA_01', /*bPreValid*/ , /*_bPosValid*/ , /*_bCommit*/ , /*_bCancel*/ )
 _oModel:SetDescription('DLOG - Monitor')
 
 //-----------------+
@@ -148,8 +150,11 @@ _oView:CreateVerticalBox( 'ESQ_S1'   ,100 , 'INF_01' )
 //--------------+
 // Panel Botoes | 
 //--------------+
-//_oView:AddOtherObject("VIEW_BTN", {|_oPanel| DlogA01Btn(_oPanel)})   
+_oView:AddUserButton( 'Atualiza Romaneio', 'CLIPS', {|_oView| FwMsgRun(,{|_oView| DlogA01A(_oView),"Aguarde...","Validando romaneio..."})} )
 
+//--------------------------------+
+// Ajusta paineis nas coordenadas |
+//--------------------------------+
 _oView:SetOwnerView('ZZB_FORM'	    ,'SUP_01')
 _oView:SetOwnerView('ZZC_GRID'	    ,'ESQ_S1')
 //_oView:SetOwnerView('XT3_GRID'	    ,'DIR_S1')
@@ -167,6 +172,193 @@ _oView:EnableTitleView('ZZC_GRID','Notas Postagem')
 //_oView:AddUserButton( 'Visualiza NF-e', 'CLIPS', {|_oView| U_BSFATA07() } )
 
 Return _oView 
+
+/***************************************************************************************/
+/*/{Protheus.doc} DlogA01A
+	@description Atualiza dados do romaneio 
+	@type  Static Function
+	@author Bernard M. Margarido
+	@since 02/03/2021
+/*/
+/***************************************************************************************/
+Static Function DlogA01A(_oView)
+Local _aArea		:= GetArea()
+Local _aSaveRows	:= FWSaveRows()
+
+Local _nX			:= 0
+
+Local _cNumEco		:= ""
+Local _cMemo		:= ""
+Local _cDoc			:= ""
+Local _cSerie		:= ""
+
+Local _lStaOk		:= .F.
+
+Local _oModel 		:= FwModelActive()
+Local _oModel_ZZB	:= _oModel:GetModel( 'ZZB_01' )
+Local _oModel_ZZC   := _oModel:GetModel( 'ZZC_01' )
+
+//-----------------------+
+// Posiciona Nota Fiscal |
+//-----------------------+
+dbSelectArea("SF2")
+SF2->( dbSetOrder(1) )
+
+For _nX := 1 To _oModel_ZZC:Length()
+
+	//----------------------+
+	// Posiciona linha Grid |
+	//----------------------+
+	_oModel_ZZC:GoLine(_nX)
+
+	//-------------------------+
+	// Somente itens com erros |
+	//-------------------------+
+	If FwFldGet("ZZC_STATUS") == "3"
+		_cNumEco	:= FwFldGet("ZZC_NUMECO")
+		_cMemo		:= FwFldGet("ZZC_JSON")
+		_cDoc		:= FwFldGet("ZZC_NOTA")
+		_cSerie		:= FwFldGet("ZZC_SERIE")
+
+		//-----------------------+
+		// Posiciona Nota Fiscal |
+		//-----------------------+
+		If SF2->( dbSeek(xFilial("SF2") + _cDoc + _cSerie) )
+			If !Empty(SF2->F2_CHVNFE)
+				If DLogA01B(_cNumEco,SF2->F2_CHVNFE,@_cMemo)
+					_lStaOk	:= .T.
+					FwFldPut("ZZC_JSON", _cMemo)		
+					FwFldPut("ZZC_STATUS", "2")		
+				EndIf
+			EndIf
+		EndIf
+	EndIf
+
+Next _nX 
+
+//---------------------------+
+// Atualiza status cabeçalho |
+//---------------------------+
+If _lStaOk
+	FwFldPut("ZZB_STATUS", "2")
+EndIf
+
+_oView:Refresh()
+
+FwRestRows(_aSaveRows)
+RestArea(_aArea)
+Return _oView
+
+/***************************************************************************************/
+/*/{Protheus.doc} DLogA01B
+	@description Consulta Chave NF-E na DLOG
+	@type  Static Function
+	@author Bernard M. Margarido
+	@since 02/03/2021
+/*/
+/***************************************************************************************/
+Static Function DLogA01B(_cNumEco,_cChaveNfe,_cMemo)
+Local _cJSon	:= ""
+Local _cLink	:= ""
+Local _cCodSta	:= ""
+Local _cDescSta	:= ""
+
+Local _nY		:= 0
+
+Local _lRet 	:= .F.
+
+Local _oJSon	:= Nil 
+Local _oStatus	:= Nil 
+Local _oRetSta	:= Nil 
+Local _oMemo	:= Nil 
+Local _oDLog	:= DLog():New()
+
+//----------------------------+
+// Posiciona Pedido eCommerce |
+//----------------------------+
+dbSelectArea("WSA")
+WSA->( dbSetOrder(2) )
+
+_oJSon						:= Nil 
+_oJSon						:= Array(#)
+_oJSon[#"recStatus"]	    := {}
+aAdd(_oJSon[#"recStatus"],Array(#))
+_oStatus := aTail(_oJSon[#"recStatus"])	
+_oStatus[#"nfChave"]	     := _cChaveNfe   
+_oStatus[#"allStatusTrack"]  := .T.
+
+//--------------------------+
+// Envia Postagem para DLog |
+//--------------------------+
+_cJSon  := EncodeUTF8(xToJson(_oJSon))
+
+_oDLog:cJSon 	:= _cJSon 
+If _oDLog:StatusLista()
+	If ValType(_oDLog:oJSon) <> "U"
+		_oRetSta := _oDLog:oJSon[#"response"][#"responseStatus"]
+
+		If ValType(_oRetSta) == "A"
+			For _nY := 1 To Len(_oRetSta)
+				If _oRetSta[_nY][#"codSubStatus"] == 1
+					//------------------------+	
+					// Salva dados retornados |
+					//------------------------+	
+					_cLink 		:= _oRetSta[_nY][#"linkRastreamento"]
+					_cCodSta	:= _oRetSta[_nY][#"codSubStatus"] 
+					_cDescSta	:= _oRetSta[_nY][#"descrSubStatus"] 
+					
+					//--------------------+
+					// Atualiza JSON DLOG |
+					//--------------------+
+					_oMemo 		:= xFromJson(_cMemo)
+					_oMemo[#"codSubStatus"]		:= _cCodSta
+					_oMemo[#"descrSubStatus"]	:= _cDescSta
+					_oMemo[#"linkRastreamento"] := _cLink
+					_cMemo 		:= xToJson(_oMemo)
+					_lRet		:= .T.
+				EndIf
+			Next _nY 
+		ElseIf ValType(_oRetSta) == "O"
+			If _oRetSta[#"codSubStatus"] == 1
+				//------------------------+	
+				// Salva dados retornados |
+				//------------------------+	
+				_cLink 		:= _oRetSta[#"linkRastreamento"]
+				_cCodSta	:= _oRetSta[#"codSubStatus"] 
+				_cDescSta	:= _oRetSta[#"descrSubStatus"] 
+				
+				//--------------------+
+				// Atualiza JSON DLOG |
+				//--------------------+
+				_oMemo 		:= xFromJson(_cMemo)
+				_oMemo[#"codSubStatus"]		:= _cCodSta
+				_oMemo[#"descrSubStatus"]	:= _cDescSta
+				_oMemo[#"linkRastreamento"] := _cLink
+				_cMemo 		:= xToJson(_oMemo)
+				_lRet		:= .T.
+			EndIf
+		EndIf
+	EndIf
+EndIf
+
+//-----------------------------------------+
+// Atualiza informações para envio do Link |
+//-----------------------------------------+
+If _lRet
+	If WSA->( dbSeek(xFilial("WSA") + _cNumEco) )
+		RecLock("WSA",.F.)
+			WSA->WSA_ENVLOG := "4"
+		WSA->( MsUnLock() )	
+	EndIf
+EndIf
+
+FreeObj(_oJSon)
+FreeObj(_oStatus)
+FreeObj(_oRetSta)
+FreeObj(_oMemo)
+FreeObj(_oDLog)
+
+Return _lRet 
 
 /***************************************************************************************/
 /*/{Protheus.doc} MENUDEF

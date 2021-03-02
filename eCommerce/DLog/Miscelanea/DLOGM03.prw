@@ -106,35 +106,42 @@ While (_cAlias)->( !Eof() )
 	_oJSon[#"listaPostagem"]	:= {}
 
 	While (_cAlias)->( !Eof() .And. _cCodPLP == (_cAlias)->ZZB_CODIGO )
-		
-		aAdd(_oJSon[#"listaPostagem"],Array(#))
-    	_oNotas := aTail(_oJSon[#"listaPostagem"])	
 
-		_oNotas[#"notaFiscal"]											:= Array(#)
-        _oNotas[#"notaFiscal"][#"idTabFrete"]							:= ""
-		_oNotas[#"notaFiscal"][#"nfChave"]								:= RTrim((_cAlias)->F2_CHVNFE)
-		_oNotas[#"notaFiscal"][#"nfNumero"]								:= RTrim((_cAlias)->ZZC_NOTA)
-		_oNotas[#"notaFiscal"][#"nfSerie"]								:= RTrim((_cAlias)->ZZC_SERIE)
-		_oNotas[#"notaFiscal"][#"nfDataHora"]							:= RTrim((_cAlias)->F2_DTDANFE) + "T" + RTrim((_cAlias)->F2_HORNFE)
-		_oNotas[#"notaFiscal"][#"nfTpServico"]							:= "0"
-		_oNotas[#"notaFiscal"][#"nfPedidoVenda"]						:= RTrim((_cAlias)->ZZC_NUMSC5)
-		_oNotas[#"notaFiscal"][#"enderecoEntrega"] 						:= Array(#)
-        _oNotas[#"notaFiscal"][#"enderecoEntrega"][#"pessoaJuridica"] 	:= IIF( (_cAlias)->A1_PESSOA == "F", .F., .T.)
-        _oNotas[#"notaFiscal"][#"enderecoEntrega"][#"cpfCnpjDest"]		:= IIF( (_cAlias)->A1_PESSOA == "F", RTrim((_cAlias)->A1_CGC), PadL(RTrim((_cAlias)->A1_CGC),_nTCnpj,"0"))
-        _oNotas[#"notaFiscal"][#"enderecoEntrega"][#"ieDest"]			:= RTrim((_cAlias)->A1_INSCR)
-        _oNotas[#"notaFiscal"][#"enderecoEntrega"][#"nomeDest"]			:= RTrim((_cAlias)->WSA_NOMDES)
-        _oNotas[#"notaFiscal"][#"enderecoEntrega"][#"logradouroDest"]	:= SubStr((_cAlias)->WSA_ENDENT, 1, At(",",(_cAlias)->WSA_ENDENT) - 1)
-        _oNotas[#"notaFiscal"][#"enderecoEntrega"][#"numeroDest"]		:= RTrim((_cAlias)->WSA_ENDNUM)
-        _oNotas[#"notaFiscal"][#"enderecoEntrega"][#"complDest"]		:= RTrim((_cAlias)->WSA_COMPLE)
-        _oNotas[#"notaFiscal"][#"enderecoEntrega"][#"bairroDest"]		:= RTrim((_cAlias)->WSA_BAIRRE)
-        _oNotas[#"notaFiscal"][#"enderecoEntrega"][#"cidadeDest"]		:= RTrim((_cAlias)->WSA_MUNE)
-        _oNotas[#"notaFiscal"][#"enderecoEntrega"][#"ufDest"]			:= (_cAlias)->WSA_ESTE
-        _oNotas[#"notaFiscal"][#"enderecoEntrega"][#"cepDest"]			:= (_cAlias)->WSA_CEPE
-        _oNotas[#"notaFiscal"][#"enderecoEntrega"][#"ptoRefDest"]		:= RTrim((_cAlias)->WSA_REFEN)
-        _oNotas[#"notaFiscal"][#"enderecoEntrega"][#"foneDest"]			:= RTrim((_cAlias)->WSA_TEL01)
-        _oNotas[#"notaFiscal"][#"enderecoEntrega"][#"emailDest"]		:= RTrim((_cAlias)->A1_EMAIL)
-		_oNotas[#"notaFiscal"][#"valorProd"]							:= (_cAlias)->F2_VALMERC
-		_oNotas[#"notaFiscal"][#"valorNf"]								:= (_cAlias)->F2_VALBRUT
+		//------------------------------------------------------+
+		// Cria JSON somente de itens não enviados ou com erros |
+		//------------------------------------------------------+
+		If 	(_cAlias)->ZZB_STATUS $ "1/3"
+		
+			aAdd(_oJSon[#"listaPostagem"],Array(#))
+			_oNotas := aTail(_oJSon[#"listaPostagem"])	
+
+			_oNotas[#"notaFiscal"]											:= Array(#)
+			_oNotas[#"notaFiscal"][#"idTabFrete"]							:= ""
+			_oNotas[#"notaFiscal"][#"nfChave"]								:= RTrim((_cAlias)->F2_CHVNFE)
+			_oNotas[#"notaFiscal"][#"nfNumero"]								:= RTrim((_cAlias)->ZZC_NOTA)
+			_oNotas[#"notaFiscal"][#"nfSerie"]								:= RTrim((_cAlias)->ZZC_SERIE)
+			_oNotas[#"notaFiscal"][#"nfDataHora"]							:= RTrim((_cAlias)->F2_DTDANFE) + "T" + RTrim((_cAlias)->F2_HORNFE)
+			_oNotas[#"notaFiscal"][#"nfTpServico"]							:= "0"
+			_oNotas[#"notaFiscal"][#"nfPedidoVenda"]						:= RTrim((_cAlias)->ZZC_NUMSC5)
+			_oNotas[#"notaFiscal"][#"enderecoEntrega"] 						:= Array(#)
+			_oNotas[#"notaFiscal"][#"enderecoEntrega"][#"pessoaJuridica"] 	:= IIF( (_cAlias)->A1_PESSOA == "F", .F., .T.)
+			_oNotas[#"notaFiscal"][#"enderecoEntrega"][#"cpfCnpjDest"]		:= IIF( (_cAlias)->A1_PESSOA == "F", RTrim((_cAlias)->A1_CGC), PadL(RTrim((_cAlias)->A1_CGC),_nTCnpj,"0"))
+			_oNotas[#"notaFiscal"][#"enderecoEntrega"][#"ieDest"]			:= RTrim((_cAlias)->A1_INSCR)
+			_oNotas[#"notaFiscal"][#"enderecoEntrega"][#"nomeDest"]			:= RTrim((_cAlias)->WSA_NOMDES)
+			_oNotas[#"notaFiscal"][#"enderecoEntrega"][#"logradouroDest"]	:= SubStr((_cAlias)->WSA_ENDENT, 1, At(",",(_cAlias)->WSA_ENDENT) - 1)
+			_oNotas[#"notaFiscal"][#"enderecoEntrega"][#"numeroDest"]		:= RTrim((_cAlias)->WSA_ENDNUM)
+			_oNotas[#"notaFiscal"][#"enderecoEntrega"][#"complDest"]		:= RTrim((_cAlias)->WSA_COMPLE)
+			_oNotas[#"notaFiscal"][#"enderecoEntrega"][#"bairroDest"]		:= RTrim((_cAlias)->WSA_BAIRRE)
+			_oNotas[#"notaFiscal"][#"enderecoEntrega"][#"cidadeDest"]		:= RTrim((_cAlias)->WSA_MUNE)
+			_oNotas[#"notaFiscal"][#"enderecoEntrega"][#"ufDest"]			:= (_cAlias)->WSA_ESTE
+			_oNotas[#"notaFiscal"][#"enderecoEntrega"][#"cepDest"]			:= (_cAlias)->WSA_CEPE
+			_oNotas[#"notaFiscal"][#"enderecoEntrega"][#"ptoRefDest"]		:= RTrim((_cAlias)->WSA_REFEN)
+			_oNotas[#"notaFiscal"][#"enderecoEntrega"][#"foneDest"]			:= RTrim((_cAlias)->WSA_TEL01)
+			_oNotas[#"notaFiscal"][#"enderecoEntrega"][#"emailDest"]		:= RTrim((_cAlias)->A1_EMAIL)
+			_oNotas[#"notaFiscal"][#"valorProd"]							:= (_cAlias)->F2_VALMERC
+			_oNotas[#"notaFiscal"][#"valorNf"]								:= (_cAlias)->F2_VALBRUT
+
+		EndIf
 
 		(_cAlias)->( dbSkip() )
 
@@ -193,6 +200,7 @@ _cQuery += "	WSA.WSA_MUNE, " + CRLF
 _cQuery += "	WSA.WSA_ESTE, " + CRLF
 _cQuery += "	WSA.WSA_CEPE, " + CRLF
 _cQuery += "	WSA.WSA_TEL01, " + CRLF
+_cQuery += "	ZZB.ZZB_STATUS, " + CRLF
 _cQuery += "	ZZB.R_E_C_N_O_ RECNOZZB, " + CRLF
 _cQuery += "	ZZC.R_E_C_N_O_ RECNOZZC " + CRLF
 _cQuery += " FROM " + CRLF
