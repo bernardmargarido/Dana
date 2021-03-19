@@ -521,7 +521,7 @@ EndIf
 //-------------------+
 If Len(_aArray) > 0
     
-    lMsErroAuto := .F. 
+    lMsErroAuto := .F.  
 
     //-------------------+
     // Processa Clientes |

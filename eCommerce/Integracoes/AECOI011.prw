@@ -1325,7 +1325,7 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDesconto,nP
 		//-------------------------+
 		// Valida se é produto KIT |
 		//-------------------------+
-		If AT(cCodKit,cProduto) > 0
+		If AT(cCodKit,cProduto) > 0 .Or. ( ValType(oItems[nPrd]:Components) == "A" .And. Len(oItems[nPrd]:Components) > 0 )
 			//----------------------------+
 			// Grava itens do produto KIT |
 			//----------------------------+
@@ -1878,7 +1878,7 @@ For nPrd := 1 To Len(oItems)
 	//-------------------------+
 	// Valida se é produto KIT |
 	//-------------------------+
-	If AT(cCodKit,cProduto) > 0
+	If AT(cCodKit,cProduto) > 0 .Or. ( ValType(oItems[nPrd]:Components) == "A" .And. Len(oItems[nPrd]:Components) > 0 )
 		//-----------------------------------+
 		// Efetua a reserva dos peodutos KIT |
 		//-----------------------------------+

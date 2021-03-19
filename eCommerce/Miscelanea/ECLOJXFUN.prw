@@ -618,6 +618,7 @@ User Function ECACENTO(cTexto, lUpper,lMun)
 	AADD(aAcentos, {"Ñ"		, "N"})
 	AADD(aAcentos, {"ñ"		, "n"})
 	AAdd(aAcentos, {"?!:,./\|@#$%&"," "})
+
 	If !lMun
 		AAdd(aAcentos, {"'",""})
 		AAdd(aAcentos, {"-",""})	
