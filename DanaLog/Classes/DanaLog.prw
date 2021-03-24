@@ -14,6 +14,7 @@
 #DEFINE CRLF            CHR(13) + CHR(10)
 
 Static _nTProd  := TamSx3("B1_COD")[1]
+Static _nTPrdLo := TamSx3("B1_XCODPRD")[1]
 Static _nTCNPJ  := TamSx3("A1_CGC")[1]
 Static _nTPedD  := TamSx3("C5_XNUMDL")[1]
 Static _nTNota  := TamSx3("F1_DOC")[1]
@@ -45,7 +46,14 @@ Class DanaLog
     Data cNota      As String 
     Data cSerie     As String
     Data cPedido    As String 
-
+    Data cCodFor    As String 
+    Data cLojaFor   As String 
+    Data cCGCFor    As String 
+    Data cNomeFor   As String
+    Data cCodCli    As String 
+    Data cLojaCli   As String 
+    Data cCGCCli    As String 
+    Data cNomeCli   As String
     Data nCodeHttp  As Integer 
     Data nTExpires  As Integer
     Data nTotPage   As Integer
@@ -59,6 +67,8 @@ Class DanaLog
     Method ValidaToken()
     Method GetJSon()
     Method GetUserID()
+    Method GetFor()
+    Method GetCli()
     Method GeraToken()
     Method Produtos()
     Method Clientes()
@@ -93,6 +103,14 @@ Method New() Class DanaLog
     ::cPerPage  := ""
     ::cCnpj     := ""
     ::cPedido   := ""
+    ::cCodFor   := ""
+    ::cLojaFor  := ""
+    ::cCGCFor   := ""
+    ::cNomeFor  := ""
+    ::cCodCli   := ""
+    ::cLojaCli  := ""
+    ::cCGCCli   := ""
+    ::cNomeCli  := ""
 
     ::nTotPage  := 0
     ::nTotQry   := 0
@@ -1511,6 +1529,86 @@ RestArea(_aArea)
 Return _lRet 
 
 /****************************************************************************************/
+/*/{Protheus.doc} GetFor
+    @description Retorna dados do fornecedor ID Logistico
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/****************************************************************************************/
+Method GetFor(_cIDCliente) Class DanaLog
+Local _aArea    := GetArea()
+
+Local _cQuery   := ""
+Local _cAlias   := ""
+
+Local _lRet     := .T.
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	A2.A2_COD, " + CRLF
+_cQuery += "	A2.A2_LOJA, " + CRLF
+_cQuery += "	A2.A2_CGC, " + CRLF
+_cQuery += "	A2.A2_NOME, " + CRLF
+_cQuery += "	A2.A2_NREDUZ " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += "	" + RetSqlName("XT1") + " XT1 " + CRLF  
+_cQuery += "	INNER JOIN " + RetSqlName("SA2") + " A2 ON A2.A2_FILIAL = '" + xFilial("SA2") + "' AND A2.A2_COD = XT1.XT1_CODFOR AND A2.A2_LOJA = XT1.XT1_LOJFOR AND A2.A2_XIDLOGI = XT1.XT1_IDLOG AND A2.D_E_L_E_T_ = '' " + CRLF
+_cQuery += " WHERE " + CRLF
+_cQuery += "	XT1.XT1_FILIAL = '" + xFilial("XT1") + "' AND " + CRLF
+_cQuery += "	XT1.XT1_IDLOG  = '" + _cIDCliente + "' AND " + CRLF
+_cQuery += "	XT1.D_E_L_E_T_ = '' " + CRLF
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+::cCodFor   := (_cAlias)->A2_COD
+::cLojaFor  := (_cAlias)->A2_LOJA
+::cCGCFor   := (_cAlias)->A2_CGC
+::cNomeFor  := (_cAlias)->A2_NOME
+
+ResrArea(_aArea)
+Return _lRet 
+
+/****************************************************************************************/
+/*/{Protheus.doc} GetCli
+    @description Retorna dados do cliente ID Logistico
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 24/11/2020
+/*/
+/****************************************************************************************/
+Method GetCli(_cIDCliente) Class DanaLog
+Local _aArea    := GetArea()
+
+Local _cQuery   := ""
+Local _cAlias   := ""
+
+Local _lRet     := .T.
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	A1.A1_COD, " + CRLF
+_cQuery += "	A1.A1_LOJA, " + CRLF
+_cQuery += "	A1.A1_CGC, " + CRLF
+_cQuery += "	A1.A1_NOME, " + CRLF
+_cQuery += "	A1.A1_NREDUZ " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += "	" + RetSqlName("XT1") + " XT1 " + CRLF  
+_cQuery += "	INNER JOIN " + RetSqlName("SA1") + " A1 ON A1.A1_FILIAL = '" + xFilial("SA1") + "' AND A1.A1_COD = XT1.XT1_CODCLI AND A1.A1_LOJA = XT1.XT1_LOJCLI AND A2.A2_XIDLOGI = XT1.XT1_IDLOG AND A1.D_E_L_E_T_ = '' " + CRLF
+_cQuery += " WHERE " + CRLF
+_cQuery += "	XT1.XT1_FILIAL = '" + xFilial("XT1") + "' AND " + CRLF
+_cQuery += "	XT1.XT1_IDLOG  = '" + _cIDCliente + "' AND " + CRLF
+_cQuery += "	XT1.D_E_L_E_T_ = '' " + CRLF
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+::cCodCli   := (_cAlias)->A1_COD
+::cLojaCli  := (_cAlias)->A1_LOJA
+::cCGCCli   := (_cAlias)->A1_CGC
+::cNomeCli  := (_cAlias)->A1_NOME
+
+ResrArea(_aArea)
+Return _lRet 
+
+/****************************************************************************************/
 /*/{Protheus.doc} CriaArmazem
     @description Realiza a gravação do produto cliente logistico
     @type  Static Function
@@ -1632,6 +1730,7 @@ If ValType(_oProduto) == "A"
         
         _aArray     := {}
 
+        _cCodERP    := ""
         _cCodProd   := _oProduto[_nX][#"codigo"]
         _cDescri    := _oProduto[_nX][#"descricao"]
         _cTpProd    := _oProduto[_nX][#"tipo_produto"]
@@ -1664,29 +1763,39 @@ If ValType(_oProduto) == "A"
         //-----------------------------------+
         // Valida se produto está cadastrado | 
         //-----------------------------------+
-        If SB1->( dbSeek(xFilial("SB1") + _cCodProd + _cIDCliente) ) .And. _nOpc == 3
+        If SB1->( dbSeek(xFilial("SB1") + PadR(_cCodProd,_nTPrdLo) + _cIDCliente) ) .And. _nOpc == 3
             aAdd(_aMsgErro,{"1",RTrim(_cCodProd), "Produto já cadastrado favor utilizar o método PUT para atualização."})
             Loop 
         EndIf
 
-        aAdd(_aArray, {"B1_FILIAL"  , xFilial("SB1")              , Nil })
-        aAdd(_aArray, {"B1_COD"     , _cCodProd                   , Nil })
-        aAdd(_aArray, {"B1_DESC"    , _cDescri                    , Nil })
-        aAdd(_aArray, {"B1_TIPO"    , _cTpProd                    , Nil })
-        aAdd(_aArray, {"B1_UM"      , _cUnidade_1                 , Nil })
-        aAdd(_aArray, {"B1_SEGUM"   , _cUnidade_2                 , Nil })
-        aAdd(_aArray, {"B1_CONV"    , _nFator                     , Nil })
-        aAdd(_aArray, {"B1_TIPCONV" , _cTpConv                    , Nil })
-        aAdd(_aArray, {"B1_CODGTIN" , _cCodBar                    , Nil })
-        aAdd(_aArray, {"B1_XEANCX"  , _cCodCaixa                  , Nil })
-        aAdd(_aArray, {"B1_LOCPAD"  , _cArmazem                   , Nil })
-        aAdd(_aArray, {"B1_RASTRO"  , _cLote                      , Nil })
-        aAdd(_aArray, {"B1_POSIPI"  , _cNCM                       , Nil })
-        aAdd(_aArray, {"B1_PESO"    , _nPesoLiq                   , Nil })
-        aAdd(_aArray, {"B1_PESBRU"  , _nPesoBru                   , Nil })
-        aAdd(_aArray, {"B1_MSBLQL"  , IIF(_cBloq == "A","2","1")  , Nil })
-        aAdd(_aArray, {"B1_ORIGEM"  , _cOrigem                    , Nil })
-        aAdd(_aArray, {"B1_XIDLOGI" , _cIDCliente                 , Nil })
+        //-------------------------+
+        // Cria codigo produto ERP |
+        //-------------------------+
+        If _nOpc == 3
+            CodProdERP(@_cCodERP,_cIDCliente)
+        Else 
+            _cCodERP    := SB1->B1_COD
+        EndIf
+
+        aAdd(_aArray, {"B1_FILIAL"  , xFilial("SB1")                , Nil })
+        aAdd(_aArray, {"B1_COD"     , _cCodERP                      , Nil })
+        aAdd(_aArray, {"B1_DESC"    , _cDescri                      , Nil })
+        aAdd(_aArray, {"B1_TIPO"    , _cTpProd                      , Nil })
+        aAdd(_aArray, {"B1_UM"      , _cUnidade_1                   , Nil })
+        aAdd(_aArray, {"B1_SEGUM"   , _cUnidade_2                   , Nil })
+        aAdd(_aArray, {"B1_CONV"    , _nFator                       , Nil })
+        aAdd(_aArray, {"B1_TIPCONV" , _cTpConv                      , Nil })
+        aAdd(_aArray, {"B1_CODGTIN" , _cCodBar                      , Nil })
+        aAdd(_aArray, {"B1_XEANCX"  , _cCodCaixa                    , Nil })
+        aAdd(_aArray, {"B1_LOCPAD"  , _cArmazem                     , Nil })
+        aAdd(_aArray, {"B1_RASTRO"  , _cLote                        , Nil })
+        aAdd(_aArray, {"B1_POSIPI"  , _cNCM                         , Nil })
+        aAdd(_aArray, {"B1_PESO"    , _nPesoLiq                     , Nil })
+        aAdd(_aArray, {"B1_PESBRU"  , _nPesoBru                     , Nil })
+        aAdd(_aArray, {"B1_MSBLQL"  , IIF(_cBloq == "A","2","1")    , Nil })
+        aAdd(_aArray, {"B1_ORIGEM"  , _cOrigem                      , Nil })
+        aAdd(_aArray, {"B1_XIDLOGI" , _cIDCliente                   , Nil })
+        aAdd(_aArray, {"B1_XCODPRD" , _cCodProd                     , Nil })
 
         lMsErroAuto := .F.
         MSExecAuto({|x,y| Mata010(x,y)}, _aArray, _nOpc)
@@ -1717,12 +1826,28 @@ If ValType(_oProduto) == "A"
             //---------------------------------+ 
             // Adiciona complemento do produto | 
             //---------------------------------+
-            If ProdutoCompl(_cIDCliente,_cCodProd,_cDescri,_nPesoLiq,_nPesoBru,_nAltura,_nLargura,;
-                            _nCompr,_nPesLEmb,_nPesBEmb,_nAlturaE,_nLarguraE,_nComprE,;
-                            _cTpEmb,_nQtdEmb,_nTotEmp,_nTotPalet,@_cMsgErro)
-                //------------------------+
-                // Grava array de retorno | 
-                //------------------------+
+            _lRet :=  ProdutoCompl( _cIDCliente,_cCodERP,_cDescri,_nPesoLiq,_nPesoBru,_nAltura,_nLargura,;
+                                    _nCompr,_nPesLEmb,_nPesBEmb,_nAlturaE,_nLarguraE,_nComprE,;
+                                    _cTpEmb,_nQtdEmb,_nTotEmp,_nTotPalet,@_cMsgErro)
+
+            //----------------------+    
+            // Produto X Fornecedor |
+            //----------------------+
+            If _lRet 
+                ProdutoForn(_cIDCliente,_cCodERP,_cCodProd,_cDescri,_cCodBar,_cUnidade_1,_cNCM)
+            EndIf
+            
+            //-------------------+    
+            // Produto X Cliente |
+            //-------------------+
+            If _lRet 
+                ProdutoCli(_cIDCliente,_cCodERP,_cCodProd,_cDescri)
+            EndIf 
+
+            //------------------------+
+            // Grava array de retorno | 
+            //------------------------+
+            If _lRet 
                 aAdd(_aMsgErro,{"0",RTrim(_cCodProd), "Produto gravado com sucesso."})
             EndIf
 
@@ -2652,9 +2777,12 @@ Local _cSerOri          := ""
 Local _cItemOri         := ""
 Local _cMsgErro         := ""
 Local _cSituacao        := ""
-
+Local _cCliForP         := ""
+Local _cLojaP           := ""
 Local _dDtEmiss         := ""
 Local _dDtVldLote       := ""
+Local _cProduto         := ""
+Local _cProdFor         := ""
 
 Local _nOpcA            := 0
 Local _nX               := 0    
@@ -2692,6 +2820,18 @@ SA1->( dbOrderNickname("DANALOGCLI") )
 //----------------------+
 dbSelectArea("SA4")
 SA4->( dbOrderNickname("DANALOGTRA") )
+
+//-------------------------------+
+// SA5 - Produtos x Fornecedores |
+//-------------------------------+
+dbSelectArea("SA5")
+SA5->( dbSetOrder(13) )
+
+//---------------------------+
+// SA7 - Produtos x Clientes |
+//---------------------------+
+dbSelectArea("SA7")
+SA7->( dbSetOrder(3) )
 
 //-----------------------+
 // SF1 - Nota de Entrada | 
@@ -2752,12 +2892,28 @@ If _cTipo == "N"
         RestArea(_aArea)
         Return .F.
     EndIf
+
+    //--------------------------+
+    // Retorna dados fornecedor |
+    //--------------------------+
+    ::GetFor(_cIDCliente)
+    _cCliForP   := ::cCodFor
+    _cLojaP     := ::cLojaFor
+
 ElseIf _cTipo == "D"
     If !SA1->( dbSeek(xFilial("SA1") + _cCnpj + _cIDCliente) )
         aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Cliente não localizado."})
         RestArea(_aArea)
         Return .F.
     EndIf
+    
+    //--------------------------+
+    // Retorna dados fornecedor |
+    //--------------------------+
+    ::GetCli(_cIDCliente)
+    _cCliForP   := ::cCodCli
+    _cLojaP     := ::cLojaCli
+
 EndIf
 
 //-----------------------+
@@ -2855,8 +3011,19 @@ For _nX := 1 To Len(_oItems)
     //---------------------+
     // Dados itens da nota | 
     //---------------------+
-    _cProduto   := PadR(_oItems[_nX][#"produto"],_nTProd)
+    _cProdFor   := PadR(_oItems[_nX][#"produto"],_nTProd)
     
+    //---------------------------------------+
+    // Busca codigo ERP Produto x Fornecedor |
+    //---------------------------------------+
+    If _cTipo == "N"
+        SA5->( dbSeek(xFilial("SA5") + _cCliForP + _cLojaP + _cProdFor) )
+        _cProduto := SA5->A5_PRODUTO
+    ElseIf _cTipo == "D"
+        SA7->( dbSeek(xFilial("SA7") + _cCliForP + _cLojaP + _cProdFor) )
+        _cProduto := SA7->A7_PRODUTO
+    EndIf    
+
     //----------------+
     // Valida produto |
     //----------------+
@@ -3138,6 +3305,10 @@ Local _cLote            := ""
 Local _cTes             := ""
 Local _cItemPv          := ""
 Local _cMsgErro         := ""
+Local _cCliForP         := ""
+Local _cLojaP           := ""
+Local _cProduto         := ""
+Local _cProdFor         := ""
 
 Local _dDtEmiss         := ""
 Local _dDtVldLote       := ""
@@ -3176,6 +3347,18 @@ SA1->( dbOrderNickname("DANALOGCLI") )
 //----------------------+
 dbSelectArea("SA4")
 SA4->( dbOrderNickname("DANALOGTRA") )
+
+//-------------------------------+
+// SA5 - Produtos x Fornecedores |
+//-------------------------------+
+dbSelectArea("SA5")
+SA5->( dbSetOrder(13) )
+
+//---------------------------+
+// SA7 - Produtos x Clientes |
+//---------------------------+
+dbSelectArea("SA7")
+SA7->( dbSetOrder(3) ) 
 
 //-----------------------+
 // SC5 - Pedido de Venda | 
@@ -3235,12 +3418,28 @@ If _cTipo == "D"
         RestArea(_aArea)
         Return .F.
     EndIf
+
+    //--------------------------+
+    // Retorna dados fornecedor |
+    //--------------------------+
+    ::GetFor(_cIDCliente)
+    _cCliForP   := ::cCodFor
+    _cLojaP     := ::cLojaFor
+
 ElseIf _cTipo == "N"
     If !SA1->( dbSeek(xFilial("SA1") + _cCnpj + _cIDCliente) )
         aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Cliente não localizado."})
         RestArea(_aArea)
         Return .F.
     EndIf
+
+    //--------------------------+
+    // Retorna dados fornecedor |
+    //--------------------------+
+    ::GetCli(_cIDCliente)
+    _cCliForP   := ::cCodCli
+    _cLojaP     := ::cLojaCli
+
 EndIf
 
 //-----------------------+
@@ -3360,13 +3559,32 @@ For _nX := 1 To Len(_oItems)
     //---------------------+
     // Dados itens da nota | 
     //---------------------+
-    _cProduto   := PadR(_oItems[_nX][#"produto"],_nTProd)
+    _cProdFor   := PadR(_oItems[_nX][#"produto"],_nTProd)
     
+    //---------------------------------------+
+    // Busca codigo ERP Produto x Fornecedor |
+    //---------------------------------------+
+    If _cTipo == "N"
+        If !SA5->( dbSeek(xFilial("SA5") + _cCliForP + _cLojaP + _cProdFor) )
+            aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Produto " + _cProdFor + " não localizado."})
+            RestArea(_aArea)
+            Return .F.
+        EndIf
+        _cProduto := SA5->A5_PRODUTO
+    ElseIf _cTipo == "D"
+        If !SA7->( dbSeek(xFilial("SA7") + _cCliForP + _cLojaP + _cProdFor) )
+            aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Produto " + _cProdFor + " não localizado."})
+            RestArea(_aArea)
+            Return .F.
+        EndIf
+        _cProduto := SA7->A7_PRODUTO
+    EndIf  
+
     //----------------+
     // Valida produto |
     //----------------+
     If !SB1->( dbSeek(xFilial("SB1") + _cProduto) )
-        aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Produto não localizado."})
+        aAdd(_aMsgErro,{"1",RTrim(_cCnpj), "Produto " + _cProdFor + " não localizado."})
         RestArea(_aArea)
         Return .F.
     EndIf
@@ -5198,7 +5416,7 @@ Return .T.
     @since 24/11/2020
 /*/
 /*************************************************************************************/
-Static Function ProdutoCompl(_cIDCliente,_cCodProd,_cDescri,_nPesoLiq,_nPesoBru,_nAltura,_nLargura,;
+Static Function ProdutoCompl(_cIDCliente,_cCodERP,_cDescri,_nPesoLiq,_nPesoBru,_nAltura,_nLargura,;
                              _nCompr,_nPesLEmb,_nPesBEmb,_nAlturaE,_nLarguraE,_nComprE,;
                              _cTpEmb,_nQtdEmb,_nTotEmp,_nTotPalet,_cMsgErro)
 
@@ -5211,11 +5429,11 @@ Local _aCompPrd := {}
 
 dbSelectArea("SB5")
 SB5->( dbSetOrder(1) )
-If SB5->( dbSeek(xFilial("SB5") + _cCodProd) )
+If SB5->( dbSeek(xFilial("SB5") + _cCodERP) )
     _nOpc := 4
 EndIf
 
-aAdd(_aCompPrd, {"B5_COD"       , _cCodProd     ,   Nil })
+aAdd(_aCompPrd, {"B5_COD"       , _cCodERP      ,   Nil })
 aAdd(_aCompPrd, {"B5_CEME"      , _cDescri      ,   Nil })
 aAdd(_aCompPrd, {"B5_COMPR"     , _nCompr       ,   Nil })
 aAdd(_aCompPrd, {"B5_ESPESS"    , _nCompr       ,   Nil })
@@ -5257,6 +5475,98 @@ If lMsErroAuto
 EndIf
 
 Return _lRet  
+
+/*************************************************************************************/
+/*/{Protheus.doc} ProdutoForn
+    @description Cria amarração produto x fornecedor
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 28/11/2020
+/*/
+/*************************************************************************************/
+Static Function ProdutoForn(_cIDCliente,_cCodERP,_cCodProd,_cDescri,_cCodBar,_cUnidade_1,_cNCM)
+Local _aArea    := GetArea()
+
+Local _lGrava   := .T.
+
+//----------------------+
+// Posiciona fornecedor | 
+//----------------------+
+If Empty(::cCodFor) .And. Empty(::cLojaFor)
+    ::GetFor(_cIDCliente)
+EndIf
+
+//---------------------------------------+
+// Posiciona tabela Produto X Fornecedor |
+//---------------------------------------+
+dbSelectArea("SA5")
+SA5->( dbSetOrder(1) )
+If SA5->( dbSeek(xFilial("SA5") + ::cCodFor + ::cLojaFor + _cCodERP) )
+    _lGrava := .F.
+EndIf
+
+//-----------------------------------------------------------+
+// Realiza a gravação/atualização de produtos x fornecedores | 
+//-----------------------------------------------------------+
+RecLock("SA5",_lGrava)
+    SA5->A5_FILIAL  := xFilial("SA5")
+    SA5->A5_PRODUTO := _cCodERP
+    SA5->A5_FORNECE := ::cCodFor
+    SA5->A5_LOJA    := ::cLojaFor
+    SA5->A5_CODPRF  := _cCodProd
+    SA5->A5_UNID    := _cUnidade_1
+    SA5->A5_CODBAR  := _cCodBar
+    SA5->A5_NCMPRF  := _cNCM
+    SA5->A5_DESCPRF := _cDescri
+    SA5->A5_XIDLOGI := _cIDCliente
+SA5->( MsUnLock() )
+
+RestArea(_aArea)
+Return .T.
+
+/*************************************************************************************/
+/*/{Protheus.doc} ProdutoCli
+    @description Cria amarração produto x clientes
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 28/11/2020
+/*/
+/*************************************************************************************/
+Static Function ProdutoCli(_cIDCliente,_cCodERP,_cCodProd,_cDescri)
+Local _aArea    := GetArea()
+
+Local _lGrava   := .T.
+
+//---------------------+
+// Busca dados cliente | 
+//---------------------+
+If Empty(::cCodCli) .And. Empty(::cLojaCli)
+    ::GetCli(_cIDCliente)
+EndIf
+
+//---------------------------------------+
+// Posiciona tabela Produto X Fornecedor |
+//---------------------------------------+
+dbSelectArea("SA7")
+SA7->( dbSetOrder(1) )
+If SA7->( dbSeek(xFilial("SA7") + ::cCodCli + ::cLojaCli + _cCodERP) )
+    _lGrava := .F.
+EndIf
+
+//-----------------------------------------------------------+
+// Realiza a gravação/atualização de produtos x fornecedores | 
+//-----------------------------------------------------------+
+RecLock("SA7",_lGrava)
+    SA7->A7_CLIENTE := ::cCodCli
+    SA7->A7_LOJA    := ::cLojaCli
+    SA7->A7_PRODUTO := _cCodERP
+    SA7->A7_CODCLI  := _cCodProd
+    SA7->A7_DESCCLI := _cDescri
+    SA7->A7_XIDLOGI := _cIDCliente
+SA7->( MsUnLock() )
+
+RestArea(_aArea)
+Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} GetArmazem
@@ -5559,6 +5869,40 @@ RestArea(aArea)
 Return cIbge 
 
 /*************************************************************************************/
+/*/{Protheus.doc} CodProdERP
+	@description Cria codigo do produto para DanaLog
+	@type  Function
+	@author Bernard M. Margarido
+	@since 23/07/2019
+	@version 1.0
+/*/
+/*************************************************************************************/
+Static Function CodProdERP(_cCodERP,_cIDCliente)
+Local _aArea    := aArea()
+
+Local _cAlias   := ""
+Local _cQuery   := ""
+
+_cQuery := " SELECT " + CRLF 
+_cQuery += "	COALESCE(MAX(B1_COD),'00000') CODIGO_ERP " + CRLF  
+_cQuery += " FROM " + CRLF 
+_cQuery += "	" + RetSqlName("SB1") + " " " + CRLF 
+_cQuery += " WHERE " + CRLF  
+_cQuery += "	B1_FILIAL = '" + xFilial("SB1") + "' AND " + CRLF 
+_cQuery += "	B1_XIDLOGI = '" + _cIDCliente + "' AND " + CRLF 
+_cQuery += "	D_E_L_E_T_ = '' " + CRLF 
+_cQuery += " GROUP BY B1_XIDLOGI "
+
+_cAlias  := MPSysOpenQuery(_cQuery)
+
+_cCodERP:= _cIDCliente + Soma1((_cAlias)->CODIGO_ERP)
+
+(_cAlias)->( dbCloseArea() )	
+
+RestArea(_aArea)
+Return .T.
+
+/*************************************************************************************/
 /*/{Protheus.doc} SumTime
 	@description Soma Hora
 	@type  Function
@@ -5679,4 +6023,4 @@ For _nX := 1 To Len(_aErroAuto)
 	
 Next _nX
 
-Return Nil 
+Return Nil := ""
