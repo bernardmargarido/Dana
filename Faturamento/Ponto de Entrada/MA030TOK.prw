@@ -29,11 +29,12 @@ Local cTable		:= ""
 Local cMsg			:= ""
 
 Local _lECommerce	:= IIF(Isincallstack("U_AECOI011"),.T.,.F.)
+Local _lMRP			:= IIF(Isincallstack("U_DNMRPA01") .Or. Isincallstack("U_DNMRPA02"),.T.,.F.)
 
 Private cConta		:= AllTrim(GetMv("MV_XBLQSA1"))//renata.rigo@perfumesdana.com.br;eguillen@perfumesdana.com.br
 Private cConta2		:= AllTrim(GetMv("MV_XMAISA1"))//renata.rigo@perfumesdana.com.br;alessandra@perfumesdana.com.br;eguillen@perfumesdana.com.br
 
-If _lECommerce
+If _lECommerce .Or. _lMRP
 	RestArea(aAreaSA1)
 	Return .T.
 EndIf
