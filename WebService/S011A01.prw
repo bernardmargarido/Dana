@@ -2165,7 +2165,7 @@ U_X011A01("CONSOLE","Exportacao SIM3G: GetProduto "+ INOPCAO)
 
 If ! U_X011A01("LOGIN",INLogin)
 	Return .F.
-Endif
+EndIf
 
 cSql := "SELECT SB1.R_E_C_N_O_, B5_CEME, B5_COMPR, B5_ESPESS, B5_LARG, B5_ALTURA, B5_MARCA, SB1.D_E_L_E_T_ DELET "
 cSql += "FROM "+ RetSqlName("SB1") +" SB1 "
@@ -2173,19 +2173,19 @@ cSql += "LEFT JOIN "+ RetSqlName("SB5") +" SB5 ON B5_COD = B1_COD AND B5_FILIAL 
 cSql += "WHERE 1=1 "
 If ! lFullDel
 	cSql += " AND SB1.B1_X_SIM3G <> 'N' "	// Filtra registros marcados para integrar com o SIM3G
-Endif
+EndIf
 If !Empty(cFilDel)
 	cSql += " AND "+ cFilDel +" "		// Filtra registros DELETADOS ou NAO DELETADOS
-Endif
+EndIf
 If !Empty(cFiltro)						// Adiciona os filtros informados na invocação do método
 	cSql += " AND "+ cFiltro +" "
-Endif
+EndIf
 If !Empty(cFiltroPE)					// Adiciona os filtros informados no Ponto de Entrada
 	cSql += " AND "+ cFiltroPE +" "
-Endif
+EndIf
 If !Empty(cCpoExpo) .and. !lOpcFull		// Controle de registros Exportados (S/N) via TRIGGER
 	cSql += " AND "+ cCpoExpo +" <> 'S' "
-Endif
+EndIf
 cSql += "ORDER BY B1_FILIAL, B1_COD "
 cSql := ChangeQuery(cSql)
 

@@ -41,12 +41,12 @@ Static Function ModelDef()
     _oStruZZ6:AddTrigger( 	'ZZ6_LOJA' 	/*cIdField*/ ,;
 					 	    'ZZ6_NOME'	/*cTargetIdField*/ ,;  
 					 	    { || .T. } /*bPre*/ ,;
-					 	    { || Padr( Posicione("SA1",1,xFilial("SA1") + FwFldGet('ZZ6_CODCLI') + FwFldGet('ZZ6_LOJA'),'A1_NOME'), TamSx3("A1_NOME")[1] ) } /*bSetValue*/ )
+					 	    { |_oModel| Padr( Posicione("SA1",1,xFilial("SA1") + _oModel:GetValue('ZZ6_CODCLI') + _oModel:GetValue('ZZ6_LOJA'),'A1_NOME'), TamSx3("A1_NOME")[1] ) } /*bSsetValue*/ )
 
     _oStruZZ6:AddTrigger( 	'ZZ6_CODMUN' 	/*cIdField*/ ,;
 					 	    'ZZ6_MUN'	/*cTargetIdField*/ ,;  
 					 	    { || .T. } /*bPre*/ ,;
-					 	    { || Padr( Posicione("CC2",3,xFilial("CC2") + FwFldGet('ZZ6_CODMUN'),'CC2_MUN'), TamSx3("CC2_MUN")[1] ) } /*bSetValue*/ )
+					 	    { |_oModel| Padr( Posicione("CC2",3,xFilial("CC2") + _oModel:GetValue('ZZ6_CODMUN'),'CC2_MUN'), TamSx3("CC2_MUN")[1] ) } /*bSetValue*/ )
 
 
     _oModel := MPFormModel():New( "ZZ6_00",,{|_oModel| PosVldMdl(_oModel)},, /*bCancel*/ ) 

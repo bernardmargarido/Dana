@@ -48,15 +48,12 @@ Static nTamOper	:= TamSx3("WS4_CODIGO")[1]
 Static nTMun	:= TamSx3("CC2_MUN")[1]
 
 /**************************************************************************************************/
-
 /*/{Protheus.doc} AECOI011
-
-@description	Rotina realiza a integração dos pedidos de vendas do e-Commerce
-
-@type   		Function 
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		10/02/2016
+	@description	Rotina realiza a integração dos pedidos de vendas do e-Commerce
+	@type   		Function 
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
 /*/
 /**************************************************************************************************/
 User Function AECOI011()
@@ -132,12 +129,10 @@ Return .T.
 
 /**************************************************************************************************/
 /*/{Protheus.doc} AECOINT11
-
-@description	Rotina realiza a integração dos Pedidos de Venda.
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		10/02/2016
+	@description	Rotina realiza a integração dos Pedidos de Venda.
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
 /*/
 /**************************************************************************************************/
 Static Function AECOINT11()
@@ -223,14 +218,11 @@ Return Nil
 
 /********************************************************************************************/
 /*/{Protheus.doc} AEcoI11PvC
-
-@description Atualiza clientes e pedidos
-
-@author Bernard M. Margarido
-@since 30/01/2017
-@version undefined
-
-@type function
+	@description Atualiza clientes e pedidos
+	@author Bernard M. Margarido
+	@since 30/01/2017
+	@version undefined
+	@type function
 /*/
 /********************************************************************************************/
 Static Function AEcoI11PvC()
@@ -332,20 +324,11 @@ Return aRet
 
 /************************************************************************************/
 /*/{Protheus.doc} EcGrvCli
-
-@description Realiza a gravação / atualização do cliente
-
-@author Bernard M. Margarido
-@since 30/01/2017
-@version undefined
-
-@param oDadosCli	, object	, Objeto contendo dados dos cliente
-@param oDadosEnd	, object	, Objeto contendo endereços do cliente
-@param aEndRes		, array		, Armazena endereço residencial
-@param aEndCob		, array		, Armazena endereço de Cobrança
-@param aEndEnt		, array		, Armazena endereço de Entrega
-
-@type function
+	@description Realiza a gravação / atualização do cliente
+	@author Bernard M. Margarido
+	@since 30/01/2017
+	@version undefined
+	@type function
 /*/
 /************************************************************************************/
 Static Function EcGrvCli(oDadosCli,oDadosEnd,aEndRes,aEndCob,aEndEnt)
@@ -706,19 +689,11 @@ Return aRet
 
 /***************************************************************************************/
 /*/{Protheus.doc} EcRetEnd
-
-@description Valida os endereços cadastrados pelo o cliente
-
-@author Bernard M. Margarido
-@since 30/01/2017
-@version undefined
-
-@param oDadosEnd		, object	, Objeto contendo endereço(s) do cliente
-@param aEndRes			, array		, Armazena endereço residencial
-@param aEndCob			, array		, Aramzena endereço de Cobrancça
-@param aEndEnt			, array		, Armazena endereço de Entrega
-
-@type function
+	@description Valida os endereços cadastrados pelo o cliente
+	@author Bernard M. Margarido
+	@since 30/01/2017
+	@version undefined
+	@type function
 /*/
 /***************************************************************************************/
 Static Function EcRetEnd(oDadosEnd,aEndRes,aEndCob,aEndEnt)
@@ -759,16 +734,11 @@ Return .T.
 
 /****************************************************************************/
 /*/{Protheus.doc} EcLoadEnd
-
-@description Carrega os enderecos cadastrados
-
-@author Bernard M. Margarido
-@since 30/01/2017
-@version undefined
-
-@param oEndereco	, object	, Objeto contendo endereços do cliente
-
-@type function
+	@description Carrega os enderecos cadastrados
+	@author Bernard M. Margarido
+	@since 30/01/2017
+	@version undefined
+	@type function
 /*/
 /****************************************************************************/
 Static Function EcLoadEnd(oEndereco)
@@ -825,17 +795,11 @@ Return aRet
 
 /***********************************************************************************/
 /*/{Protheus.doc} EcCodMun
-
-@description Retorna codigo do municipio
-
-@author Bernard M. Margarido
-@since 30/01/2017
-@version undefined
-
-@param cEstado		, characters, Estado 
-@param cMunicipio	, characters, Municipio
-
-@type function
+	@description Retorna codigo do municipio
+	@author Bernard M. Margarido
+	@since 30/01/2017
+	@version undefined
+	@type function
 /*/
 /***********************************************************************************/
 Static Function EcCodMun(cEstado,cMunicipio)
@@ -913,16 +877,10 @@ Return cIbge
 
 /**************************************************************************************************/
 /*/{Protheus.doc} EcGrvPed
-
-@description	Rotina valida se pedido ecommerce ja existe na base de dados do protheus
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		10/02/2016
-
-@param			oPedido		, Objeto contendo o pedido a ser gravado
-
-@return			aRet - Array aRet[1] - Logico aRet[2] - Codigo Erro aRet[3] - Descricao do Erro
+	@description	Rotina valida se pedido ecommerce ja existe na base de dados do protheus
+	@autho			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
 /*/			
 /**************************************************************************************************/
 Static Function EcGrvPed(oRestPv,aEndRes,aEndCob,aEndEnt,cOrderId)
@@ -991,18 +949,10 @@ Return aRet
 
 /**************************************************************************************************/
 /*/{Protheus.doc} AEcoGrvPv
-
-@description	Realiza a gravação do pedido de venda e-commerce
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		10/02/2016
-
-@param			cOrderId	, 	string	,	Numero do Pedido e-Commerce
-@param			oRestPv		, 	string	,	Objeto contendo o pedido a ser gravado
-@param 			lLiberPv	, 	logico	,	Passado como referencia para validar se pagamento esta confirmado.
-
-@return			aRet - Array aRet[1] - Logico aRet[2] - Codigo Erro aRet[3] - Descricao do Erro
+	@description	Realiza a gravação do pedido de venda e-commerce
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
 /*/			
 /**************************************************************************************************/
 Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt)
