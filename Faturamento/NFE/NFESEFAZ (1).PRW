@@ -1250,7 +1250,7 @@ If cTipo == "1"
 					EndIf
 				EndIf
 				
-				If GetNewPar("MV_SUFRAMA",.F.) .And. !empty(aDest[15])
+				If !empty(aDest[15])  //If GetNewPar("MV_SUFRAMA",.F.) .And. !empty(aDest[15])
 					cMensFis += "Código Suframa: "+alltrim(aDest[15])+"." 
 				Endif
 				
@@ -2093,7 +2093,7 @@ If cTipo == "1"
 						EndIf																				
 						
 					// Tratameno produto perigoso
-					If SB1->B1_INFLAMA == "1" .And. Empty(SF2->F2_XNUMECO)
+					If SB1->B1_INFLAMA == "1"
 						If !(cInflama $ cMensCli)
 							cMensCli += cInflama
 						EndIf
@@ -2136,15 +2136,11 @@ If cTipo == "1"
 					EndIf
 					
 					// Dana Mensagem nota
-					If Empty(SF2->F2_XNUMECO)
-						If !"Nao recebendo boleto bancario ate o vencimento ligar para (1" $ cMensCli
-							cMensCli += " Pedido: "+SC5->C5_NUM+" . Nao recebendo boleto bancario ate o vencimento ligar para (11) 2842-3246. "
-							cMensCli += " Telefones da administracao (11) 2842-3262 Vendas (11) 2842-3212. "
-							cMensCli += Iif(lVendedor," Telefones do vendedor: " +  Alltrim(SA3->A3_TEL) + ".","")
-						EndIf
-					Else
-						cMensCli += " Pedido: " + SC5->C5_NUM + " ."
-					EndIf	
+					If !"Nao recebendo boleto bancario ate o vencimento ligar para (1" $ cMensCli
+						cMensCli += " Pedido: "+SC5->C5_NUM+" . Nao recebendo boleto bancario ate o vencimento ligar para (11) 2842-3246. "
+						cMensCli += " Telefones da administracao (11) 2842-3262 Vendas (11) 2842-3212. "
+						cMensCli += Iif(lVendedor," Telefones do vendedor("+Alltrim(SA3->A3_COD)+"): " +  Alltrim(SA3->A3_TEL) + ".","")
+                    EndIf
 
 					If !Empty(SC5->C5_MENPAD) .And. !AllTrim(FORMULA(SC5->C5_MENPAD)) $ cMensFis
 						If Len(cMensFis) > 0 .And. SubStr(cMensFis, Len(cMensFis), 1) <> " "
@@ -2739,7 +2735,13 @@ If cTipo == "1"
 						_QtdCax		:= Posicione("SB1",1,xFilial("SB1")+(cAliasSD2)->D2_COD,"B1_QTDPCXA")
 	//					retQtd2UM( lNoImp2UM, cCFOPExp, Alltrim((cAliasSD2)->D2_CF), SB5->B5_CONVDIP, (cAliasSD2)->D2_QUANT ),;
 	//							IIf(SB5->(ColumnPos("B5_2CODBAR")) > 0,IIf(Val(SB5->B5_2CODBAR)==0,"",StrZero(Val(SB5->B5_2CODBAR),Len(Alltrim(SB5->B5_2CODBAR)),0)),""),;//aprod[45]  Código de barra da segunda unidade de medida. 13.09.2019
-						If (cAliasSD2)->D2_LOCAL != "01"
+	
+						If  Alltrim(SF2->F2_XXCONVU) == "2"	
+							nQuantidade	:= (cAliasSD2)->D2_QUANT
+							cUMedida	:= "UN"
+							cUMedida2	:= "UN"
+							nPrcVen		:= (cAliasSD2)->D2_PRCVEN							
+						ElseIf (cAliasSD2)->D2_LOCAL != "01"
 							nQuantidade	:= (cAliasSD2)->D2_QUANT / _QtdCax
 							cUMedida	:= SB1->B1_UM
 							nPrcVen		:= (cAliasSD2)->D2_PRCVEN * _QtdCax
@@ -2751,7 +2753,7 @@ If cTipo == "1"
 							nPrcVen		:= (cAliasSD2)->D2_PRCVEN
 						Endif
 					EndIf
-
+ 
 						aadd(aProd,	{Len(aProd)+1,;
 							cCodProd,;
 							_cEANCX,;
@@ -2761,7 +2763,7 @@ If cTipo == "1"
 							cD2Cfop,;
 							cUMedida,;
 							nQuantidade,; //(cAliasSD2)->D2_QUANT Customizacao Dana //09
-							IIF(!(cAliasSD2)->D2_TIPO$"IP",IIF(!(lMvNFLeiZF),((nPrcVen+((nDesconto+(cAliasSD2)->D2_DESCZFR))/nQuantidade))*nQuantidade,((cAliasSD2)->D2_TOTAL+(cAliasSD2)->D2_DESCZFR - ((cAliasSD2)->D2_DESCZFP+(cAliasSD2)->D2_DESCZFC))),IIF(((cAliasSD2)->D2_TIPO=="I" .And. SF4->F4_AJUSTE == "S" .And. SubStr(SM0->M0_CODMUN,1,2) == "31") .Or. ((cAliasSD2)->D2_TIPO=="I" .And. SF4->F4_AJUSTE == "S" .And. "RESSARCIMENTO" $ Upper(cNatOper) .And. "RESSARCIMENTO" $ Upper(cDescProd)),nPrcVen,0)),;
+							Iif((cAliasSD2)->D2_TIPO == "C",(cAliasSD2)->D2_PRCVEN,IIF(!(cAliasSD2)->D2_TIPO$"IP",IIF(!(lMvNFLeiZF),((nPrcVen+((nDesconto+(cAliasSD2)->D2_DESCZFR))/nQuantidade))*nQuantidade,((cAliasSD2)->D2_TOTAL+(cAliasSD2)->D2_DESCZFR - ((cAliasSD2)->D2_DESCZFP+(cAliasSD2)->D2_DESCZFC))),IIF(((cAliasSD2)->D2_TIPO=="I" .And. SF4->F4_AJUSTE == "S" .And. SubStr(SM0->M0_CODMUN,1,2) == "31") .Or. ((cAliasSD2)->D2_TIPO=="I" .And. SF4->F4_AJUSTE == "S" .And. "RESSARCIMENTO" $ Upper(cNatOper) .And. "RESSARCIMENTO" $ Upper(cDescProd)),nPrcVen,0))),;							//IIF(!(cAliasSD2)->D2_TIPO$"IP",IIF(!(lMvNFLeiZF),((nPrcVen+((nDesconto+(cAliasSD2)->D2_DESCZFR))/nQuantidade))*nQuantidade,((cAliasSD2)->D2_TOTAL+(cAliasSD2)->D2_DESCZFR - ((cAliasSD2)->D2_DESCZFP+(cAliasSD2)->D2_DESCZFC))),IIF(((cAliasSD2)->D2_TIPO=="I" .And. SF4->F4_AJUSTE == "S" .And. SubStr(SM0->M0_CODMUN,1,2) == "31") .Or. ((cAliasSD2)->D2_TIPO=="I" .And. SF4->F4_AJUSTE == "S" .And. "RESSARCIMENTO" $ Upper(cNatOper) .And. "RESSARCIMENTO" $ Upper(cDescProd)),nPrcVen,0)),;
 							cUMedida2 ,;
 							retQtd2UM( lNoImp2UM, cCFOPExp, Alltrim((cAliasSD2)->D2_CF), SB5->B5_CONVDIP, nQuantidade ),;	//Dana //retQtd2UM( lNoImp2UM, cCFOPExp, Alltrim((cAliasSD2)->D2_CF), SB5->B5_CONVDIP, (cAliasSD2)->D2_QUANT ),;
 							(cAliasSD2)->D2_VALFRE,;
@@ -4931,12 +4933,35 @@ Else
 		       nIcmsST := (cAliasSD1)->D1_ICMSRET
 		       EndIf   		
 				//Customizacao Dana
+				/*
 				nQuantidade	:= IIF( Alltrim(SD1->D1_LOCAL) != "01" , (cAliasSD1)->D1_QUANT / SB1->B1_QTDPCXA , (cAliasSD1)->D1_QUANT )
 		        
 		        If SD1->D1_LOCAL != "01"              
 	               nPrvUnit := (cAliasSD1)->D1_TOTAL / nQuantidade//((cAliasSD1)->D1_TOTAL / SB1->B1_QTDPCXA ) / nQuantidade
 	            Else
 	               nPrvUnit := (cAliasSD1)->D1_TOTAL / nQuantidade
+	            Endif   
+				*/
+				cCodProd  := (cAliasSD1)->D1_COD	            
+				cDescProd := SB1->B1_DESC 
+		        
+		        If !(cAliasSD1)->D1_LOCAL $"01/50"
+					nQuantidade	:= (cAliasSD1)->D1_QUANT / SB1->B1_QTDPCXA
+	            	nPrvUnit 	:= (cAliasSD1)->D1_TOTAL / nQuantidade//((cAliasSD1)->D1_TOTAL / SB1->B1_QTDPCXA ) / nQuantidade
+	            Else
+					If Alltrim((cAliasSD1)->D1_LOCAL)$"01/50" .AND. (cAliasSD1)->D1_TIPO == "D"
+						_cEANCX		:= Posicione("SB1", 1, xFilial("SB1") + (cAliasSD1)->D1_COD,"B1_EAN")
+						If Alltrim((cAliasSD1)->D1_LOCAL) =="50"
+							cDescProd	:= u_SyAcento(Posicione("SB5", 1, xFilial("SB5") + (cAliasSD1)->D1_COD,"B5_XNOMPRD"),.T.)
+						Endif
+						cUMedida	:= "UN"
+						cUMedida2	:= "UN"
+						nPrvUnit	:= (cAliasSD1)->D1_VUNIT
+						nQuantidade	:= (cAliasSD1)->D1_QUANT
+					Else
+						nQuantidade	:= (cAliasSD1)->D1_QUANT
+	            		nPrvUnit 	:= (cAliasSD1)->D1_TOTAL / nQuantidade
+					Endif
 	            Endif   
 						
 				//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
@@ -4946,10 +4971,6 @@ Else
 				//Caso haja a amarracao, o codigo e descricao do produto, assumem o conteudo  ³
 				//da SA7 ou SA5															   ³ 
 				//ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ  
-				
-				
-				cCodProd  := (cAliasSD1)->D1_COD	            
-				cDescProd := SB1->B1_DESC 
 					 
 				If !Empty((cAliasSD1)->D1_IDENTB6) .And. lNFPTER  
 					If (cAliasSD1)->D1_TIPO == "N" 
@@ -5056,15 +5077,15 @@ Else
 
 				aadd(aProd,	{Len(aProd)+1,;  
 					cCodProd,;
-					IIf(Val(SB1->B1_CODBAR)==0,"",StrZero(Val(SB1->B1_CODBAR),Len(Alltrim(SB1->B1_CODBAR)),0)),;
+					IIF(ALLTRIM((cAliasSD1)->D1_LOCAL) $"01/50",IIf(Val(SB1->B1_EAN)==0,"",StrZero(Val(SB1->B1_EAN),Len(Alltrim(SB1->B1_EAN)),0)),IIf(Val(SB1->B1_CODBAR)==0,"",StrZero(Val(SB1->B1_CODBAR),Len(Alltrim(SB1->B1_CODBAR)),0))),;
 					cDescProd,;
 					SB1->B1_POSIPI,;
 					SB1->B1_EX_NCM,;
 					(cAliasSD1)->D1_CF,;
-					SB1->B1_UM,;
-					nQuantidade,; 		// (cAliasSD1)->D1_QUANT   Cuntomização Dana
+					IIF(ALLTRIM((cAliasSD1)->D1_LOCAL) $ "01/50","UN",SB1->B1_UM),;
+					nQuantidade,; 		// (cAliasSD1)->D1_QUANT   Customização Dana
 					IIF(!(cAliasSD1)->D1_TIPO$"IP",(cAliasSD1)->D1_TOTAL,0),;
-					retUn2UM( lNoImp2UM, cCFOPExp, Alltrim((cAliasSD1)->D1_CF), SB5->B5_UMDIPI, SB1->B1_UM ),;
+					IIF(ALLTRIM((cAliasSD1)->D1_LOCAL) $ "01/50","UN",retUn2UM( lNoImp2UM, cCFOPExp, Alltrim((cAliasSD1)->D1_CF), SB5->B5_UMDIPI, SB1->B1_UM )),;
 					retQtd2UM( lNoImp2UM, cCFOPExp, Alltrim((cAliasSD1)->D1_CF), SB5->B5_CONVDIP, nQuantidade ),; //Dana  retQtd2UM( lNoImp2UM, cCFOPExp, Alltrim((cAliasSD1)->D1_CF), SB5->B5_CONVDIP, (cAliasSD1)->D1_QUANT ),;
 					(cAliasSD1)->D1_VALFRE,;
 					(cAliasSD1)->D1_SEGURO,;

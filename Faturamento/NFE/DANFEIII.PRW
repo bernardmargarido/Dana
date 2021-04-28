@@ -3068,6 +3068,8 @@ oDanfe:Say(MAXBOXV-10, INIBOXH+45, "DATA DE RECEBIMENTO", oFont07N:oFont, , , 27
 
 oDanfe:Box(nLine+135,INIBOXH+35,nLine+500,INIBOXH+70)
 oDanfe:Say(MAXBOXV-150, INIBOXH+45, "IDENTIFICAÇÃO E ASSINATURA DO RECEBEDOR", oFont07N:oFont, , , 270)
+oDanfe:Say(MAXBOXV-360, INIBOXH+45, " HORA CHEGADA        HORA SAÍDA", oFont07N:oFont, , , 270)//Dana Cosméticos
+oDanfe:Say(MAXBOXV-360, INIBOXH+55, "______:______       ______:______", oFont07N:oFont, , , 270)//Dana Cosméticos
 
 oDanfe:Box(nLine+042, INIBOXH+10, nLine+135, INIBOXH+70)
 oDanfe:Say(MAXBOXV-550, INIBOXH+20, "NF-e", oFont08N:oFont, , , 270)
