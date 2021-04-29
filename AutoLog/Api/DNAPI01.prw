@@ -12,14 +12,11 @@ Static cDirRaiz := "\wms\"
 
 /************************************************************************************/
 /*/{Protheus.doc} CLIENTES
-
-@description API - Envia dados dos Clienres 
-
-@author Bernard M. Margarido
-@since 23/10/2018
-@version 1.0
-
-@type class
+	@description API - Envia dados dos Clienres 
+	@author Bernard M. Margarido
+	@since 23/10/2018
+	@version 1.0
+	@type class
 /*/
 /************************************************************************************/
 WSRESTFUL CLIENTES DESCRIPTION " Servico Perfumes Dana - Retorna dados dos clientes."
@@ -37,14 +34,11 @@ END WSRESTFUL
 
 /************************************************************************************/
 /*/{Protheus.doc} GET
-
-@description Retorna string JSON com os dados do cliente
-
-@author Bernard M. Margarido
-@since 23/03/2018
-@version 1.0
-
-@type function
+	@description Retorna string JSON com os dados do cliente
+	@author Bernard M. Margarido
+	@since 23/03/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 WSMETHOD GET WSRECEIVE CNPJ_CPF,CODIGO,LOJA,DATAHORA,PERPAGE,PAGE WSSERVICE CLIENTES
@@ -57,60 +51,72 @@ Local cLoja			:= IIF(Empty(::LOJA),"",::LOJA)
 Local cDataHora		:= IIF(Empty(::DATAHORA),"1900-01-01T00:00",::DATAHORA)
 Local cTamPage		:= ::PERPAGE
 Local cPage			:= ::PAGE
-Local cFilAux		:= cFilAnt
+
+Local _nX			:= 0
+
+Local _aGrpCom		:= FWAllGrpCompany()
 
 Private cArqLog		:= ""
 
 Private _lSA1Comp 	:= ( FWModeAccess("SA1",3) == "C" )
 Private _cFilWMS	:= FormatIn(GetNewPar("DN_FILWMS","05,06"),",")
+Private _lGrvJson	:= GetNewPar("DN_GRVJSON",.T.)
 
-//------------------------------+
-// Inicializa Log de Integracao |
-//------------------------------+
-MakeDir(cDirRaiz)
-cArqLog := cDirRaiz + "CLIENTES" + cEmpAnt + cFilAnt + ".LOG"
-ConOut("")	
-LogExec(Replicate("-",80))
-LogExec("INICIA ENVIO DOS CLIENTES WMS - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
+For _nX := 1 To Len(_aGrpCom)
 
-//--------------------+
-// Seta o contenttype |
-//--------------------+
-::SetContentType("application/json") 
+	RPCSetType(3)  
+	RPCSetEnv(_aGrpCom[_nX], IIF(_aGrpCom[_nX] == "01","05","01"), Nil, Nil, "FRT")
 
-//---------------------+
-// Gera novo orçamento |
-//---------------------+
-aRet := DnaApi01A(cCNPJ,cCodigo,cLoja,cDataHora,cTamPage,cPage) 
+	//------------------------------+
+	// Inicializa Log de Integracao |
+	//------------------------------+
+	MakeDir(cDirRaiz)
+	cArqLog := cDirRaiz + "CLIENTES" + cEmpAnt + cFilAnt + ".LOG"
+	ConOut("")	
+	LogExec(Replicate("-",80))
+	LogExec("INICIA ENVIO DOS CLIENTES WMS - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
 
-//----------------+
-// Retorno da API |
-//----------------+
-If aRet[1]
-	::SetResponse(aRet[2])
-	HTTPSetStatus(200,"OK")
-Else
-	::SetResponse(aRet[2])
-	SetRestFault(400,aRet[2],.T.)
-EndIf	
+	//--------------------+
+	// Seta o contenttype |
+	//--------------------+
+	::SetContentType("application/json") 
 
-LogExec("FINALIZA ENVIO DOS CLIENTES WMS - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
-LogExec(Replicate("-",80))
-ConOut("")
+	//---------------------+
+	// Gera novo orçamento |
+	//---------------------+
+	aRet := DnaApi01A(cCNPJ,cCodigo,cLoja,cDataHora,cTamPage,cPage) 
 
+	//----------------+
+	// Retorno da API |
+	//----------------+
+	If aRet[1]
+		::SetResponse(aRet[2])
+		HTTPSetStatus(200,"OK")
+	Else
+		::SetResponse(aRet[2])
+		SetRestFault(400,aRet[2],.T.)
+	EndIf	
+
+	LogExec("FINALIZA ENVIO DOS CLIENTES WMS - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
+	LogExec(Replicate("-",80))
+	ConOut("")
+
+	//-------------------+
+	// Finaliza Ambiente |
+	//-------------------+
+	RpcClearEnv()
+
+Next _nX 
 RestArea(aArea)
 Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApi01A
-
-@description Consulta clientes e monta arquivo e envio
-
-@author Bernard M. Margarido
-@since 24/10/2018
-@version 1.0
-
-@type function
+	@description Consulta clientes e monta arquivo e envio
+	@author Bernard M. Margarido
+	@since 24/10/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApi01A(cCNPJ,cCodigo,cLoja,cDataHora,cTamPage,cPage)
@@ -205,19 +211,26 @@ cRest := xToJson(oJson)
 aRet[1] := .T.
 aRet[2] := EncodeUtf8(cRest)
 
+//------------+
+// Grava JSON |
+//------------+
+If _lGrvJson
+	MakeDir("\AutoLog\")
+	MakeDir("\AutoLog\arquivos\")
+	MakeDir("\AutoLog\arquivos\clientes")
+	MemoWrite("\AutoLog\arquivos\clientes\jsonclientes_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cRest)
+EndIf
+
 RestArea(aArea)
 Return aRet 
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApiQry
-
-@description Consulta clientes para serem enviados 
-
-@author Bernard M. Margarido
-@since 24/10/2018
-@version 1.0
-
-@type function
+	@description Consulta clientes para serem enviados 
+	@author Bernard M. Margarido
+	@since 24/10/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApiQry(cAlias,cCNPJ,cCodigo,cLoja,cDataHora,cTamPage,cPage)
@@ -311,20 +324,11 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} ApiQryTot
-
-@description Retorna total de clientes 
-
-@author Bernard M. Margarido
-@since 24/10/2018
-@version 1.0
-
-@param cCodProd		, characters, descricao
-@param cDataHora	, characters, descricao
-@param cTamPage		, characters, descricao
-@param cPage		, characters, descricao
-@param nTotPag		, numeric, descricao
-@param nTotQry		, numeric, descricao
-@type function
+	@description Retorna total de clientes 
+	@author Bernard M. Margarido
+	@since 24/10/2018
+	@version 1.0
+	@type function
 /*/
 /*************************************************************************************/
 Static Function DnaQryTot(cCNPJ,cCodigo,cLoja,cDataHora,cTamPage,cPage)
@@ -397,16 +401,11 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} LogExec
-
-@description Grava log de integração
-
-@author TOTVS
-@since 05/06/2017
-@version undefined
-
-@param cMsg, characters, descricao
-
-@type function
+	@description Grava log de integração
+	@author TOTVS
+	@since 05/06/2017
+	@version undefined
+	@type function
 /*/
 /*************************************************************************************/
 Static Function LogExec(cMsg)

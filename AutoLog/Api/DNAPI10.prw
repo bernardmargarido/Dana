@@ -67,6 +67,7 @@ Private cArqLog		:= ""
 Private _cFilWMS	:= FormatIn(GetNewPar("DN_FILWMS","05,06"),",")
 
 Private _lSF2Comp 	:= ( FWModeAccess("SF2",3) == "C" )
+Private _lGrvJson	:= GetNewPar("DN_GRVJSON",.T.)
 
 //------------------------------+
 // Inicializa Log de Integracao |
@@ -115,16 +116,17 @@ Return .T.
 /*/
 /************************************************************************************/
 WSMETHOD POST WSSERVICE NOTA_SEPARACAO
-Local aArea		:= GetArea()
+Local aArea			:= GetArea()
 
-Local nPed		:= 0
+Local nPed			:= 0
 
-Local oJson		:= Nil
-Local oPedido	:= Nil
+Local oJson			:= Nil
+Local oPedido		:= Nil
 
-Private cJsonRet:= ""
+Private cJsonRet	:= ""
 	
-Private aMsgErro:= {}
+Private aMsgErro	:= {}
+Private _lGrvJson	:= GetNewPar("DN_GRVJSON",.T.)
 
 //------------------------------+
 // Inicializa Log de Integracao |
@@ -154,6 +156,16 @@ If Empty(cBody)
 	//----------------+
 	HTTPSetStatus(400,"Arquivo POST nço enviado.")
 	Return .T.
+EndIf
+
+//------------+
+// Grava JSON |
+//------------+
+If _lGrvJson
+	MakeDir("\AutoLog\")
+	MakeDir("\AutoLog\arquivos\")
+	MakeDir("\AutoLog\arquivos\nfsaidaconf")
+	MemoWrite("\AutoLog\arquivos\nfsaidaconf\json_post_nfsaidaconf_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cRest)
 EndIf
 
 //-----------------------------------+
@@ -201,16 +213,18 @@ Return .T.
 /*/
 /************************************************************************************/
 WSMETHOD PUT WSSERVICE NOTA_SEPARACAO
-Local aArea		:= GetArea()
+Local aArea			:= GetArea()
 
-Local nPed		:= 0
+Local nPed			:= 0
 
-Local oJson		:= Nil
-Local oPedido	:= Nil
+Local oJson			:= Nil
+Local oPedido		:= Nil
 
-Private cJsonRet:= ""
+Private cJsonRet	:= ""
 	
-Private aMsgErro:= {}
+Private aMsgErro	:= {}
+
+Private _lGrvJson	:= GetNewPar("DN_GRVJSON",.T.)
 
 //------------------------------+
 // Inicializa Log de Integracao |
@@ -240,6 +254,16 @@ If Empty(cBody)
 	//----------------+
 	HTTPSetStatus(400,"Arquivo POST nço enviado.")
 	Return .T.
+EndIf
+
+//------------+
+// Grava JSON |
+//------------+
+If _lGrvJson
+	MakeDir("\AutoLog\")
+	MakeDir("\AutoLog\arquivos\")
+	MakeDir("\AutoLog\arquivos\nfsaidaconf")
+	MemoWrite("\AutoLog\arquivos\nfsaidaconf\json_put_nfsaidaconf_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cRest)
 EndIf
 
 //-----------------------------------+
@@ -439,6 +463,16 @@ cRest := xToJson(oJson)
 
 aRet[1] := .T.
 aRet[2] := EncodeUtf8(cRest)
+
+//------------+
+// Grava JSON |
+//------------+
+If _lGrvJson
+	MakeDir("\AutoLog\")
+	MakeDir("\AutoLog\arquivos\")
+	MakeDir("\AutoLog\arquivos\nfsaidaconf")
+	MemoWrite("\AutoLog\arquivos\nfsaidaconf\json_get_nfsaidaconf_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cRest)
+EndIf
 
 RestArea(aArea)
 Return aRet 

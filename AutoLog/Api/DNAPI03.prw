@@ -12,14 +12,11 @@ Static cDirRaiz := "\wms\"
 
 /************************************************************************************/
 /*/{Protheus.doc} PRODUTOS
-
-@description API - Envia dados dos produtos 
-
-@author Bernard M. Margarido
-@since 26/10/2018
-@version 1.0
-
-@type class
+	@description API - Envia dados dos produtos 
+	@author Bernard M. Margarido
+	@since 26/10/2018
+	@version 1.0
+	@type class
 /*/
 /************************************************************************************/
 WSRESTFUL PRODUTOS DESCRIPTION " Servico Perfumes Dana - Retorna dados dos produtos."
@@ -35,14 +32,11 @@ END WSRESTFUL
 
 /************************************************************************************/
 /*/{Protheus.doc} GET
-
-@description Retorna string JSON com os dados dos Produtos
-
-@author Bernard M. Margarido
-@since 26/10/2018
-@version 1.0
-
-@type function
+	@description Retorna string JSON com os dados dos Produtos
+	@author Bernard M. Margarido
+	@since 26/10/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 WSMETHOD GET WSRECEIVE CODPRODUTO,DATAHORA,PERPAGE,PAGE WSSERVICE PRODUTOS
@@ -53,13 +47,11 @@ Local cCodProd		:= IIF(Empty(::CODPRODUTO),"",::CODPRODUTO)
 Local cDataHora		:= IIF(Empty(::DATAHORA),"1900-01-01T00:00",::DATAHORA)
 Local cTamPage		:= ::PERPAGE
 Local cPage			:= ::PAGE
-Local cFilAux		:= cFilAnt
-
-Local nLen			:= Len(::aUrlParms)
 
 Private cArqLog		:= ""
 Private _lSB1Comp 	:= ( FWModeAccess("SB1",3) == "C" )
 Private _cFilWMS	:= FormatIn(GetNewPar("DN_FILWMS","05,06"),",")
+Private _lGrvJson	:= GetNewPar("DN_GRVJSON",.T.)
 
 //------------------------------+
 // Inicializa Log de Integracao |
@@ -100,27 +92,22 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApi03A
-
-@description Consulta produtos e monta arquivo e envio
-
-@author Bernard M. Margarido
-@since 24/10/2018
-@version 1.0
-
-@type function
+	@description Consulta produtos e monta arquivo e envio
+	@author Bernard M. Margarido
+	@since 24/10/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApi03A(cCodProd,cDataHora,cTamPage,cPage)
 Local aArea		:= GetArea()
 Local aRet		:= {.F.,""}
-Local aCarac	:= {}
 
 Local cAlias	:= GetNextAlias()	
 Local cRest		:= ""
 
 Local oJson		:= Nil
 Local oProduto	:= Nil
-Local oPagina	:= Nil
 
 Private nTotPag	:= 0
 Private nTotQry	:= 0
@@ -207,19 +194,26 @@ cRest := xToJson(oJson)
 aRet[1] := .T.
 aRet[2] := EncodeUtf8(cRest)
 
+//------------+
+// Grava JSON |
+//------------+
+If _lGrvJson
+	MakeDir("\AutoLog\")
+	MakeDir("\AutoLog\arquivos\")
+	MakeDir("\AutoLog\arquivos\produtos")
+	MemoWrite("\AutoLog\arquivos\produtos\jsonprodutos_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cRest)
+EndIf
+
 RestArea(aArea)
 Return aRet 
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApiQry
-
-@description Consulta produtos para serem enviados 
-
-@author Bernard M. Margarido
-@since 24/10/2018
-@version 1.0
-
-@type function
+	@description Consulta produtos para serem enviados 
+	@author Bernard M. Margarido
+	@since 24/10/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApiQry(cAlias,cCodProd,cDataHora,cTamPage,cPage)
@@ -309,20 +303,11 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} ApiQryTot
-
-@description Retorna total de clientes 
-
-@author Bernard M. Margarido
-@since 24/10/2018
-@version 1.0
-
-@param cCodProd		, characters, descricao
-@param cDataHora	, characters, descricao
-@param cTamPage		, characters, descricao
-@param cPage		, characters, descricao
-@param nTotPag		, numeric, descricao
-@param nTotQry		, numeric, descricao
-@type function
+	@description Retorna total de clientes 
+	@author Bernard M. Margarido
+	@since 24/10/2018
+	@version 1.0
+	@type function
 /*/
 /*************************************************************************************/
 Static Function DnaQryTot(cCodProd,cDataHora,cTamPage,cPage)
@@ -331,8 +316,6 @@ Local cAlias	:= GetNextAlias()
 
 Local cData		:= StrTran(SubStr(cDataHora,1,10),"-","")
 Local cHora		:= SubStr(cDataHora,At("T",cDataHora) + 1)
-
-Local nTotReg	:= 0
 
 //------------------------------------+
 // reseta variaveis totais por pagina |
@@ -389,16 +372,11 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} LogExec
-
-@description Grava log de integração
-
-@author TOTVS
-@since 05/06/2017
-@version undefined
-
-@param cMsg, characters, descricao
-
-@type function
+	@description Grava log de integração
+	@author TOTVS
+	@since 05/06/2017
+	@version undefined
+	@type function
 /*/
 /*************************************************************************************/
 Static Function LogExec(cMsg)

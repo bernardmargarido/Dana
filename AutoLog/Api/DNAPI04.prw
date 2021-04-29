@@ -12,14 +12,11 @@ Static cDirRaiz := "\wms\"
 
 /************************************************************************************/
 /*/{Protheus.doc} TRANSPORTADORAS
-
-@description API - Envia dados dos produtos 
-
-@author Bernard M. Margarido
-@since 26/10/2018
-@version 1.0
-
-@type class
+	@description API - Envia dados dos produtos 
+	@author Bernard M. Margarido
+	@since 26/10/2018
+	@version 1.0
+	@type class
 /*/
 /************************************************************************************/
 WSRESTFUL TRANSPORTADORAS DESCRIPTION " Servico Perfumes Dana - Retorna dados das Transportadoras."
@@ -35,14 +32,11 @@ END WSRESTFUL
 
 /************************************************************************************/
 /*/{Protheus.doc} GET
-
-@description Retorna string JSON com os dados das Transportadoras
-
-@author Bernard M. Margarido
-@since 26/10/2018
-@version 1.0
-
-@type function
+	@description Retorna string JSON com os dados das Transportadoras
+	@author Bernard M. Margarido
+	@since 26/10/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 WSMETHOD GET WSRECEIVE CODTRANSP,DATAHORA,PERPAGE,PAGE WSSERVICE TRANSPORTADORAS
@@ -53,13 +47,11 @@ Local cCodTransp	:= IIF(Empty(::CODTRANSP),"",::CODTRANSP)
 Local cDataHora		:= IIF(Empty(::DATAHORA),"1900-01-01T00:00",::DATAHORA)
 Local cTamPage		:= ::PERPAGE
 Local cPage			:= ::PAGE
-Local cFilAux		:= cFilAnt
-
-Local nLen			:= Len(::aUrlParms)
 
 Private cArqLog		:= ""
 Private _lSA4Comp 	:= ( FWModeAccess("SA4",3) == "C" )
 Private _cFilWMS	:= FormatIn(GetNewPar("DN_FILWMS","05,06"),",")
+Private _lGrvJson	:= GetNewPar("DN_GRVJSON",.T.)
 
 //------------------------------+
 // Inicializa Log de Integracao |
@@ -100,27 +92,22 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApi04A
-
-@description Consulta transportadoras e monta arquivo e envio
-
-@author Bernard M. Margarido
-@since 26/10/2018
-@version 1.0
-
-@type function
+	@description Consulta transportadoras e monta arquivo e envio
+	@author Bernard M. Margarido
+	@since 26/10/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApi04A(cCodTransp,cDataHora,cTamPage,cPage)
 Local aArea		:= GetArea()
 Local aRet		:= {.F.,""}
-Local aCarac	:= {}
 
 Local cAlias	:= GetNextAlias()	
 Local cRest		:= ""
 
 Local oJson		:= Nil
 Local oTransp	:= Nil
-Local oPagina	:= Nil
 
 Private nTotPag	:= 0
 Private nTotQry	:= 0
@@ -203,19 +190,27 @@ cRest := xToJson(oJson)
 aRet[1] := .T.
 aRet[2] := EncodeUtf8(cRest)
 
+
+//------------+
+// Grava JSON |
+//------------+
+If _lGrvJson
+	MakeDir("\AutoLog\")
+	MakeDir("\AutoLog\arquivos\")
+	MakeDir("\AutoLog\arquivos\transportadora")
+	MemoWrite("\AutoLog\arquivos\transportadora\jsontransportadora_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cRest)
+EndIf
+
 RestArea(aArea)
 Return aRet 
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApiQry
-
-@description Consulta transportadoras para serem enviados 
-
-@author Bernard M. Margarido
-@since 26/10/2018
-@version 1.0
-
-@type function
+	@description Consulta transportadoras para serem enviados 
+	@author Bernard M. Margarido
+	@since 26/10/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApiQry(cAlias,cCodTransp,cDataHora,cTamPage,cPage)
@@ -296,20 +291,11 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} ApiQryTot
-
-@description Retorna total de Transportadoras
-
-@author Bernard M. Margarido
-@since 26/10/2018
-@version 1.0
-
-@param cCodProd		, characters, descricao
-@param cDataHora	, characters, descricao
-@param cTamPage		, characters, descricao
-@param cPage		, characters, descricao
-@param nTotPag		, numeric, descricao
-@param nTotQry		, numeric, descricao
-@type function
+	@description Retorna total de Transportadoras
+	@author Bernard M. Margarido
+	@since 26/10/2018
+	@version 1.0
+	@type function
 /*/
 /*************************************************************************************/
 Static Function DnaQryTot(cCodTransp,cDataHora,cTamPage,cPage)
@@ -318,8 +304,6 @@ Local cAlias	:= GetNextAlias()
 
 Local cData		:= StrTran(SubStr(cDataHora,1,10),"-","")
 Local cHora		:= SubStr(cDataHora,At("T",cDataHora) + 1)
-
-Local nTotReg	:= 0
 
 //------------------------------------+
 // reseta variaveis totais por pagina |
@@ -373,16 +357,11 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} LogExec
-
-@description Grava log de integração
-
-@author TOTVS
-@since 05/06/2017
-@version undefined
-
-@param cMsg, characters, descricao
-
-@type function
+	@description Grava log de integração
+	@author TOTVS
+	@since 05/06/2017
+	@version undefined
+	@type function
 /*/
 /*************************************************************************************/
 Static Function LogExec(cMsg)

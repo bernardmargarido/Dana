@@ -37,14 +37,11 @@ END WSRESTFUL
 
 /************************************************************************************/
 /*/{Protheus.doc} GET
-
-@description Retorna string JSON com os dados do Fornecedores
-
-@author Bernard M. Margarido
-@since 25/10/2018
-@version 1.0
-
-@type function
+	@description Retorna string JSON com os dados do Fornecedores
+	@author Bernard M. Margarido
+	@since 25/10/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 WSMETHOD GET WSRECEIVE CNPJ_CPF,CODIGO,LOJA,DATAHORA,PERPAGE,PAGE WSSERVICE FORNECEDORES
@@ -57,11 +54,11 @@ Local cLoja			:= IIF(Empty(::LOJA),"",::LOJA)
 Local cDataHora		:= IIF(Empty(::DATAHORA),"1900-01-01T00:00",::DATAHORA)
 Local cTamPage		:= ::PERPAGE
 Local cPage			:= ::PAGE
-Local cFilAux		:= cFilAnt
 
 Private cArqLog		:= ""
 Private _lSA2Comp 	:= ( FWModeAccess("SA2",3) == "C" )
 Private _cFilWMS	:= FormatIn(GetNewPar("DN_FILWMS","05,06"),",")
+Private _lGrvJson	:= GetNewPar("DN_GRVJSON",.T.)
 
 //------------------------------+
 // Inicializa Log de Integracao |
@@ -102,14 +99,11 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApi02A
-
-@description Consulta fornecedores e monta arquivo e envio
-
-@author Bernard M. Margarido
-@since 25/10/2018
-@version 1.0
-
-@type function
+	@description Consulta fornecedores e monta arquivo e envio
+	@author Bernard M. Margarido
+	@since 25/10/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApi02A(cCNPJ,cCodigo,cLoja,cDataHora,cTamPage,cPage)
@@ -204,19 +198,26 @@ cRest := xToJson(oJson)
 aRet[1] := .T.
 aRet[2] := EncodeUtf8(cRest)
 
+//------------+
+// Grava JSON |
+//------------+
+If _lGrvJson
+	MakeDir("\AutoLog\")
+	MakeDir("\AutoLog\arquivos\")
+	MakeDir("\AutoLog\arquivos\fornecedores")
+	MemoWrite("\AutoLog\arquivos\fornecedores\jsonfornecedores_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cRest)
+EndIf
+
 RestArea(aArea)
 Return aRet 
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApiQry
-
-@description Consulta produtos para serem enviados 
-
-@author Bernard M. Margarido
-@since 25/10/2018
-@version 1.0
-
-@type function
+	@description Consulta produtos para serem enviados 
+	@author Bernard M. Margarido
+	@since 25/10/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApiQry(cAlias,cCNPJ,cCodigo,cLoja,cDataHora,cTamPage,cPage)
@@ -304,20 +305,11 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} ApiQryTot
-
-@description Retorna total de clientes 
-
-@author Bernard M. Margarido
-@since 25/10/2018
-@version 1.0
-
-@param cCodProd		, characters, descricao
-@param cDataHora	, characters, descricao
-@param cTamPage		, characters, descricao
-@param cPage		, characters, descricao
-@param nTotPag		, numeric, descricao
-@param nTotQry		, numeric, descricao
-@type function
+	@description Retorna total de clientes 
+	@author Bernard M. Margarido
+	@since 25/10/2018
+	@version 1.0
+	@type function
 /*/
 /*************************************************************************************/
 Static Function DnaQryTot(cCNPJ,cCodigo,cLoja,cDataHora,cTamPage,cPage)
@@ -384,16 +376,12 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} LogExec
-
-@description Grava log de integração
-
-@author TOTVS
-@since 05/06/2017
-@version undefined
-
-@param cMsg, characters, descricao
-
-@type function
+	@description Grava log de integração
+	@author TOTVS
+	@since 05/06/2017
+	@version undefined
+	@param cMsg, characters, descricao
+	@type function
 /*/
 /*************************************************************************************/
 Static Function LogExec(cMsg)

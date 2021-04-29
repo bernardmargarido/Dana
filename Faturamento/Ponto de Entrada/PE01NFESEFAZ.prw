@@ -2,14 +2,11 @@
 
 /*****************************************************************************/
 /*/{Protheus.doc} PE01NFESEFAZ
-
-@description Ponto de Entrada - NFESefaz
-
-@author Bernard M. Margarido
-@since 26/11/2018
-@version 1.0
-
-@type function
+	@description Ponto de Entrada - NFESefaz
+	@author Bernard M. Margarido
+	@since 26/11/2018
+	@version 1.0
+	@type function
 /*/
 /*****************************************************************************/
 User Function PE01NFESEFAZ()

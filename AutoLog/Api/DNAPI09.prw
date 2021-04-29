@@ -17,14 +17,11 @@ Static nTLocal	:= TamSx3("B2_LOCAL")[1]
 	
 /************************************************************************************/
 /*/{Protheus.doc} TRANSFERENCIA
-
-@description API - Movimentacao Interna
-
-@author Bernard M. Margarido
-@since 10/11/2018
-@version 1.0
-
-@type class
+	@description API - Movimentacao Interna
+	@author Bernard M. Margarido
+	@since 10/11/2018
+	@version 1.0
+	@type class
 /*/
 /************************************************************************************/
 WSRESTFUL TRANSFERENCIA DESCRIPTION " Servico Perfumes Dana - Transferencia Interna."
@@ -35,30 +32,25 @@ END WSRESTFUL
 
 /************************************************************************************/
 /*/{Protheus.doc} POST
-
-@description Metodo POST - Realiza movimentação interna
-
-@author Bernard M. Margarido
-@since 20/11/2018
-@version 1.0
-
-@type function
+	@description Metodo POST - Realiza movimentação interna
+	@author Bernard M. Margarido
+	@since 20/11/2018
+	@version 1.0
+	@type function
 /*/
 /************************************************************************************/
 WSMETHOD POST WSSERVICE TRANSFERENCIA
-Local aArea		:= GetArea()
+Local aArea			:= GetArea()
 
-Local _cFilAux	:= cFilAnt
+Local _cFilAux		:= cFilAnt
 
-Local nLen		:= Len(::aUrlParms)
-Local nPed		:= 0
+Local oJson			:= Nil
+Local oTransf		:= Nil
 
-Local oJson		:= Nil
-Local oTransf	:= Nil
-
-Private cJsonRet:= ""
+Private cJsonRet	:= ""
 	
-Private aMsgErro:= {}
+Private aMsgErro	:= {}
+Private _lGrvJson	:= GetNewPar("DN_GRVJSON",.T.)
 
 //------------------------------+
 // Inicializa Log de Integracao |
@@ -88,6 +80,16 @@ If Empty(cBody)
 	//----------------+
 	HTTPSetStatus(400,"Arquivo POST não enviado.")
 	Return .T.
+EndIf
+
+//------------+
+// Grava JSON |
+//------------+
+If _lGrvJson
+	MakeDir("\AutoLog\")
+	MakeDir("\AutoLog\arquivos\")
+	MakeDir("\AutoLog\arquivos\transferencia")
+	MemoWrite("\AutoLog\arquivos\transferencia\json_transferencia_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cRest)
 EndIf
 
 //-----------------------------------+
@@ -139,14 +141,12 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApi09A
-
-@description Rotina realiza a movimentação interna
-
-@author Bernard M. Margarido
-@since 26/11/2018
-@version 1.0
-@param oTransf, object, descricao
-@type function
+	@description Rotina realiza a movimentação interna
+	@author Bernard M. Margarido
+	@since 26/11/2018
+	@version 1.0
+	@param oTransf, object, descricao
+	@type function
 /*/
 /************************************************************************************/
 Static Function DnaApi09A(oTransf)
@@ -156,7 +156,6 @@ Local aItem			:= {}
 
 Local cMsgErro 		:= ""
 Local cLiArq	 	:= ""
-Local cArmTrf		:= ""
 Local cSD3Log		:= ""
 Local cDocumento	:= GetSxeNum( "SD3","D3_DOC", 1 )
 
@@ -333,14 +332,11 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} DnaApi09E
-
-@description Monta JSON de retorno 
-
-@author Bernard M. Margarido
-@since 26/11/2018
-@version 1.0
-
-@type function
+	@description Monta JSON de retorno 
+	@author Bernard M. Margarido
+	@since 26/11/2018
+	@version 1.0
+	@type function
 /*/
 /*************************************************************************************/
 Static Function DnaApi09E(aMsgErro,cJsonRet)
@@ -369,16 +365,11 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} LogExec
-
-@description Grava log de integração
-
-@author TOTVS
-@since 05/06/2017
-@version undefined
-
-@param cMsg, characters, descricao
-
-@type function
+	@description Grava log de integração
+	@author TOTVS
+	@since 05/06/2017
+	@version undefined
+	@type function
 /*/
 /*************************************************************************************/
 Static Function LogExec(cMsg)
