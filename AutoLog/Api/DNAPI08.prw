@@ -159,7 +159,7 @@ If _lGrvJson
 	MakeDir("\AutoLog\")
 	MakeDir("\AutoLog\arquivos\")
 	MakeDir("\AutoLog\arquivos\nfsaida")
-	MemoWrite("\AutoLog\arquivos\nfsaida\json_put_nfsaida_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cRest)
+	MemoWrite("\AutoLog\arquivos\nfsaida\json_put_nfsaida_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cBody)
 EndIf
 
 //-----------------------------------+

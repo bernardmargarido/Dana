@@ -165,7 +165,7 @@ If _lGrvJson
 	MakeDir("\AutoLog\")
 	MakeDir("\AutoLog\arquivos\")
 	MakeDir("\AutoLog\arquivos\nfsaidaconf")
-	MemoWrite("\AutoLog\arquivos\nfsaidaconf\json_post_nfsaidaconf_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cRest)
+	MemoWrite("\AutoLog\arquivos\nfsaidaconf\json_post_nfsaidaconf_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cBody)
 EndIf
 
 //-----------------------------------+
@@ -263,7 +263,7 @@ If _lGrvJson
 	MakeDir("\AutoLog\")
 	MakeDir("\AutoLog\arquivos\")
 	MakeDir("\AutoLog\arquivos\nfsaidaconf")
-	MemoWrite("\AutoLog\arquivos\nfsaidaconf\json_put_nfsaidaconf_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cRest)
+	MemoWrite("\AutoLog\arquivos\nfsaidaconf\json_put_nfsaidaconf_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cBody)
 EndIf
 
 //-----------------------------------+

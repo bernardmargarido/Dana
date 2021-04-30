@@ -161,7 +161,7 @@ If _lGrvJson
 	MakeDir("\AutoLog\")
 	MakeDir("\AutoLog\arquivos\")
 	MakeDir("\AutoLog\arquivos\pedido")
-	MemoWrite("\AutoLog\arquivos\pedido\json_put_pedido_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cRest)
+	MemoWrite("\AutoLog\arquivos\pedido\json_put_pedido_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cBody)
 EndIf
 
 //-----------------------------------+
@@ -259,7 +259,7 @@ If _lGrvJson
 	MakeDir("\AutoLog\")
 	MakeDir("\AutoLog\arquivos\")
 	MakeDir("\AutoLog\arquivos\pedido")
-	MemoWrite("\AutoLog\arquivos\pedido\json_post_pedido_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cRest)
+	MemoWrite("\AutoLog\arquivos\pedido\json_post_pedido_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cBody)
 EndIf
 
 //-----------------------------------+
@@ -1279,14 +1279,11 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} ApiQryTot
-
-@description Retorna total de Pedidos
-
-@author Bernard M. Margarido
-@since 27/10/2018
-@version 1.0
-
-@type function
+	@description Retorna total de Pedidos
+	@author Bernard M. Margarido
+	@since 27/10/2018
+	@version 1.0
+	@type function
 /*/
 /*************************************************************************************/
 Static Function DnaQryTot(cPedido,cDataHora,cTamPage,cPage)
@@ -1399,15 +1396,11 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} DnaApi07P
-
-@description Estorna liberação do pedido 
-
-@author Bernard M. Margarido
-@since 20/11/2018
-@version 1.0
-
-@type function
-
+	@description Estorna liberação do pedido 
+	@author Bernard M. Margarido
+	@since 20/11/2018
+	@version 1.0
+	@type function
 /*/
 /*************************************************************************************/
 Static Function DnaApi07P(_cPedido,_cCodCli,_cLoja,_aDiverg)
@@ -1511,15 +1504,11 @@ Return lRet
 
 /*************************************************************************************/
 /*/{Protheus.doc} DnaApi07L
-
-@description Libera pedido com a quantidade certa
-
-@author Bernard M. Margarido
-@since 20/11/2018
-@version 1.0
-
-@type function
-
+	@description Libera pedido com a quantidade certa
+	@author Bernard M. Margarido
+	@since 20/11/2018
+	@version 1.0
+	@type function
 /*/
 /*************************************************************************************/
 Static Function DnaApi07L(_cPedido,_cCodCli,_cLoja)
@@ -1585,13 +1574,11 @@ Return _lRet
 
 /*************************************************************************************/
 /*/{Protheus.doc} DnApi07N
-
-@description Elimina residuo da sobra / cria novo pedido para cliente saldo
-
-@author Bernard M. Margarido
-@since 15/10/2019
-@version 1.0
-@type function
+	@description Elimina residuo da sobra / cria novo pedido para cliente saldo
+	@author Bernard M. Margarido
+	@since 15/10/2019
+	@version 1.0
+	@type function
 /*/
 /*************************************************************************************/
 Static Function DnaApi07N(_cPedido,_cCodCli,_cLoja)
@@ -1626,14 +1613,11 @@ Return _lRet
 
 /*************************************************************************************/
 /*/{Protheus.doc} DnaApi07O
-
-@description Atualiza dados do pedido separado 
-
-@author Bernard M. Margarido
-@since 20/11/2018
-@version 1.0
-
-@type function
+	@description Atualiza dados do pedido separado 
+	@author Bernard M. Margarido
+	@since 20/11/2018
+	@version 1.0
+	@type function
 /*/
 /*************************************************************************************/
 Static Function DnApi07O(_cPedido,_nPeso,_nVolume,_aItensC,_aDiverg)
@@ -1706,14 +1690,11 @@ Return _lRet
 
 /*************************************************************************************/
 /*/{Protheus.doc} DnApi07R
-
-@description Elimina residuo dos pedidos 
-
-@author Bernard M. Margarido
-@since 20/11/2018
-@version 1.0
-
-@type function
+	@description Elimina residuo dos pedidos 
+	@author Bernard M. Margarido
+	@since 20/11/2018
+	@version 1.0
+	@type function
 /*/
 /*************************************************************************************/
 Static Function DnApi07R(_cPedido)
@@ -1741,14 +1722,11 @@ Return _lRet
 
 /*************************************************************************************/
 /*/{Protheus.doc} DnaApi07E
-
-@description Processa retorno da conferencia separação pedido de venda
-
-@author Bernard M. Margarido
-@since 20/11/2018
-@version 1.0
-
-@type function
+	@description Processa retorno da conferencia separação pedido de venda
+	@author Bernard M. Margarido
+	@since 20/11/2018
+	@version 1.0
+	@type function
 /*/
 /*************************************************************************************/
 Static Function DnaApi07E(aMsgErro,cJsonRet)
@@ -1778,16 +1756,11 @@ Return .T.
 
 /*************************************************************************************/
 /*/{Protheus.doc} LogExec
-
-@description Grava log de integração
-
-@author TOTVS
-@since 05/06/2017
-@version undefined
-
-@param cMsg, characters, descricao
-
-@type function
+	@description Grava log de integração
+	@author TOTVS
+	@since 05/06/2017
+	@version undefined
+	@type function
 /*/
 /*************************************************************************************/
 Static Function LogExec(cMsg)

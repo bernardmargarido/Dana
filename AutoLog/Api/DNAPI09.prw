@@ -89,7 +89,7 @@ If _lGrvJson
 	MakeDir("\AutoLog\")
 	MakeDir("\AutoLog\arquivos\")
 	MakeDir("\AutoLog\arquivos\transferencia")
-	MemoWrite("\AutoLog\arquivos\transferencia\json_transferencia_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cRest)
+	MemoWrite("\AutoLog\arquivos\transferencia\json_transferencia_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cBody)
 EndIf
 
 //-----------------------------------+

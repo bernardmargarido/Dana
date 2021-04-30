@@ -162,7 +162,7 @@ If _lGrvJson
 	MakeDir("\AutoLog\")
 	MakeDir("\AutoLog\arquivos\")
 	MakeDir("\AutoLog\arquivos\nfentrada")
-	MemoWrite("\AutoLog\arquivos\nfentrada\json_post_nfentrada_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cRest)
+	MemoWrite("\AutoLog\arquivos\nfentrada\json_post_nfentrada_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cBody)
 EndIf
 
 //-----------------------------------+
@@ -255,7 +255,7 @@ If _lGrvJson
 	MakeDir("\AutoLog\")
 	MakeDir("\AutoLog\arquivos\")
 	MakeDir("\AutoLog\arquivos\nfentrada")
-	MemoWrite("\AutoLog\arquivos\nfentrada\json_put_nfentrada_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cRest)
+	MemoWrite("\AutoLog\arquivos\nfentrada\json_put_nfentrada_" + dTos(Date()) + "_" + StrTran(Time(),":","_")  + ".json",cBody)
 EndIf
 
 //-----------------------------------+

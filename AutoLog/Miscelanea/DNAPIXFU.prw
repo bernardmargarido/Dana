@@ -503,7 +503,7 @@ SB1->( dbSetOrder(1) )
 //-----------------------------+
 // Adiciona dados do cabeçalho |
 //-----------------------------+
-If !SF2->( dbSeek(xFilial("SF2") + _cDoc + _cSerie + _cCodCli + _cLoja) )
+If !SF2->( dbSeek(xFilial("SF2") + _cNota + _cSerie + _cCodCli + _cLoja) )
 	RestArea(aArea)
 	Return .F.
 EndIf
