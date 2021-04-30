@@ -758,18 +758,18 @@ Local cIdEnd		:= ""
 //------------------------------------+
 // Acerta endereço no padrao protheus |
 //------------------------------------+
-cMunicipio	:= IIF(ValType(oEndereco:City) <> "U", u_ECACENTO(DecodeUtf8(oEndereco:City),.T.), "")
+cMunicipio	:= IIF(ValType(oEndereco:City) <> "U", AllTrim(u_ECACENTO(DecodeUtf8(oEndereco:City),.T.)), "")
 cEstado		:= IIF(ValType(oEndereco:State) <> "U", Upper(oEndereco:State), "")
-cComplem	:= IIF(ValType(oEndereco:Complement) <> "U", u_ECACENTO(DecodeUtf8(oEndereco:Complement),.T.), "")
+cComplem	:= IIF(ValType(oEndereco:Complement) <> "U", AllTrim(u_ECACENTO(DecodeUtf8(oEndereco:Complement),.T.)), "")
 cPais		:= IIF(ValType(oEndereco:Country) <> "U", oEndereco:Country, "")
-cBairro		:= IIF(ValType(oEndereco:NeighBorhood) <> "U", u_ECACENTO(DecodeUtf8(oEndereco:NeighBorhood),.T.), "")
+cBairro		:= IIF(ValType(oEndereco:NeighBorhood) <> "U", AllTrim(u_ECACENTO(DecodeUtf8(oEndereco:NeighBorhood),.T.)), "")
 cNumero		:= IIF(ValType(oEndereco:Number) <> "U", oEndereco:Number, "")
 cCep		:= IIF(ValType(oEndereco:PostalCode) <> "U", u_ECFORMAT(oEndereco:PostalCode,"A1_CEP",.T.), "")
-cDesti		:= IIF(ValType(oEndereco:ReceiverName) <> "U", u_ECACENTO(DecodeUtf8(oEndereco:ReceiverName),.T.), "")
-cReferen	:= IIF(ValType(oEndereco:Reference) <> "U", u_ECACENTO(DecodeUtf8(oEndereco:Reference),.T.), "")
-cEnd		:= IIF(ValType(oEndereco:Street) <> "U", u_ECACENTO(DecodeUtf8(oEndereco:Street),.T.), "")
+cDesti		:= IIF(ValType(oEndereco:ReceiverName) <> "U", AllTrim(u_ECACENTO(DecodeUtf8(oEndereco:ReceiverName),.T.)), "")
+cReferen	:= IIF(ValType(oEndereco:Reference) <> "U", AllTrim(u_ECACENTO(DecodeUtf8(oEndereco:Reference),.T.)), "")
+cEnd		:= IIF(ValType(oEndereco:Street) <> "U", AllTrim(u_ECACENTO(DecodeUtf8(oEndereco:Street),.T.)), "")
 cIdEnd		:= IIF(ValType(oEndereco:addressId) <> "U", oEndereco:addressId, "")
-cContato	:= IIF(ValType(oEndereco:receiverName) <> "U", u_ECACENTO(DecodeUtf8(oEndereco:receiverName),.T.), "")
+cContato	:= IIF(ValType(oEndereco:receiverName) <> "U", AllTrim(u_ECACENTO(DecodeUtf8(oEndereco:receiverName),.T.)), "")
 
 aRet 		:= Array(15) 
 
