@@ -4,9 +4,7 @@
 #DEFINE CRLF CHR(13) + CHR(10)
 
 Static _cDirRaiz    := "/MsLog"
-Static _cDirArq     := "/produto"
 Static _cDirUpl     := "/upload"
-Static _cDirDow     := "/download"
 
 /***************************************************************************************/
 /*/{Protheus.doc} DNFATM04
@@ -36,9 +34,8 @@ EndIf
 // Cria diretorios caso nao exista |
 //---------------------------------+
 MakeDir(_cDirRaiz)
-MakeDir(_cDirRaiz + _cDirArq)
 
-_cArqLog := _cDirRaiz + _cDirArq + "/" + "PRODUTO" + cEmpAnt + cFilAnt + ".LOG"
+_cArqLog := _cDirRaiz + "/" + "PRODUTO" + cEmpAnt + cFilAnt + ".LOG"
 ConOut("")	
 LogExec(Replicate("-",80))
 LogExec("INICIA CRIACAO DOS ARQUIVOS MSLOG - DATA/HORA: " + DTOC(DATE()) + " AS " + TIME())
@@ -79,22 +76,31 @@ Local _aArea        := GetArea()
 
 Local _cAlias       := ""
 Local _cLinArq      := ""
+Local _cCodigo      := ""
+Local _cCodBar      := ""
+Local _cDescri      := ""
+Local _cUM_1        := ""
+Local _cUM_2        := ""
+Local _cArqSb1      := ""
+Local _cDirSB1      := ""
+Local _cCnpjDep     := SM0->M0_CGC
 
-Local _nTotItens    := 0
+Local _nFator       := 0
+Local _nAltura      := 0
+Local _nLargura     := 0
+Local _nCompri      := 0
+Local _nAltCaixa    := 0
+Local _nLargCaixa   := 0
+Local _nCompCaixa   := 0
+Local _nLastro      := 0
+Local _nCamada      := 0
+Local _nHdl         := 0
 
-Local _dDtaArq      := Date()
-
-Private _cArqSb1    := ""
-Private _cArqLog    := ""
-Private _cCnpjDep   := SM0->M0_CGC
-
-Private _nHdlCab    := 0
-Private _nHdlIt     := 0
-
+Default _oSay       := Nil 
 //-----------------------------------------------------+
 // Valida se existem novos pedidos para serem enviados |
 //-----------------------------------------------------+
-If !DnFatM04Qry(_cAlias)
+If !DnFatM04Qry(@_cAlias)
     LogExec("<< DNFATM04 >> - NAO EXISTEM PEDIDOS PARA SEREM GERADOS.")
     RestArea(_aArea)
     Return .F.
@@ -109,32 +115,48 @@ SB1->( dbSetOrder(1) )
 //----------------------+
 // Cria arquivo pedidos |
 //----------------------+
-_cArqSb1    := "PROD_"  + _cCnpjDep + ".INF"
+_cArqSb1    := "PROD_"  + _cCnpjDep + ".TXT"
 
 //-----------------------+
 // Cria diretorio Upload |
 //-----------------------+
-MakeDir(_cDirRaiz + _cDirArq + _cDirUpl)
+_cDirSB1    := _cDirRaiz + _cDirUpl + "/" + _cArqSb1
+MakeDir(_cDirRaiz + _cDirUpl)
 
-//------------------+
-// Processa pedidos |
-//------------------+
-If !_lJob
-    ProcRegua(_nToReg)
+//--------------------------+
+// Deleta arquivo existente |
+//--------------------------+
+If File(_cDirSB1)
+   FErase(_cDirSB1)
 EndIf
 
+//--------------------------+
+// Cria arquivo de Produtos |
+//--------------------------+
+_nHdl := MsFCreate( _cDirSB1,,,.F.)
+If _nHdl <= 0 
+    If !_lJob
+        MsgStop("Erro ao criar arquivo do produto.")
+    EndIf 
+    LogExec("ERRO AO CRIAR ARQUIVO.")
+    Return .F.
+EndIf
+
+//------------------+
+// Processa produto |
+//------------------+
 While (_cAlias)->( !Eof() )
 
-    //------------------+
-    // Posiciona pedido |
-    //------------------+
+    //-------------------+
+    // Posiciona produto |
+    //-------------------+
     SB1->( dbGoTo((_cAlias)->RECNOSB1) )
 
-    _cCodigo    := (_cAlias)->CODPROD
-    _cCodBar    := (_cAlias)->CODBAR
-    _cDescri    := (_cAlias)->DESCPROD
-    _cUM_1      := (_cAlias)->UM_1
-    _cUM_2      := (_cAlias)->UM_2
+    _cCodigo    := RTrim((_cAlias)->CODPROD)
+    _cCodBar    := IIF(Empty((_cAlias)->CODBAR),RTrim((_cAlias)->CODEAN),RTrim((_cAlias)->CODBAR))
+    _cDescri    := RTrim((_cAlias)->DESCPROD)
+    _cUM_1      := RTrim((_cAlias)->UM_1)
+    _cUM_2      := RTrim((_cAlias)->UM_2)
     _nFator     := (_cAlias)->FATOR
     _nAltura    := (_cAlias)->ALTURA
     _nLargura   := (_cAlias)->LARGURA
@@ -151,7 +173,30 @@ While (_cAlias)->( !Eof() )
     EndIf
 
     LogExec("<< DNFATM04 >> CRIANDO ARQUIVO PRODUTO " + RTrim(_cCodigo) + " - " + RTrim(_cDescri) + " ." )
-    
+
+    //-----------------------+
+    // Cria linha do arquivo |
+    //-----------------------+
+    _cLinArq := PadR(_cCodigo,15)                   + ";"     // 01. Codigo do Produto 
+    _cLinArq += PadR(_cCodBar,15)                   + ";"     // 02. Codigo de Barras 
+    _cLinArq += PadR(_cDescri,40)                   + ";"     // 03. Descrição
+    _cLinArq += PadR(_cUM_1,3)                      + ";"     // 04. 1ª Unidade
+    _cLinArq += PadR(_cUM_2,3)                      + ";"     // 05. 2ª Unidade
+    _cLinArq += PadR(cValToChar(_nFator),3)         + ";"     // 06. Fator Conversão 
+    _cLinArq += PadR(cValToChar(_nAltura),11)       + ";"     // 07. Altura Embalagem 
+    _cLinArq += PadR(cValToChar(_nLargura),11)      + ";"     // 08. Largura Embalagem 
+    _cLinArq += PadR(cValToChar(_nCompri),11)       + ";"     // 09. Comprimento Embalagem 
+    _cLinArq += PadR(cValToChar(_nAltCaixa),11)     + ";"     // 10. Altura Caixa
+    _cLinArq += PadR(cValToChar(_nLargCaixa),11)    + ";"     // 11. Lagura Caixa
+    _cLinArq += PadR(cValToChar(_nCompCaixa),11)    + ";"     // 12. Comprimento Caixa
+    _cLinArq += PadR(cValToChar(_nLastro),3)        + ";"     // 13. Lastro
+    _cLinArq += PadR(cValToChar(_nCamada),3)                  // 14. Camada
+    _cLinArq += CRLF
+
+    //------------------------+
+    // Grava linha do arquivo |
+    //------------------------+
+    FWrite(_nHdl, _cLinArq)
 
     (_cAlias)->( dbSkip() )
 EndDo
@@ -159,8 +204,7 @@ EndDo
 //---------------+
 // Fecha Arquivo |
 //---------------+
-FClose(_nHdlCab)
-FClose(_nHdlIt)
+FClose(_nHdl)
 
 //--------------------+
 // Encerra temporario |
@@ -183,19 +227,28 @@ Local _cQuery   := ""
 Local _cTpProd  := FormatIn(GetNewPar("DN_TPPRDMS","MR"),"/")
 
 _cQuery := " SELECT " + CRLF
-_cQuery += "	B1.B1_COD, " + CRLF 
-_cQuery += "	B1.B1_DESC, " + CRLF
-_cQuery += "	B1.B1_CODBAR, " + CRLF
-_cQuery += "	B1.B1_EAN, " + CRLF
-_cQuery += "	B1.B1_UM, " + CRLF
-_cQuery += "	B1.B1_SEGUM, " + CRLF
-_cQuery += "	B1.B1_CONV " + CRLF
+_cQuery += "	B1.B1_COD CODPROD, " + CRLF 
+_cQuery += "	B1.B1_DESC DESCPROD, " + CRLF
+_cQuery += "	B1.B1_CODBAR CODBAR, " + CRLF
+_cQuery += "	B1.B1_EAN CODEAN, " + CRLF
+_cQuery += "	B1.B1_UM UM_1, " + CRLF
+_cQuery += "	B1.B1_SEGUM UM_2, " + CRLF
+_cQuery += "	B1.B1_CONV FATOR, " + CRLF
+_cQuery += "    B5.B5_COMPR COMPRIMENTO, " + CRLF
+_cQuery += "	B5.B5_LARG LARGURA, " + CRLF
+_cQuery += "	B5.B5_ALTURA ALTURA, " + CRLF
+_cQuery += "	B5.B5_FATARMA LASTRO, " + CRLF
+_cQuery += "	B5.B5_EMPMAX CAMADA, " + CRLF
+_cQuery += "	B5.B5_COMPRLC COMPRIMENTO_CAIXA, " + CRLF
+_cQuery += "	B5.B5_LARGLC LARGURA_CAIXA, " + CRLF
+_cQuery += "	B5.B5_ALTURLC ALTURA_CAIXA, " + CRLF
+_cQuery += "	B1.R_E_C_N_O_ RECNOSB1 " + CRLF
 _cQuery += " FROM " + CRLF
 _cQuery += "	" + RetSqlName("SB1") + " B1 " + CRLF
-_cQuery += "	INNER JOIN " + RetSqlName("SB1") + " B5 ON B5.B5_FILIAL = B1.B1_FILIAL AND B5.B5_COD = B1.B1_COD AND B5.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "	LEFT JOIN " + RetSqlName("SB5") + " B5 ON B5.B5_FILIAL = B1.B1_FILIAL AND B5.B5_COD = B1.B1_COD AND B5.D_E_L_E_T_ = '' " + CRLF
 _cQuery += " WHERE " + CRLF
 _cQuery += "	B1.B1_FILIAL = '" + xFilial("SB1") + "' AND " + CRLF
-_cQuery += "	B1.B1_TIPO IN '" + + "' AND " + CRLF
+_cQuery += "	B1.B1_TIPO IN " + _cTpProd + " AND " + CRLF
 _cQuery += "	B1.B1_MSEXP = '' AND " + CRLF
 _cQuery += "	B1.D_E_L_E_T_ = '' "
 
@@ -207,3 +260,16 @@ If (_cAlias)->( Eof() )
 EndIf
 
 Return .T.
+
+/*******************************************************************************************/
+/*/{Protheus.doc} LogExec
+	@description Grava log 
+	@type  Static Function
+	@author Bernard M. Margarido
+	@since 22/05/2019
+/*/
+/*******************************************************************************************/
+Static Function LogExec(cMsg)
+	CONOUT(cMsg)
+	LjWriteLog(_cArqLog,cMsg)
+Return 
