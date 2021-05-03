@@ -330,7 +330,7 @@ If _oDLog:StatusLista()
 				//--------------------+
 				// Atualiza JSON DLOG |
 				//--------------------+
-				_oMemo 		:= xFromJson(_cMemo)
+				_oMemo 						:= xFromJson(_cMemo)
 				_oMemo[#"codSubStatus"]		:= _cCodSta
 				_oMemo[#"descrSubStatus"]	:= _cDescSta
 				_oMemo[#"linkRastreamento"] := _cLink

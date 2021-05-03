@@ -21,9 +21,9 @@ Private _cArqLog    := ""
 
 Private _lJob       := IIF(Empty(_cEmp) ,.F.,.T.)
 
-//-------------------------+
-// Envia pedidos para IBEX |
-//-------------------------+
+//---------------------------+
+// Envia produtos para MsLog |
+//---------------------------+
 If _lJob
     RpcSetType(3)
 	RpcSetEnv(_cEmp, _cFil,,,'FRT')
@@ -98,10 +98,10 @@ Local _nHdl         := 0
 
 Default _oSay       := Nil 
 //-----------------------------------------------------+
-// Valida se existem novos pedidos para serem enviados |
+// Valida se existem novos prodtos para serem enviados |
 //-----------------------------------------------------+
 If !DnFatM04Qry(@_cAlias)
-    LogExec("<< DNFATM04 >> - NAO EXISTEM PEDIDOS PARA SEREM GERADOS.")
+    LogExec("<< DNFATM04 >> - NAO EXISTEM PRODUTOS PARA SEREM GERADOS.")
     RestArea(_aArea)
     Return .F.
 EndIf
@@ -138,7 +138,7 @@ If _nHdl <= 0
     If !_lJob
         MsgStop("Erro ao criar arquivo do produto.")
     EndIf 
-    LogExec("ERRO AO CRIAR ARQUIVO.")
+    LogExec("<< DNFATM04 >> - ERRO AO CRIAR ARQUIVO.")
     Return .F.
 EndIf
 
@@ -172,7 +172,7 @@ While (_cAlias)->( !Eof() )
         ProcessMessages()
     EndIf
 
-    LogExec("<< DNFATM04 >> CRIANDO ARQUIVO PRODUTO " + RTrim(_cCodigo) + " - " + RTrim(_cDescri) + " ." )
+    LogExec("<< DNFATM04 >> - CRIANDO ARQUIVO PRODUTO " + RTrim(_cCodigo) + " - " + RTrim(_cDescri) + " ." )
 
     //-----------------------+
     // Cria linha do arquivo |
@@ -193,6 +193,13 @@ While (_cAlias)->( !Eof() )
     _cLinArq += PadR(cValToChar(_nCamada),3)                  // 14. Camada
     _cLinArq += CRLF
 
+    //--------------------------------------+
+    // Retira produto da fila de integração |
+    //--------------------------------------+
+    RecLock("SB1",.F.)
+        SB1->B1_MSEXP := dTos(Date())
+    SB1->( MsUnLock() )
+    
     //------------------------+
     // Grava linha do arquivo |
     //------------------------+
