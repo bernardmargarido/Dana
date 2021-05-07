@@ -62,10 +62,10 @@ Private _lSA1Comp 	:= ( FWModeAccess("SA1",3) == "C" )
 Private _cFilWMS	:= FormatIn(GetNewPar("DN_FILWMS","05,06"),",")
 Private _lGrvJson	:= GetNewPar("DN_GRVJSON",.T.)
 
-For _nX := 1 To Len(_aGrpCom)
+//For _nX := 1 To Len(_aGrpCom)
 
-	RPCSetType(3)  
-	RPCSetEnv(_aGrpCom[_nX], IIF(_aGrpCom[_nX] == "01","05","01"), Nil, Nil, "FRT")
+//	RPCSetType(3)  
+//	RPCSetEnv(_aGrpCom[_nX], IIF(_aGrpCom[_nX] == "01","05","01"), Nil, Nil, "FRT")
 
 	//------------------------------+
 	// Inicializa Log de Integracao |
@@ -106,7 +106,7 @@ For _nX := 1 To Len(_aGrpCom)
 	//-------------------+
 	RpcClearEnv()
 
-Next _nX 
+//Next _nX 
 RestArea(aArea)
 Return .T.
 
