@@ -1248,7 +1248,8 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDesconto,nP
 	For nPrd := 1 To Len(oItems)
 
 		If ValType(oItems[nPrd]:RefId) == "U"
-			cProduto	:= "000001"
+			cProduto	:= ""
+			aEcoI011Sb1(oItems[nPrd]:productId,@cProduto)
 		Else
 			cProduto	:= oItems[nPrd]:RefId
 		EndIf
@@ -1527,7 +1528,12 @@ For nPrd := 1 To Len(oItKit)
 	//---------------------------+
 	// Formata codigo do Produto |
 	//---------------------------+
-	cProduto	:= PadR(oItKit[nPrd]:RefId,nTamProd) 
+	If ValType(oItKit[nPrd]:RefId) == "U"
+		cProduto	:= ""
+		aEcoI011Sb1(oItKit[nPrd]:productId,@cProduto)
+	Else 
+		cProduto	:= PadR(oItKit[nPrd]:RefId,nTamProd) 
+	EndIf
 	
 	LogExec("ITEM " + cItem + " PRODUTO KIT " + cProduto )
 	
@@ -1763,6 +1769,39 @@ RestArea(aArea)
 Return .T.
 
 /**************************************************************************************/
+/*/{Protheus.doc} aEcoI011Sb1
+	@description Busca produto pelo ID eCommerce
+	@author Bernard M. Margarido
+	@since 13/06/2019
+	@version undefined
+	@type function
+/*/
+/**************************************************************************************/
+Static Function aEcoI011Sb1(_cProductId,cProduto)
+Local _aArea	:= GetArea()
+Local _cQuery 	:= ""
+Local _cAlias 	:= ""
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	B5.B5_COD, " + CRLF
+_cQuery += "	B5.B5_XIDSKU " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += "	" + RetSqlName("SB5") + " B5 " + CRLF
+_cQuery += " WHERE " + CRLF
+_cQuery += "	B5.B5_FILIAL = '" + xFilial("SB5") + "' AND " + CRLF
+_cQuery += "	B5.B5_XIDSKU = " + _cProductId  + " AND " + CRLF
+_cQuery += "	B5.D_E_L_E_T_ = '' "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+cProduto:= (_cAlias)->B5_COD
+
+(_cAlias)->( dbCloseArea() )
+
+RestArea(_aArea)
+Return Nil 
+
+/**************************************************************************************/
 /*/{Protheus.doc} AEcoGrvRes
 	@description Efetua a reserva do item 
 	@author Bernard M. Margarido
@@ -1812,7 +1851,8 @@ EndDo
 For nPrd := 1 To Len(oItems)
 
 	If ValType(oItems[nPrd]:RefId) == "U"
-		cProduto := "000001"
+		cProduto	:= ""
+		aEcoI011Sb1(oItems[nPrd]:productId,@cProduto)
 	Else
 		cProduto := oItems[nPrd]:RefId
 	EndIf
@@ -2007,7 +2047,13 @@ For nX := 1 To Len(oItKit)
 	//---------------------------+
 	// Formata codigo do Produto |
 	//---------------------------+
-	cProduto	:= PadR(oItKit[nX]:RefId,nTamProd) 
+	If ValType(oItKit[nX]:RefId) == "U"
+		cProduto	:= ""
+		aEcoI011Sb1(oItKit[nX]:productId,@cProduto)
+	Else
+		cProduto	:= PadR(oItKit[nX]:RefId,nTamProd) 
+	EndIf
+
 	nQtdItem	:= nQtdKit * oItKit[nX]:Quantity
 
 	LogExec(" EFETUAND A RESERVA DO PRODUTO KIT " + cProduto )
