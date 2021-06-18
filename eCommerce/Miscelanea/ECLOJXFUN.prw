@@ -49,31 +49,26 @@ RestArea(aArea)
 Return .T.
 
 /**************************************************************************************************
-Função:
-AEcoGrvLog
-
-Autor:
-Bernard M. Margarido
-
-Data:
-02/02/2016
-
-Descrição:
-Rotina realiza a gravação dos Logs de Integração Rakuten
-
-Parâmetros:
-Param01 - Codigo da Interface
-Param02 - Descrição Interface
-Param03 - Data de Integração
-Param04 - Hora de Inicio da Integração
-Param05 - Hora de Termino da Integração
-Param06 - Status da Integração(0 - Sucesso, 1 - Erro)
-Param07 - Quantidade de Itens Integrados
-Param08 - Texto com os Erros (caso haja) 
-Param09 - Tipo de Gravação (1-Inicial,2-Final,3-Inicial/Final)
-
-Retorno:
-Nenhum
+	Função:
+	AEcoGrvLog
+	Autor:
+	Bernard M. Margarido
+	Data:
+	02/02/2016
+	Descrição:
+	Rotina realiza a gravação dos Logs de Integração Rakuten
+	Parâmetros:
+	Param01 - Codigo da Interface
+	Param02 - Descrição Interface
+	Param03 - Data de Integração
+	Param04 - Hora de Inicio da Integração
+	Param05 - Hora de Termino da Integração
+	Param06 - Status da Integração(0 - Sucesso, 1 - Erro)
+	Param07 - Quantidade de Itens Integrados
+	Param08 - Texto com os Erros (caso haja) 
+	Param09 - Tipo de Gravação (1-Inicial,2-Final,3-Inicial/Final)
+	Retorno:
+	Nenhum
 **************************************************************************************************/
 User Function AEcoGrvLog(cCodigo,cDescricao,dDtaInt,cHrIni,cHrFim,cStatus,nQtdItem,aMsgErro,cThread,nField)
 	Local aArea 	:= GetArea()
@@ -143,24 +138,18 @@ User Function AEcoGrvLog(cCodigo,cDescricao,dDtaInt,cHrIni,cHrFim,cStatus,nQtdIt
 Return .T.
 
 /**************************************************************************************************
-Função:
-AEcoMsgErr
-
-Autor:
-Bernard M. Margarido
-
-Data:
-02/02/2016
-
-Descrição:
-Retorna mensagens de erro em Texto
-
-Parâmetros:
-Param01 - Array de Log com os Erros
-
-Retorno:
-cMsgErro - Texto com os erros
-
+	Função:
+	AEcoMsgErr
+	Autor:
+	Bernard M. Margarido
+	Data:
+	02/02/2016
+	Descrição:
+	Retorna mensagens de erro em Texto
+	Parâmetros:
+	Param01 - Array de Log com os Erros
+	Retorno:
+	cMsgErro - Texto com os erros
 **************************************************************************************************/
 Static Function AEcoMsgErr(aMsgErro)
 	Local cMsgErro	:= ""
@@ -173,25 +162,20 @@ Static Function AEcoMsgErr(aMsgErro)
 Return cMsgErro
 
 /**************************************************************************************************
-Função:
-AEcoMail
-
-Autor:
-Bernard M. Margarido
-
-Data:
-02/02/2016
-
-Descrição:
-Rotina realiza o envio de email com os logs
-
-Parâmetros:
-Param01 - Codigo da Interface
-Param02 - Descrição Interface
-Param03 - Array com os erros
-
-Retorno:
-Nenhum
+	Função:
+	AEcoMail
+	Autor:
+	Bernard M. Margarido
+	Data:
+	02/02/2016
+	Descrição:
+	Rotina realiza o envio de email com os logs
+	Parâmetros:
+	Param01 - Codigo da Interface
+	Param02 - Descrição Interface
+	Param03 - Array com os erros
+	Retorno:
+	Nenhum
 **************************************************************************************************/
 User Function AEcoMail(cCodInt,cDescInt,aMsgErro,_cPDF,_cDirEtq,_aETQ)
 	Local aArea		:= GetArea()
@@ -418,25 +402,20 @@ User Function AEcoMail(cCodInt,cDescInt,aMsgErro,_cPDF,_cDirEtq,_aETQ)
 Return lEnviado
 
 /**************************************************************************************************
-Função:
-AEcMailC
-
-Autor:
-Bernard M. Margarido
-
-Data:
-02/02/2016
-
-Descrição:
-Rotina realiza o envio de email com os logs
-
-Parâmetros:
-Param01 - Codigo da Interface
-Param02 - Descrição Interface
-Param03 - Array com os erros
-
-Retorno:
-Nenhum
+	Função:
+	AEcMailC
+	Autor:
+	Bernard M. Margarido
+	Data:
+	02/02/2016
+	Descrição:
+	Rotina realiza o envio de email com os logs
+	Parâmetros:
+	Param01 - Codigo da Interface
+	Param02 - Descrição Interface
+	Param03 - Array com os erros
+	Retorno:
+	Nenhum
 **************************************************************************************************/
 User Function AEcMailC(_cCodInt,_cDescInt,_cCPF,_cRazao)
 	Local aArea		:= GetArea()
@@ -570,17 +549,13 @@ Return lEnviado
 
 /*****************************************************************************/
 /*/{Protheus.doc} SYACENTO
-
-@description Rotina formata texto para o padrao Protheus
-
-@author Symm Consultoria
-@since 18/08/2016
-@version undefined
-
-@param cTexto		, Texto a ser formatado
-@param lUpper		, Se verdadeiro retorna texto em Maiusculo
-
-@type function
+	@description Rotina formata texto para o padrao Protheus
+	@author Symm Consultoria
+	@since 18/08/2016
+	@version undefined
+	@param cTexto		, Texto a ser formatado
+	@param lUpper		, Se verdadeiro retorna texto em Maiusculo
+	@type function
 /*/
 /****************************************************************************/
 User Function ECACENTO(cTexto, lUpper,lMun)
@@ -638,19 +613,15 @@ Return( If(lUpper, Upper(cTexto), cTexto) )
 
 /**********************************************************************************************/
 /*/{Protheus.doc} SYFORMAT
-
-@description Rotina retira caracteres especiais dos campos 
-
-@author Symm Consultoria
-@since 18/08/2016
-@version undefined
-
-@param cTexto		, Texto a ser formatado
-@param cCpo			, Campo Protheus
-@param lFormata		, Se formata campo 
-@param cTipo		, Tipo do campo 
-
-@type function
+	@description Rotina retira caracteres especiais dos campos 
+	@author Symm Consultoria
+	@since 18/08/2016
+	@version undefined
+	@param cTexto		, Texto a ser formatado
+	@param cCpo			, Campo Protheus
+	@param lFormata		, Se formata campo 
+	@param cTipo		, Tipo do campo 
+	@type function
 /*/
 /***********************************************************************************************/
 User Function ECFORMAT(cTexto, cCpo, lFormata, cTipo)
@@ -697,16 +668,13 @@ Return cAux
 
 /******************************************************************************/
 /*/{Protheus.doc} AEcoStaLog
-Rotina grava a status do pedido e-commerce
-
-@author	Bernard M. Margarido
-@since		18/02/2016
-@version	1.00
-
-@param			cCodSta		, Codigo do Status 
-@param			cOrderId	, Numero do Pedido eCommerce
-@param			cNumOrc		, Numero do Orcamento
-
+	Rotina grava a status do pedido e-commerce
+	@author	Bernard M. Margarido
+	@since		18/02/2016
+	@version	1.00
+	@param			cCodSta		, Codigo do Status 
+	@param			cOrderId	, Numero do Pedido eCommerce
+	@param			cNumOrc		, Numero do Orcamento
 /*/
 /******************************************************************************/
 User Function AEcoStaLog(cCodSta,cOrderId,cNumOrc,dDtaEmiss,cHora)
@@ -732,16 +700,12 @@ Return .T.
 
 /**************************************************************************/
 /*/{Protheus.doc} aEcoExPv
-
-@description Estorna Pedido de Venda
-
-@author Bernard M. Margarido
-@since 25/08/2016
-@version undefined
-
-@param cNumPv		, Numero do Pedido de Venda
-
-@type function
+	@description Estorna Pedido de Venda
+	@author Bernard M. Margarido
+	@since 25/08/2016
+	@version undefined
+	@param cNumPv		, Numero do Pedido de Venda
+	@type function
 /*/
 /**************************************************************************/
 User Function aEcoExPv(cNumPv)
@@ -895,19 +859,15 @@ Return aRet
 
 /********************************************************************************/
 /*/{Protheus.doc} aEcoExCr
-
-@description Valida se pedido pode ser excluido
-
-@author Bernard
-@since 25/08/2016
-@version undefined
-
-@param cOrderId			, Numero do Pedido e-Commerce
-@param cOrdPvCli		, Numero do Pedido do cliente no e-Commerce
-@param cNumOrc			, Numero do Orçamento
-@param lPedido			, Numero do Orçamento
-
-@type function
+	@description Valida se pedido pode ser excluido
+	@author Bernard
+	@since 25/08/2016
+	@version undefined
+	@param cOrderId			, Numero do Pedido e-Commerce
+	@param cOrdPvCli		, Numero do Pedido do cliente no e-Commerce
+	@param cNumOrc			, Numero do Orçamento
+	@param lPedido			, Numero do Orçamento
+	@type function
 /*/
 /********************************************************************************/
 User Function aEcoExCr(cOrderId,cOrdPvCli,cNumOrc,lPedido)
@@ -1054,17 +1014,13 @@ Return Nil
 
 /**************************************************************************************************/
 /*/{Protheus.doc} AEcoPerDes
-
-@description	Calcula percentual de desconto
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		10/02/2016
-
-@param			nVlr		, Valor Total
-@param			nVlrDesc	, Valor do Desconto
-
-@return			nPerDes		, Retorna percentual de desconto calculado 
+	@description	Calcula percentual de desconto
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
+	@param			nVlr		, Valor Total
+	@param			nVlrDesc	, Valor do Desconto
+	@return			nPerDes		, Retorna percentual de desconto calculado 
 /*/
 /**************************************************************************************************/
 User Function AEcoPerDes(nVlr,nVlrDesc)
@@ -1078,13 +1034,11 @@ Return nPerDesc
 
 /*********************************************************************************/
 /*/{Protheus.doc} ECLOJXFUN
-
-@description Funções utilizadas template e-Commerce
-
-@author Bernard M. Margarido    
-@since 23/04/2019
-@version 1.0
-@type function
+	@description Funções utilizadas template e-Commerce
+	@author Bernard M. Margarido    
+	@since 23/04/2019
+	@version 1.0
+	@type function
 /*/
 /*********************************************************************************/
 User Function EcVldNF(_cDoc,_cSerie,_cOrderId)
@@ -1149,13 +1103,11 @@ Return .T.
 
 /*********************************************************************************/
 /*/{Protheus.doc} EcLoj140
-
-@description Ponto de Entrada - Exlcusão orçamento/nota venda assistida
-
-@author Bernard M. Margarido    
-@since 23/04/2019
-@version 1.0
-@type function
+	@description Ponto de Entrada - Exlcusão orçamento/nota venda assistida
+	@author Bernard M. Margarido    
+	@since 23/04/2019
+	@version 1.0
+	@type function
 /*/
 /*********************************************************************************/
 User Function EcLoj140()
@@ -1204,3 +1156,62 @@ EndIf
 
 RestArea(_aArea)
 Return .T.
+
+/*********************************************************************************/
+/*/{Protheus.doc} GrvIdSe1
+	@description Aualiza dados de pagamento com os titulos financeiros 
+	@type  Function
+	@author Bernard M. Margarido
+	@since 16/06./2021
+/*/
+/*********************************************************************************/
+User Function GrvIdSe1(_cNumEco)
+Local _aArea	:= GetArea()
+Local _cQuery 	:= ""
+Local _cAlias	:= ""
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	WSA.WSA_NUM, " + CRLF
+_cQuery += "	WSA.WSA_NUMECO, " + CRLF
+_cQuery += "	WSA.WSA_NUMECL, " + CRLF
+_cQuery += "	WSC.WSC_TID, " + CRLF
+_cQuery += "	WSC.WSC_NSUTEF, " + CRLF
+_cQuery += "	E1.R_E_C_N_O_ RECNOSE1 " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += "	" + RetSqlName("WSA") + " WSA (NOLOCK) " + CRLF
+_cQuery += "	INNER JOIN " + RetSqlName("WSC") + " WSC (NOLOCK) ON WSC.WSC_FILIAL = WSA.WSA_FILIAL AND WSC.WSC_NUM = WSA.WSA_NUM AND WSC.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "	INNER JOIN " + RetSqlName("SL1") + " L1 (NOLOCK) ON L1.L1_FILIAL = WSA.WSA_FILIAL AND L1.L1_NUM = WSA.WSA_NUMSL1 AND L1.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "	INNER JOIN " + RetSqlName("SE1") + " E1 (NOLOCK) ON E1.E1_FILORIG = L1.L1_FILIAL AND E1.E1_NUM = L1.L1_DOCPED AND E1.E1_PREFIXO = L1.L1_SERPED AND E1.D_E_L_E_T_ = '' " + CRLF
+_cQuery += " WHERE " + CRLF
+_cQuery += "	WSA.WSA_FILIAL = '" + xFilial("WSA") + "' AND " + CRLF
+_cQuery += "	WSA.WSA_NUMECO = '" + _cNumEco + "' AND " + CRLF
+_cQuery += "	WSA.D_E_L_E_T_ = '' " + CRLF
+_cQuery += " GROUP BY WSA.WSA_NUM,WSA.WSA_NUMECO,WSA.WSA_NUMECL,WSC.WSC_TID,WSC.WSC_NSUTEF,E1.R_E_C_N_O_  "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+//------------------------+
+// SE1 - Contas a Receber |
+//------------------------+
+dbSelectArea("SE1")
+SE1->( dbSetOrder(1) )
+
+dbSelectArea(_cAlias)
+(_cAlias)->( dbGoTop() )
+While (_cAlias)->( !Eof() )
+	//-------------------------------+
+	// Posiciona registro financeiro |
+	//-------------------------------+
+	SE1->( dbGoTo((_cAlias)->RECNOSE1))
+	RecLock("SE1",.F.)
+		SE1->E1_XNUMECO := (_cAlias)->WSA_NUMECO
+		SE1->E1_XNUMECL := (_cAlias)->WSA_NUMECL
+		SE1->E1_XTID 	:= (_cAlias)->WSC_TID
+	SE1->( MsUnLock() )
+	(_cAlias)->( dbSkip() )
+EndDo
+
+(_cAlias)->( dbCloseArea() )
+
+RestArea(_aArea)
+Return Nil 

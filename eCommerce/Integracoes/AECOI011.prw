@@ -45,7 +45,6 @@ Static nTItemL2	:= TamSx3("WSB_ITEM")[1]
 Static nDecIt	:= TamSx3("WSB_VLRITE")[2]
 Static nTamStat	:= TamSx3("WS1_DESCVT")[1]
 Static nTamOper	:= TamSx3("WS4_CODIGO")[1]
-Static nTMun	:= TamSx3("CC2_MUN")[1]
 
 /**************************************************************************************************/
 /*/{Protheus.doc} AECOI011
@@ -212,6 +211,8 @@ Else
 	EndIf	
 	LogExec('NAO EXISTEM NOVOS PEDIDOS A SEREM INTEGRADOS')
 EndIf
+
+//aAdd(aOrderId,"1140012439983-01")
 
 RestArea(aArea)
 Return Nil
@@ -2478,7 +2479,7 @@ Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmi
 				//----------------------------------------------+
 				// Valida se utiliza Administradora ficnanceira |
 				//----------------------------------------------+
-				If lTaxaCC .And. WS4->WS4_TIPO == "1"
+				If lTaxaCC .And. WS4->WS4_TIPO $ "1/2"
 					aRet := aEcoTxAdm(WS4->WS4_CODADM,Len(aVencTo))
 					If aRet[1]
 						nTxParc := aRet[2]
@@ -2505,7 +2506,7 @@ Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmi
 					//----------------------------------------------+
 					// Valida se utiliza Administradora ficnanceira |
 					//----------------------------------------------+
-					If lTaxaCC .And. WS4->WS4_TIPO == "1"
+					If lTaxaCC .And. WS4->WS4_TIPO $ "1/2"
 						nVlrParc 	:= Round( aVencTo[nParc][2] - ( aVencTo[nParc][2] *  nTxParc / 100 ) , 2 ) 
 						dDtaVencto	:= aVencTo[nParc][1]
 					Else
