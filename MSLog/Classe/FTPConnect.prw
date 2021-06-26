@@ -1,5 +1,6 @@
 #INCLUDE "TOTVS.CH"
-
+#INCLUDE "PROTHEUS.CH"
+#INCLUDE "FILEIO.CH"
 
 /********************************************************************************************************/
 /*/{Protheus.doc} FTpConnect
@@ -17,9 +18,13 @@
     Data cMsgErro       As String
     Data cLocalFile     As String
     Data cRemoteFile    As String 
+    Data cRemoteDir     As String
+    Data cDelFile       As String 
 
     Data nFTPPort       As Integer
     Data nFTPRet        As Integer
+
+    Data aArray         As Array 
 
     Data oFTP           As Object 
 
@@ -28,7 +33,10 @@
     Method Disconnect()
     Method UpdLoad()
     Method Download()
+    Method DirChange()
     Method Directory()
+    Method Delete()
+    Method FtpSetPasv()
 
 End Class 
 
@@ -46,9 +54,15 @@ Method New() Class FTPConnect
     ::cFTPUser      := ""
     ::cFTPPass      := ""
     ::cMsgErro      := ""
+    ::cDelFile      := ""
+    ::cLocalFile    := ""
+    ::cRemoteFile   := ""
+    ::cRemoteDir    := ""
 
     ::nFTPPort      := 0
     ::nFTPRet       := 0
+
+    ::aArray        := {}
 
     ::oFTP          := Nil 
 
@@ -63,25 +77,38 @@ Return Nil
  /*/
  /********************************************************************************************************/
 Method Connect() Class FTPConnect
-Local _lRet     := .T.
+    Local _nVezes   := 0
 
-//---------------------------+
-// Instancia a classe do FTP |
-//---------------------------+
-::oFTP      := TFTPClient():New()
+    Local _lBinario := .T.
+    Local _lRet     := .T.
 
-//-------------+
-// Conecta FTP | 
-//-------------+
-::nFTPRet   := ::oFTP:FTPConnect(::cFTPServer, ::nFTPPort, ::cFTPUser, ::cFTPPass)
+    While _nVezes <= 3
 
-//----------------+
-// Valida conexão |
-//----------------+
-If ::nFTPRet <> 0
-	::cMsgErro := ::oFTP:GetLastResponse()
-     _lRet     := .F.
-EndIf
+        _lRet := FTPConnect(::cFTPServer,::nFTPPort,::cFTPUser,::cFTPPass)
+
+        IF !_lRet
+            Inkey(5)
+            _nVezes++
+        Else
+            //--------------------------------------------------+
+            // Determina que sera trasferido um arquivo binario |
+            //--------------------------------------------------+
+            IF _lBinario
+                FtpSetType(1)
+            EndIF
+            Exit
+        EndIF
+
+        _nVezes++
+
+    EndDo
+
+    //----------------+
+    // Valida conexão |
+    //----------------+
+    If !_lRet 
+        ::cMsgErro := "Erro ao conectar ao FTP"
+    EndIf
 
 Return _lRet 
 
@@ -94,10 +121,7 @@ Return _lRet
  /*/
  /********************************************************************************************************/
 Method Disconnect() CLass FTPConnect
-
-    ::oFTP:Close()
-
-Return .T.
+Return FTPDisconnect()
 
 /********************************************************************************************************/
 /*/{Protheus.doc} UpdLoad
@@ -108,10 +132,7 @@ Return .T.
  /*/
  /********************************************************************************************************/
 Method UpdLoad() Class FTPConnect
-
-::nFTPRet := ::oFTP:SendFile( ::cLocalFile, ::cRemoteFile )
-
-Return IIF(::nFTPRet > 0, .F., .T.)
+Return FTPUpLoad(::cLocalFile, ::cRemoteFile )
 
 /********************************************************************************************************/
 /*/{Protheus.doc} Download
@@ -122,21 +143,49 @@ Return IIF(::nFTPRet > 0, .F., .T.)
  /*/
  /********************************************************************************************************/
 Method Download() Class FTPConnect
-
-::nFTPRet := ::oFTP:ReceiveFile( ::cRemoteFile, ::cLocalFile )
-
-Return IIF(::nFTPRet > 0, .F., .T.) 
+Return FTPDownLoad(::cLocalFile, ::cRemoteFile )
 
 /********************************************************************************************************/
-/*/{Protheus.doc} Directory
+/*/{Protheus.doc} DirChange
     @description Metodo - Posiciona diretorio 
     @type  Function
     @author Bernard M. Margarido
     @since 05/05/2021
  /*/
  /********************************************************************************************************/
-Method Directory() Class FTPConnect
+Method DirChange() Class FTPConnect
+Return FTPDirChange(::cRemoteDir)
 
-::nFTPRet := ::oFTP:ChDir( ::cRemoteFile )
+/********************************************************************************************************/
+/*/{Protheus.doc} Delete
+    @description Metodo - Deleta arquivo FTP
+    @type  Function
+    @author Bernard M. Margarido
+    @since 05/05/2021
+ /*/
+ /********************************************************************************************************/
+Method Delete() Class FTpConnect
+Return FTPErase(::cDelFile)
 
-Return IIF(::nFTPRet > 0, .F., .T.) 
+/********************************************************************************************************/
+/*/{Protheus.doc} Directory
+    @description Metodo - Busca arquivos no diretorio FTP 
+    @type  Function
+    @author Bernard M. Margarido
+    @since 05/05/2021
+ /*/
+ /********************************************************************************************************/
+Method Directory(_cMask,_lCase) Class FTpConnect
+    Local _aArquivos    := {}
+
+    Default _cMask      := ""
+    Default _lCase      := .T.
+
+    //----------------------------+    
+    // Retorna arquivos diretorio |
+    //----------------------------+    
+    _aArquivos := FTPDirectory(_cMask)
+    ::aArray := _aArquivos
+
+Return IIF(Len(::aArray) > 0,.T.,.F.)
+

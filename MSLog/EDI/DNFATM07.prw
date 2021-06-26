@@ -20,12 +20,7 @@ Local _aArea        := GetArea()
 Private _lJob       := IIF(!Empty(_cEmpInt) .And. !Empty(_cFilInt), .T., .F.)
 
 Default _cEmpInt   := "01"
-Default _cFilInt   := "06"
-
-//------------------+
-// Mensagem console |
-//------------------+
-CoNout("<< DNFATM07 >> - INICIO " + dTos( Date() ) + " - " + Time() )
+Default _cFilInt   := "07"
 
 //-----------------------+
 // Abre empresa / filial | 
@@ -35,16 +30,31 @@ If _lJob
 	RpcSetEnv(_cEmpInt, _cFilInt,,,'LOJ')
 EndIf
 
+//---------------------------------+
+// Cria diretorios caso nao exista |
+//---------------------------------+
+MakeDir(_cDirRaiz)
+MakeDir(_cDirRaiz + _cDirUpl)
+
+_cArqLog := _cDirRaiz + "/" + "ENVIA_MSLOG" + cEmpAnt + cFilAnt + ".LOG"
+ConOut("")	
+LogExec(Replicate("-",80))
+LogExec("INICIA O ENVIO DOS ARQUIVOS MSLOG - DATA/HORA: " + DTOC(DATE()) + " AS " + TIME())
+
 //---------------------------+
 // Integração arquivos MSLOG |
 //---------------------------+
-CoNout("<< DNFATM07 >> - INICIO UPLOAD DE ARQUIVOS MSLOG " + dTos( Date() ) + " - " + Time() )
+LogExec("<< DNFATM07 >> - INICIO UPLOAD DE ARQUIVOS MSLOG " + dTos( Date() ) + " - " + Time() )
     If _lJob
         DnFatM07A()
     Else 
         FWMsgRun(,{|_oSay| DnFatM07A(_oSay)},"Aguarde ....","Enviando arquivos para MSLOG.")
     EndIf 
-CoNout("<< DNFATM07 >> - FIM UPLOAD DE ARQUIVOS MSLOG " + dTos( Date() ) + " - " + Time() )
+LogExec("<< DNFATM07 >> - FIM UPLOAD DE ARQUIVOS MSLOG " + dTos( Date() ) + " - " + Time() )
+
+LogExec("FINALIZA ENVIO DOS ARQUIVOS MSLOG - DATA/HORA: " + DTOC(DATE()) + " AS " + TIME())
+LogExec(Replicate("-",80))
+ConOut("")
 
 //------------------------+
 // Fecha empresa / filial |
@@ -52,8 +62,6 @@ CoNout("<< DNFATM07 >> - FIM UPLOAD DE ARQUIVOS MSLOG " + dTos( Date() ) + " - "
 If _lJob
     RpcClearEnv()
 EndIf    
-
-CoNout("<< ECLOJM03 >> - FIM " + dTos( Date() ) + " - " + Time() )
 
 RestArea(_aArea)
 Return Nil 
@@ -88,7 +96,7 @@ Default _oSay       := Nil
 _aArquivo := Directory(_cArqUpd + "*.txt")
 
 If Len(_aArquivo) == 0
-    CoNout("<< DNFATM07 >> - NAO EXISTEM ARQUIVOS PARA SEREM ENVIADOS.")
+    LogExec("<< DNFATM07 >> - NAO EXISTEM ARQUIVOS PARA SEREM ENVIADOS.")
     If !_lJob
         MsgStop("Não existem arquivos para serem enviados.","Dana - Avisos")
     EndIf
@@ -109,7 +117,7 @@ _oFTP:nFTPPort      := nFTPPort
 // Conecta FTP MSLog |
 //-------------------+
 If !_oFTP:Connect()
-    CoNout("<< DNFATM07 >> - ERRO AO CONECTAR FTP " + Rtrim(_oFTP:cMsgErro))
+    LogExec("<< DNFATM07 >> - ERRO AO CONECTAR FTP " + Rtrim(_oFTP:cMsgErro))
     If !_lJob
         MsgStop("Erro ao conectar FTP. " + Rtrim(_oFTP:cMsgErro),"Dana - Avisos" )
     EndIf
@@ -122,8 +130,8 @@ EndIF
 //---------------------+
 // Posiciona diretorio |
 //---------------------+
-_oFTP:cRemoteFile := _cDirUpl
-_oFTP:Directory()
+_oFTP:cRemoteDir := _cDirUpl
+_oFTP:DirChange()
 
 //-------------------------------+
 // Envia arquivos EDI para MSLOG |
@@ -133,7 +141,7 @@ For _nX := 1 To Len(_aArquivo)
     //---------------------------+
     // Dados cabeçalho do pedido |
     //---------------------------+
-    CoNout("<< DNFATM07 >> - ENVIANDO ARQUIVO " + RTrim(_aArquivo[_nX][1]))
+    LogExec("<< DNFATM07 >> - ENVIANDO ARQUIVO " + RTrim(_aArquivo[_nX][1]))
     If !_lJob
         _oSay:cCaption := "Enviando arquivo " + RTrim(_aArquivo[_nX][1])
         ProcessMessages()
@@ -147,7 +155,7 @@ For _nX := 1 To Len(_aArquivo)
         //------------------------------------+
         FErase(_cDirRaiz + _cDirUpl + "/" + RTrim(_aArquivo[_nX][1]))
     Else 
-        CoNout("<< DNFATM07 >> - ERRO AO ENVIAR ARQUIVO " + RTrim(_aArquivo[_nX][1]))
+        LogExec("<< DNFATM07 >> - ERRO AO ENVIAR ARQUIVO " + RTrim(_aArquivo[_nX][1]))
     EndIf
 
 Next _nX 
@@ -159,3 +167,16 @@ _oFTP:Disconnect()
 
 RestArea(_aArea)
 Return Nil 
+
+/*******************************************************************************************/
+/*/{Protheus.doc} LogExec
+	@description Grava log 
+	@type  Static Function
+	@author Bernard M. Margarido
+	@since 22/05/2019
+/*/
+/*******************************************************************************************/
+Static Function LogExec(cMsg)
+	CONOUT(cMsg)
+	LjWriteLog(_cArqLog,cMsg)
+Return 

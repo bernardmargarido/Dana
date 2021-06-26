@@ -14,21 +14,23 @@ Static _cDirUpl     := "/upload"
     @since 30/04/2021
 /*/
 /***************************************************************************************/
-User Function DNFATM04(_cEmp,_cFil)
+User Function DNFATM04(_cEmpInt,_cFilInt)
 Local _aArea        := GetArea()
 
 Private _cArqLog    := ""
 
 Private _lJob       := IIF(Empty(_cEmp) ,.F.,.T.)
 
+Default _cEmpInt    := "01"
+Default _cFilInt    := "07"
+
 //---------------------------+
 // Envia produtos para MsLog |
 //---------------------------+
 If _lJob
     RpcSetType(3)
-	RpcSetEnv(_cEmp, _cFil,,,'FRT')
+	RpcSetEnv(_cEmpInt, _cFilInt,,,'FRT')
 EndIf
-
 
 //---------------------------------+
 // Cria diretorios caso nao exista |

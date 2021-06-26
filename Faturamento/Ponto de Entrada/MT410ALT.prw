@@ -14,7 +14,7 @@
 /*************************************************************************************/
 User Function MT410ALT()
 Local _aArea	:= GetArea()
-Local _cFilWMS	:= GetNewPar("DN_FILWMS","05,06")
+Local _cFilWMS	:= GetNewPar("DN_FILWMS","05,06,07")
 
 //------------------------+
 // Valida se pedido é WMS |

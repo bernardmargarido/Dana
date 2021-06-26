@@ -14,21 +14,22 @@ Static _cDirUpl     := "/upload"
     @since 30/04/2021
 /*/
 /***************************************************************************************/
-User Function DNFATM06(_cEmp,_cFil)
+User Function DNFATM06(_cEmpInt,_cFilInt)
 Local _aArea        := GetArea()
 
 Private _cArqLog    := ""
 
 Private _lJob       := IIF(Empty(_cEmp) ,.F.,.T.)
 
+Default _cEmpInt    := "01"
+Default _cFilInt    := "07"
 //------------------------+
 // Envia notas para MSLog |
 //------------------------+
 If _lJob
     RpcSetType(3)
-	RpcSetEnv(_cEmp, _cFil,,,'FRT')
+	RpcSetEnv(_cEmpInt, _cFilInt,,,'FRT')
 EndIf
-
 
 //---------------------------------+
 // Cria diretorios caso nao exista |
@@ -234,7 +235,10 @@ While (_cAlias)->( !Eof() )
     // Retira nota da fila de integração | 
     //-----------------------------------+
     RecLock("SC5",.F.)
-        SC5->C5_MSEXP := dTos(Date())
+        SC5->C5_XENVWMS := "2"
+        SC5->C5_XDTALT	:= Date()
+        SC5->C5_XHRALT	:= Time()
+        SC5->C5_MSEXP   := dTos(Date())
     SC5->( MsUnLock() )
     
     (_cAlias)->( dbSkip() )
@@ -275,6 +279,7 @@ _cQuery += "	INNER JOIN " + RetSqlName("SA1") + " A1 ON A1.A1_FILIAL = '" + xFil
 _cQuery += " WHERE " + CRLF
 _cQuery += "	C5.C5_FILIAL = '" + xFilial("SC5") + "' AND " + CRLF
 _cQuery += "	C5.C5_MSEXP = '' AND " + CRLF
+_cQuery += "	C5.C5_XENVWMS = '1' AND " + CRLF
 _cQuery += "	C5.C5_TIPO IN('N','B') AND " + CRLF
 _cQuery += "	C5.D_E_L_E_T_ = '' " + CRLF
 
