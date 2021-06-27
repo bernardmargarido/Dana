@@ -18,6 +18,7 @@ Local cMensFis	:= aParam[3]
 Local cNotaES	:= ""
 Local cTpNota	:= ""
 Local _cFilWMS	:= GetNewPar("DN_FILWMS","05,06")
+Local _cFilMSL  := GetNewPar("DN_FILMSL","07")
 
 Local aDest 	:= aParam[4]
 Local aNota 	:= aParam[5]
@@ -42,7 +43,7 @@ cTpNota			:= aNota[05]
 //---------------+
 // Nota de Saida |
 //---------------+
-If cNotaES == '1' .And. cFilAnt $ RTrim(_cFilWMS)
+If cNotaES == '1' .And. cFilAnt $ RTrim(_cFilWMS) + "," + _cFilMSL
 	
 	//----------------+
 	// Posiciona Nota |

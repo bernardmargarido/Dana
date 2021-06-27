@@ -19,7 +19,7 @@ Local _aArea        := GetArea()
 
 Private _cArqLog    := ""
 
-Private _lJob       := IIF(Empty(_cEmp) ,.F.,.T.)
+Private _lJob       := IIF(Empty(_cEmpInt) ,.F.,.T.)
 
 Default _cEmpInt    := "01"
 Default _cFilInt    := "07"

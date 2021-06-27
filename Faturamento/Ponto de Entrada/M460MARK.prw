@@ -23,6 +23,7 @@ Local cAlias 	:= CriaTrab(Nil,.F.)
 Local nTotPed	:= 0
 Local cFilCST	:= Alltrim(GetNewPar("MV_XFILCST"))
 Local _cFilWMS	:= GetNewPar("DN_FILWMS","05,06")
+Local _cFilMSL  := GetNewPar("DN_FILMSL","07")
 Local cUFCli	:= ""
 Local cNomCli	:= ""
 Local cMarca	:= ParamIXB[1]
@@ -35,7 +36,7 @@ Pergunte("MT461A", .F.)
 //-----------------------------------------------+
 // Valida se o pedido foi confirmada a separação |
 //-----------------------------------------------+
-If cFilAnt $ _cFilWMS 
+If cFilAnt $ _cFilWMS + "," + _cFilMSL
 	If !U_DnFatM01(cMarca,lInverte)
 		Return .F.
 	EndIf

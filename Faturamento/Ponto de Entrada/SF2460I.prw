@@ -1,10 +1,11 @@
 #include "rwmake.ch"
 
 User Function SF2460I()
-Local _aArea	:= GetArea()
+Local _aArea		:= GetArea()
 
-Local cGerente	:= ""
-Local _cFilWMS	:= GetNewPar("DN_FILWMS","05,06")
+Local cGerente		:= ""
+Local _cFilWMS		:= GetNewPar("DN_FILWMS","05,06")
+Local _cFilMSL  	:= GetNewPar("DN_FILMSL","07")
 
 Private oDlgDI2		:= NIL
 Private lCat		:= .T.
@@ -50,7 +51,7 @@ Reclock("SF2",.F.)
 	SF2->F2_VEND1	:= _VEND
 	SF2->F2_XXCONVU	:= cConvUN
 
-	If cFilAnt $ RTrim(_cFilWMS)
+	If cFilAnt $ RTrim(_cFilWMS) + "," + _cFilMSL
 		SF2->F2_XDTALT := Date()
 		SF2->F2_XHRALT := Time()
 		SF2->F2_XENVWMS:= "1"

@@ -25,6 +25,7 @@ Local cPedSC5	:= SC5->C5_NUM
 Local cUFCli	:= Posicione("SA1",1,xFilial("SA1")+SC5->(C5_CLIENTE+C5_LOJACLI),"A1_EST")
 Local cNumPed	:= SC5->C5_XNUMCLI
 Local _cFilWMS	:= GetNewPar("DN_FILWMS","05,06")
+Local _cFilMSL  := GetNewPar("DN_FILMSL","07")
 
 Local _nOpcA	:= IIF(Isincallstack("MATA440"),4,ParamIxb)
 
@@ -50,7 +51,7 @@ If _nOpcA == 3 .Or. _nOpcA == 4 .Or. _nOpcA == 6
 				//-----------------------------------------+	
 				// Reliberação de pedido ja separado no WMS|
 				//-----------------------------------------+
-				If cFilSC5 $ _cFilWMS
+				If cFilSC5 $ _cFilWMS + "," + _cFilMSL
 					If SC5->C5_XENVWMS == "3"
 						SC9->C9_XENVWMS := "3"
 						SC9->C9_XDTALT 	:= Date()
@@ -101,7 +102,7 @@ If _nOpcA == 3 .Or. _nOpcA == 4 .Or. _nOpcA == 6
 	Endif
 
 ElseIf _nOpcA == 5
-	If cFilSC5 $ _cFilWMS 
+	If cFilSC5 $ _cFilWMS + "," + _cFilMSL
 
 		If SC5->C5_XENVWMS <> "1" .And. Empty(SC5->C5_NOTA) .Or. SC5->C5_NOTA == "XXXXXXXXX" 
 			//---------------------------+

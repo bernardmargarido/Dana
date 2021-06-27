@@ -12,6 +12,7 @@ User Function MT440AT()
 Local _aArea    := GetArea()
 
 Local _cFilWMS	:= GetNewPar("DN_FILWMS","05,06")
+Local _cFilMSL  := GetNewPar("DN_FILMSL","07")
 Local _cPedido  := SC5->C5_NUM
 Local _cCodCli  := SC5->C5_CLIENTE
 Local _cLojaCli := SC5->C5_LOJACLI
@@ -28,16 +29,16 @@ Private _lPedSld:= .F.
 //---------------------------+
 // Retirado processo AutoLog |
 //---------------------------+
-If !_lAtvWMS
-	RestArea(aArea)
+If !_lAtvWMS .Or. _cFilial <> _cFilMSL
+	RestArea(_aArea)
 	Return .T.
 EndIf
 
 //----------------------------------------------+
 // Caso nao seja filial WMS não valida processo | 
 //----------------------------------------------+
-If !cFilAnt $ _cFilWMS
-	RestArea(aArea)
+If !_cFilial $ _cFilWMS + "," + _cFilMSL
+	RestArea(_aArea)
 	Return .T.
 EndIf
 
@@ -45,8 +46,18 @@ EndIf
 // Valida se e pedido e-Commerce |
 //-------------------------------+
 If SC5->( FieldPos("C5_XNUMECO") ) > 0 .And. !Empty(SC5->C5_XNUMECO)
-	RestArea(aArea)
+	RestArea(_aArea)
 	Return .T.
+EndIf
+
+//-------------------------------------------------------+
+// Valida se pedido foi separado pelo operador logistico |
+//-------------------------------------------------------+
+If SC5->C5_XENVWMS == "2"
+    _cMsg := "Pedido " + SC5->C5_NUM + "somente poderá ser liberado após a separação do operador logistico. Favor aguardar ou entrar em contato com o operador logistico."
+    MsgStop(_cMsg,"Dana - Avisos")
+    RestArea(_aArea)
+	Return .F.
 EndIf
 
 //-----------------------------------+
@@ -56,11 +67,11 @@ If SC5->C5_XENVWMS == "3"
     //------------------------------------+
     // Valida se exite quantidade Cortada |
     //------------------------------------+
-    If M410QTD()
+    If M410QTD(_cFilial)
         //----------------------------------+
         // Valida se já existe pedido saldo |
         //----------------------------------+
-        _lRet := M410SLD()
+        _lRet := M410SLD(_cFilial)
     EndIf
 EndIf
 
@@ -97,7 +108,7 @@ Return _lRet
     @since 23/11/2019
 /*/
 /*******************************************************************/
-Static Function M410SLD()
+Static Function M410SLD(_cFilial)
 Local _cAlias   := GetNextAlias()
 Local _cQuery   := ""
 
@@ -110,7 +121,7 @@ _cQuery += " FROM " + CRLF
 _cQuery += "	" + RetSqlName("SC5") + " C5 " + CRLF 
 _cQuery += "    INNER JOIN " + RetSqlName("SC5") + " SC5 ON SC5.C5_FILIAL  = C5.C5_FILIAL AND SC5.C5_XPVSLD = C5.C5_NUM AND SC5.D_E_L_E_T_ = '' " + CRLF 
 _cQuery += " WHERE " + CRLF
-_cQuery += "	C5.C5_FILIAL = '" + xFilial("SC5") + "' AND " + CRLF
+_cQuery += "	C5.C5_FILIAL = '" + _cFilial + "' AND " + CRLF
 _cQuery += "	C5.C5_NUM = '" + SC5->C5_NUM + "' AND " + CRLF
 _cQuery += "	C5.D_E_L_E_T_ = '' " + CRLF
 
@@ -138,7 +149,7 @@ Return _lRet
     @since 24/11/2019
 /*/
 /*******************************************************************/
-Static Function M410QTD()
+Static Function M410QTD(_cFilial)
 Local _aArea        := GetArea()
 
 Local _lRet         := .T.
@@ -151,12 +162,12 @@ Local _lPedente     := .F.
 //---------------------------+
 dbSelectArea("SC6")
 SC6->( dbSetOrder(1) )
-If !SC6->( dbSeek(xFilial("SC6") + SC5->C5_NUM) )
+If !SC6->( dbSeek(_cFilial + SC5->C5_NUM) )
     RestArea(_aArea)
     Return .F.
 EndIf
 
-While SC6->( !Eof() .And. xFilial("SC6") + SC5->C5_NUM == SC6->C6_FILIAL + SC6->C6_NUM)
+While SC6->( !Eof() .And. _cFilial + SC5->C5_NUM == SC6->C6_FILIAL + SC6->C6_NUM)
     //-----------------------------------+
     // Contem residuo e não foi faturado |
     //-----------------------------------+

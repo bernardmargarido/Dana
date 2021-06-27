@@ -19,7 +19,7 @@ Local _aArea        := GetArea()
 
 Private _cArqLog    := ""
 
-Private _lJob       := IIF(Empty(_cEmp) ,.F.,.T.)
+Private _lJob       := IIF(Empty(_cEmpInt) ,.F.,.T.)
 
 Default _cEmpInt    := "01"
 Default _cFilInt    := "07"
@@ -213,6 +213,15 @@ While (_cAlias)->( !Eof() )
             _cLinItem += PadR(_cLote,18)    + ";"      // 05. Lote
             _cLinItem += PadR(_dDtLote,8)              // 06. Data Validade do Lote
             _cLinItem += CRLF
+
+            //-----------------------------------+
+            // Retira nota da fila de integração | 
+            //-----------------------------------+
+            RecLock("SC6",.F.)
+                SC6->C6_XENVWMS := "2"
+                SC6->C6_XDTALT	:= Date()
+                SC6->C6_XHRALT	:= Time()
+            SC6->( MsUnLock() )
 
             SC6->( dbSkip() )
         EndDo

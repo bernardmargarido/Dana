@@ -15,6 +15,7 @@ User Function DNFATM01(cMarca,lInverte)
 Local aArea		:= GetArea()
 
 Local _cFilWMS	:= GetNewPar("DN_FILWMS","05,06")
+Local _cFilMSL  := GetNewPar("DN_FILMSL","07")
 Local _cAlias	:= GetNextAlias()
 Local _cMsg		:= ""
 Local _cQuery	:= ""
@@ -23,12 +24,12 @@ Local lRet		:= .T.
 
 Local _lAtvWMS	:= GetNewPar("DN_ATVWSM",.T.)
 
-If !_lAtvWMS
+If !_lAtvWMS .Or. cFilAnt <> _cFilMSL
 	RestArea(aArea)
 	Return .T.
 EndIf
 
-If !cFilAnt $ _cFilWMS
+If !cFilAnt $ _cFilWMS + "," + _cFilMSL
 	RestArea(aArea)
 	Return .T.
 EndIf
@@ -77,7 +78,7 @@ dbUseArea(.T.,"TOPCONN",TcGenQry(,,_cQuery),_cAlias,.T.,.T.)
 
 While (_cAlias)->( !Eof() )
 	
-	_cMsg += " Item " + RTrim((_cAlias)->C9_ITEM) + " Produto " + RTrim((_cAlias)->C9_PRODUTO) + " do pedido " + RTrim((_cAlias)->C9_PEDIDO) + " não poderá ser faturado. Aguardando separação AutoLog." + CRLF 	
+	_cMsg += " Item " + RTrim((_cAlias)->C9_ITEM) + " Produto " + RTrim((_cAlias)->C9_PRODUTO) + " do pedido " + RTrim((_cAlias)->C9_PEDIDO) + " não poderá ser faturado. Aguardando separação do operador logistico." + CRLF 	
 	
 	SC9->( dbGoto((_cAlias)->RECNOSC9) )
 	RecLock("SC9",.F.)

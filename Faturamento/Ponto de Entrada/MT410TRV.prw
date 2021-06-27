@@ -2,14 +2,11 @@
 
 /***************************************************************************/
 /*/{Protheus.doc} MT410TRV
-
-@description Ponto de Entrada - Liberação da trava de registros
-
-@author Bernard M. Margarido
-@since 23/01/2019
-@version 1.0
-
-@type function
+    @description Ponto de Entrada - Liberação da trava de registros
+    @author Bernard M. Margarido
+    @since 23/01/2019
+    @version 1.0
+    @type function
 /*/
 /***************************************************************************/
 User Function MT410TRV()

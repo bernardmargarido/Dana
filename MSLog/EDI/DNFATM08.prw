@@ -1,4 +1,5 @@
 #INCLUDE "TOTVS.CH"
+#INCLUDE "PROTHEUS.CH"
 #INCLUDE "FILEIO.CH"
 
 #DEFINE CRLF CHR(13) + CHR(10)
@@ -47,10 +48,10 @@ LogExec("INICIA CRIACAO DOS ARQUIVOS MSLOG - DATA/HORA: " + DTOC(DATE()) + " AS 
 //---------------------------+
 LogExec("<< DNFATM08 >> - INICIO DOWNLOAD DE ARQUIVOS MSLOG " + dTos( Date() ) + " - " + Time() )
     If _lJob
-        //DnFatM08A()
+        DnFatM08A()
         DnFatM08B()
     Else 
-        //FWMsgRun(,{|_oSay| DnFatM08A(_oSay)},"Aguarde ....","Lendo arquivos da MSLOG.")
+        FWMsgRun(,{|_oSay| DnFatM08A(_oSay)},"Aguarde ....","Lendo arquivos da MSLOG.")
         FWMsgRun(,{|_oSay| DnFatM08B(_oSay)},"Aguarde ....","Processando arquivos da MSLOG.")
     EndIf 
 LogExec("<< DNFATM08 >> - FIM DOWNLOAD DE ARQUIVOS MSLOG " + dTos( Date() ) + " - " + Time() )
@@ -181,6 +182,11 @@ Local _nY       := 0
 Local _nHdl     := 0
 Local _nBytes   := 0
 
+Local _nTItem   := TamSx3("C6_ITEM")[1]
+Local _nTProd   := TamSx3("C6_PRODUTO")[1]
+
+Local _lAtualiza:= .T.
+
 Default _oSay   := Nil 
 
 //--------------------------------------+
@@ -241,7 +247,7 @@ For _nX := 1 To Len(_aArquivo)
                         If At(";",_cLinha) > 0 
                             _aCabec := Separa(_cLinha,";")
                         Else 
-                            _aCabec := {_cLinha,0}
+                            _aCabec := {_cLinha,"0"}
                         EndIf
                         aAdd(_aPedidos,{_aCabec[1],Val(_aCabec[2]),{}})
                     Else 
@@ -254,6 +260,18 @@ For _nX := 1 To Len(_aArquivo)
                 EndDo
             EndIf
         EndIf
+
+        //----------------------+
+        // Fecha arquivo texto. |
+        //----------------------+
+        Ft_Fuse()
+
+        //------------------+
+        // Renomeia arquivo |
+        //------------------+    
+        _cArqBkp := StrTran(_aArquivo[_nX,1] , ".TXT", ".LIDO" )
+		FRename(_cDirRaiz + _cDirDown + "/" + _aArquivo[_nX,1] , _cDirRaiz + _cDirDown + "/" + _cArqBkp)
+
     EndIf
 
 Next _nX 
@@ -263,38 +281,83 @@ Next _nX
 //------------------+
 If Len(_aPedidos) > 0
     For _nX := 1 To Len(_aPedidos)
+
+        If !_lJob
+            _oSay:cCaption := "Validando pedido : " + RTrim(_aPedidos[_nX][1])
+            ProcessMessages()
+        EndIf
+
         //------------------+
         // Posiciona Pedido |
         //------------------+
+        _lAtualiza := .T.
         If SC5->( dbSeek(xFilial("SC5") + _aPedidos[_nX][1]) )
             For _nY := 1 To Len(_aPedidos[_nX][3])
                 //---------------------------+
                 // Retorna Codigo do Produto |
                 //---------------------------+
                 _cCodPrd := ""
-                DnFatM08C(_aPedidos[_nX][3][_nY][1],@_cCodPrd)
-
-                //--------------------------+
-                // Posiciona Item do Pedido |
-                //--------------------------+
-                If SC6->( dbSeek(xFilial("SC6") + _aPedidos[_nX][1] +_aPedidos[_nX][3][_nY][2] + _cCodPrd ))
-
-                EndIf
+                If DnFatM08C(_aPedidos[_nX][3][_nY][1],@_cCodPrd,@_lAtualiza)
+                    //--------------------------+
+                    // Posiciona Item do Pedido |
+                    //--------------------------+
+                    If SC6->( dbSeek(xFilial("SC6") + _aPedidos[_nX][1] + Padr(_aPedidos[_nX][3][_nY][2],_nTItem) + PadR(_cCodPrd,_nTProd) ))
+                        RecLock("SC6",.F.)
+                            SC6->C6_XQTDSEP := _aPedidos[_nX][3][_nY][3]
+                            SC6->C6_XENVWMS := "3"
+                            SC6->C6_XDTALT	:= Date()
+                            SC6->C6_XHRALT	:= Time()
+                        SC6->( MsUnLock() )
+                    EndIf
+                EndIf 
             Next _nY
+
             //----------------------+
             // Atualiza LOG retorno | 
             //----------------------+
-            RecLock("SC5",.F.)
-                SC5->C5_XENVWMS := "3"
-                SC5->C5_XDTALT	:= Date()
-                SC5->C5_XHRALT	:= Time()
-            SC5->( MsUnLock() )
+            If _lAtualiza
+                RecLock("SC5",.F.)
+                    SC5->C5_XENVWMS := "3"
+                    SC5->C5_XDTALT	:= Date()
+                    SC5->C5_XHRALT	:= Time()
+                SC5->( MsUnLock() )
+            EndIf
         EndIf
     Next _nX 
 EndIf
 
 RestArea(_aArea)
 Return Nil 
+
+/*******************************************************************************************/
+/*/{Protheus.doc} DnFatM08C
+	@description Retorna codigo do produto pelo codigo de barras
+	@type  Static Function
+	@author Bernard M. Margarido
+	@since 22/05/2019
+/*/
+/*******************************************************************************************/
+Static Function DnFatM08C(_cCodBar,_cCodPrd,_lAtualiza)
+Local _cAlias := ""
+Local _cQuery := ""
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "    B1_COD " + CRLF 
+_cQuery += " FROM " + CRLF
+_cQuery += "    " + RetSqlName("SB1") + " " + CRLF
+_cQuery += " WHERE " + CRLF 
+_cQuery += "    B1_FILIAL = '" + xFilial("SB1") + "' AND " + CRLF
+_cQuery += "    ( B1_CODBAR = '" + _cCodBar + "' OR B1_EAN = '" + _cCodBar + "' ) AND " + CRLF
+_cQuery += "    D_E_L_E_T_ = '' "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+_cCodPrd    := (_cAlias)->B1_COD
+_lAtualiza  := IIF(_lAtualiza .And. Empty(_cCodPrd), .F., .T.)
+
+(_cAlias)->( dbCloseArea() )
+
+Return IIF(Empty(_cCodPrd),.F.,.T.) 
 
 /*******************************************************************************************/
 /*/{Protheus.doc} LogExec
