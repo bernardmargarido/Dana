@@ -320,6 +320,7 @@ If Len(_aPedidos) > 0
                     SC5->C5_XENVWMS := "3"
                     SC5->C5_XDTALT	:= Date()
                     SC5->C5_XHRALT	:= Time()
+                    SC5->C5_VOLUME1 := _aPedidos[_nX][2]
                 SC5->( MsUnLock() )
             EndIf
         EndIf
