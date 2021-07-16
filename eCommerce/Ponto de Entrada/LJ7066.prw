@@ -73,11 +73,6 @@ If WSA->( FieldPos("WSA_NUMSC5") ) > 0
     EndIf
 EndIf
 
-//------------------------------------------------+
-// Grava ID's nos titulos gerados pelo GravaBatch |
-//------------------------------------------------+
-U_GrvIdSe1(SC5->C5_XNUMECO)
-
 Conout( "<< LJ7066 >> - FIM " + dTos( Date() ) + " - " + Time() )
 
 RestArea(_aArea)

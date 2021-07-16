@@ -17,6 +17,12 @@ Local _aArea    := GetArea()
 If SF2->( FieldPos("F2_XNUMECO") ) > 0 .And. !Empty(SC5->C5_XNUMECO)
     If !Empty(SC5->C5_XNUMECO)
         U_EcVldNF(SF2->F2_DOC,SF2->F2_SERIE,SC5->C5_XNUMECO)
+
+        //------------------------------------------------+
+        // Grava ID's nos titulos gerados pelo GravaBatch |
+        //------------------------------------------------+
+        U_GrvIdSe1(SC5->C5_XNUMECO)
+
     EndIf
 EndIf
 

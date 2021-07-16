@@ -1170,6 +1170,8 @@ Local _aArea	:= GetArea()
 Local _cQuery 	:= ""
 Local _cAlias	:= ""
 
+Default _cNumEco := ""
+
 _cQuery := " SELECT " + CRLF
 _cQuery += "	WSA.WSA_NUM, " + CRLF
 _cQuery += "	WSA.WSA_NUMECO, " + CRLF
@@ -1184,7 +1186,11 @@ _cQuery += "	INNER JOIN " + RetSqlName("SL1") + " L1 (NOLOCK) ON L1.L1_FILIAL = 
 _cQuery += "	INNER JOIN " + RetSqlName("SE1") + " E1 (NOLOCK) ON E1.E1_FILORIG = L1.L1_FILIAL AND E1.E1_NUM = L1.L1_DOCPED AND E1.E1_PREFIXO = L1.L1_SERPED AND E1.D_E_L_E_T_ = '' " + CRLF
 _cQuery += " WHERE " + CRLF
 _cQuery += "	WSA.WSA_FILIAL = '" + xFilial("WSA") + "' AND " + CRLF
-_cQuery += "	WSA.WSA_NUMECO = '" + _cNumEco + "' AND " + CRLF
+
+If !Empty(_cNumEco)
+	_cQuery += "	WSA.WSA_NUMECO = '" + _cNumEco + "' AND " + CRLF
+EndIf
+
 _cQuery += "	WSA.D_E_L_E_T_ = '' " + CRLF
 _cQuery += " GROUP BY WSA.WSA_NUM,WSA.WSA_NUMECO,WSA.WSA_NUMECL,WSC.WSC_TID,WSC.WSC_NSUTEF,E1.R_E_C_N_O_  "
 

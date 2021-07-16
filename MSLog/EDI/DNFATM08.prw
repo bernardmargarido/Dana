@@ -206,6 +206,12 @@ SC5->( dbSetOrder(1) )
 dbSelectArea("SC6")
 SC6->( dbSetOrder(1) )
 
+//------------------------------+
+// SC9 - Pedido Itens Liberados | 
+//------------------------------+
+dbSelectArea("SC9")
+SC9->( dbSetOrder(1) )
+
 For _nX := 1 To Len(_aArquivo)
 
     If !_lJob
@@ -309,6 +315,18 @@ If Len(_aPedidos) > 0
                             SC6->C6_XHRALT	:= Time()
                         SC6->( MsUnLock() )
                     EndIf
+
+                    //---------------------------+
+                    // Posiciona itens liberados |
+                    //---------------------------+
+                    If SC9->( dbSeek(xFilial("SC9") +  _aPedidos[_nX][1] + Padr(_aPedidos[_nX][3][_nY][2],_nTItem)))
+                        RecLock("SC9",.F.)
+                            SC9->C9_XENVWMS := "3"
+                            SC9->C9_XDTALT	:= Date()
+                            SC9->C9_XHRALT	:= Time()
+                        SC9->( MsUnLock() )
+                    EndIf
+
                 EndIf 
             Next _nY
 
