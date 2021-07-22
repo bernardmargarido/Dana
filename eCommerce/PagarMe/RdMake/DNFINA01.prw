@@ -26,7 +26,7 @@ _oBrowse:SetAlias("XT9")
 // Adiciona Legendas |
 //-------------------+
 _oBrowse:AddLegend( "XT9_STATUS == '1'", "GREEN"    , "Em Aberto" )
-_oBrowse:AddLegend( "XT9_STATUS == '2'", "RED"      , "Parcialmente Conciliado" )
+_oBrowse:AddLegend( "XT9_STATUS == '2'", "YELLOW"   , "Parcialmente Conciliado" )
 _oBrowse:AddLegend( "XT9_STATUS == '3'", "RED"      , "Conciliado" )
 
 //------------------+
@@ -66,7 +66,7 @@ _oStruXTA	:= FWFormStruct(1,"XTA")
 //-------+
 // Model |
 //-------+
-_oModel 	:= MPFormModel():New('DFINA_01', /*bPreValid*/ , /*_bPosValid*/ , _bCommit , /*_bCancel*/ )
+_oModel 	:= MPFormModel():New('DFINA_01', /*bPreValid*/ , /*_bPosValid*/ , /*_bCommit*/ , /*_bCancel*/ )
 _oModel:SetDescription('Conciliação e-Commerce')
 
 //-----------------+

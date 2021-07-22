@@ -127,6 +127,43 @@ Return _lRet
 Method Saldo() Class PagarMe 
 Local _lRet := .T.
 
+//---------------+
+// Usa cache SSL |
+//---------------+
+::GetSSLCache()
+
+//----------------------------------------+
+// Array contendo parametros de cabeçalho |
+//----------------------------------------+
+::aHeadOut  := {}
+aAdd(::aHeadOut,"Authorization: Basic " + Encode64(RTrim(::cUser) + ":" + RTrim(::cPassword)) )
+aAdd(::aHeadOut,"Content-Type: application/json" )
+
+//-------------------------+
+// Instancia classe FwRest |
+//-------------------------+
+::oFwRest   := FWRest():New(::cUrl)
+
+//---------------------+
+// TimeOut do processo |
+//---------------------+
+::oFwRest:nTimeOut := 600
+
+//-------------------------+
+// Metodo a ser consultado |
+//-------------------------+
+::oFwRest:SetPath("/1/balance")
+
+If ::oFwRest:Get(::aHeadOut)
+    ::cRetJSon	:= DecodeUtf8(::oFwRest:GetResult())
+    _lRet       := .T.
+Else
+    ::cRetJSon	:= DecodeUtf8(::oFwRest:GetResult())
+    ::oRetJSon	:= xFromJson(::cRetJSon)
+    ::cError    := ::oRetJSon[#"errors"][1][#"message"] 
+    _lRet   := .F.
+EndIf
+
 Return _lRet  
 
 /***************************************************************************************/
@@ -139,7 +176,6 @@ Return _lRet
 /***************************************************************************************/
 Method Historico() Class PagarMe 
 Local _lRet := .T.
-
 Return _lRet 
 
 /***************************************************************************************/
@@ -154,6 +190,11 @@ Method Recebivel() Class PagarMe
 Local _lRet     := .T.
 
 Local _cParam   := ""
+
+//---------------+
+// Usa cache SSL |
+//---------------+
+::GetSSLCache()
 
 //----------------------------------------+
 // Array contendo parametros de cabeçalho |

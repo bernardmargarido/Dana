@@ -3,6 +3,9 @@
 #INCLUDE "AARRAY.CH"
 #INCLUDE "JSON.CH"
 
+Static _nTID    := TamSx3("XTA_ID")[1]
+Static _nTParc  := TamSx3("XTA_PARC")[1]
+
 /************************************************************************************/
 /*/{Protheus.doc} DNFINA02
     @description Importa dados da operadora de pagamento
@@ -72,7 +75,7 @@ Local _oJSon    := Nil
 // XT9 - Pagamentos disponiveis |
 //------------------------------+
 dbSelectArea("XT9")
-XT9->( dbSetOrder(1) )
+XT9->( dbSetOrder(2) )
 
 //------------------------------------+
 // XTA - Itens pagamentos disponiveis |
@@ -98,16 +101,19 @@ While _dDtaIni <= _dDtaFim
 
         _oJSon := xFromJson(_oPagarMe:cRetJSon)
 
-        //-----------------------------------+
-        // Valida se contem pagamento do dia |
-        //-----------------------------------+
-        //If !XT9->( dbSeek(xFilial("XT9") + dToc(_dDtaIni)) )
-        //    _cCodigo := GeSxeNum("XT9","XT9_CODIGO")
-        //    _lGrava  := .T.
-        //EndIf
+        If ValType(_oJSon) <> "U" .And. Len(_oJSon) > 0
 
+            //-----------------------------------+
+            // Valida se contem pagamento do dia |
+            //-----------------------------------+
+            If !XT9->( dbSeek(xFilial("XT9") + DToS(_dDtaIni)) )
+                _cCodigo := GetSxeNum("XT9","XT9_CODIGO")
+                _lGrava  := .T.
+            Else 
+                _cCodigo := XT9->XT9_CODIGO
+                _lGrava  := .F.
+            EndIf
 
-        If ValType(_oJSon) <> "U"
             For _nX := 1 To Len(_oJSon)
 
                 _cStatus    := "1"
@@ -120,13 +126,56 @@ While _dDtaIni <= _dDtaFim
                 _nTaxa      := _oJSon[_nX][#"fee"] / 100
                 _dDtaEmiss  := sTod(SubStr(StrTran(_oJSon[_nX][#"date_created"],"-",""),1,10))
                 _dDtaPgto   := sTod(SubStr(StrTran(_oJSon[_nX][#"payment_date"],"-",""),1,10))
+                _lGrvPgto   := .T.
+
+                If !XTA->( dbSeek(xFilial("XTA") + PadR(_cID,_nTID) + PadR(_cParcela,_nTParc)) )
+                    //----------------------------------------+
+                    // Gravação itens do pagamento e-Commerce |
+                    //----------------------------------------+
+                    RecLock("XTA",_lGrvPgto)
+                        XTA->XTA_FILIAL     := xFilial("XTA")
+                        XTA->XTA_CODIGO     := _cCodigo
+                        XTA->XTA_ID         := _cID
+                        XTA->XTA_IDPAY      := _cTID
+                        XTA->XTA_DTEMIS     := _dDtaEmiss
+                        XTA->XTA_DTPGTO     := _dDtaPgto
+                        XTA->XTA_PARC       := _cParcela
+                        XTA->XTA_VALOR      := IIF(_nValor < 0,0, _nValor)
+                        XTA->XTA_VLRLIQ     := IIF(_nDesc < 0,0, _nDesc )
+                        XTA->XTA_TAXA       := IIF(_nTaxa < 0, _nTaxa * -1, _nTaxa)
+                        XTA->XTA_VLRREB     := IIF(_nValor < 0, _nValor * -1, 0)
+                        XTA->XTA_STATUS     := "1"
+                        XTA->XTA_TYPE       := _cType
+                    XTA->( MsUnLock() )
+                EndIf
+                
                 //----------------+
                 // Calcula totais | 
                 //----------------+
                 _nTotal     += _nValor
                 _nTotLiq    += _nDesc
-                
+
             Next _nX 
+
+            //--------------------------------+
+            // Grava dados da baixa eCommerce |
+            //--------------------------------+
+            RecLock("XT9",_lGrava)
+                XT9->XT9_FILIAL := xFilial("XT9")
+                XT9->XT9_CODIGO := _cCodigo
+                XT9->XT9_DATA   := _dDtaIni
+                XT9->XT9_VLRTOT := _nTotal
+                XT9->XT9_VLRLIQ := _nTotLiq
+                XT9->XT9_STATUS := "1"
+            XT9->( MsUnLock() )
+
+            //-------------------------------------------+
+            // Valida numeração no controle de numeração | 
+            //-------------------------------------------+
+            If _lGrava
+                ConfirmSX8()
+            EndIf
+
         EndIf
     Else 
         _cMsgErro := _oPagarMe:cError + " " + CRLF
