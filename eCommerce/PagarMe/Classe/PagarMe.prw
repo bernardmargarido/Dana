@@ -65,7 +65,7 @@ End Class
 Method New() Class PagarMe 
 
     ::cUrl          := GetNewPar("DN_URLPAME","https://api.pagar.me")
-    ::cUser         := GetNewPar("DN_USRPAME","ak_live_oX3z4zo3UOvi0BzMtErKpLZUI63Ga2")
+    ::cUser         := GetNewPar("DN_USRPAME","ak_live_ynOhPw24yWHAnimKV3kjKT04urbf8D")
     ::cPassword     := GetNewPar("DN_PASPAME","x")
     ::cStatus       := ""
     ::cTipo         := ""

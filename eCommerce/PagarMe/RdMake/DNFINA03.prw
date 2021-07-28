@@ -9,23 +9,25 @@
 #DEFINE CRLF CHR(13) + CHR(10)
 
 #DEFINE COL_MARK    01
-#DEFINE COL_IDPAY   02
-#DEFINE COL_PARCELA 03
-#DEFINE COL_DTEMIS  04
-#DEFINE COL_DTPGTO  05
-#DEFINE COL_VLRTOT  06
-#DEFINE COL_VLRLIQ  07
-#DEFINE COL_VLRTAX  08
-#DEFINE COL_REFUND  09
+#DEFINE COL_STATUS  02
+#DEFINE COL_IDPAY   03
+#DEFINE COL_PARCELA 04
+#DEFINE COL_DTEMIS  05
+#DEFINE COL_DTPGTO  06
+#DEFINE COL_VLRTOT  07
+#DEFINE COL_VLRLIQ  08
+#DEFINE COL_VLRTAX  09
+#DEFINE COL_REFUND  10
 
 #DEFINE COL_TMARK    01
-#DEFINE COL_TITULO   02
-#DEFINE COL_TPREFI   03
-#DEFINE COL_TIDPAY   04
-#DEFINE COL_TPARCELA 05
-#DEFINE COL_TDTEMIS  06
-#DEFINE COL_TDTPGTO  07
-#DEFINE COL_TVLRTOT  08
+#DEFINE COL_TSTATUS  02
+#DEFINE COL_TITULO   03
+#DEFINE COL_TPREFI   04
+#DEFINE COL_TIDPAY   05
+#DEFINE COL_TPARCELA 06
+#DEFINE COL_TDTEMIS  07
+#DEFINE COL_TDTPGTO  08
+#DEFINE COL_TVLRTOT  09
 
 /********************************************************************************************************************/
 /*/{Protheus.doc} DNFINA03
@@ -86,7 +88,15 @@ _cQuery += "	ID_PAY_TITULO, " + CRLF
 _cQuery += "	DT_EMISS_TITULO, " + CRLF
 _cQuery += "	DT_PGTO_TITULO, " + CRLF
 _cQuery += "	PARCELA_TITULO, " + CRLF
-_cQuery += "	VALOR_TOTAL_TITULO " + CRLF
+_cQuery += "	VALOR_TOTAL_TITULO, " + CRLF
+_cQuery += "    CASE " + CRLF
+_cQuery += "		WHEN ( ( VALOR_TOTAL - VALOR_TOTAL_TITULO ) < -0.05  AND ( VALOR_TOTAL - VALOR_TOTAL_TITULO ) < 0 )   THEN " + CRLF
+_cQuery += "			'2' " + CRLF
+_cQuery += "		WHEN ( ( VALOR_TOTAL - VALOR_TOTAL_TITULO ) > 0.05 ) THEN " + CRLF
+_cQuery += "			'2' " + CRLF
+_cQuery += "		ELSE " + CRLF
+_cQuery += "			'1' " + CRLF
+_cQuery += "	END STATUS " + CRLF
 _cQuery += " FROM " + CRLF
 _cQuery += " ( " + CRLF
 _cQuery += "	SELECT " + CRLF
@@ -129,8 +139,9 @@ While (_cAlias)->( !Eof() )
             _aEcomm[_nPosEc][COL_REFUND] := VALOR_REEMBOLSO
         EndIf
     Else
-        aAdd(_aEcomm,Array(9))
+        aAdd(_aEcomm,Array(10))
         _aEcomm[Len(_aEcomm)][COL_MARK]     := "LBNO"
+        _aEcomm[Len(_aEcomm)][COL_STATUS]   := (_cAlias)->STATUS
         _aEcomm[Len(_aEcomm)][COL_IDPAY]    := (_cAlias)->ID_PAY
         _aEcomm[Len(_aEcomm)][COL_PARCELA]  := (_cAlias)->PARCELA
         _aEcomm[Len(_aEcomm)][COL_DTEMIS]   := dToc(sTod((_cAlias)->DT_EMISS))
@@ -145,8 +156,9 @@ While (_cAlias)->( !Eof() )
     // Array Titulo Protheus |
     //-----------------------+
     If (_nPosTit := aScan(_aTitulo,{|x| RTrim(x[COL_TIDPAY]) + RTrim(x[COL_TPARCELA]) == (_cAlias)->ID_PAY_TITULO + (_cAlias)->PARCELA_TITULO}) ) == 0
-        aAdd(_aTitulo,Array(8))
+        aAdd(_aTitulo,Array(9))
         _aTitulo[Len(_aTitulo)][COL_TMARK]      := "LBNO"
+        _aTitulo[Len(_aTitulo)][COL_TSTATUS]    := (_cAlias)->STATUS
         _aTitulo[Len(_aTitulo)][COL_TITULO]     := (_cAlias)->TITULO
         _aTitulo[Len(_aTitulo)][COL_TPREFI]     := (_cAlias)->PREFIXO
         _aTitulo[Len(_aTitulo)][COL_TIDPAY]     := (_cAlias)->ID_PAY_TITULO
@@ -289,7 +301,7 @@ _oDlg := MsDialog():New(_oSize:aWindSize[1], _oSize:aWindSize[2], _oSize:aWindSi
     //--------+
     // Botoes |
     //--------+
-    _oBtnOk     := TButton():New( _nLinIni - 26, _nColFin - 100, "Confirmar", _oPanel_02,{|| FwMsgRun(,{|| DnFinA03G() },"Aguarde...","Processando conciliação")}	, 045,015,,,.F.,.T.,.F.,,.F.,,,.F. )
+    _oBtnOk     := TButton():New( _nLinIni - 26, _nColFin - 100, "Confirmar", _oPanel_02,{|| FwMsgRun(,{|_oSay| DnFinA03G(_oSay) },"Aguarde...","Processando conciliação")}	, 045,015,,,.F.,.T.,.F.,,.F.,,,.F. )
 	_oBtnSair   := TButton():New( _nLinIni - 26, _nColFin - 050, "Sair", _oPanel_02,{|| _oDlg:End() }	, 045,015,,,.F.,.T.,.F.,,.F.,,,.F. )
 
     _oDlg:lEscClose := .F.    
@@ -321,8 +333,9 @@ aAdd( 	_aSeek, 	{ AllTrim("Valor")		        ,{{"","N",TamSx3("XTA_VALOR")[1],Tam
 //--------------+
 _oBrowseA := FWBrowse():New(_oTEcom)
 _oBrowseA:AddMarkColumns( {|| IIF( _aEcomm[_oBrowseA:At()][COL_MARK] == "LBOK" , "LBOK", "LBNO")}, {|| DnFinA03E(_oBrowseA,@_oSay_02,@_oSay_04,@_nTotal,@_nCount,_aEcomm,1,1) }, {|| DnFinA03E(_oBrowseA,@_oSay_02,@_oSay_04,@_nTotal,@_nCount,_aEcomm,2,1) })
-//_oBrowseA:AddLegend({|| _aEcomm[_oBrowseA:At()][COL_APROV] == '1'}, "GREEN"	, "Aprovado")
-//_oBrowseA:AddLegend({|| _aEcomm[_oBrowseA:At()][COL_APROV] == '2'}, "RED"		, "Não Aprovado")
+_oBrowseA:AddLegend({|| _aEcomm[_oBrowseA:At()][COL_STATUS] == '1'}, "GREEN"	, "Título encontrado")
+_oBrowseA:AddLegend({|| _aEcomm[_oBrowseA:At()][COL_STATUS] == '2'}, "YELLOW"	, "Título encontrado com divergencia")
+_oBrowseA:AddLegend({|| _aEcomm[_oBrowseA:At()][COL_STATUS] == '3'}, "RED"	    , "Título não encontrado")
 _oBrowseA:DisableConfig()
 _oBrowseA:DisableReport()
 _oBrowseA:SetDataArray()
@@ -430,6 +443,9 @@ aAdd( 	_aSeek, 	{ AllTrim("Valor")		        ,{{"","N",TamSx3("XTA_VALOR")[1],Tam
 //--------------+
 _oBrowseB := FWBrowse():New(_oTTitul)                                                                              
 _oBrowseB:AddMarkColumns( {|| IIF( _aTitulo[_oBrowseB:At()][COL_TMARK] == "LBOK" , "LBOK", "LBNO")}, {|| DnFinA03E(_oBrowseB,@_oSay_02,@_oSay_04,@_nTotal,@_nCount,_aTitulo,1,2) }, {|| DnFinA03E(_oBrowseB,@_oSay_02,@_oSay_04,@_nTotal,@_nCount,_aTitulo,2,2) })
+_oBrowseB:AddLegend({|| _aTitulo[_oBrowseB:At()][COL_TSTATUS] == '1'}, "GREEN"	, "Título encontrado")
+_oBrowseB:AddLegend({|| _aTitulo[_oBrowseB:At()][COL_TSTATUS] == '2'}, "YELLOW"	, "Título encontrado com divergencia")
+_oBrowseB:AddLegend({|| _aTitulo[_oBrowseB:At()][COL_TSTATUS] == '3'}, "RED"	, "Título não encontrado")
 _oBrowseB:DisableConfig()
 _oBrowseB:DisableReport()
 _oBrowseB:SetDataArray()
@@ -561,12 +577,8 @@ If _nMark == 1
         If (_nPos := aScan(_aEcomm,{|x| RTrim(x[_nIDPay]) + RTrim(x[_nParcela]) == RTrim(_aArray[_nLin][COL_TIDPAY]) + RTrim(_aArray[_nLin][COL_TPARCELA]) }) ) > 0
             If _aEcomm[_nPos][_nColMark] == "LBNO"
                 _aEcomm[_nPos][_nColMark] := "LBOK"
-                _nTotal += _aArray[_nLin][_nValor]
-                _nCount++
             ElseIf _aEcomm[_nLin][_nColMark] == "LBOK"
                 _aEcomm[_nLin][_nColMark] := "LBNO"  
-                _nTotal -= _aArray[_nLin][_nValor]
-                _nCount--  
             EndIf
         EndIf
 
@@ -638,13 +650,66 @@ Return Nil
     @since 22/07/2021
 /*/
 /*********************************************************************************/
-Static Function DnFinA03G()
+Static Function DnFinA03G(_oSay)
+Local _nX       := 0
+Local _nValFat  := 0
+
 Local _aArea    := GetArea()
+Local _aBaixa   := {}
 
 If !MsgYesNo("Confirma a conciliação dos pagametos marcados ?","Dana - Avisos!")
     RestArea(_aArea)
     Return .F.
 EndIf 
 
+//-------------------------------------+
+// Orderna somente os titulos marcados |
+//-------------------------------------+
+_aTitulo := aSort(_aTitulo,,,{|x,y| x[1] > y[1]})
+For _nX := 1 To Len(_aTitulo)
+    If _aTitulo[_nX][COL_TMARK] == "LBOK"
+        //-----------------------+
+        // Cria Array para baixa | 
+        //-----------------------+
+        _nVlrTaxa := 0
+        If ( _nPos := aScan(_aEcomm,{|x| RTrim(x[COL_IDPAY]) == RTrim(_aTitulo[_nX][COL_TIDPAY]) }) ) > 0
+            _nVlrTaxa := _aEcomm[_nPos][COL_VLRTAX]
+        EndIf
+        aAdd(_aBaixa,{_aTitulo[_nX][COL_TITULO],_aTitulo[_nX][COL_TPREFI],_aTitulo[_nX][COL_TPARCELA],_aTitulo[_nX][COL_TVLRTOT],_nVlrTaxa})
+    EndIf
+Next _nX 
+
+//-----------------------------+
+// Realiza a baixa dos titulos |
+//-----------------------------+
+If Len(_aBaixa) > 0
+    //------------------------------+
+    // Cria fatura de transferencia |
+    //------------------------------+
+    DnFinA03H(_aBaixa,@_nValFat,@_oSay)
+EndIf
+
+
 RestArea(_aArea)
 Return Nil
+
+/*********************************************************************************/
+/*/{Protheus.doc} DnFinA03H
+    @description Realiza a baixa dos titulos eCommerce 
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 22/07/2021
+/*/
+/*********************************************************************************/
+Static Function DnFinA03H(_aBaixa,_nValFat,_oSay)
+Local _aArea    := GetArea()
+
+Private lAutoErrNoFile  := .T.
+Private lMsErroAuto     := .F.
+
+
+
+
+
+RestArea(_aArea)
+Return Nil 
