@@ -38,11 +38,13 @@
 /*/
 /********************************************************************************************************************/
 User Function DNFINA03()
-Local _aArea    := GetArea()
+Local _aArea        := GetArea()
 
-Private _aEcomm := {}
-Private _aTitulo:= {}
+Private _aEcomm     := {}
+Private _aTitulo    := {}
 
+Private _oBrowseA  := Nil 
+Private _oBrowseB  := Nil 
 //----------------------------+
 // Grava dados de conciliação |
 //----------------------------+
@@ -66,12 +68,18 @@ Return Nil
     @since 20/07/2021
 /*/
 /********************************************************************************************************************/
-Static Function DnFinA03A()
+Static Function DnFinA03A(_nTotal,_nCount,_oSay_02,_oSay_04)
 Local _cAlias   := ""
 Local _cQuery   := ""
 
 Local _nPosEc   := 0
 Local _nPosTit  := 0
+
+Default _nTotal := 0 
+Default _nCount := 0
+
+Default _oSay_02:= Nil 
+Default _oSay_04:= Nil 
 
 _cQuery := " SELECT " + CRLF
 _cQuery += "	ID_PAY, " + CRLF
@@ -128,6 +136,9 @@ _cQuery += " ORDER BY DT_EMISS, ID_PAY "
 
 _cAlias := MPSysOpenQuery(_cQuery)
 
+_aEcomm := {}
+_aTitulo:= {}
+
 While (_cAlias)->( !Eof() )
     //------------------------+
     // Array titulo ecommerce |
@@ -171,6 +182,22 @@ While (_cAlias)->( !Eof() )
     (_cAlias)->( dbSkip() ) 
 EndDo
 
+//---------------------------+
+// Atualiza dados da Browser |
+//---------------------------+
+If ValType(_oBrowseA) == "O"
+
+    _oBrowseA:Refresh()
+    _oBrowseB:Refresh()
+
+    _nTotal := 0 
+    _nCount := 0
+
+    _oSay_02:Refresh()
+    _oSay_04:Refresh()
+
+EndIf
+
 (_cAlias)->( dbCloseArea() ) 
 
 Return Nil 
@@ -212,9 +239,6 @@ Local _oPanel_01    := Nil
 Local _oPanel_02    := Nil 
 Local _oBtnOk       := Nil 
 Local _oBtnSair     := Nil 
-
-Private _oBrowseA  := Nil 
-Private _oBrowseB  := Nil 
 
 //-------------------------------------------------------+
 // Inicializa as coordenadas de tela conforme resolução  |
@@ -301,7 +325,7 @@ _oDlg := MsDialog():New(_oSize:aWindSize[1], _oSize:aWindSize[2], _oSize:aWindSi
     //--------+
     // Botoes |
     //--------+
-    _oBtnOk     := TButton():New( _nLinIni - 26, _nColFin - 100, "Confirmar", _oPanel_02,{|| FwMsgRun(,{|_oSay| DnFinA03G(_oSay) },"Aguarde...","Processando conciliação")}	, 045,015,,,.F.,.T.,.F.,,.F.,,,.F. )
+    _oBtnOk     := TButton():New( _nLinIni - 26, _nColFin - 100, "Confirmar", _oPanel_02,{|| IIF( DnFinA03J(),( FwMsgRun(,{|_oSay| DnFinA03G(_oSay) },"Aguarde...","Processando conciliação"), FwMsgRun(,{|| DnFinA03A(_nTotal,_nCount,_oSay_02,_oSay_04)},"Aguarde...","Buscando concilações em aberto.") ),Nil)}	, 045,015,,,.F.,.T.,.F.,,.F.,,,.F. )
 	_oBtnSair   := TButton():New( _nLinIni - 26, _nColFin - 050, "Sair", _oPanel_02,{|| _oDlg:End() }	, 045,015,,,.F.,.T.,.F.,,.F.,,,.F. )
 
     _oDlg:lEscClose := .F.    
@@ -651,13 +675,17 @@ Return Nil
 /*/
 /*********************************************************************************/
 Static Function DnFinA03G(_oSay)
-Local _nX       := 0
-Local _nValFat  := 0
-
 Local _aArea    := GetArea()
 Local _aBaixa   := {}
 
-If !MsgYesNo("Confirma a conciliação dos pagametos marcados ?","Dana - Avisos!")
+Local _cFilFat  := dToS( Date() ) + StrTran( Time(), ":", "" )
+
+Local _nX       := 0
+Local _nValFat  := 0
+Local _nValLiq  := 0
+
+
+If !MsgYesNo("Confirma a conciliação dos pagametos marcados?","Dana - Avisos!")
     RestArea(_aArea)
     Return .F.
 EndIf 
@@ -666,6 +694,7 @@ EndIf
 // Orderna somente os titulos marcados |
 //-------------------------------------+
 _aTitulo := aSort(_aTitulo,,,{|x,y| x[1] > y[1]})
+_oSay:cCaption := "Validando titulos marcados"
 For _nX := 1 To Len(_aTitulo)
     If _aTitulo[_nX][COL_TMARK] == "LBOK"
         //-----------------------+
@@ -675,7 +704,7 @@ For _nX := 1 To Len(_aTitulo)
         If ( _nPos := aScan(_aEcomm,{|x| RTrim(x[COL_IDPAY]) == RTrim(_aTitulo[_nX][COL_TIDPAY]) }) ) > 0
             _nVlrTaxa := _aEcomm[_nPos][COL_VLRTAX]
         EndIf
-        aAdd(_aBaixa,{_aTitulo[_nX][COL_TITULO],_aTitulo[_nX][COL_TPREFI],_aTitulo[_nX][COL_TPARCELA],_aTitulo[_nX][COL_TVLRTOT],_nVlrTaxa})
+        aAdd(_aBaixa,{_aTitulo[_nX][COL_TITULO],_aTitulo[_nX][COL_TPREFI],_aTitulo[_nX][COL_TPARCELA],_aTitulo[_nX][COL_TVLRTOT],_nVlrTaxa,_aTitulo[_nX][COL_TIDPAY]})
     EndIf
 Next _nX 
 
@@ -683,10 +712,20 @@ Next _nX
 // Realiza a baixa dos titulos |
 //-----------------------------+
 If Len(_aBaixa) > 0
+    //----------------------------+
+    // Atualiza dados dos titulos |
+    //----------------------------+
+    DnFinA03I(_aBaixa,_cFilFat,@_nValFat,@_nValLiq,@_oSay)
+
     //------------------------------+
     // Cria fatura de transferencia |
     //------------------------------+
-    DnFinA03H(_aBaixa,@_nValFat,@_oSay)
+    If DnFinA03H(_cFilFat,_nValFat,_nValLiq,@_oSay)
+        //-----------------------------+
+        // Atualiza status conciliação |
+        //-----------------------------+
+        DnFinA03K(_aBaixa,@_oSay)
+    EndIf
 EndIf
 
 
@@ -701,15 +740,317 @@ Return Nil
     @since 22/07/2021
 /*/
 /*********************************************************************************/
-Static Function DnFinA03H(_aBaixa,_nValFat,_oSay)
-Local _aArea    := GetArea()
+Static Function DnFinA03H(_cFilFat,_nValFat,_nValLiq,_oSay)
+Local _aArea            := GetArea()
+
+Local _aErro            := {}
+Local _aCabec		    := {}
+Local _aItens		    := {}
+Local _aItem		    := {}
+Local _aParcelas        := {}
+
+Local _cErro            := ""
+Local _cFiltro		    := ""
+Local _cNumFat		    := ""
+Local _cParcela         := ""
+Local _c1DUP            := SuperGetMv("MV_1DUP")
+Local _cCliAdm		    := GetNewPar("DN_CODADM","001")
+Local _cLojaAdm		    := GetNewPar("DN_LOJADM","01")
+Local _cNumBco		    := PadR( Rtrim( GetMv( "DN_BCOPGME") ), TamSX3("E1_BCOCHQ")[1] )
+Local _cNumAg		    := PadR( Rtrim( GetMv( "DN_AGEPGME") ), TamSX3("E1_AGECHQ")[1] )
+Local _cAccount		    := PadR( Rtrim( GetMv( "DN_CONPGME") ), TamSX3("E1_CTACHQ")[1] )
+Local _cCond		    := PadR( Rtrim( GetMv( "DN_PGTPGME") ), TamSX3("E4_CODIGO")[1] )
+Local _cNaturez		    := PadR( Rtrim( GetMv( "DN_NATPGME") ), TamSX3("E1_NATUREZ")[1] )
+Local _cTipo		    := PadR( Rtrim( GetMv( "DN_TIPPGME") ), TamSX3("E1_TIPO")[1] )
+Local _nMoeda		    := GetMv( "DN_MOEDA",,1 )
+Local _cPrefixo		    := PadR( Rtrim( GetMv( "DN_PREFIX",,"ECO" ) ), TamSX3("E1_PREFIXO")[1] )
+
+Local _nX               := 0
+Local _nValXTB          := 0
+
+Local _lRet             := .T.
 
 Private lAutoErrNoFile  := .T.
 Private lMsErroAuto     := .F.
 
+//---------------+
+// Numero Fatura |
+//---------------+
+dbSelectArea("SE1")
+SE1->( dbSetOrder(1) )
+
+_cNumFat := GetSxeNum("SE1","E1_NUM")
+
+While SE1->( dbSeek(xFilial("SE1") + _cPrefixo + _cNumFat) )
+	ConfirmSx8()
+	_cNumFat := GetSxeNum("SE1","E1_NUM","",1)	
+EndDo
+
+//------------------+
+// Cabeçalho Fatura |
+//------------------+
+aAdd(_aCabec, {"cCondicao"	, _cCond 	})
+aAdd(_aCabec, {"cNatureza"	, _cNaturez })
+aAdd(_aCabec, {"E1_TIPO" 	, _cTipo 	})
+aAdd(_aCabec, {"cCliente"	, _cCliAdm 	})
+aAdd(_aCabec, {"nMoeda"		, _nMoeda 	}) 
+aAdd(_aCabec, {"cLoja"		, _cLojaAdm })
+
+_aParcelas  := Condicao( _nValFat, _cCond,, dDataBase)
+_nValLiq    := IIF(Len(_aParcelas) > 1, _nValLiq / Len(_aParcelas), _nValLiq )
+
+For _nX := 1 To Len(_aParcelas)
+
+    _cParcela := IIF(Len(_aParcelas) > 1,LJParcela( _nX, _c1DUP ),"")
+    _aItens   := {}
+    _nValXTB  += _aParcelas[_nX][2]
+
+    aAdd(_aItens, {"E1_PREFIXO"	, _cPrefixo				})		//Prefixo
+    aAdd(_aItens, {"E1_BCOCHQ"	, _cNumBco 				})		//Banco
+    aAdd(_aItens, {"E1_AGECHQ"	, _cNumAg 				})		//Agencia
+    aAdd(_aItens, {"E1_CTACHQ"	, _cAccount 			})		//Conta
+    aAdd(_aItens, {"E1_NUM"		, _cNumFat 				})		//Nro. cheque (dará origem ao numero do titulo)
+    aAdd(_aItens, {"E1_PARCELA"	, _cParcela		        })		//Numero da Parcela
+    aAdd(_aItens, {"E1_EMITCHQ"	, "PAGARME"				}) 		//Emitente do cheque
+    aAdd(_aItens, {"E1_VENCTO"	, _aParcelas[_nX][1]    })		//Data boa 
+    aAdd(_aItens, {"E1_VLCRUZ"	, _aParcelas[_nX][2]    })		//Valor do cheque/titulo
+    aAdd(_aItens, {"E1_DECRESC"	, _nValLiq		        })		//Valor do cheque/titulo
+
+    aAdd(_aItem,_aItens)
+
+Next _nX 
+
+//--------+
+// Filtro |
+//--------+
+_cFiltro := " E1_XFILFAT == '" + _cFilFat + "' "
+
+//-------------+
+// Gera Fatura |
+//-------------+	
+_oSay:cCaption := "Gerando fatura " + _cNumFat
+
+If Len(_aItem) > 0 .And. Len(_aCabec) > 0
+
+	//---------------+
+	// Numero Fatura |
+	//---------------+
+	dbSelectArea("SE1")
+	SE1->( dbSetOrder(1) )
+	SE1->( dbGoTop() )
+	
+	lMsErroAuto := .F.
+
+	FINA460(,_aCabec,_aItem,3,_cFiltro)
+		
+	//------+
+	// Erro | 
+	//------+
+	If lMsErroAuto
+        RollBackSX8()
+        _lRet  := .F.
+		_aErro := GetAutoGRLog()
+    	If Len(_aErro) > 0
+        _cErro := "Erro ao gerar fatura. " + CRLF
+            For _nX := 1 To Len(_aErro)
+                _cErro += _aErro[_nX] + CRLF
+            Next _nX
+        Else
+            _cErro += "Verifique os dados enviados."
+        EndIf
+        MsgInfo(_cErro, "Dana - Avisos")
+	Else
+		ConfirmSX8()
+
+        dbSelectArea("XTB")
+        XTB->( dbSetOrder(1) )
+
+        _cCodTrf    := GetSxeNum("XTB","XTB_CODIGO")
+
+        While XTB->( dbSeek(xFilial("XTB") + _cCodTrf) )
+            ConfirmSx8()
+            _cCodTrf := GetSxeNum("XTB","XTB_CODIGO","",1)	
+        EndDo
+
+        RecLock("XTB",.T.)
+            XTB->XTB_FILIAL := xFilial("XTB")
+            XTB->XTB_CODIGO := _cCodTrf
+            XTB->XTB_IDTRAN := ""
+            XTB->XTB_DTEMIS := dDataBase
+            XTB->XTB_DTBAIX := Nil 
+            XTB->XTB_VALOR  := _nValXTB
+            XTB->XTB_BANCO  := _cNumBco
+            XTB->XTB_AGEN   := _cNumAg
+            XTB->XTB_CONTA  := _cAccount
+            XTB->XTB_NUMSE1 := _cNumFat
+            XTB->XTB_PRESE1 := _cPrefixo
+            XTB->XTB_STATUS := "1"
+        XTB->( MsUnLock() )        
+
+        MsgInfo("Fatura " + _cNumFat + " " + _cPrefixo + " gerada com sucesso no valor de " + Alltrim(Transform(_nValXTB,PesqPict("SE1","E1_VALOR"))) + ".", "Dana - Avisos")
+	EndIf
+EndIf	
 
 
+RestArea(_aArea)
+Return _lRet 
 
+/*********************************************************************************/
+/*/{Protheus.doc} DnFinA03I
+    @description Realiza a atualização dos titulos ecommerce
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 22/07/2021
+/*/
+/*********************************************************************************/
+Static Function DnFinA03I(_aBaixa,_cFilFat,_nValFat,_nValLiq,_oSay)
+Local _aArea    := GetArea()
+
+Local _nX       := 0
+
+//-----------------------------------+
+// SE1 - Posiciona Titulos a Receber |
+//-----------------------------------+
+dbSelectArea("SE1")
+SE1->( dbSetOrder(1) )
+
+For _nX := 1 To Len(_aBaixa)
+    _oSay:cCaption := "Atualizando titulos marcados " + RTrim(_aBaixa[_nX][2]) + RTrim(_aBaixa[_nX][1])
+    If SE1->( dbSeek(xFilial("SE1") + _aBaixa[_nX][2] + _aBaixa[_nX][1] + _aBaixa[_nX][3] ) )
+        _nValFat += _aBaixa[_nX][4]
+        _nValLiq += _aBaixa[_nX][5]
+        RecLock("SE1",.F.)
+            SE1->E1_XFILFAT := _cFilFat
+        SE1->( MsUnLock() )
+    EndIf
+Next _nX 
+        
+RestArea(_aArea)
+Return Nil 
+
+/*********************************************************************************/
+/*/{Protheus.doc} DnFinA03K
+    @description Atualiza status conciliação eCommerce
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 29/07/2021
+/*/
+/*********************************************************************************/
+Static Function DnFinA03K(_aBaixa,_oSay)
+Local _aArea    := GetArea()
+Local _aCodConc := {}
+
+Local _nX       := 0
+Local _nTIdPay  := TamSx3("XTA_IDPAY")[1]
+Local _nTParc   := TamSx3("XTA_PARC")[1]
+//-----------------------------------+
+// XTA - Posiciona titulos eCommerce |
+//-----------------------------------+
+dbSelectArea("XTA")
+XTA->( dbSetOrder(1) )
+
+For _nX := 1 To Len(_aBaixa)
+    _oSay:cCaption := "Atualizando status conciliação" + _aBaixa[_nX][6] + " " + _aBaixa[_nX][3]
+    If XTA->( dbSeek(xFilial("XTA") + PadR(_aBaixa[_nX][6],_nTIdPay) + PadR(_aBaixa[_nX][3],_nTParc) ))
+        
+        If aScan(_aCodConc,{|x| RTrim(x) == RTrim(XTA->XTA_CODIGO)}) == 0
+            aAdd(_aCodConc,XTA->XTA_CODIGO)
+        EndIf
+        
+        RecLock("XTA",.F.)
+            XTA->XTA_STATUS := "2"
+        XTA->( MsUnLock() )
+    EndIf 
+Next _nX 
+
+//----------------------------+
+// Atualiza dados conciliação | 
+//----------------------------+
+For _nX := 1 To Len(_aCodConc)
+    DnFinA03L(_aCodConc[_nX])
+Next _nX 
+
+RestArea(_aArea)
+Return Nil 
+
+/*********************************************************************************/
+/*/{Protheus.doc} DnFinA03J
+    @description Valida se existem titulos marcados após confirmar
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 22/07/2021
+/*/
+/*********************************************************************************/
+Static Function DnFinA03J()
+Local _lRet := .T. 
+
+If aScan(_aEcomm,{|x| RTrim(x[COL_MARK]) == "LBOK"}) == 0
+    MsgInfo("Não é possivel realizar a conciliação. Não existem titulos marcados.","Dana - Avisos")
+    _lRet := .F.
+EndIf 
+
+Return _lRet
+
+/*********************************************************************************/
+/*/{Protheus.doc} DnFinA03L
+    @description Atualiza status conciliação
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 29/07/2021
+/*/
+/*********************************************************************************/
+Static Function DnFinA03L(_cCodXT9)
+Local _aArea    := GetArea()
+
+Local _cQuery   := ""
+Local _cAlias   := ""
+Local _cStatus  := "" 
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	XTA.XTA_CODIGO, " + CRLF
+_cQuery += "	BAIXADOS.STATUS_CONC BAIXADOS, " + CRLF
+_cQuery += "	COUNT(XTA.XTA_STATUS) TOTAL_REG " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += "	" + RetSqlName("XTA") + " XTA " + CRLF 
+_cQuery += "	CROSS APPLY( " + CRLF
+_cQuery += "		SELECT " + CRLF
+_cQuery += "			COUNT(XTA_A.XTA_STATUS) STATUS_CONC " + CRLF
+_cQuery += "		FROM " + CRLF
+_cQuery += "			" + RetSqlName("XTA") + " XTA_A " + CRLF 
+_cQuery += "		WHERE " + CRLF
+_cQuery += "			XTA_A.XTA_FILIAL = XTA.XTA_FILIAL AND " + CRLF
+_cQuery += "			XTA_A.XTA_CODIGO = XTA.XTA_CODIGO AND " + CRLF
+_cQuery += "			XTA_A.XTA_STATUS = '2' AND " + CRLF
+_cQuery += "			XTA_A.D_E_L_E_T_ = '' " + CRLF	
+_cQuery += "	) BAIXADOS " + CRLF
+_cQuery += " WHERE " + CRLF
+_cQuery += "	XTA.XTA_FILIAL = '" + xFilial("XTA") + "' AND " + CRLF
+_cQuery += "	XTA.XTA_CODIGO = '" + _cCodXT9 + "' AND " + CRLF
+_cQuery += "	XTA.D_E_L_E_T_ = '' " + CRLF
+_cQuery += " GROUP BY XTA.XTA_CODIGO,BAIXADOS.STATUS_CONC "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+If (_cAlias)->BAIXADOS == (_cAlias)->TOTAL_REG
+    _cStatus := "3"
+ElseIf (_cAlias)->BAIXADOS <> (_cAlias)->TOTAL_REG .And. (_cAlias)->BAIXADOS > 0
+    _cStatus := "2"
+ElseIf (_cAlias)->BAIXADOS <> (_cAlias)->TOTAL_REG .And. (_cAlias)->BAIXADOS == 0
+    _cStatus := "1"
+EndIf
+
+//-----------------------------+
+// XT9 - Conciliação eCommerce |
+//-----------------------------+
+dbSelectArea("XT9")
+XT9->( dbSetOrder(1) )
+If dbSeek(xFilial("XT9") + (_cAlias)->XTA_CODIGO)
+    RecLock("XT9",.F.)
+        XT9->XT9_STATUS := _cStatus
+    XT9->( MsUnLock() )
+EndIf
+
+(_cAlias)->( dbCloseArea() )
 
 RestArea(_aArea)
 Return Nil 
