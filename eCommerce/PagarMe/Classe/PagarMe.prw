@@ -22,6 +22,7 @@ Class PagarMe
     Data cTipo          As String 
     Data cTID           As String 
     Data cRecepientID   As String 
+    Data cJSon          As String 
     Data cRetJSon       As String
     Data cError         As String 
 
@@ -71,6 +72,7 @@ Method New() Class PagarMe
     ::cTipo         := ""
     ::cTID          := ""
     ::cRecepientID  := ""
+    ::cJSon         := ""
     ::cRetJSon      := ""
     ::_cPassword	:= ""
 	::_cCertPath	:= "" 
@@ -244,6 +246,40 @@ Return _lRet
 /***************************************************************************************/
 Method Transferencia() Class PagarMe 
 Local _lRet := .T.
+
+//---------------+
+// Usa cache SSL |
+//---------------+
+::GetSSLCache()
+
+//----------------------------------------+
+// Array contendo parametros de cabeçalho |
+//----------------------------------------+
+::aHeadOut  := {}
+aAdd(::aHeadOut,"Authorization: Basic " + Encode64(RTrim(::cUser) + ":" + RTrim(::cPassword)) )
+aAdd(::aHeadOut,"Content-Type: application/json" )
+
+//-------------------------+
+// Instancia classe FwRest |
+//-------------------------+
+::oFwRest   := FWRest():New(::cUrl)
+
+//---------------------+
+// TimeOut do processo |
+//---------------------+
+::oFwRest:nTimeOut := 600
+
+::oFwRest:SetPath("/1/transfers")
+::oFwRest:SetPostParams(EncodeUtf8(::cJSon))
+If ::oFwRest:Post(::aHeadOut)
+    ::cRetJSon	:= DecodeUtf8(::oFwRest:GetResult())
+    _lRet       := .T.
+Else
+    ::cRetJSon	:= DecodeUtf8(::oFwRest:GetResult())
+    ::oRetJSon	:= xFromJson(::cRetJSon)
+    ::cError    := ::oRetJSon[#"errors"][1][#"message"] 
+    _lRet   := .F.
+EndIf
 
 Return _lRet 
 

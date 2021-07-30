@@ -193,6 +193,8 @@ If ValType(_oBrowseA) == "O"
     _nTotal := 0 
     _nCount := 0
 
+    _oSay_02:SetText(cValToChar(_nCount))
+    _oSay_04:SetText(Transform(_nTotal,PesqPict("SE1","E1_VALOR")))
     _oSay_02:Refresh()
     _oSay_04:Refresh()
 
