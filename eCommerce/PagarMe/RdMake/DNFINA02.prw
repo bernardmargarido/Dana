@@ -66,10 +66,11 @@ Local _dDtaFim      := mv_par02
 Local _dDtaEmiss    := ""
 Local _dDtaPgto     := ""
 
-Local _lGrava   := .F.
+Local _lGrava       := .F.
+Local _lBaixado     := .F.
 
-Local _oPagarMe := PagarMe():New()
-Local _oJSon    := Nil 
+Local _oPagarMe     := PagarMe():New()
+Local _oJSon        := Nil 
 
 //------------------------------+
 // XT9 - Pagamentos disponiveis |
@@ -127,6 +128,7 @@ While _dDtaIni <= _dDtaFim
                 _dDtaEmiss  := sTod(SubStr(StrTran(_oJSon[_nX][#"date_created"],"-",""),1,10))
                 _dDtaPgto   := sTod(SubStr(StrTran(_oJSon[_nX][#"payment_date"],"-",""),1,10))
                 _lGrvPgto   := .T.
+                _lBaixado   := DnFinA02C(_cTID,_cParcela)
 
                 If !XTA->( dbSeek(xFilial("XTA") + PadR(_cID,_nTID) + PadR(_cParcela,_nTParc)) )
                     //----------------------------------------+
@@ -144,7 +146,7 @@ While _dDtaIni <= _dDtaFim
                         XTA->XTA_VLRLIQ     := IIF(_nDesc < 0,0, _nDesc )
                         XTA->XTA_TAXA       := IIF(_nTaxa < 0, _nTaxa * -1, _nTaxa)
                         XTA->XTA_VLRREB     := IIF(_nValor < 0, _nValor * -1, 0)
-                        XTA->XTA_STATUS     := "1"
+                        XTA->XTA_STATUS     := IIf(_lBaixado,"2","1")
                         XTA->XTA_TYPE       := _cType
                     XTA->( MsUnLock() )
                 EndIf
@@ -184,6 +186,47 @@ While _dDtaIni <= _dDtaFim
 EndDo
 
 Return Nil 
+
+/****************************************************************************************************/
+/*/{Protheus.doc} DnFinA02C
+    @description Valida se titulo ja está baixado 
+    @type  Static Function
+    @author Bernard M. Margarido
+    @since 30/07/2021
+/*/
+/****************************************************************************************************/
+Static Function DnFinA02C(_cTID,_cParcela)
+Local _cQuery   := ""
+Local _cAlias   := ""
+
+Local _lRet     := .T.
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	CASE " + CRLF
+_cQuery += "		WHEN E1.E1_BAIXA = '' AND E1.E1_SALDO > 0 THEN " + CRLF
+_cQuery += "			'ABERTO' " + CRLF
+_cQuery += "		ELSE " + CRLF
+_cQuery += "			'BAIXADO' " + CRLF
+_cQuery += "	END STATUS " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += "	SE1010 E1 " + CRLF
+_cQuery += " WHERE " + CRLF
+_cQuery += "	E1.E1_FILIAL = '" + xFilial("SE1") + "' AND " + CRLF
+_cQuery += "	E1.E1_XTID = '" + _cTID + "' AND " + CRLF
+_cQuery += "	E1.E1_PARCELA = '" + _cParcela + "' AND " + CRLF
+_cQuery += "	E1.D_E_L_E_T_ = '' "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+If Empty((_cAlias)->STATUS) .Or. (_cAlias)->STATUS == "ABERTO"
+    _lRet := .F.
+ElseIf (_cAlias)->STATUS == "BAIXADO"
+    _lRet := .T.
+EndIf
+
+(_cAlias)->( dbCloseArea() )
+
+Return _lRet  
 
 /****************************************************************************************************/
 /*/{Protheus.doc} DnFinA02A
