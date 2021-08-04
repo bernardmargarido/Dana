@@ -288,7 +288,7 @@ Default _lVarMem    := .F.
 Default _lProspect  := .F.
 
 
-_cEstado    := IIF(_lVarMem , M->A1_EST         , SA1->A1_EST)
+_cEstado    := IIF(_lVarMem , M->A1_EST        , SA1->A1_EST)
 _cCodMun    := IIF(_lVarMem , M->A1_COD_MUN    , SA1->A1_COD_MUN)
 
 _cQuery := " SELECT " + CRLF

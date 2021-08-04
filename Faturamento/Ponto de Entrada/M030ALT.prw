@@ -2,12 +2,10 @@
 
 /******************************************************************************/
 /*/{Protheus.doc} M030ALT
-
-@author Bernard M. Margarido
-@since 07/07/2019
-@version 1.0
-
-@type function
+	@author Bernard M. Margarido
+	@since 07/07/2019
+	@version 1.0
+	@type function
 /*/
 /******************************************************************************/
 User Function M030ALT()

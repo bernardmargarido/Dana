@@ -95,7 +95,13 @@ If U_MMBolDDA(SE1->E1_CLIENTE,SE1->E1_LOJA)
 Else
 			
 	While !SE1->( Eof() ) .AND. Val(SE1->E1_NUM) >= Val(cNfi) .AND. Val(SE1->E1_NUM) <= Val(cNff) //.AND. SE1->E1_TIPO == "NF "
+		/*
 		If SE1->E1_PORTADO != cBanco .Or. SE1->E1_PREFIXO <> cSerie
+			SE1->(DbSkip())
+			Loop
+		Endif
+		*/
+		If SE1->E1_PREFIXO <> cSerie
 			SE1->(DbSkip())
 			Loop
 		Endif

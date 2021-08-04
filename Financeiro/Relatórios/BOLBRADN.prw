@@ -693,6 +693,9 @@ Static Function SyGetNN(cCarteira)
 		DbSelectArea("SE1")
 		RecLock("SE1",.F.)
 			SE1->E1_NUMBCO := cNumBoleto + cDVNossoNum //+ "5" + cDvCedente
+			SE1->E1_PORTADO:= mv_par04
+			SE1->E1_AGEDEP := mv_par05
+			SE1->E1_CONTA  := mv_par06
 		MsUnlock()
 	EndIf
 
