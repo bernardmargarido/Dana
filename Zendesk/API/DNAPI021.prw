@@ -37,7 +37,7 @@ END WSRESTFUL
 WSMETHOD GET WSRECEIVE IDCLIENTE WSSERVICE CLIENTES_ZENDESK
 Local _aArea    := GetArea()
 
-Local _cAuth        := ""
+//Local _cAuth        := ""
 Local _cIdCiente    := IIF(Empty(::IDCLIENTE),"",::IDCLIENTE)
 
 Local _oZendesk     := Nil 

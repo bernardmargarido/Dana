@@ -111,6 +111,7 @@ Local _cUserID      := ""
 
 Local _lRet         := .T.
 
+Local _nX           := 0
 Local _nTimeOut     := 400
 
 Local _oRest        := Nil 
@@ -211,6 +212,7 @@ If _lOk
         _oJSon[#"documento"]    := RTrim(SA1->A1_CGC)
         _oJSon[#"tipo"]         := RTrim(SA1->A1_PESSOA)
         _oJSon[#"email"]        := RTrim(_cEMail)
+        _oJSon[#"enderecos"]    := {}
         aAdd(_oJSon[#"enderecos"],Array(#))
         _oAdress    := aTail(_oJSon[#"enderecos"])
         _oAdress[#"tipo"]       := "Residencial"
