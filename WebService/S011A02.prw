@@ -129,24 +129,28 @@ Return
 WSMETHOD IncluirPedido WSRECEIVE INPedido WSSEND RetStatus WSSERVICE WSSIM3G_PEDIDOVENDA
 
 Local aMsg  		:= {}
+Local aDadosPE		:= {}
+
 Local lLinux 		:= ("LINUX" $ Upper(GetSrvInfo()[2]))
+Local lPedExist		:= .F.
+
 Local cPath 		:= "\logsim3g"+ IF(lLinux,"/","\")	// Pasta abaixo da Protheus_Data para gravar os LOGS
 Local cFile 		:= ""
 Local cErro 		:= ""
-Local _nI    		:= 0
-Local lPedExist		:= .F.
 Local cNumPedido	:= ""
 Local cNumSIM3G		:= ""
 Local cOldFil		:= ""
-Local nOldMod		:= 0
-Local aDadosPE		:= {}
 Local cCampo 		:= ""
-Local xValor		:= nil
+Local _cArqLck		:= ""
+Local _cFilFat		:= ""
+
+Local nOldMod		:= 0
+Local _nI    		:= 0
+Local nHandle		:= 0
+Local xValor		:= Nil
+
 Local i
 Local bRet			:= .T.
-
-Local nHandle		:= 0
-Local _cArqLck		:= ""
 
 Private aCabec	 	:= {}
 Private aItensSC6	:= {}
@@ -183,7 +187,19 @@ Endif
 If Empty(Self:INPedido:C5_FILIAL)
 	aAdd(aMsg,{"P","C5_FILIAL","Codigo da Filial nao informado"})
 Else
-	cFilAnt := Self:INPedido:C5_FILIAL
+	//------------------+
+	// Posicina cliente |
+	//------------------+
+	If !Empty(::INPedido:C5_CLIENTE)
+		dbSelectArea("SA1")
+		SA1->( dbSetOrder(1) )
+		If SA1->( dbSeek(xFilial("SA1") + PADR(AllTrim(::INPedido:C5_CLIENTE), TamSX3("C5_CLIENTE")[1]) + PADR(AllTrim(::INPedido:C5_LOJACLI), TamSX3("C5_LOJACLI")[1]) ) )
+			_cFilFat := SA1->A1_XFILFAT	
+		EndIf 
+	EndIf
+
+	cFilAnt := IIF(Empty(_cFilFat),Self:INPedido:C5_FILIAL,_cFilFat)
+
 	If ! FWFilExist()
 		aAdd(aMsg,{"P","C5_FILIAL","Filial nao cadastrada: "+ cFilAnt })
 	Else

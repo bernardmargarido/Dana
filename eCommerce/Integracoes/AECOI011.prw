@@ -2448,6 +2448,17 @@ Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmi
 					If nVlrTotal < nVlrTotMkt
 						nVlrTotal	:= nVlrTotMkt
 					EndIf
+				
+				//-----+	
+				// PIX |
+				//-----+ 
+				ElseIf WS4->WS4_TIPO == "5"
+					cTipo 		:= "PIX"
+
+					cSemNsu 	:= FWJsonSerialize(oPayMent:Transactions[nTran]:Payments[nPay]:ConnectorResponses)
+					cCodAuto	:= IIF(AT("AUTHID",cSemNsu) > 0,oPayMent:Transactions[nTran]:Payments[nPay]:ConnectorResponses:Authid,"")
+					cNsuId		:= IIF(AT("NSU",cSemNsu) > 0,oPayMent:Transactions[nTran]:Payments[nPay]:ConnectorResponses:Nsu,"")
+					cTID		:= IIF(AT("TID",cSemNsu) > 0,oPayMent:Transactions[nTran]:Payments[nPay]:ConnectorResponses:Tid,"")
 
 				EndIf
 			
@@ -2479,7 +2490,7 @@ Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmi
 				//----------------------------------------------+
 				// Valida se utiliza Administradora ficnanceira |
 				//----------------------------------------------+
-				If lTaxaCC .And. WS4->WS4_TIPO $ "1/2"
+				If lTaxaCC .And. WS4->WS4_TIPO $ "1/2/5"
 					aRet := aEcoTxAdm(WS4->WS4_CODADM,Len(aVencTo))
 					If aRet[1]
 						nTxParc := aRet[2]
@@ -2553,17 +2564,10 @@ Return aRet
 
 /**************************************************************************************************/
 /*/{Protheus.doc} AEcoSe4
-
-@description	Gera condição de pagamento
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		10/02/2016
-
-@param			cTipo		, Tipo de Pagameto (Cartao,Boleto eEtc)
-@param			nQtdParc	, Quantidade de Parcelas
-
-@return			aRet - Array aRet[1] - Logico aRet[2] - Codigo Erro aRet[3] - Descricao do Erro
+	@description	Gera condição de pagamento
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
 /*/			
 /**************************************************************************************************/
 Static Function AEcoSe4(cOrderId,cTipo,nQtdParc)
@@ -2613,7 +2617,14 @@ Static Function AEcoSe4(cOrderId,cTipo,nQtdParc)
 		cDescri	:= "MARKET PLACE"
 		cCondPg	:= GetNewPar("EC_MKTVENC","30")
 		cTpCond := "1"
-		
+	
+	ElseIf cTipo == "PIX"
+
+		cCodigo := "PIX"	
+		cDescri	:= "PIX"
+		cCondPg	:= GetNewPar("EC_PIXVENC","30")
+		cTpCond := "1"
+
 	EndIf	
 
 	//-----------------------------------------------------+
