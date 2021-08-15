@@ -182,9 +182,9 @@ _oDlg:Activate()
 // Atualiza preços | 
 //-----------------+
 If _nOpcA == 1
-    Begin Transaction 
+    //Begin Transaction 
         FwMsgRun(,{|| DnFatA02G(_oBrowse,_aItems)}, "Aguarde...","Atualizando preços...")
-    End Transaction
+    //End Transaction
 EndIf
 
 RestArea(_aArea)
