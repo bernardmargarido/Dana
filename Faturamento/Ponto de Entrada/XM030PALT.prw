@@ -16,7 +16,7 @@ Local _cFilFat      := ""
 
 Local _nX           := 0            
 
-Local _lConfirma    := (PARAMIXB == 0)
+Local _lConfirma    := .F.
 
 If _lConfirma
     

@@ -29,7 +29,7 @@ DBSelectArea("SF2")
 
 _XPEDIDO := POSICIONE("SD2",3,xFilial("SD2") + SF2->(F2_DOC+F2_SERIE+F2_CLIENTE+F2_LOJA),"D2_PEDIDO")
 _VEND    := POSICIONE("SC5",1,xFilial("SC5") + _XPEDIDO,"C5_VEND1")
-cConvUN	 := "" //POSICIONE("SC5",1,xFilial("SC5") + _XPEDIDO,"C5_XCONVUN")
+cConvUN	 := POSICIONE("SC5",1,xFilial("SC5") + _XPEDIDO,"C5_XCONVUN")
 
 IF EMPTY(_VEND)
 	_VEND := GetAdvFval("SA1","A1_VEND",xFilial("SA1") + SF2->F2_CLIENTE + SF2->F2_LOJA,1)
@@ -98,6 +98,20 @@ Endif
 
 If SF2->F2_TIPO == 'N'
 	DCEMAGEN()
+Endif
+
+//Atualiza Vendedor SD2
+DbSelectArea("SD2")
+DbSetOrder(3)//D2_FILIAL+D2_DOC+D2_SERIE+D2_CLIENTE+D2_LOJA+D2_COD+D2_ITEM
+If Dbseek(cFilSF2 + cDocSF2 + cSerSF2 + cForSF2 + cLojSF2)
+	While !SD2->(Eof()) .And. cFilSF2 + cDocSF2 + cSerSF2 + cForSF2 + cLojSF2 == SD2->(D2_FILIAL+D2_DOC+D2_SERIE+D2_CLIENTE+D2_LOJA)
+		If !Empty(_VEND)
+			RecLock("SD2",.F.)
+			SD2->D2_VEND1	:= _VEND 
+			SD2->(Msunlock())
+		Endif
+	SD2->(DbSkip())
+	EndDo
 Endif
 
 RestArea(aAreaCps)
