@@ -13,16 +13,12 @@ Static cDirImp	:= "/ecommerce/"
 
 /************************************************************************************/
 /*/{Protheus.doc} AECOI013
-
-@description Realiza o envio do numero da nota para o e-Commerce
-
-@author Bernard M. Margarido
-@since 13/02/2017
-@version undefined
-
-@param cOrderId		, characters, OrderID eCommerce
-
-@type function
+	@description Realiza o envio do numero da nota para o e-Commerce
+	@author Bernard M. Margarido
+	@since 13/02/2017
+	@version undefined
+	@param cOrderId		, characters, OrderID eCommerce
+	@type function
 /*/
 /************************************************************************************/
 User function AECOI013(cOrderId)

@@ -132,6 +132,12 @@ While (_cAlias)->( !Eof() )
             WSA->WSA_ENVLOG := "5"
         WSA->( MsUnLock() )
 
+        //--------------------------+
+        // Envia e-mail de rastreio |
+        //--------------------------+
+        CoNout("<< ECLOJM07 >> - ENVIANDO E-MAIL COM RASTREIO." )
+        U_EcLojM08(WSA->WSA_NUMECO)
+
         //------------------------+
         // Grava Status do Pedido |
         //------------------------+
