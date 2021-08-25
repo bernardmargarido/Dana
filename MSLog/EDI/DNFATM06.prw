@@ -45,7 +45,7 @@ LogExec("INICIA CRIACAO DOS ARQUIVOS MSLOG - DATA/HORA: " + DTOC(DATE()) + " AS 
 // Envia Pedidos de Venda MSLOG |
 //------------------------------+
 If _lJob
-    DnFatM05A()
+    DnFatM06A()
 Else
     FwMsgRun(,{|_oSay| DnFatM06A(_oSay) },"Aguarde...","Gerando arquivo MSLog - Pedidos de Venda.")
 EndIf

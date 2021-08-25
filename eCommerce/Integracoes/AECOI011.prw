@@ -2,6 +2,8 @@
 #INCLUDE "APWEBSRV.CH"
 #INCLUDE "TOPCONN.CH"
 #INCLUDE "TBICONN.CH"
+#INCLUDE "AARRAY.CH"
+#INCLUDE "JSON.CH"
 
 #DEFINE CRLF CHR(13) + CHR(10)
 
@@ -94,7 +96,7 @@ User Function AECOI011()
 	Else
 		Processa({|| AECOINT11() },"Aguarde...","Consultando Pedidos.")
 	EndIf	
-	
+
 	//-------------------------------+
 	// Inicia gravação / atualização |
 	//-------------------------------+
@@ -364,6 +366,7 @@ Local cBairroE	:= ""
 Local cMunE		:= ""
 Local cCepE		:= ""
 Local cEstE		:= "" 
+Local _cEMailEc	:= ""
 Local _cCMunDef	:= GetNewPar("EC_CMUNDE","99999")
 
 Local aCliente  := {} 
@@ -432,6 +435,11 @@ Else
 EndIf
 
 cEmail			:= IIF(nOpcA == 3,	Alltrim(oDadosCli:eMail)										, SA1->A1_EMAIL		)
+
+//----------------------+
+// Consulta Master Data |
+//----------------------+
+aEcoI011MdV(oDadosCli:userProfileId,@_cEMailEc)
 
 //----------------+
 // Dados Endereço |
@@ -569,8 +577,9 @@ EndIf
 // Caso pedido de venda seja outros             |
 // o cliente será criado com risco de credito E |
 //----------------------------------------------+
-aAdd(aCliente ,	{"A1_RISCO"		,"A"													,	Nil	})
-aAdd(aCliente ,	{"A1_CODPAIS"	,"01058"												,	Nil	})
+aAdd(aCliente ,	{"A1_RISCO"		, "A"													,	Nil	})
+aAdd(aCliente ,	{"A1_CODPAIS"	, "01058"												,	Nil	})
+aAdd(aCliente ,	{"A1_XMAILEC"	, _cEMailEc												,	Nil	})
 
 //----------------------------------------------------------+
 // Ponto de Entrada utilizado para acrescentar novos campos |
@@ -875,6 +884,31 @@ EndIf
 
 RestArea(aArea)
 Return cIbge 
+
+/**************************************************************************************************/
+/*/{Protheus.doc} aEcoI011MdV
+	@description Consulta email do cliente no master data 
+	@type  Static Function
+	@author Bernard M. Margarido
+	@since 16/08/2020
+/*/
+/**************************************************************************************************/
+Static Function aEcoI011MdV(_cProfileID,_cEMailEc)
+Local _oVTex	:= Zendesk():New()
+Local _oJSon	:= Nil 
+
+_oVTex:cIDCliente := _cProfileID
+If _oVTex:Clientes()
+	_oJSon := xFromJson(_oVTex:cJson)
+	_cEMailEc := _oJSon[#"email"]
+Else 
+	_cEMailEc := ""
+EndIf
+
+FreeObj(_oVTex)
+FreeObj(_oJSon)
+
+Return Nil
 
 /**************************************************************************************************/
 /*/{Protheus.doc} EcGrvPed

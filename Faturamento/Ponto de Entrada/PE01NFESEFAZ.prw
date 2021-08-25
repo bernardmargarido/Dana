@@ -43,7 +43,7 @@ cTpNota			:= aNota[05]
 //---------------+
 // Nota de Saida |
 //---------------+
-If cNotaES == '1' .And. cFilAnt $ RTrim(_cFilWMS) + "," + _cFilMSL
+If cNotaES == '1' .And. cFilAnt $ _cFilMSL
 	
 	//----------------+
 	// Posiciona Nota |

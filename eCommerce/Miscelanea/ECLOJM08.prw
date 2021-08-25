@@ -76,7 +76,7 @@ _cEstado        := WSA->WSA_ESTE
 _cCep           := Transform(WSA->WSA_CEPE,PesqPict("SA1","A1_CEP"))
 _cComplemento   := RTrim(Capital(WSA->WSA_COMPLE))
 _cReferencia    := RTrim(Capital(WSA->WSA_REFEN))
-_cEmail         := "bernard.margarido@gmail.com"//RTrim(Lower(SA1->A1_EMAIL))
+_cEmail         := RTrim(Lower(SA1->A1_XMAILEC))
 EcLojM08B(_cNumEco,_cNome,_cEnd,_cBairro,_cMunicipio,_cEstado,_cCep,_cComplemento,_cReferencia,_cTracking,@_cBody)
 
 //---------------------------+
@@ -257,7 +257,7 @@ If  ( _xRet := _oServer:Init( "", _cServer, _cUser, _cPassword,,_nPort) ) == 0
             _oMessage:cDate  	:= cValToChar( Date() )
             _oMessage:cFrom  	:= _cFrom
             _oMessage:cTo   	:= _cEmail
-            //_oMessage:cCc   	:= cEmailCc
+            _oMessage:cBCC   	:= "bernard.margarido@vitreoerp.com.br"
             _oMessage:cSubject 	:= _cTitulo
             _oMessage:cBody   	:= _cBody
             If (_xRet := _oMessage:Send( _oServer )) <> 0
