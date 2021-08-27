@@ -15,17 +15,21 @@
 User Function PES011A2()
 Local _aArea	:= GetArea()
 
+Local _nX		:= 0
+
 Local _cFilAux	:= cFilAnt
 Local _cFilPed	:= ""
 Local _cNumPed	:= ""
 Local _aItem	:= ""
+Local _xRet  	:= ""
 
+//Local _lPoGrv	:= IIF(Rtrim(ParamIxb[1]) $ "AITEM/APOSPEDIDO/ANTESPEDIDO",.T.,.F.)
 Local _lPoGrv	:= IIF(Rtrim(ParamIxb[1]) $ "AITEM/APOSPEDIDO",.T.,.F.)
 
 //-----------------------+
 // Somente após ExecAuto |
 //-----------------------+
-If !_lPoGrv
+If !_lPoGrv //.Or. ( Rtrim(ParamIxb[1]) == "ANTESPEDIDO" .And. cFilAnt <> "07" )
 	RestArea(_aArea)
 	Return .T.
 EndIf
@@ -77,14 +81,17 @@ If Rtrim(ParamIxb[1]) == "APOSPEDIDO"
 	// Restaura filial atual | 
 	//-----------------------+
 	cFilAnt := _cFilAux
+	_xRet 	:= Nil 
 //----------------------------------------+
 // Ponto de entrada Itens Pedido de Venda |
 //----------------------------------------+
 ElseIf Rtrim(ParamIxb[1]) == "AITEM"
 	_aItem		:= ParamIxb[2]
+	_nLinha		:= ParamIxb[3]
+
 	_cProduto	:= _aItem[aScan(_aItem,{|x| RTrim(x[1]) == "C6_PRODUTO"})][2]
 	_cLocal		:= _aItem[aScan(_aItem,{|x| RTrim(x[1]) == "C6_LOCAL"})][2]
-
+	
 	//------------------------------------------------+
 	// Valida se produto contem armazem criado na SB2 |
 	//------------------------------------------------+
@@ -94,7 +101,30 @@ ElseIf Rtrim(ParamIxb[1]) == "AITEM"
 		CriaSb2(_cProduto, _cLocal)
 	EndIf
 
+	_xRet	:= ParamIxb[2]
+ElseIf Rtrim(ParamIxb[1]) == "ANTESPEDIDO"
+	_nX		:= 0
+	_aCabec := ParamIxb[2]
+	_aItens := ParamIxb[3]
+
+	_cNatPv		:= IIF(aScan(_aCabec,{|x| RTrim(x[1]) == "C5_NATNOTA"}) > 0, _aCabec[aScan(_aCabec,{|x| RTrim(x[1]) == "C5_NATNOTA"})][2],"VE")
+	_cCliente	:= _aCabec[aScan(_aCabec,{|x| RTrim(x[1]) == "C5_CLIENTE"})][2]
+	_cLoja 		:= _aCabec[aScan(_aCabec,{|x| RTrim(x[1]) == "C5_LOJACLI"})][2]
+
+	For _nX := 1 To Len(_aItens)
+		_cProduto	:= _aItens[_nX][aScan(_aItens[_nX],{|x| RTrim(x[1]) == "C6_PRODUTO"})][2]
+		_cTes 		:= U_FAutoTes(xFILIAL("SZH"),_cNatPv,_cProduto,_cCliente,_cLoja)
+		If aScan(_aItens[_nX],{|x| RTrim(x[1]) == "C6_TES"}) > 0
+			_aItens[_nX][aScan(_aItens[_nX],{|x| RTrim(x[1]) == "C6_TES"})][2] := _cTes
+		Else 
+			aAdd(_aItens[_nX],{"C6_TES", _cTes, Nil} )
+		EndIf
+	Next _nX 
+	
+	aItensPE := _aItens
+	_xRet 	 := .T.
+
 EndIf
 
 RestArea(_aArea)
-Return Nil
+Return _xRet
