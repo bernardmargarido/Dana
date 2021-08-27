@@ -439,7 +439,9 @@ cEmail			:= IIF(nOpcA == 3,	Alltrim(oDadosCli:eMail)										, SA1->A1_EMAIL		)
 //----------------------+
 // Consulta Master Data |
 //----------------------+
-aEcoI011MdV(oDadosCli:userProfileId,@_cEMailEc)
+If !Empty(oDadosCli:userProfileId)
+	aEcoI011MdV(oDadosCli:userProfileId,@_cEMailEc)
+EndIf
 
 //----------------+
 // Dados Endereço |

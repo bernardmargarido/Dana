@@ -136,7 +136,7 @@ While (_cAlias)->( !Eof() )
         // Envia e-mail de rastreio |
         //--------------------------+
         CoNout("<< ECLOJM07 >> - ENVIANDO E-MAIL COM RASTREIO." )
-        U_EcLojM08(WSA->WSA_NUMECO)
+        U_EcLojM08(WSA->WSA_NUM)
 
         //------------------------+
         // Grava Status do Pedido |
