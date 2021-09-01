@@ -25,6 +25,9 @@ dbSelectArea("SF2")
 SF2->( dbSetOrder(1) )
 SF2->( dbSeek(xFilial("SF2") + _cDoc + _cSerie) )
 RecLock("SF2",.F.)
+    SF2->F2_XENVWMS := "1"
+    SF2->F2_XDTALT	:= Date()
+    SF2->F2_XHRALT	:= Time()
     SF2->F2_VOLUME1 := SC5->C5_VOLUME1
 SF2->( MsUnLock() )
 

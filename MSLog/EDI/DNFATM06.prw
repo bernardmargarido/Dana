@@ -117,6 +117,12 @@ MakeDir(_cDirRaiz + _cDirUpl)
 dbSelectArea("SC6")
 SC6->( dbSetOrder(1) )
 
+//-----------------------+
+// SC9 - Itens liberados |
+//-----------------------+
+dbSelectArea("SC9")
+SC9->( dbSetOrder(1) )
+
 //----------------+
 // SB1 - Produtos |
 //----------------+
@@ -188,42 +194,46 @@ While (_cAlias)->( !Eof() )
     // Itens d0 Pedido |
     //-----------------+
     _cLinItem := ""
-    If SC6->( dbSeek(xFilial("SC6") + SC5->C5_NUM ) )
-        While SC6->( !Eof() .And. xFilial("SC6") + SC5->C5_NUM == SC6->C6_FILIAL + SC6->C6_NUM )
+    If SC9->( dbSeek(xFilial("SC9") + SC5->C5_NUM ) )
+        While SC9->( !Eof() .And. xFilial("SC9") + SC5->C5_NUM == SC9->C9_FILIAL + SC9->C9_PEDIDO )
 
-            //-------------------+
-            // Posiciona Produto | 
-            //-------------------+
-            SB1->( dbSeek(xFilial("SB1") + SC6->C6_PRODUTO) )
+            If Empty(SC9->C9_BLEST) .Or. SC9->C9_BLEST <> "02" 
+                //-------------------+
+                // Posiciona Produto | 
+                //-------------------+
+                SB1->( dbSeek(xFilial("SB1") + SC9->C9_PRODUTO) )
 
-            _cCodBar    := IIF(Empty(SB1->B1_CODBAR),SB1->B1_EAN,SB1->B1_CODBAR)
-            _cItem      := SC6->C6_ITEM
-            _nQtdNota   := cValToChar(SC6->C6_QTDVEN)
-            _nVlrUnit   := cValToChar(SC6->C6_PRCVEN)
-            _cLote      := SC6->C6_LOTECTL
-            _dDtLote    := dToc(SC6->C6_DTVALID)
+                _cCodBar    := IIF(Empty(SB1->B1_CODBAR),SB1->B1_EAN,SB1->B1_CODBAR)
+                _cItem      := SC9->C9_ITEM
+                _nQtdNota   := cValToChar(SC9->C9_QTDLIB)
+                _nVlrUnit   := cValToChar(SC9->C9_PRCVEN)
+                _cLote      := SC9->C9_LOTECTL
+                _dDtLote    := dToc(SC9->C9_DTVALID)
 
-            //-----------------------+
-            // Cria linha do arquivo |
-            //-----------------------+
-            _cLinItem += PadR(_cCodBar,15)  + ";"      // 01. Codigo de Barras 
-            _cLinItem += PadR(_cItem,4)     + ";"      // 02. Item da Nota
-            _cLinItem += PadR(_nQtdNota,12) + ";"      // 03. Quantidade Entrada
-            _cLinItem += PadR(_nVlrUnit,12) + ";"      // 04. Valor Unitario 
-            _cLinItem += PadR(_cLote,18)    + ";"      // 05. Lote
-            _cLinItem += PadR(_dDtLote,8)              // 06. Data Validade do Lote
-            _cLinItem += CRLF
+                //-----------------------+
+                // Cria linha do arquivo |
+                //-----------------------+
+                _cLinItem += PadR(_cCodBar,15)  + ";"      // 01. Codigo de Barras 
+                _cLinItem += PadR(_cItem,4)     + ";"      // 02. Item da Nota
+                _cLinItem += PadR(_nQtdNota,12) + ";"      // 03. Quantidade Entrada
+                _cLinItem += PadR(_nVlrUnit,12) + ";"      // 04. Valor Unitario 
+                _cLinItem += PadR(_cLote,18)    + ";"      // 05. Lote
+                _cLinItem += PadR(_dDtLote,8)              // 06. Data Validade do Lote
+                _cLinItem += CRLF
 
-            //-----------------------------------+
-            // Retira nota da fila de integração | 
-            //-----------------------------------+
-            RecLock("SC6",.F.)
-                SC6->C6_XENVWMS := "2"
-                SC6->C6_XDTALT	:= Date()
-                SC6->C6_XHRALT	:= Time()
-            SC6->( MsUnLock() )
+                //-----------------------------------+
+                // Retira nota da fila de integração | 
+                //-----------------------------------+
+                If SC6->(dbSeek(xFilial("SC6") + SC9->C9_PEDIDO + SC9->C9_ITEM + SC9->C9_PRODUTO))
+                    RecLock("SC6",.F.)
+                        SC6->C6_XENVWMS := "2"
+                        SC6->C6_XDTALT	:= Date()
+                        SC6->C6_XHRALT	:= Time()
+                    SC6->( MsUnLock() )
+                EndIf
+            EndIf
 
-            SC6->( dbSkip() )
+            SC9->( dbSkip() )
         EndDo
     EndIf
     
@@ -285,9 +295,10 @@ _cQuery += "	C5.R_E_C_N_O_ RECNOSC5 " + CRLF
 _cQuery += " FROM " + CRLF
 _cQuery += "	" + RetSqlName("SC5") + " C5 " + CRLF
 _cQuery += "	INNER JOIN " + RetSqlName("SA1") + " A1 ON A1.A1_FILIAL = '" + xFilial("SA1") + "' AND A1.A1_COD = C5.C5_CLIENTE AND A1.A1_LOJA = C5.C5_LOJACLI AND C5.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "    INNER JOIN " + RetSqlName("SC9") + " C9 ON C9.C9_FILIAL = C5.C5_FILIAL AND C9.C9_PEDIDO = C5.C5_NUM AND C9.D_E_L_E_T_ = '' " + CRLF
 _cQuery += " WHERE " + CRLF
 _cQuery += "	C5.C5_FILIAL = '" + xFilial("SC5") + "' AND " + CRLF
-_cQuery += "	C5.C5_MSEXP = '' AND " + CRLF
+//_cQuery += "	C5.C5_MSEXP = '' AND " + CRLF
 _cQuery += "	C5.C5_XENVWMS = '1' AND " + CRLF
 _cQuery += "	C5.C5_TIPO IN('N','B') AND " + CRLF
 _cQuery += "	C5.D_E_L_E_T_ = '' " + CRLF

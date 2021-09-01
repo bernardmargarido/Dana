@@ -173,17 +173,20 @@ Local _aArquivo := {}
 Local _aCabec   := {}
 Local _aItem    := {}
 Local _aPedidos := {}
+Local _aNotas   := {}
 
 Local _cLinha   := ""
 
 Local _nLinha   := 0
 Local _nX       := 0
 Local _nY       := 0
+Local _nZ       := 0
 Local _nHdl     := 0
 Local _nBytes   := 0
 
 Local _nTItem   := TamSx3("C6_ITEM")[1]
 Local _nTProd   := TamSx3("C6_PRODUTO")[1]
+Local _nTPedido := TamSx3("C6_NUM")[1]
 
 Local _lAtualiza:= .T.
 
@@ -211,6 +214,12 @@ SC6->( dbSetOrder(1) )
 //------------------------------+
 dbSelectArea("SC9")
 SC9->( dbSetOrder(1) )
+
+//-------------------------+
+// SF2 - Nota fiscal saída |
+//-------------------------+
+dbSelectArea("SF2")
+SF2->( dbSetOrder(1) )
 
 For _nX := 1 To Len(_aArquivo)
 
@@ -296,8 +305,9 @@ If Len(_aPedidos) > 0
         //------------------+
         // Posiciona Pedido |
         //------------------+
-        _lAtualiza := .T.
-        If SC5->( dbSeek(xFilial("SC5") + _aPedidos[_nX][1]) )
+        _lAtualiza  := .T.
+        _aNotas     := {}
+        If SC5->( dbSeek(xFilial("SC5") + PadR(_aPedidos[_nX][1],_nTPedido)) )
             For _nY := 1 To Len(_aPedidos[_nX][3])
                 //---------------------------+
                 // Retorna Codigo do Produto |
@@ -307,19 +317,24 @@ If Len(_aPedidos) > 0
                     //--------------------------+
                     // Posiciona Item do Pedido |
                     //--------------------------+
-                    If SC6->( dbSeek(xFilial("SC6") + _aPedidos[_nX][1] + Padr(_aPedidos[_nX][3][_nY][2],_nTItem) + PadR(_cCodPrd,_nTProd) ))
+                    If SC6->( dbSeek(xFilial("SC6") + PadR(_aPedidos[_nX][1],_nTPedido) + Padr(_aPedidos[_nX][3][_nY][2],_nTItem) + PadR(_cCodPrd,_nTProd) ))
                         RecLock("SC6",.F.)
-                            SC6->C6_XQTDSEP := _aPedidos[_nX][3][_nY][3]
+                            //SC6->C6_XQTDSEP := _aPedidos[_nX][3][_nY][3]
                             SC6->C6_XENVWMS := "3"
                             SC6->C6_XDTALT	:= Date()
                             SC6->C6_XHRALT	:= Time()
                         SC6->( MsUnLock() )
+
+                        If aScan(_aNotas,{|x| Rtrim(x[1]) + RTrim(x[2]) == RTrim(SC6->C6_NOTA) + RTrim(SC6->C6_SERIE)}) == 0 
+                            aAdd(_aNotas,{SC6->C6_NOTA,SC6->C6_SERIE})
+                        EndIf    
+                        
                     EndIf
 
                     //---------------------------+
                     // Posiciona itens liberados |
                     //---------------------------+
-                    If SC9->( dbSeek(xFilial("SC9") +  _aPedidos[_nX][1] + Padr(_aPedidos[_nX][3][_nY][2],_nTItem)))
+                    If SC9->( dbSeek(xFilial("SC9") +  PadR(_aPedidos[_nX][1],_nTPedido) + Padr(_aPedidos[_nX][3][_nY][2],_nTItem)))
                         RecLock("SC9",.F.)
                             SC9->C9_XENVWMS := "3"
                             SC9->C9_XDTALT	:= Date()
@@ -341,6 +356,21 @@ If Len(_aPedidos) > 0
                     SC5->C5_VOLUME1 := _aPedidos[_nX][2]
                 SC5->( MsUnLock() )
             EndIf
+
+            //----------------------+
+            // Atualiza nota fiscal |
+            //----------------------+
+            For _nZ := 1 To Len(_aNotas)
+                If SF2->( dbSeek(xFilial("SF2") + _aNotas[_nZ][1] + _aNotas[_nZ][2]))
+                    RecLock("SF2",.F.)
+                        SF2->F2_XENVWMS := "1"
+                        SF2->F2_XDTALT	:= Date()
+                        SF2->F2_XHRALT	:= Time()
+                        SF2->F2_VOLUME1 := _aPedidos[_nX][2]
+                    SC5->( MsUnLock() )
+                EndIf
+            Next _nZ 
+
         EndIf
     Next _nX 
 EndIf
