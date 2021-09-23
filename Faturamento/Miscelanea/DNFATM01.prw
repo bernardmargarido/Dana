@@ -22,7 +22,7 @@ Local _cQuery	:= ""
 
 Local lRet		:= .T.
 
-Local _lAtvWMS	:= GetNewPar("DN_ATVWSM",.T.)
+Local _lAtvWMS	:= GetNewPar("DN_ATVWSMS",.T.)
 
 If !_lAtvWMS .Or. cFilAnt <> _cFilMSL
 	RestArea(aArea)

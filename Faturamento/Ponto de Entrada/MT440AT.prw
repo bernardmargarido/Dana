@@ -20,7 +20,7 @@ Local _cFilial  := SC5->C5_FILIAL
 
 Local _lRet     := .T.
 Local _lPedido  := .F.
-Local _lAtvWMS	:= GetNewPar("DN_ATVWSM",.T.)
+Local _lAtvWMS	:= GetNewPar("DN_ATVWSMS",.T.)
 
 Private _cMsg   := ""
 

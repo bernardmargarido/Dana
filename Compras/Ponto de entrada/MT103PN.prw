@@ -10,21 +10,24 @@
 /*/
 /*****************************************************************************/
 User Function MT103PN()
-Local aArea		:= GetArea()
+Local _aArea	:= GetArea()
+
+Local _cFilWMS	:= GetNewPar("DN_FILWMS","05,06")
+Local _cFilMSL  := GetNewPar("DN_FILMSL","07")
 
 Local _lAtvWMS	:= GetNewPar("DN_ATVWSM",.T.)
 
-If !_lAtvWMS
-	RestArea(aArea)
+If !_lAtvWMS .Or. cFilAnt $ _cFilMSL
+	RestArea(_aArea)
 	Return .T.
 EndIf
 
 If !INCLUI .And. SF1->F1_XENVWMS $ "1/2"
 	MsgStop("Não é possivel classificar a nota " + SF1->F1_DOC + " Serie " + SF1->F1_SERIE + ". Aguardando conferencia WMS." )
-	RestArea(aArea)
+	RestArea(_aArea)
 	Return .F.
 EndIF
 
 
-RestArea(aArea)	
+RestArea(_aArea)	
 Return .T.

@@ -32,6 +32,7 @@ Local aReboque	:= aParam[12]
 Local aNfVincRur:= aParam[13]
 Local aEspVol   := aParam[14]
 Local aNfVinc	:= aParam[15]
+Local aDetPag	:= aParam[16]
 Local aRetSefaz	:= {}
 
 //--------------------------+
@@ -43,25 +44,32 @@ cTpNota			:= aNota[05]
 //---------------+
 // Nota de Saida |
 //---------------+
-If cNotaES == '1' .And. cFilAnt $ _cFilMSL
-	
-	//----------------+
-	// Posiciona Nota |
-	//----------------+
-	If cTpNota $ 'N|B|D'
-		//----------------------+
-		// Posciona Nota Fiscal |
-		//----------------------+
-		dbSelectArea("SF2")
-		SF2->( dbSetOrder(1) )
-		SF2->( dbSeek(xFilial("SF2") + aNota[02] + aNota[01]) )
-		RecLock("SF2",.F.)
-			SF2->F2_XDTALT := Date()
-			SF2->F2_XHRALT := Time()
-			SF2->F2_XENVWMS:= "1"
-		SF2->( MsUnLock() )
+If cNotaES == '1' 
+
+	If cFilAnt $ _cFilMSL
+		//----------------+
+		// Posiciona Nota |
+		//----------------+
+		If cTpNota $ 'N|B|D'
+			//----------------------+
+			// Posciona Nota Fiscal |
+			//----------------------+
+			dbSelectArea("SF2")
+			SF2->( dbSetOrder(1) )
+			SF2->( dbSeek(xFilial("SF2") + aNota[02] + aNota[01]) )
+			RecLock("SF2",.F.)
+				SF2->F2_XDTALT := Date()
+				SF2->F2_XHRALT := Time()
+				SF2->F2_XENVWMS:= "1"
+			SF2->( MsUnLock() )
+		EndIf
 	EndIf
-	
+
+	//------------------------+
+	// Faturamento e-Commerce |
+	//------------------------+
+	U_DnFatM10(aNota[02],aNota[01],@aDetPag)
+
 EndIf
 
 aAdd(aRetSefaz, aProd )
@@ -79,6 +87,7 @@ aAdd(aRetSefaz, aReboque)
 aAdd(aRetSefaz, aNfVincRur)
 aAdd(aRetSefaz, aEspVol)
 aAdd(aRetSefaz, aNfVinc)
+aAdd(aRetSefaz, aDetPag)
 
 RestArea(aArea)	
 Return aRetSefaz

@@ -17,7 +17,7 @@ Local _cFilMSL  := GetNewPar("DN_FILMSL","07")
 
 Local _nOpcA    := ParamIxb[1]
 
-Local _lAtvWMS	:= GetNewPar("DN_ATVWSM",.T.)
+Local _lAtvWMS	:= GetNewPar("DN_ATVWSMS",.T.)
 Local _lRet     := .T.
 
 If !_lAtvWMS .Or. cFilAnt <> _cFilMSL

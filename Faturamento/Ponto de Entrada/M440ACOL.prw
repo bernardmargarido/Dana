@@ -18,7 +18,7 @@ Local _nPProd   := aScan(aHeader,{|x| RTrim(x[2]) == "C6_PRODUTO"})
 Local _nPQtdLib := aScan(aHeader,{|x| RTrim(x[2]) == "C6_QTDLIB"})
 Local _nQtdVend := aScan(aHeader,{|x| RTrim(x[2]) == "C6_QTDVEN"})
 
-Local _lAtvWMS	:= GetNewPar("DN_ATVWSM",.T.)
+Local _lAtvWMS	:= GetNewPar("DN_ATVWSMS",.T.)
 
 If !_lAtvWMS
     RestArea(_aArea)

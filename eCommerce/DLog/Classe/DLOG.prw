@@ -257,12 +257,11 @@ If ::oFwRest:Post(::aHeadOut)
         //-----------------------+
         _oNotas    := ::oJSon[#"response"][#"insertNf"]
         For _nX := 1 To Len(_oNotas)
-
-            _cChaveNfe  := _oNotas[_nX][#"nfChave"]
             _cCodSta    := _oNotas[_nX][#"codSubStatus"]
             _cDescSta   := _oNotas[_nX][#"descrSubStatus"]
+            _cChaveNfe  := _oNotas[_nX][#"nfChave"]
             _cRastreio  := IIF(ValType(_oNotas[_nX][#"linkRastreamento"]) <> "U", _oNotas[_nX][#"linkRastreamento"], "")
-
+            
             _oResp                      := Nil 
             _oResp                      := Array(#)
             _oResp[#"nfChave"]          := _cChaveNfe
