@@ -89,7 +89,11 @@ dbSelectArea("SX5")
 SX5->( dbSetOrder(1) )
 If !SX5->( dbSeek(xFilial("SX5") + "05" + mv_par06))
     _lRet := .F. 
-    _cMsg += "Condição de Pagamento não localizada. Favor verificar dados digitados." + CRLF
+    _cMsg += "Tipo de Pagamento não localizada. Favor verificar dados digitados." + CRLF
+EndIf
+
+If !Empty(_cMsg)
+    MsgInfo(_cMsg,"Dana - Avisos")
 EndIf
 
 Return _lRet 

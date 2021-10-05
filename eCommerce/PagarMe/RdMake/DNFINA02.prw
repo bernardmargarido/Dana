@@ -203,13 +203,13 @@ Local _lRet     := .T.
 
 _cQuery := " SELECT " + CRLF
 _cQuery += "	CASE " + CRLF
-_cQuery += "		WHEN E1.E1_BAIXA = '' AND E1.E1_SALDO > 0 THEN " + CRLF
+_cQuery += "		WHEN E1.E1_SALDO > 0 THEN " + CRLF
 _cQuery += "			'ABERTO' " + CRLF
 _cQuery += "		ELSE " + CRLF
 _cQuery += "			'BAIXADO' " + CRLF
 _cQuery += "	END STATUS " + CRLF
 _cQuery += " FROM " + CRLF
-_cQuery += "	SE1010 E1 " + CRLF
+_cQuery += "	" + RetSqlName("SE1") + " E1 " + CRLF
 _cQuery += " WHERE " + CRLF
 _cQuery += "	E1.E1_FILIAL = '" + xFilial("SE1") + "' AND " + CRLF
 _cQuery += "	E1.E1_XTID = '" + _cTID + "' AND " + CRLF

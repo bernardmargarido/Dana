@@ -125,7 +125,7 @@ _cQuery += "		COALESCE(E1.E1_PARCELA,'') PARCELA_TITULO, " + CRLF
 _cQuery += "		COALESCE(E1.E1_VALOR,0) VALOR_TOTAL_TITULO " + CRLF
 _cQuery += "	FROM " + CRLF
 _cQuery += "		XTA010 XTA " + CRLF 
-_cQuery += "		INNER JOIN SE1010 E1 ON E1.E1_FILORIG = XTA.XTA_FILIAL AND E1.E1_PARCELA = XTA.XTA_PARC AND E1.E1_XTID = XTA.XTA_IDPAY AND E1.E1_BAIXA = '' AND E1.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "		INNER JOIN SE1010 E1 ON E1.E1_FILORIG = XTA.XTA_FILIAL AND E1.E1_PARCELA = XTA.XTA_PARC AND E1.E1_XTID = XTA.XTA_IDPAY AND E1.E1_BAIXA = '' AND E1.E1_SALDO > 0 AND E1.D_E_L_E_T_ = '' " + CRLF
 _cQuery += "	WHERE " + CRLF
 _cQuery += "		XTA.XTA_FILIAL = '" + xFilial("XTA") + "' AND " + CRLF
 _cQuery += "		XTA.XTA_STATUS = '1' AND " + CRLF
@@ -990,6 +990,15 @@ If aScan(_aEcomm,{|x| RTrim(x[COL_MARK]) == "LBOK"}) == 0
     MsgInfo("Não é possivel realizar a conciliação. Não existem titulos marcados.","Dana - Avisos")
     _lRet := .F.
 EndIf 
+
+//------------------------+
+// Valida dados bancários |
+//------------------------+
+If Empty(GetMv( "DN_BCOPGME"))
+    MsgInfo("Não é possivel realizar a conciliação. Não existem as informações bancárias. " + CRLF + " Favor cadastrar os dados bancários para realizar a conciliação","Dana - Avisos")
+    _lRet := .F.
+EndIf
+
 
 Return _lRet
 

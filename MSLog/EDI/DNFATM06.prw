@@ -191,7 +191,7 @@ While (_cAlias)->( !Eof() )
     LogExec("<< DNFATM06 >> CRIANDO ARQUIVO PEDIDO DE VENDA " + RTrim(_cNumero) + " ." )
 
     //-----------------+
-    // Itens d0 Pedido |
+    // Itens do Pedido |
     //-----------------+
     _cLinItem := ""
     If SC9->( dbSeek(xFilial("SC9") + SC5->C5_NUM ) )
