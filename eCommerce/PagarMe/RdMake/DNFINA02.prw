@@ -19,6 +19,8 @@ Local _aArea    := GetArea()
 Local _aParam	:= {}
 Local _aRet		:= {}
 
+Local _cMsgErro := ""
+
 Local _dDtIni	:= CriaVar("F2_EMISSAO",.F.)
 Local _dDtFim	:= CriaVar("F2_EMISSAO",.F.)
 
@@ -31,7 +33,12 @@ If ParamBox(_aParam,"Importa Titulos PagarMe",@_aRet,_bVldParam,,,,,,,.T., .T.)
 	//------------+
 	// Monta Tela |
 	//------------+
-	FWMsgRun(, {|_oSay| DNFINA02B(_oSay) }, "Aguarde...", "Consultando registros .... " )
+	FWMsgRun(, {|_oSay| DNFINA02B(_oSay,@_cMsgErro) }, "Aguarde...", "Consultando registros .... " )
+    
+    If !Empty(_cMsgErro)
+        MsgInfo(_cMsgErro,"Dana - Avisos")
+    EndIf
+
 EndIf
 
 
@@ -46,7 +53,7 @@ Return Nil
     @since 16/07/2021
 /*/
 /********************************************************************************************/
-Static Function DNFINA02B(_oSay)
+Static Function DNFINA02B(_oSay,_cMsgErro)
 Local _c1DUP        := SuperGetMv("MV_1DUP")	
 Local _cID          := ""
 Local _cTID         := ""

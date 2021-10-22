@@ -166,5 +166,6 @@ ADD OPTION _aRotina TITLE "Incluir"              	ACTION "U_DNFINA02" 			    OPE
 ADD OPTION _aRotina TITLE "Excluir"              	ACTION "VIEWDEF.DNFINA01" 			OPERATION 5 ACCESS 0 
 ADD OPTION _aRotina TITLE "Conciliar"           	ACTION "U_DNFINA03"		 			OPERATION 6 ACCESS 0 
 ADD OPTION _aRotina TITLE "Saldo "           	    ACTION "U_DNFINA04"		 			OPERATION 6 ACCESS 0 
+ADD OPTION _aRotina TITLE "Configuracoes "     	    ACTION "U_DNFINA08"		 			OPERATION 6 ACCESS 0 
 
 Return _aRotina

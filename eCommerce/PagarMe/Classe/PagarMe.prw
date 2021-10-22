@@ -160,9 +160,15 @@ If ::oFwRest:Get(::aHeadOut)
     ::cRetJSon	:= DecodeUtf8(::oFwRest:GetResult())
     _lRet       := .T.
 Else
-    ::cRetJSon	:= DecodeUtf8(::oFwRest:GetResult())
-    ::oRetJSon	:= xFromJson(::cRetJSon)
-    ::cError    := ::oRetJSon[#"errors"][1][#"message"] 
+    If ValType(::oFwRest:GetResult()) <> "U"
+        ::cRetJSon	:= DecodeUtf8(::oFwRest:GetResult())
+        ::oRetJSon	:= xFromJson(::cRetJSon)
+        ::cError    := ::oRetJSon[#"errors"][1][#"message"] 
+    ElseIf At("Unauthorized", ::oFwRest:cInternalError) > 0
+        ::cError    := "Token de acesso expirado ou não autorizado."
+    Else 
+        ::cError    := "Não foi possivel conectar com as API's da Pagar.Me. Favor tentar mais tarde."
+    EndIf
     _lRet   := .F.
 EndIf
 
@@ -228,9 +234,15 @@ If ::oFwRest:Get(::aHeadOut)
     ::cRetJSon	:= DecodeUtf8(::oFwRest:GetResult())
     _lRet       := .T.
 Else
-    ::cRetJSon	:= DecodeUtf8(::oFwRest:GetResult())
-    ::oRetJSon	:= xFromJson(::cRetJSon)
-    ::cError    := ::oRetJSon[#"errors"][1][#"message"] 
+    If ValType(::oFwRest:GetResult()) <> "U"
+        ::cRetJSon	:= DecodeUtf8(::oFwRest:GetResult())
+        ::oRetJSon	:= xFromJson(::cRetJSon)
+        ::cError    := ::oRetJSon[#"errors"][1][#"message"] 
+    ElseIf At("Unauthorized", ::oFwRest:cInternalError) > 0
+        ::cError    := "Token de acesso expirado ou não autorizado."
+    Else 
+        ::cError    := "Não foi possivel conectar com as API's da Pagar.Me. Favor tentar mais tarde."
+    EndIf
     _lRet   := .F.
 EndIf
     
@@ -275,9 +287,15 @@ If ::oFwRest:Post(::aHeadOut)
     ::cRetJSon	:= DecodeUtf8(::oFwRest:GetResult())
     _lRet       := .T.
 Else
-    ::cRetJSon	:= DecodeUtf8(::oFwRest:GetResult())
-    ::oRetJSon	:= xFromJson(::cRetJSon)
-    ::cError    := ::oRetJSon[#"errors"][1][#"message"] 
+   If ValType(::oFwRest:GetResult()) <> "U"
+        ::cRetJSon	:= DecodeUtf8(::oFwRest:GetResult())
+        ::oRetJSon	:= xFromJson(::cRetJSon)
+        ::cError    := ::oRetJSon[#"errors"][1][#"message"] 
+    ElseIf At("Unauthorized", ::oFwRest:cInternalError) > 0
+        ::cError    := "Token de acesso expirado ou não autorizado."
+    Else 
+        ::cError    := "Não foi possivel conectar com as API's da Pagar.Me. Favor tentar mais tarde."
+    EndIf
     _lRet   := .F.
 EndIf
 
