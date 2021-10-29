@@ -72,6 +72,23 @@ If cNotaES == '1'
 
 EndIf
 
+/*---------------------------\
+| Manutenção Vencimento GNRE.|
+\---------------------------*/
+dbSelectArea("SF2")
+SF2->(dbSetOrder(1))
+If SF2->(dbSeek(xFilial("SF2") + aNota[02] + aNota[01]))
+	dbSelectArea("SE2")
+	SE2->(dbSetOrder(1))//E2_FILIAL+E2_PREFIXO+E2_NUM+E2_PARCELA+E2_TIPO+E2_FORNECE+E2_LOJA
+	If SE2->(dbSeek(xFilial("SE2") + Alltrim(SF2->F2_NFICMST)))
+		RecLock("SE2",.F.)
+		//SE2->E2_VENCTO 	:= DataValida(Date()+1,.T.)
+		SE2->E2_VENCREA := DataValida(Date(),.T.)
+		SE2->E2_NATUREZ	:= "ICMS"
+		SE2->(MsUnLock())
+	Endif
+Endif
+
 aAdd(aRetSefaz, aProd )
 aAdd(aRetSefaz, cMensCli)
 aAdd(aRetSefaz, cMensFis)

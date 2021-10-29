@@ -1617,13 +1617,17 @@ If !Empty(cCpoExpo) .and. !Empty(cCpoExpo2) .and. !lOpcFull	// Controle de regis
 	cSql += "    )"
 	cSql += "  )"
 Endif
-cSql := ChangeQuery(cSql)
+
+//cSql     := MPSysOpenQuery(cAliasQry) 
+
+//cSql := ChangeQuery(cSql)
 
 DbUseArea(.T.,'TOPCONN',TcGenQry(,,cSql),cAliasQry,.F.,.T.)
+
 DbSelectArea(cAliasQry)
 Begin Transaction
 
-While ! (cAliasQry)->(Eof())
+While !(cAliasQry)->(Eof())
 	dbSelectArea("SD2")
 	dbGoTo( (cAliasQry)->R_E_C_N_O_ )
 	
