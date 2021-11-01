@@ -111,17 +111,17 @@ EndIf
 //-----------------------+
 MakeDir(_cDirRaiz + _cDirUpl)
 
-//-----------------------+
-// SC6 - Itens do Pedido | 
-//-----------------------+
-dbSelectArea("SC6")
-SC6->( dbSetOrder(1) )
+//----------------------+
+// SF2 - Cabeçalho Nota | 
+//----------------------+
+dbSelectArea("SF2")
+SF2->( dbSetOrder(1) )
 
-//-----------------------+
-// SC9 - Itens liberados |
-//-----------------------+
-dbSelectArea("SC9")
-SC9->( dbSetOrder(1) )
+//---------------------+
+// SD2 - Itens da Nota | 
+//---------------------+
+dbSelectArea("SD2")
+SD2->( dbSetOrder(3) )
 
 //----------------+
 // SB1 - Produtos |
@@ -137,22 +137,29 @@ While (_cAlias)->( !Eof() )
     //------------------+
     // Posiciona pedido |
     //------------------+
-    SC5->( dbGoTo((_cAlias)->RECNOSC5) )
+    SF2->( dbGoTo((_cAlias)->RECNOSF2) )
 
     //-----------------+
     // Dados cabeçalho |
     //-----------------+
     _cCnpj      := (_cAlias)->CNPJ_CLI
     _cInscr     := (_cAlias)->INSCR_CLI
+    _cNota      := (_cAlias)->NOTA
+    _cSerie     := (_cAlias)->SERIE
+    _cRazao     := (_cAlias)->RAZAO
+    _cMunicipio := (_cAlias)->MUNICIPIO
     _cNumero    := (_cAlias)->PEDIDO
-        
+
     //-----------------------+
     // Monta linha cabeçalho |
     //-----------------------+
     _cLinCab    :=  PadR(_cCnpj,14)     + ";"   // 01. CNPJ Cliente
     _cLinCab    +=  PadR(_cInscr,18)    + ";"   // 02. Inscrição Estadual Cliente
-    _cLinCab    +=  PadR(_cNumero,9)            // 03. Numero pedido
-    
+    _cLinCab    +=  PadR(_cNumero,9)    + ";"   // 03. Numero pedido
+    _cLinCab    +=  PadR(_cNota  ,9)    + ";"   // 04. Numero da Nota
+    _cLinCab    +=  PadR(_cRazao,40)    + ";"   // 05. Nome do Cliente
+    _cLinCab    +=  PadR(_cMunicipio,35)        // 06. Municipio
+
     //-----------------+
     // Nome do arquivo |
     //-----------------+
@@ -194,46 +201,33 @@ While (_cAlias)->( !Eof() )
     // Itens do Pedido |
     //-----------------+
     _cLinItem := ""
-    If SC9->( dbSeek(xFilial("SC9") + SC5->C5_NUM ) )
-        While SC9->( !Eof() .And. xFilial("SC9") + SC5->C5_NUM == SC9->C9_FILIAL + SC9->C9_PEDIDO )
+    If SD2->( dbSeek(xFilial("SD2") + SF2->F2_DOC + SF2->F2_SERIE ) )
+        While SD2->( !Eof() .And. xFilial("SD2") + SF2->F2_DOC + SF2->F2_SERIE == SD2->D2_FILIAL + SD2->D2_DOC + SD2->D2_SERIE )
 
-            If Empty(SC9->C9_BLEST) .Or. SC9->C9_BLEST <> "02" 
-                //-------------------+
-                // Posiciona Produto | 
-                //-------------------+
-                SB1->( dbSeek(xFilial("SB1") + SC9->C9_PRODUTO) )
+            //-------------------+
+            // Posiciona Produto | 
+            //-------------------+
+            SB1->( dbSeek(xFilial("SB1") + SD2->D2_COD) )
 
-                _cCodBar    := IIF(Empty(SB1->B1_CODBAR),SB1->B1_EAN,SB1->B1_CODBAR)
-                _cItem      := SC9->C9_ITEM
-                _nQtdNota   := cValToChar(SC9->C9_QTDLIB)
-                _nVlrUnit   := cValToChar(SC9->C9_PRCVEN)
-                _cLote      := SC9->C9_LOTECTL
-                _dDtLote    := dToc(SC9->C9_DTVALID)
+            _cCodBar    := IIF(Empty(SB1->B1_CODBAR),SB1->B1_EAN,SB1->B1_CODBAR)
+            _cItem      := SD2->D2_ITEM
+            _nQtdNota   := cValToChar(SD2->D2_QUANT)
+            _nVlrUnit   := cValToChar(SD2->D2_PRCVEN)
+            _cLote      := SD2->D2_LOTECTL
+            _dDtLote    := dToc(SD2->D2_DTVALID)
 
-                //-----------------------+
-                // Cria linha do arquivo |
-                //-----------------------+
-                _cLinItem += PadR(_cCodBar,15)  + ";"      // 01. Codigo de Barras 
-                _cLinItem += PadR(_cItem,4)     + ";"      // 02. Item da Nota
-                _cLinItem += PadR(_nQtdNota,12) + ";"      // 03. Quantidade Entrada
-                _cLinItem += PadR(_nVlrUnit,12) + ";"      // 04. Valor Unitario 
-                _cLinItem += PadR(_cLote,18)    + ";"      // 05. Lote
-                _cLinItem += PadR(_dDtLote,8)              // 06. Data Validade do Lote
-                _cLinItem += CRLF
+            //-----------------------+
+            // Cria linha do arquivo |
+            //-----------------------+
+            _cLinItem += PadR(_cCodBar,15)  + ";"      // 01. Codigo de Barras 
+            _cLinItem += PadR(_cItem,4)     + ";"      // 02. Item da Nota
+            _cLinItem += PadR(_nQtdNota,12) + ";"      // 03. Quantidade Entrada
+            _cLinItem += PadR(_nVlrUnit,12) + ";"      // 04. Valor Unitario 
+            _cLinItem += PadR(_cLote,18)    + ";"      // 05. Lote
+            _cLinItem += PadR(_dDtLote,8)              // 06. Data Validade do Lote
+            _cLinItem += CRLF
 
-                //-----------------------------------+
-                // Retira nota da fila de integração | 
-                //-----------------------------------+
-                If SC6->(dbSeek(xFilial("SC6") + SC9->C9_PEDIDO + SC9->C9_ITEM + SC9->C9_PRODUTO))
-                    RecLock("SC6",.F.)
-                        SC6->C6_XENVWMS := "2"
-                        SC6->C6_XDTALT	:= Date()
-                        SC6->C6_XHRALT	:= Time()
-                    SC6->( MsUnLock() )
-                EndIf
-            EndIf
-
-            SC9->( dbSkip() )
+            SD2->( dbSkip() )
         EndDo
     EndIf
     
@@ -253,12 +247,11 @@ While (_cAlias)->( !Eof() )
     //-----------------------------------+
     // Retira nota da fila de integração | 
     //-----------------------------------+
-    RecLock("SC5",.F.)
-        SC5->C5_XENVWMS := "2"
-        SC5->C5_XDTALT	:= Date()
-        SC5->C5_XHRALT	:= Time()
-        SC5->C5_MSEXP   := dTos(Date())
-    SC5->( MsUnLock() )
+    RecLock("SF2",.F.)
+        SF2->F2_XENVWMS := "2"
+        SF2->F2_XDTALT	:= Date()
+        SF2->F2_XHRALT	:= Time()
+    SF2->( MsUnLock() )
     
     (_cAlias)->( dbSkip() )
 EndDo
@@ -290,18 +283,32 @@ Local _cQuery   := ""
 _cQuery := " SELECT " + CRLF
 _cQuery += "	A1.A1_CGC CNPJ_CLI, " + CRLF
 _cQuery += "	A1.A1_INSCR INSCR_CLI, " + CRLF
-_cQuery += "	C5.C5_NUM PEDIDO, " + CRLF
-_cQuery += "	C5.R_E_C_N_O_ RECNOSC5 " + CRLF
+_cQuery += "    A1.A1_NOME RAZAO, " + CRLF
+_cQuery += "	A1.A1_MUN MUNICIPIO, " + CRLF
+_cQuery += "	F2.F2_DOC NOTA,  " + CRLF
+_cQuery += "	F2.F2_SERIE SERIE, " + CRLF
+_cQuery += "    ITENS_NOTA.D2_PEDIDO PEDIDO, " + CRLF
+_cQuery += "	F2.R_E_C_N_O_ RECNOSF2 " + CRLF
 _cQuery += " FROM " + CRLF
-_cQuery += "	" + RetSqlName("SC5") + " C5 " + CRLF
-_cQuery += "	INNER JOIN " + RetSqlName("SA1") + " A1 ON A1.A1_FILIAL = '" + xFilial("SA1") + "' AND A1.A1_COD = C5.C5_CLIENTE AND A1.A1_LOJA = C5.C5_LOJACLI AND C5.D_E_L_E_T_ = '' " + CRLF
-_cQuery += "    INNER JOIN " + RetSqlName("SC9") + " C9 ON C9.C9_FILIAL = C5.C5_FILIAL AND C9.C9_PEDIDO = C5.C5_NUM AND C9.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "	" + RetSqlName("SF2") + " F2 (NOLOCK) " + CRLF
+_cQuery += "	INNER JOIN " + RetSqlName("SA1") + " A1 (NOLOCK) ON A1.A1_FILIAL = '" + xFilial("SA1") + "' AND A1.A1_COD = F2.F2_CLIENTE AND A1.A1_LOJA = F2.F2_LOJA AND A1.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "    CROSS APPLY( " + CRLF
+_cQuery += "				SELECT " + CRLF
+_cQuery += "					TOP 1 " + CRLF
+_cQuery += "					D2.D2_PEDIDO " + CRLF
+_cQuery += "				FROM " + CRLF
+_cQuery += "					" + RetSqlName("SD2") + " D2 (NOLOCK) " + CRLF
+_cQuery += "				WHERE " + CRLF
+_cQuery += "					D2.D2_FILIAL = F2.F2_FILIAL AND " + CRLF
+_cQuery += "					D2.D2_DOC = F2.F2_DOC AND " + CRLF
+_cQuery += "					D2.D2_SERIE = F2.F2_SERIE AND " + CRLF
+_cQuery += "					D2.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "    ) ITENS_NOTA " + CRLF
 _cQuery += " WHERE " + CRLF
-_cQuery += "	C5.C5_FILIAL = '" + xFilial("SC5") + "' AND " + CRLF
-//_cQuery += "	C5.C5_MSEXP = '' AND " + CRLF
-_cQuery += "	C5.C5_XENVWMS = '1' AND " + CRLF
-_cQuery += "	C5.C5_TIPO IN('N','B') AND " + CRLF
-_cQuery += "	C5.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "	F2.F2_FILIAL = '" + xFilial("SC5") + "' AND " + CRLF
+_cQuery += "	F2.F2_XENVWMS = '1' AND " + CRLF
+_cQuery += "	F2.F2_TIPO IN('N','B') AND " + CRLF
+_cQuery += "	F2.D_E_L_E_T_ = '' " + CRLF
 
 _cAlias := MPSysOpenQuery(_cQuery)
 
