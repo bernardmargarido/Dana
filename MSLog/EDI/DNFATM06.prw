@@ -163,7 +163,7 @@ While (_cAlias)->( !Eof() )
     //-----------------+
     // Nome do arquivo |
     //-----------------+
-    _cArqSC5    := "NFS_"  + _cCnpjDep + "_" + RTrim(_cNumero) + ".TXT"
+    _cArqSC5    := "NFS_"  + _cCnpjDep + "_" + RTrim(_cNota) + ".TXT"
 
     //----------------------+
     // Diretorio do arquivo |
