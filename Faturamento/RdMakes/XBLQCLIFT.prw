@@ -23,6 +23,7 @@ User Function XBLQCLIFT
 Local cLinha 	:= ""
 Local _cDados	:= {}
 Local nTamCli	:= 0
+Local Nx		:= 0
 Local cCodCli	:= ""
 Local nTamLoj	:= 0
 Local cLojCli	:= ""

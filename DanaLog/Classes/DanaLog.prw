@@ -5886,7 +5886,7 @@ Local _cQuery   := ""
 _cQuery := " SELECT " + CRLF 
 _cQuery += "	COALESCE(MAX(B1_COD),'00000') CODIGO_ERP " + CRLF  
 _cQuery += " FROM " + CRLF 
-_cQuery += "	" + RetSqlName("SB1") + " " " + CRLF 
+_cQuery += "	" + RetSqlName("SB1") + " " + CRLF 
 _cQuery += " WHERE " + CRLF  
 _cQuery += "	B1_FILIAL = '" + xFilial("SB1") + "' AND " + CRLF 
 _cQuery += "	B1_XIDLOGI = '" + _cIDCliente + "' AND " + CRLF 

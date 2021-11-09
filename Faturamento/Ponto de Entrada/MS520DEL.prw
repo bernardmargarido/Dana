@@ -23,6 +23,8 @@ Local aDadosSE3	:= {}
 Local aAreaSF2	:= SF2->(GetArea())
 Local aAreaSE3	:= SE3->(GetArea())
 
+Local Nx		:= 0
+
 DbSelectArea("SE3")
 DbSetOrder(3)//E3_FILIAL+E3_VEND+E3_CODCLI+E3_LOJA+E3_PREFIXO+E3_NUM+E3_PARCELA+E3_TIPO+E3_SEQ
 If Dbseek(xFilial("SE3")+SF2->(F2_VEND1 + F2_CLIENTE + F2_LOJA + F2_SERIE + F2_DOC))

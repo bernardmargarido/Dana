@@ -16,6 +16,8 @@ User Function SF2520E()
 Local _aArea	:= GetArea()
 Local _aPedidos	:= {}
 
+Local _nX		:= 0
+
 //----------------------------------------+
 // Restaura pedido de venda como separado | 
 //----------------------------------------+

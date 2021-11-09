@@ -1176,6 +1176,8 @@ _cQuery := " SELECT " + CRLF
 _cQuery += "	WSA.WSA_NUM, " + CRLF
 _cQuery += "	WSA.WSA_NUMECO, " + CRLF
 _cQuery += "	WSA.WSA_NUMECL, " + CRLF
+_cQuery += "	WSA.WSA_DOC, " + CRLF
+_cQuery += "	WSA.WSA_SERIE, " + CRLF
 _cQuery += "	WSC.WSC_TID, " + CRLF
 _cQuery += "	WSC.WSC_NSUTEF, " + CRLF
 _cQuery += "	E1.R_E_C_N_O_ RECNOSE1 " + CRLF
@@ -1192,7 +1194,7 @@ If !Empty(_cNumEco)
 EndIf
 
 _cQuery += "	WSA.D_E_L_E_T_ = '' " + CRLF
-_cQuery += " GROUP BY WSA.WSA_NUM,WSA.WSA_NUMECO,WSA.WSA_NUMECL,WSC.WSC_TID,WSC.WSC_NSUTEF,E1.R_E_C_N_O_  "
+_cQuery += " GROUP BY WSA.WSA_NUM,WSA.WSA_NUMECO,WSA.WSA_NUMECL,WSA.WSA_DOC,WSA.WSA_SERIE,WSC.WSC_TID,WSC.WSC_NSUTEF,E1.R_E_C_N_O_  "
 
 _cAlias := MPSysOpenQuery(_cQuery)
 
@@ -1213,6 +1215,8 @@ While (_cAlias)->( !Eof() )
 		SE1->E1_XNUMECO := (_cAlias)->WSA_NUMECO
 		SE1->E1_XNUMECL := (_cAlias)->WSA_NUMECL
 		SE1->E1_XTID 	:= (_cAlias)->WSC_TID
+		SE1->E1_XNOTA 	:= (_cAlias)->WSA_DOC
+		SE1->E1_SERIE	:= (_cAlias)->WSA_SERIE
 	SE1->( MsUnLock() )
 	(_cAlias)->( dbSkip() )
 EndDo
