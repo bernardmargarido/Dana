@@ -147,6 +147,7 @@ Local _lCtbOnLine	:= .F.
 Local _lCtbCusto	:= .F.
 Local _lReajuste	:= .F.
 Local _lECF			:= .F.
+Local _lRetorna 	:= .F.
 
 Local _dDataMoe		:= Nil
 
@@ -278,6 +279,57 @@ If !_lBlqCred .And. !_lBlqEst .And. Len(aPvlNfs) > 0
         _oProcess:IncRegua2("GERANDO NOTA FISCAL ECOMMERCE")
     EndIf 	
 	
+	//----------------------------------------------------------------+
+	//  mv_par01 Mostra Lan‡.Contab ?  Sim/Nao						  |
+	//  mv_par02 Aglut. Lan‡amentos ?  Sim/Nao						  |
+	//  mv_par03 Lan‡.Contab.On-Line?  Sim/Nao						  |
+	//  mv_par04 Contb.Custo On-Line?  Sim/Nao						  |
+	//  mv_par05 Reaj. na mesma N.F.?  Sim/Nao						  |
+	//  mv_par06 Taxa deflacao ICMS ?  Numerico						  |
+	//  mv_par07 Metodo calc.acr.fin?  Taxa defl/Dif.lista/% Acrs.ped |
+	//  mv_par08 Arred.prc unit vist?  Sempre/Nunca/Consumid.final 	  |
+	//  mv_par09 Agreg. liberac. de ?  Caracter						  |
+	//  mv_par10 Agreg. liberac. ate?  Caracter						  |
+	//  mv_par11 Aglut.Ped. Iguais  ?  Sim/Nao						  |
+	//  mv_par12 Valor Minimo p/fatu?								  |
+	//  mv_par13 Transportadora de  ?                                 |
+	//  mv_par14 Transportadora ate ?								  |
+	//  mv_par15 Atualiza Cli.X Prod?								  |
+	//  mv_par16 Emitir             ?  Nota / Cupom	Fiscal			  |
+	//  mv_par17 Gera Titulo            ?  Sim/Nao                    |
+	//  mv_par18 Gera guia recolhimento ?  Sim/Nao                    |
+	//³ mv_par19 Gera Titulo ICMS Próprio ?  Sim/Nao                  |
+	//³ mv_par20 Gera Guia ICMS Próprio ?  Sim/Nao                    |
+	//³ mv_par22 Gera Titulo por Pruduto?  Sim/Nao                    |
+	//³ mv_par23 Gera Guia por Produto?  Sim/Nao                      |
+	//³ mv_par24 Gera Guia ICM Compl. UF Dest.?		Sim/Nao 		  |
+	//³ mv_par25 Gera Guia FECP da UF Destino?		Sim/Nao 		  |
+	//----------------------------------------------------------------+
+	
+	Pergunte("MT460A",.F.)
+	mv_par17	:= 1
+	mv_par18	:= 1
+	mv_par22	:= 2
+	mv_par23	:= 2
+	mv_par24	:= 1
+	mv_par25	:= 1
+
+	//-----------------------------------------+
+	// Não exibir guia na tela se for schedule |
+	//-----------------------------------------+
+	If _lJob .And. !GetMV("MV_GNRENF")
+		_lRetorna := .T.
+		PutMV("MV_GNRENF",.T.) 
+	EndIf
+
+	lMostraCtb	:= IIF(mv_par01==1,.T.,.F.)
+	lAglutCtb	:= IIF(mv_par02==1,.T.,.F.)
+	lCtbOnLine	:= IIF(mv_par03==1,.T.,.F.)
+	lCtbCusto	:= IIF(mv_par04==1,.T.,.F.)
+	lReajuste	:= IIF(mv_par05==1,.T.,.F.)
+	lECF		:= IIF(mv_par16==1,.F.,.T.)
+	dDataMoe 	:= mv_par21
+
 	//---------------------------+
 	// Cria array de notas vazio |
 	//---------------------------+
@@ -319,6 +371,11 @@ If !_lBlqCred .And. !_lBlqEst .And. Len(aPvlNfs) > 0
 			EndIf
 		EndIf
 	Next _nX
+
+	If _lJob .And. _lRetorna
+		PutMV("MV_GNRENF",.F.) 
+	EndIf
+
 Else
 	CoNout("<< ECLOJM05 >> - PEDIDO " + SC5->C5_NUM + " COM BLOQUEIO DE SALDO.")
 	_lRet	:= .F.
