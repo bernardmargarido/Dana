@@ -94,6 +94,20 @@ If SF2->F2_TIPO <> 'D' .Or. SF2->F2_TIPO <> 'B'
 		SE2->E2_HIST	:= "Nota:" + Alltrim(SF2->F2_DOC) + " - Serie:" + Alltrim(SF2->F2_SERIE)
 		SE2->(MsUnLock())
 	Endif
+
+	//Manutenção título FECP
+	DbSelectArea("SE2")
+	SE2->(dbSetOrder(1))//E2_FILIAL+E2_PREFIXO+E2_NUM+E2_PARCELA+E2_TIPO+E2_FORNECE+E2_LOJA
+	If SE2->(dbSeek(xFilial("SE2") + Alltrim(SF2->F2_NTFECP)))
+		RecLock("SE2",.F.)
+		SE2->E2_VENCORI	:= DataValida(Date(),.T.)
+		SE2->E2_VENCTO 	:= DataValida(Date(),.T.)
+		SE2->E2_VENCREA := DataValida(Date(),.T.)
+		SE2->E2_NATUREZ	:= "PROV"
+		SE2->E2_HIST	:= "Nota:" + Alltrim(SF2->F2_DOC) + " - Serie:" + Alltrim(SF2->F2_SERIE)
+		SE2->(MsUnLock())
+	Endif
+
 Endif
 
 If SF2->F2_TIPO == 'D' .Or. SF2->F2_TIPO == 'B'
