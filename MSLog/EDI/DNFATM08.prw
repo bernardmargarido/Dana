@@ -363,7 +363,7 @@ If Len(_aPedidos) > 0
             For _nZ := 1 To Len(_aNotas)
                 If SF2->( dbSeek(xFilial("SF2") + _aNotas[_nZ][1] + _aNotas[_nZ][2]))
                     RecLock("SF2",.F.)
-                        SF2->F2_XENVWMS := "1"
+                        SF2->F2_XENVWMS := "3"
                         SF2->F2_XDTALT	:= Date()
                         SF2->F2_XHRALT	:= Time()
                         SF2->F2_VOLUME1 := _aPedidos[_nX][2]

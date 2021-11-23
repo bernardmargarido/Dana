@@ -20,6 +20,11 @@ Private dEmiSF2		:= SF2->F2_EMISSAO
 Private cCodCat		:= Space(03)
 Private lContinua2 	:= .T.
 Private cConvUN		:= ""
+Private cCanalCli	:= ""
+Private cTESTrade	:= ""
+Private cTESBonif	:= ""
+Private cCFOPVen	:= Alltrim(GetMv("MV_XCFOPVE"))
+Private nPerCom		:= 0
 
 aAreacps	:= GetArea()
 aAreaSE1	:= SE1->(GetArea())
@@ -30,6 +35,7 @@ DBSelectArea("SF2")
 _XPEDIDO := POSICIONE("SD2",3,xFilial("SD2") + SF2->(F2_DOC+F2_SERIE+F2_CLIENTE+F2_LOJA),"D2_PEDIDO")
 _VEND    := POSICIONE("SC5",1,xFilial("SC5") + _XPEDIDO,"C5_VEND1")
 cConvUN	 := POSICIONE("SC5",1,xFilial("SC5") + _XPEDIDO,"C5_XCONVUN")
+cCanalCli:= POSICIONE("SA1",1,xFilial("SA1") + SF2->F2_CLIENTE + SF2->F2_LOJA,"A1_XTIPCLI")
 
 IF EMPTY(_VEND)
 	_VEND := GetAdvFval("SA1","A1_VEND",xFilial("SA1") + SF2->F2_CLIENTE + SF2->F2_LOJA,1)
@@ -137,6 +143,25 @@ If Dbseek(cFilSF2 + cDocSF2 + cSerSF2 + cForSF2 + cLojSF2)
 			SD2->D2_VEND1	:= _VEND 
 			SD2->(Msunlock())
 		Endif
+		
+		cCatCom		:= POSICIONE("SB1",1,xFilial("SB1") + SD2->D2_COD,"B1_XCATCOM")
+		cTESTrade	:= POSICIONE("SF4",1,xFilial("SF4") + SD2->D2_TES,"F4_XTRADE")
+		cTESBonif	:= POSICIONE("SF4",1,xFilial("SF4") + SD2->D2_TES,"F4_XDEVBON")
+		nPerCom		:= 0
+
+		If Alltrim(cTESBonif) <> "1" .And. Alltrim(cTESTrade) <> "1" .And. Alltrim(SD2->D2_TIPO) == "N"
+			If Alltrim(cCanalCli) == "1"//Atacado
+				nPerCom		:= POSICIONE("Z08",1,xFilial("Z08") + _VEND + cCatCom,"Z08_COMATA")	
+			Elseif Alltrim(cCanalCli) $"2/3"//Varejo ou Farma
+				nPerCom		:= POSICIONE("Z08",1,xFilial("Z08") + _VEND + cCatCom,"Z08_COMVAR")	
+			Endif
+
+			If nPerCom > 0
+				RecLock("SD2",.F.)
+				SD2->D2_XVLCOMI	:= (SD2->D2_TOTAL * nPerCom) / 100
+				SD2->(Msunlock())
+			Endif
+		Endif		
 	SD2->(DbSkip())
 	EndDo
 Endif
