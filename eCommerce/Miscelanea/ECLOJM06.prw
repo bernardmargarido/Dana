@@ -356,7 +356,6 @@ Return _lRet
 Static Function EcLojM06E(_cDoc,_cSerie,_aPDFEtq)
 Local _cAlias			:= GetNextAlias()
 Local _cPasta   		:= _cDirRaiz
-Local _cDirExp			:= GetTempPath()
 Local _cCodEtq          := ""
 Local _cPedido			:= ""
 Local _cDest			:= ""
@@ -375,9 +374,7 @@ Local _cPDFEtq          := ""
 
 Local _nVolume			:= 0
 Local _nPeso			:= 0 
-Local _nToReg			:= 0
 Local _nValor			:= 0
-Local _nCount           := 0
 
 Local _lRet				:= .T.
 Local _lAdjustToLegacy	:= .F.

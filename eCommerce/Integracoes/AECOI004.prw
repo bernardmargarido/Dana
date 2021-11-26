@@ -19,8 +19,6 @@ Static cDirImp	:= "/ecommerce/"
 /*/
 /**************************************************************************************************/
 User Function AECOI004()
-Local aArea		:= GetArea()
-Local aRet		:= {.T.,"",""}
 
 Private cThread	:= Alltrim(Str(ThreadId()))
 Private cStaLog	:= "0"
@@ -84,7 +82,6 @@ Return Nil
 /**************************************************************************************************/
 Static Function AECOINT04()
 Local aArea		:= GetArea()
-Local aRet		:= {.T.,"",""}
 
 Local cCodPai 	:= ""
 Local cNomePrd	:= "" 

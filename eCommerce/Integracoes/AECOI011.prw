@@ -820,7 +820,7 @@ Local aArea		:= GetARea()
 Local cAlias	:= GetNextAlias()
 Local cQuery	:= ""
 Local cIbge		:= ""
-Local _cMunDef	:= GetNewPar("EC_MUNDEF","INVALIDO")
+//Local _cMunDef	:= GetNewPar("EC_MUNDEF","INVALIDO")
 Local _cCMunDef	:= GetNewPar("EC_CMUNDE","99999")
 
 Local _lAtMunDef:= GetNewPar("EC_ATMUNDE",.T.)
@@ -1021,7 +1021,6 @@ Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt)
 	Local cEndComp		:= "" 
 	Local cEndRef		:= ""
 	Local cCodTransp	:= ""
-	Local cCondPag		:= ""
 	Local _cIdServ		:= ""
 
 	Local nDesconto		:= 0
@@ -1524,13 +1523,11 @@ Local aArea	:= GetArea()
 
 Local aRet		:= {.T.,"",""}
 
-Local aRefImpos	:= {} 
-
 Local lTesInt	:= GetNewPar("EC_TESINT")
 Local lGrava	:= .T.
 Local lDescPer	:= .F.
-Local lGift		:= .F.
-Local lBrinde	:= .F.
+//Local lGift		:= .F.
+//Local lBrinde	:= .F.
 Local lGratis	:= .F.
 
 Local cTpOper	:= GetNewPar("EC_TPOPEREC")
@@ -1540,9 +1537,9 @@ Local cProduto	:= ""
 
 Local nPrd		:= 0
 Local nPesoPrd	:= 0
-Local nPesoCobr	:= 0
-Local nPesoCuba	:= 0
-Local nPesoCubC	:= 0
+//Local nPesoCobr	:= 0
+//Local nPesoCuba	:= 0
+//Local nPesoCubC	:= 0
 Local nPrzEntr	:= 0
 Local nPerDItem	:= 0
 Local nQtdItem	:= 0
@@ -2381,7 +2378,7 @@ Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmi
 	Local cAdmCart	:= ""
 	Local cParcela 	:= ""
 	Local cCondPg	:= ""
-	Local cOperTX	:= GetNewPar("EC_OPERSTX","000")
+	//Local cOperTX	:= GetNewPar("EC_OPERSTX","000")
 	Local c1DUP     := SuperGetMv("MV_1DUP")	
 	Local cOpera	:= ""	
 	Local cCodAuto	:= ""
@@ -2404,8 +2401,8 @@ Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmi
 	Local dDtaVencto:= cTod('  /  /    ')	
 	
 	Local lTaxaCC	:= GetNewPar("EC_ADMFIN",.F.)
-	Local lUsaSAE	:= GetNewPar("EC_SAEFIN",.F.)
-	Local lGrava 	:= .T.
+	//Local lUsaSAE	:= GetNewPar("EC_SAEFIN",.F.)
+	//Local lGrava 	:= .T.
 	
 	Local oDadCart	:= Nil
 	
@@ -3035,21 +3032,21 @@ Static Function AEcoUpdPv(cOrderId,cOrdPvCli,cNumOrc,cNumDoc,cNumSer,cNumPv,oRes
 	Local aRet			:= {.T.,"",""}
 	
 	Local cVendedor 	:= GetNewPar("EC_VENDECO")
-	Local cPedCodCli	:= ""	
+	//Local cPedCodCli	:= ""	
 	Local cCnpj			:= ""
-	Local cDocEco		:= ""
-	Local cHoraEmis		:= ""
-	Local cNotaDev		:= ""
+	//Local cDocEco		:= ""
+	//Local cHoraEmis		:= ""
+	//Local cNotaDev		:= ""
 	Local cPedStatus	:= ""
-	Local cTipo			:= "LJ"
+	//Local cTipo			:= "LJ"
 	
-	Local nQtdParc		:= 0			
-	Local nVlrTotal		:= 0
+	//Local nQtdParc		:= 0			
+	//Local nVlrTotal		:= 0
 	
 	Local lBaixaEco		:= .F.
 	Local lEnvStatus	:= .F.
-	Local lFatAut		:= GetNewPar("EC_FATAUTO",.F.)
-	Local lLiberPv		:= GetNewPar("EC_LIBPVAU",.F.)
+	//Local lFatAut		:= GetNewPar("EC_FATAUTO",.F.)
+	//Local lLiberPv		:= GetNewPar("EC_LIBPVAU",.F.)
 			
 	Local dDtaEmiss		:= Nil
 		
@@ -3201,10 +3198,10 @@ User Function AEcoCancPv(cOrderId,cOrdPvCli,cNumOrc,cNumPv)
 	Local aArea		:= GetArea()
 	Local aRet		:= {.T.,"",""}
 	
-	Local cAlias	:= GetNextAlias()
+	//Local cAlias	:= GetNextAlias()
 		
-	Local lPedido	:= .F.
-	Local lTitulo	:= .F.
+	//Local lPedido	:= .F.
+	//Local lTitulo	:= .F.
 	/*
 	//----------------------------+
 	// Valida se já existe pedido |
@@ -3468,7 +3465,7 @@ Static Function AEcoGrvWs2(cNumOrc,cOrderId,cPedStatus,dDtaEmiss,cHoraEmis)
 	Local cStatus	:= ""
 	Local cQuery	:= ""
 
-	Local lGrava	:= .T.
+	//Local lGrava	:= .T.
 	
 	//---------------------------+
 	// Posiciona Status do Pedido|
@@ -3550,7 +3547,6 @@ Return nValor
 /*/
 /*******************************************************************************/
 Static Function AEcoI11IP(cIdTran,cCodAfili,cCodTransp,cIdPost,_cIdServ)
-Local aArea 	:= GetArea() 
 
 If Empty(cIdPost)
 	AEcoI11TR(cIdTran,@cCodTransp,@_cIdServ)
@@ -3848,8 +3844,6 @@ Return nRecno
 /*/
 /*******************************************************************************************/
 Static Function aEcI10AGA(_cNumSU5,aEndEnt)
-Local _aArea	:= GetARea()
-
 Local _cCodEnd	:= ""
 Local _cEnd		:= ""
 Local _cNumEnd	:= ""

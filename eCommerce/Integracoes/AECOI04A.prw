@@ -22,7 +22,6 @@ Static cDirImp	:= "/ecommerce/"
 /*/
 /*******************************************************************************************/
 User Function AECOI04A()
-Local aArea		:= GetArea()
 
 Private cThread	:= Alltrim(Str(ThreadId()))
 Private cStaLog	:= "0"
@@ -179,7 +178,6 @@ Return .T.
 Static Function AEcoEnv(cCodSku,cNomePrd,nIdSku,cTamanho)
 						
 Local aArea			:= GetArea()
-Local aIdLoja		:= {}
 
 Local cUrl			:= GetNewPar("EC_URLECOM")
 Local cUsrVTex		:= GetNewPar("EC_USRVTEX")

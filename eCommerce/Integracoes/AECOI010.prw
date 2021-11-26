@@ -20,9 +20,7 @@ Static cDirImp	:= "/ecommerce/"
 @since     		17/02/2016
 **************************************************************************************************/
 User Function AECOI010()
-	Local aArea		:= GetArea()
-	Local aRet		:= {.T.,"",""}
-
+	
 	Private cThread	:= Alltrim(Str(ThreadId()))
 	Private cStaLog	:= "0"
 	Private cArqLog	:= ""	
@@ -83,26 +81,16 @@ Static Function AECOINT10()
 	Local cLoja			:= ""
 	Local cStatus		:= ""
 	Local cDtaNasc		:= ""
-	Local cDtaInc		:= ""
-	Local cParam		:= ""
 	Local cNomeCli		:= ""
-	Local cNomeCont		:= ""
-	Local cCodMun		:= "" 
 	Local cContrib		:= "2"
 	Local cInscrEst		:= ""
 	Local cPais			:= GetNewPar("MV_WSPAIS","105")
 	Local cCodPais		:= GetNewPar("MV_WSCPAIS","01058")
-	Local cGrpTrib		:= GetNewPar("EC_GRPTRIB","CCF") 
-	
-	Local nDtaNasc		:= 0
-	Local nDtaInc		:= 0
+		
 	Local nOpcA			:= 0
-	Local nOpcC			:= 0
 	Local nValorFixo	:= 0
 	Local nX1			:= 0
-
-	Local aContato		:= {}
-	Local aDtNasc		:= {}
+	
 	Local aEndSa1		:= {}
 	Local aRetMun		:= {}
 	Local aCliente		:= {}
@@ -442,17 +430,11 @@ Return(aRet)
 Static Function GrvContat(cCodCli,cLoja,oCliente)
 	Local aArea		:= GetArea()
 
-	Local lGrava	:= .T.
-
-	Local cCodMun	:= ""
-	Local cCodU5	:= ""
-
 	Local nRecnoSU5	:= 0
 	Local nEnd		:= 0
 	
 	Local aEndCont	:= {}
 	Local aEndEnt	:= {}
-	Local aRetMun	:= {}
 	
 	//-----------------------------------+
 	// Validas se Objeto é do tipo Array |
@@ -766,11 +748,8 @@ Return nRecno
 Static Function GrvZa0(lGrava,nLinha,cCliente,cLoja)
 	Local aArea		:= GetArea()
 	
-	Local nDtaInc	:= 0
 	Local nY		:= 0
 
-	Local dDtInc	:= ""
-	
 	Local aRetEnd	:= {}
 
 	//ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
@@ -827,8 +806,6 @@ Return(IIf(lGrava,.T.,aRetEnd))
 ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
 */
 User Function RetCodMun(cEstado,cMunicipio)
-	Local cCodMun	:= ""
-	Local cQuery 	:= ""
 	Local aRet		:= {"",""}
 
 	cEstado 	:= Upper(cEstado)
@@ -898,14 +875,9 @@ Return(aRet)
 Static Function EnvBxCli(cCodigo, cEmail)
 	Local aArea				:= GetArea()
 	Local lRet				:= .F.
-	Local cError			:= ""
-	Local cWarning			:= ""  
 	Local cMsgErro			:= ""
-	Local cXml				:= ""
-	Local aXml 				:= {}
 	Local oWsBxCliente	
-	Local oWsBxClienteRet
-
+	
 	//-------------------------------------------+
 	// Instancia objeto de Integração E-Commerce |
 	//-------------------------------------------+

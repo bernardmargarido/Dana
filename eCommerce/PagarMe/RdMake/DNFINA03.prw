@@ -803,7 +803,7 @@ _nValLiq    := IIF(Len(_aParcelas) > 1, _nValLiq / Len(_aParcelas), _nValLiq )
 
 For _nX := 1 To Len(_aParcelas)
 
-    _cParcela := IIF(Len(_aParcelas) > 1,LJParcela( _nX, _c1DUP ),"")
+    _cParcela := IIF(Len(_aParcelas) > 1,LJParcela( _nX, _c1DUP ),"A")
     _aItens   := {}
     _nValXTB  += _aParcelas[_nX][2]
 

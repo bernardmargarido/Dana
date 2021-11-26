@@ -24,7 +24,6 @@ Static nTamCat	:= TamSx3("AY1_CODIGO")[1]
 
 /**************************************************************************************************/
 User Function AECOI001()
-Local aArea		:= GetArea()
 
 Private cThread	:= Alltrim(Str(ThreadId()))
 Private cStaLog	:= "0"

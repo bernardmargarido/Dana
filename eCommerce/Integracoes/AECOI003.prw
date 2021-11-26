@@ -19,7 +19,6 @@ Static cDirImp	:= "/ecommerce/"
 /*/
 /**************************************************************************************************/
 User Function AECOI003()
-Local aArea		:= GetArea()
 
 Private cThread	:= Alltrim(Str(ThreadId()))
 Private cStaLog	:= "0"

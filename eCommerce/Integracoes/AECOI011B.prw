@@ -113,10 +113,7 @@ Local cAppKey		:= GetNewPar("EC_APPKEY")
 Local cAppToken		:= GetNewPar("EC_APPTOKE")
 Local _cVtexName	:= "danacosmeticos"
 Local cXmlHead 	 	:= ""
-Local cUrlParms		:= ""     
 Local cError    	:= ""
-Local cWarning  	:= ""
-Local cRetPost  	:= ""
 
 Local nTimeOut		:= 240
 
@@ -154,7 +151,7 @@ If lCancel
 Else
 	cHtmlPage :=  HttpPost(cUrl + "/api/oms/pvt/orders/" + Alltrim(WSA->WSA_NUMECO) + "/start-handling/?an=" + _cVtexName + "","","",nTimeOut,aHeadOut,@cXmlHead)
 EndIf	 
- 	
+	
 If HTTPGetStatus() == 200 .Or. Empty(cHtmlPage)
 
 	RecLock("WSA",.F.)

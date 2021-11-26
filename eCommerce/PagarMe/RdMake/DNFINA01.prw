@@ -56,7 +56,7 @@ Local _oModel		:= Nil
 Local _oStruXT9     := Nil
 Local _oStruXTA		:= Nil
 
-Local _bCommit      := {|_oModel| DFinaA01A(_oModel)}
+//Local _bCommit      := {|_oModel| DFinaA01A(_oModel)}
 //-----------------+
 // Monta Estrutura |
 //-----------------+

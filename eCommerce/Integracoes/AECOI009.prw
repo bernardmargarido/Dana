@@ -23,7 +23,6 @@ Static cDirImp	:= "/ecommerce/"
 /*/
 /**************************************************************************************************/
 User Function AECOI009()
-Local aArea		:= GetArea()
 
 Private cThread	:= Alltrim(Str(ThreadId()))
 Private cStaLog	:= "0"
@@ -198,8 +197,6 @@ Local aHeadOut  	:= {}
 Local cUrl			:= GetNewPar("EC_URLRES2")
 Local cAppKey		:= GetNewPar("EC_APPKEY")
 Local cAppToken		:= GetNewPar("EC_APPTOKE")
-Local cXmlHead 	 	:= ""     
-Local cRetPost  	:= ""
 Local cRest			:= ""
 
 Local nTimeOut		:= 240
