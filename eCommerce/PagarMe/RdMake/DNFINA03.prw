@@ -182,6 +182,33 @@ While (_cAlias)->( !Eof() )
     (_cAlias)->( dbSkip() ) 
 EndDo
 
+If Len(_aEcomm) == 0
+    aAdd(_aEcomm,Array(10))
+    _aEcomm[Len(_aEcomm)][COL_MARK]     := "LBNO"
+    _aEcomm[Len(_aEcomm)][COL_STATUS]   := "3"
+    _aEcomm[Len(_aEcomm)][COL_IDPAY]    := ""
+    _aEcomm[Len(_aEcomm)][COL_PARCELA]  := ""
+    _aEcomm[Len(_aEcomm)][COL_DTEMIS]   := ""
+    _aEcomm[Len(_aEcomm)][COL_DTPGTO]   := ""
+    _aEcomm[Len(_aEcomm)][COL_VLRTOT]   := 0
+    _aEcomm[Len(_aEcomm)][COL_VLRLIQ]   := 0
+    _aEcomm[Len(_aEcomm)][COL_VLRTAX]   := 0
+    _aEcomm[Len(_aEcomm)][COL_REFUND]   := 0
+EndIf 
+
+If Len(_aTitulo) == 0
+    aAdd(_aTitulo,Array(9))
+    _aTitulo[Len(_aTitulo)][COL_TMARK]      := "LBNO"
+    _aTitulo[Len(_aTitulo)][COL_TSTATUS]    := "3"
+    _aTitulo[Len(_aTitulo)][COL_TITULO]     := ""
+    _aTitulo[Len(_aTitulo)][COL_TPREFI]     := ""
+    _aTitulo[Len(_aTitulo)][COL_TIDPAY]     := ""
+    _aTitulo[Len(_aTitulo)][COL_TPARCELA]   := ""
+    _aTitulo[Len(_aTitulo)][COL_TDTEMIS]    := ""
+    _aTitulo[Len(_aTitulo)][COL_TDTPGTO]    := ""
+    _aTitulo[Len(_aTitulo)][COL_TVLRTOT]    := 0
+EndIf 
+
 //---------------------------+
 // Atualiza dados da Browser |
 //---------------------------+
