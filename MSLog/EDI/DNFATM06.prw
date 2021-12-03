@@ -88,6 +88,7 @@ Local _cNumero      := ""
 Local _cCodBar      := ""
 Local _cItem        := ""
 Local _cLote        := ""
+Local _cUF          := ""
             
 Local _dDtLote      := ""
 
@@ -148,7 +149,9 @@ While (_cAlias)->( !Eof() )
     _cSerie     := (_cAlias)->SERIE
     _cRazao     := (_cAlias)->RAZAO
     _cMunicipio := (_cAlias)->MUNICIPIO
+    _cUF        := (_cAlias)->ESTADO
     _cNumero    := (_cAlias)->PEDIDO
+    
 
     //-----------------------+
     // Monta linha cabeçalho |
@@ -158,7 +161,8 @@ While (_cAlias)->( !Eof() )
     _cLinCab    +=  PadR(_cNumero,9)    + ";"   // 03. Numero pedido
     _cLinCab    +=  PadR(_cNota  ,9)    + ";"   // 04. Numero da Nota
     _cLinCab    +=  PadR(_cRazao,40)    + ";"   // 05. Nome do Cliente
-    _cLinCab    +=  PadR(_cMunicipio,35)        // 06. Municipio
+    _cLinCab    +=  PadR(_cMunicipio,35)+ ";"   // 06. Municipio
+    _cLinCab    +=  PadR(_cUF,2)
 
     //-----------------+
     // Nome do arquivo |
@@ -285,6 +289,7 @@ _cQuery += "	A1.A1_CGC CNPJ_CLI, " + CRLF
 _cQuery += "	A1.A1_INSCR INSCR_CLI, " + CRLF
 _cQuery += "    A1.A1_NOME RAZAO, " + CRLF
 _cQuery += "	A1.A1_MUN MUNICIPIO, " + CRLF
+_cQuery += "	A1.A1_EST ESTADO, " + CRLF
 _cQuery += "	F2.F2_DOC NOTA,  " + CRLF
 _cQuery += "	F2.F2_SERIE SERIE, " + CRLF
 _cQuery += "    ITENS_NOTA.D2_PEDIDO PEDIDO, " + CRLF

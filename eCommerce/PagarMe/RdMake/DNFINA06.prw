@@ -54,9 +54,9 @@ _cRest := xToJson(_oJSon)
 //--------------------------------------+
 _oPagarMe:cJson := _cRest
 If _oPagarMe:Transferencia()
-    _oJSonRet := xFromJson(_oPagarMe:cRetJSon)
-    If ValType(_oJSonRet) <> "U"
-        _cID := _oJSonRet[#"id"]
+
+    If FWJsonDeserialize(_oPagarMe:cRetJSon,@_oJSonRet)
+        _cID := _oJSonRet:id
         RecLock("XTB",.F.)
             XTB->XTB_IDTRAN := _cID
             XTB->XTB_STATUS := "2"

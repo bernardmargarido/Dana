@@ -10,7 +10,7 @@
             "name": "TOTVS Language Debug",
             "program": "${command:AskForProgramName}",
             "cwb": "${workspaceFolder}",
-            "smartclientBin": "D:/Totvs/Remotes/Dana/smartclient_12_33/smartclient.exe",
+            "smartclientBin": "D:/Totvs/Remotes/Dana/smartclient_12_25_32/smartclient.exe",
             "isMultiSession": true,
             "enableTableSync": true
         }
