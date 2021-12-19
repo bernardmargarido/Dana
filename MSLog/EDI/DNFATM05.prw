@@ -290,6 +290,7 @@ _cQuery += "	F1.F1_FILIAL = '" + xFilial("SF1") + "' AND " + CRLF
 _cQuery += "	F1.F1_CHVNFE <> '' AND " + CRLF
 _cQuery += "	F1.F1_TIPO IN('N','D') AND " + CRLF
 _cQuery += "	F1.F1_MSEXP = '' AND " + CRLF
+_cQuery += "	F1.F1_ESPECIE <> 'CTE' AND " + CRLF
 _cQuery += "	F1.D_E_L_E_T_ = '' " + CRLF
 
 _cAlias := MPSysOpenQuery(_cQuery)
