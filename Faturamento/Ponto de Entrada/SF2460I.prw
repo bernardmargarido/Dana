@@ -67,9 +67,11 @@ SF2->( MSUNLOCK() )
 //--------------------------------------------------+
 // Grava informações de volume para filial e Maceio |
 //--------------------------------------------------+
+/*
 If cFilAnt $ _cFilMSL
     U_DNFATM09(SC5->C5_NUM,SF2->F2_DOC,SF2->F2_SERIE)
 EndIf
+*/
 
 //Grava gerente de vendas
 If SF2->F2_TIPO <> 'D' .Or. SF2->F2_TIPO <> 'B'

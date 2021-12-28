@@ -58,7 +58,7 @@ If _oPagarMe:Transferencia()
     If FWJsonDeserialize(_oPagarMe:cRetJSon,@_oJSonRet)
         _cID := _oJSonRet:id
         RecLock("XTB",.F.)
-            XTB->XTB_IDTRAN := _cID
+            XTB->XTB_IDTRAN := cValToChar(_cID)
             XTB->XTB_STATUS := "2"
         XTB->( MsUnlock() )
 

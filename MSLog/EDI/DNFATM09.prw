@@ -28,7 +28,8 @@ RecLock("SF2",.F.)
     SF2->F2_XENVWMS := "1"
     SF2->F2_XDTALT	:= Date()
     SF2->F2_XHRALT	:= Time()
-    SF2->F2_VOLUME1 := SC5->C5_VOLUME1
+    //SF2->F2_VOLUME1 := SC5->C5_VOLUME1
+    //SF2->F2_ESPECI1 := "CXS"
 SF2->( MsUnLock() )
 
 RestArea(_aArea)

@@ -315,7 +315,7 @@ If Len(_aPedidos) > 0
         //------------------+
         _lAtualiza  := .T.
         _aNotas     := {}
-        _cDoc       := IIF(Len(_aPedidos[_nX][1]) > 6, SubStr(_aPedidos[_nX][1],3,6), _aPedidos[_nX][1])
+        _cDoc       := IIF(Len(_aPedidos[_nX][1]) > 6, SubStr(_aPedidos[_nX][1],4,6), _aPedidos[_nX][1])
         If SF2->( dbSeek(xFilial("SF2") + PadR(_cDoc,_nTDoc)) )
 
             //---------------------------------+
@@ -365,6 +365,7 @@ If Len(_aPedidos) > 0
                     SF2->F2_XDTALT	:= Date()
                     SF2->F2_XHRALT	:= Time()
                     SF2->F2_VOLUME1 := _aPedidos[_nX][2]
+                    SF2->F2_ESPECI1 := "CXS"
                 SF2->( MsUnLock() )
 
                 If SC5->( dbSeek(xFilial("SC5") + _cNumPV) )
