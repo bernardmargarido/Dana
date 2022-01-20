@@ -130,7 +130,12 @@ _cParam         := "_fields=email,firstName,lastName,document,accountId,userId,a
 _oRest:SetPath("/danacosmeticos/dataentities/CL/search?" + _cParam)
 
 If _oRest:Get(aHeadOut)
+
     _cRest := DecodeUtf8(_oRest:GetResult())
+    If Empty(_cRest)
+        _cRest := _oRest:GetResult()
+    EndIf 
+    
     _oVtex := xFromJson(_cRest)
     If ValType(_oVtex) <> "U"
         If ValType(_oVtex) == "A" .And. Len(_oVtex) > 0
