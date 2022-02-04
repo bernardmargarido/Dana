@@ -178,6 +178,7 @@ _oView:EnableTitleView('XT3_GRID','Armazens Utilizados - Cliente Logistico')
 //-------------------+
 //_oView:AddUserButton( 'Visualiza NF-e', 'CLIPS', {|_oView| U_BSFATA07() } )
 
+SetVarNameLen(_nOldLen)
 Return _oView 
 
 /************************************************************************************/
@@ -293,7 +294,7 @@ Return _cPass
 /*/
 /************************************************************************************/
 Static Function DlogA01C(_nType)
-Local _oView    := FWViewActive()
+//Local _oView    := FWViewActive()
 Local _oModel   := FwModelActive()
 Local _oModelXT1:= _oModel:GetModel("XT1_01") 
 Local _oModelXT2:= _oModel:GetModel("XT2_01") 
