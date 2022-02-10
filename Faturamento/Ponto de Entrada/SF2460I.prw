@@ -217,7 +217,6 @@ Static Function DCAVNFDEV
 Local cMsgMail	:= ""
 Local cTable	:= ""
 Local cDtEmi	:= CTOD("  /  /    ")
-Local nValNf	:= 0
 Local cContae	:= GETMV("MV_XEQPCP")//e-mail equipe contas a pagar.
 Local cNomFor	:= Posicione("SA2",1,cFilSF2+cForSF2+cLojSF2,"A2_NOME")
 Local cDocOri	:= ""
@@ -314,7 +313,6 @@ Static Function DCEMAGEN()
 Local cMsgMail	:= ""
 Local cTable	:= ""
 Local cDtEmi	:= CTOD("  /  /    ")
-Local nValNf	:= 0
 Local cContae	:= GETMV("MV_XEQPLOG")//e-mail equipe Logistica
 Local cAgenda	:= Posicione("SA1",1,xFilial("SA1")+SF2->(F2_CLIENTE+F2_LOJA),"A1_XAGENDA")
 Local cNomCli	:= Posicione("SA1",1,xFilial("SA1")+SF2->(F2_CLIENTE+F2_LOJA),"A1_NOME")
