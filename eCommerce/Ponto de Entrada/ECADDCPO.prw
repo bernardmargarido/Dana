@@ -16,7 +16,7 @@ User Function ECADDCPO()
 Local aCliente 	:= ParamIxb[3]
 
 Local _cAtivo   := "S"
-Local _cTpCli   := "2"
+Local _cTpCli   := "5"
 Local _cTpFret  := "F"
 Local _cSuframa := "N"
 Local _cBaseRed := "N"
