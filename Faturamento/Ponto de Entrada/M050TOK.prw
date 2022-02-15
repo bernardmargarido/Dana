@@ -2,14 +2,11 @@
 
 /****************************************************************************/
 /*/{Protheus.doc} M050TOK
-
-@description Ponto de Entrada - Apos a gravaçcao das transportadoras
-
-@author Bernard M. Margarido
-@since 26/10/2018
-@version 1.0
-
-@type function
+	@description Ponto de Entrada - Apos a gravaçcao das transportadoras
+	@author Bernard M. Margarido
+	@since 26/10/2018
+	@version 1.0
+	@type function
 /*/
 /****************************************************************************/
 User Function M050TOK()

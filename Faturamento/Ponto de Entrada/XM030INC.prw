@@ -13,14 +13,16 @@ Local _aArea        := GetArea()
 Local _aFilFat      := {}
 
 Local _cFilFat      := ""
+Local _cStaticCall  := "S"+"t"+"a"+"t"+"i"+"c"+"C"+"a"+"l"+"l"
 
 Local _nX           := 0            
 
 Local _lConfirma    := .F.
 
 If _lConfirma
-    
-    _aFilFat := StaticCall(DNFATA01, DnFatA01D, .F., .F.)
+
+    _aFilFat := Eval( {|| &(_cStaticCall+"("+"DNFATA01,DnFatA01D,.F.,.F."+")") })
+    //_aFilFat := StaticCall(DNFATA01, DnFatA01D, .F., .F.)
 
     If Len(_aFilFat) == 0
 

@@ -10,9 +10,10 @@
             "name": "Depuração do idioma TOTVS",
             "program": "${command:AskForProgramName}",
             "cwb": "${workspaceFolder}",
-            "smartclientBin": "D:/Totvs/Remotes/Dana/smartclient_12_25_32/smartclient.exe",
+            "smartclientBin": "D:/Totvs/Remotes/Dana/smartclient_12_33/smartclient.exe",
             "isMultiSession": true,
-            "enableTableSync": true
+            "enableTableSync": true,
+            "enableMultiThread": true
         }
     ]
 }

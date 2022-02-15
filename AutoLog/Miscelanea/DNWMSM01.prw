@@ -234,20 +234,21 @@ Static Function DnApi07Q(_cPedido,_cCodCli,_cLoja)
 Local _aArea		:= GetArea()
 
 Local _cNumPV		:= ""
+/*
 Local _aCpoCopy		:= {"C5_FILIAL","C5_NUM","C5_EMISSAO","C5_NOTA",;
 						"C5_SERIE","C5_OS","C5_PEDEXP","C5_DTLANC",;
 						"C5_LIBEROK","C5_PEDANT","C5_XENVWMS","C5_XDTALT",;
 						"C5_XHRALT","C5_XRESIDU","C5_XSEQLIB","C5_XPEDPAI",;
 						"C5_XTOTLIB","C5_XHORA","C5_VLRPED","C5_XPVSLD"}
-
-Local _nX			:= 0
+*/
+//Local _nX			:= 0
 Local _nItem        := 1
 
 Local _lRet			:= .T.
 
 Local _dDtEntreg	:= Nil
 
-Local _aStrSC5		:= SC5->( DbStruct() )
+//Local _aStrSC5		:= SC5->( DbStruct() )
 Local _aCabec		:= {}
 Local _aItem		:= {}
 Local _aItems		:= {}

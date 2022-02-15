@@ -52,9 +52,9 @@ Local cDataHora		:= IIF(Empty(::DATAHORA),"1900-01-01T00:00",::DATAHORA)
 Local cTamPage		:= ::PERPAGE
 Local cPage			:= ::PAGE
 
-Local _nX			:= 0
+//Local _nX			:= 0
 
-Local _aGrpCom		:= FWAllGrpCompany()
+//Local _aGrpCom		:= FWAllGrpCompany()
 
 Private cArqLog		:= ""
 

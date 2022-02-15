@@ -14,14 +14,24 @@ User Function XDNALTSA1()
 
 Local lRet		:= .T.
 Local cUsuFin	:= GETMV("MV_XFINSA1")
-Local cCodUsu	:= RetCodUsr()
-Local cNomUsr   := PswChave(RetCodUsr())
+Local cCodUsu	:= ""
+Local cNomUsr   := ""
+
+Local _lECommerce	:= IIF(Isincallstack("U_AECOI011"),.T.,.F.)
+Local _lMRP			:= IIF(Isincallstack("U_DNMRPA01") .Or. Isincallstack("U_DNMRPA02"),.T.,.F.)
 
 Private cConta	:= AllTrim(GetMv("MV_XMAIFIN"))
 Private cMsgCam := ""
 Private cPulaLin:= Chr(13) + Chr(10)
 Private cDescAbt:= ""
 Private cLimCred:= ""
+
+If _lECommerce .Or. _lMRP
+	Return .T.
+EndIf
+
+cCodUsu	:= RetCodUsr()
+cNomUsr := PswChave(RetCodUsr())
 
 If ALTERA 
     If !cCodUsu $cUsuFin

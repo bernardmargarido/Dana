@@ -212,13 +212,14 @@ Return .T.
 /*/
 /******************************************************************************/
 Static Function EcLojM06D(_cDoc,_cSerie,_cPDFDanfe)
-Local _cIdent   := GetIdEnt()
-Local _cPasta   := _cDirRaiz
-Local _cArqPDF  := ""
+Local _cIdent       := GetIdEnt()
+Local _cPasta       := _cDirRaiz
+Local _cArqPDF      := ""
+Local _cStatiCall   := ""
 
-Local _lRet     := .T.
-Local lEnd      := .F.
-Local lExistNFe := .F.
+Local _lRet         := .T.
+Local lEnd          := .F.
+Local lExistNFe     := .F.
 
 Local oDanfe    := Nil
 
@@ -287,7 +288,10 @@ If !Empty(_cIdent) .And. !Empty(_cDoc) .And. !Empty(_cSerie)
     //-----------------------------------------+         
     // Chamando a impressão da danfe no RDMAKE |	        
     //-----------------------------------------+
-    StaticCall(DANFEII, DanfeProc, @oDanfe, @lEnd, _cIdent, , , @lExistNFe)
+    _cStatiCall := "S"+"t"+"a"+"t"+"i"+"c"+"C"+"a"+"l"+"l"
+    Eval( {|| &(_cStatiCall + "("+"DANFEII,DanfeProc,@oDanfe, @lEnd, _cIdent, , , @lExistNFe)"+")") })
+
+    //StaticCall(DANFEII, DanfeProc, @oDanfe, @lEnd, _cIdent, , , @lExistNFe)
     oDanfe:Print()
 
     If lExistNFe
@@ -371,6 +375,7 @@ Local _cCodServ			:= ""
 Local _cTelDest			:= ""
 Local _cArqPDF          := ""
 Local _cPDFEtq          := ""
+Local _cStatiCall       := ""
 
 Local _nVolume			:= 0
 Local _nPeso			:= 0 
@@ -458,10 +463,15 @@ While (_cAlias)->( !Eof() .And. _lRet )
     //-----------------------------------------+         
     // Chamando a impressão da danfe no RDMAKE |	        
     //-----------------------------------------+
+
+    _cStatiCall := "S"+"t"+"a"+"t"+"i"+"c"+"C"+"a"+"l"+"l"
+    Eval( {|| &(_cStatiCall + "("+"SIGR001,SigR01Etq,@_oPrint,_cPlpID,_cDoc,_cSerie,_cPedido,_cTelDest,_cCodEtq,_cDest,_cEndDest,_cBairro,_cMunicipio,_cCep,_cUF,_cObs,_cCodServ,_cDescSer,_cDTMatrix,_nValor,_nVolume,_nPeso)"+")") })
+    /*
     StaticCall(SIGR001, SigR01Etq, 	@_oPrint, _cPlpID,_cDoc,_cSerie,_cPedido,_cTelDest,;
                                     _cCodEtq,_cDest,_cEndDest,_cBairro,_cMunicipio,;
                                     _cCep,_cUF,_cObs,_cCodServ,_cDescSer,_cDTMatrix,;
                                     _nValor,_nVolume,_nPeso)
+    */
     _oPrint:Print()
 
     //--------------------------+

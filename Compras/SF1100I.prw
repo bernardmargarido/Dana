@@ -16,7 +16,7 @@
 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 */
 User Function SF1100I()
-
+Local Nx:= 0
 cNota	:= SF1->F1_DOC
 M_LOJA	:= SF1->F1_LOJA
 M_FOR	:= SF1->F1_FORNECE
@@ -680,7 +680,7 @@ Return
 | DNALTVENC | Envia e-mail alertando manutenção na Data de vencimento. |
 +--------------------------------------------------------------------+*/
 Static Function DNALTVENC
-
+Local Nx		:= 0
 Local cMsgMail	:= ""
 Local cTable	:= ""
 Local cDtEmi	:= CTOD("  /  /    ")

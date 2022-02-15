@@ -2,14 +2,11 @@
 
 /******************************************************************************/
 /*/{Protheus.doc} ITEM
-
-@description Ponto de Entrada - MVC Produtos 
-
-@author Bernard M. Margarido
-@since 25/10/2018
-@version 1.0
-
-@type function
+	@description Ponto de Entrada - MVC Produtos 
+	@author Bernard M. Margarido
+	@since 25/10/2018
+	@version 1.0
+	@type function
 /*/
 /******************************************************************************/
 User Function ITEM()

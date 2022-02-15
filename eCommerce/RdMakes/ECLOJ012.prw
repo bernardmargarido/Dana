@@ -153,7 +153,7 @@ Private nTNumCl     := TamSx3("L1_XNUMECL")[1]
 
 Private lMsErroAuto := .F.
 Private lAutomatoX  := .T.
-
+                    
 //----------------+
 // Valida cliente |
 //----------------+
@@ -456,6 +456,7 @@ If Len(_aCabec) > 0 .And. Len(_aItems) > 0 .And. Len(_aParcela) > 0
             SL1->L1_SERPED  := _cSerCPF
             SL1->L1_STATUS	:= "F"
             SL1->L1_TIPO    := "P"
+            SL1->L1_INDPRES := "1"
             If !Empty(_cReserva)
                 SL1->L1_RESERVA := _cReserva
             EndIf

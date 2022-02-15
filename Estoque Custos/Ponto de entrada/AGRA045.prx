@@ -2,14 +2,11 @@
 
 /*****************************************************************************/
 /*/{Protheus.doc} AGRA045
-
-@description Ponto de Etrada - Locais de Estoque
-
-@author Bernard M. Margarido
-@since 27/10/2018
-@version 1.0
-
-@type function
+	@description Ponto de Etrada - Locais de Estoque
+	@author Bernard M. Margarido
+	@since 27/10/2018
+	@version 1.0
+	@type function
 /*/
 /*****************************************************************************/
 User Function AGRA045()

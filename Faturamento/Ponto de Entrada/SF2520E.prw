@@ -2,14 +2,11 @@
 
 /*****************************************************************************/
 /*/{Protheus.doc} SF2520E
-
-@description Ponto de Entrada - Exclusão da nota de saida 
-
-@author Bernard M. Margarido
-@since 23/07/2019
-@version 1.0
-
-@type function
+	@description Ponto de Entrada - Exclusão da nota de saida 
+	@author Bernard M. Margarido
+	@since 23/07/2019
+	@version 1.0
+	@type function
 /*/
 /*****************************************************************************/
 User Function SF2520E()

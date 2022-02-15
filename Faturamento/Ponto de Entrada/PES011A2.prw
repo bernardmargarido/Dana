@@ -2,14 +2,11 @@
 
 /******************************************************************************/
 /*/{Protheus.doc} PES011A2
-
-@description Ponto de Entrada após a gravação do pedido via integração
-
-@author Bernard M. Margarido
-@since 07/05/2019
-@version 1.0
-
-@type function
+	@description Ponto de Entrada após a gravação do pedido via integração
+	@author Bernard M. Margarido
+	@since 07/05/2019
+	@version 1.0
+	@type function
 /*/
 /******************************************************************************/
 User Function PES011A2()

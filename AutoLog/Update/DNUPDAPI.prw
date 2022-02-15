@@ -37,8 +37,8 @@ Local   cDesc2    := "Este processo deve ser executado em modo EXCLUSIVO, ou sej
 Local   cDesc3    := "usuários  ou  jobs utilizando  o sistema.  É EXTREMAMENTE recomendavél  que  se  faça um"
 Local   cDesc4    := "BACKUP  dos DICIONÁRIOS  e da  BASE DE DADOS antes desta atualização, para que caso "
 Local   cDesc5    := "ocorram eventuais falhas, esse backup possa ser restaurado."
-Local   cDesc6    := ""
-Local   cDesc7    := ""
+//Local   cDesc6    := ""
+//Local   cDesc7    := ""
 Local   lOk       := .F.
 Local   lAuto     := ( cEmpAmb <> NIL .or. cFilAmb <> NIL )
 
