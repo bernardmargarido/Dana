@@ -317,6 +317,11 @@ Local cTpDoc	:= ""
 Local dDtaEmiss	:= ""
 Local cFilAux	:= ""
 
+Local _nX		:= 0
+Local _nPProd	:= 0
+
+Local _aProdutos:= {}
+
 Local oJson		:= Nil
 Local oNFE		:= Nil
 Local oItens	:= Nil
@@ -354,6 +359,12 @@ EndIf
 dbSelectArea("SD1")
 SD1->( dbSetOrder(1) )
 
+//-------------------------+
+// SB1 - Posiciona Produto |
+//-------------------------+
+dbSelectArea("SB1")
+SB1->( dbSetOrder(1) )
+
 //--------------------------+
 // Inicaliza Matriz HashMap |
 //--------------------------+
@@ -376,7 +387,7 @@ While (cAlias)->( !Eof() )
 	cCodTransp	:= (cAlias)->CODTRANSP
 	dDtaEmiss	:= dToc(sTod((cAlias)->EMISSAO))
 	cTpDoc		:= (cAlias)->TIPODOC
-		 
+
 	//-----------------------------+
 	// Cria cabeçalho da nota JSON |
 	//-----------------------------+
@@ -390,11 +401,6 @@ While (cAlias)->( !Eof() )
 	oNFE[#"data_emissao"]		:= dDtaEmiss
 	oNFE[#"tipo_documento"]		:= cTpDoc
 	
-	//----------------------------------+
-	// Cria array para os itens da nota |
-	//----------------------------------+
-	oNFE[#"itens"]				:= {}
-	
 	//------------------------+
 	// Posiciona filial atual |
 	//------------------------+
@@ -407,22 +413,51 @@ While (cAlias)->( !Eof() )
 
 		While SD1->( !Eof() .And. xFilial("SD1") + cDoc + cSerieNf + cCodForn + cLoja == SD1->D1_FILIAL + SD1->D1_DOC + SD1->D1_SERIE + SD1->D1_FORNECE + SD1->D1_LOJA )
 			
-			//---------------+
-			// Itens da Nota |
-			//---------------+
-			aAdd(oNFE[#"itens"],Array(#))
-			oItens := aTail(oNFE[#"itens"])
-			oItens[#"item"]			:= SD1->D1_ITEM 
-			oItens[#"produto"]		:= SD1->D1_COD
-			oItens[#"quantidade"]	:= SD1->D1_QUANT
-			oItens[#"um"]			:= SD1->D1_UM
-			oItens[#"lote"]			:= SD1->D1_LOTECTL
-			oItens[#"data_validade"]:= SD1->D1_DTVALID
-			oItens[#"armazem"]		:= SD1->D1_LOCAL
-			
+			//-------------------+
+			// Posiciona produto |
+			//-------------------+
+			If SB1->( dbSeek(xFilial("SB1") + SD1->D1_COD) )
+				//-------------------------+
+				// Somente produto acabado |
+				//-------------------------+
+				If RTrim(SB1->B1_TIPO) $ 'PA/MR'
+					
+					If ( _nPProd := aScan(_aProdutos,{|x| RTrim(x[2]) == RTrim(SD1->D1_COD)}) > 0 )
+						_aProdutos[_nPProd][3] += SD1->D1_QUANT
+					Else 
+						aAdd(_aProdutos,{SD1->D1_ITEM,SD1->D1_COD,SD1->D1_QUANT,SD1->D1_UM,SD1->D1_LOTECTL,SD1->D1_DTVALID,SD1->D1_LOCAL})
+					EndIf 
+
+				EndIf 
+			EndIf 
 			SD1->( dbSkip() )
 		EndDo
 
+		If Len(_aProdutos) > 0 
+
+			//----------------------------------+
+			// Cria array para os itens da nota |
+			//----------------------------------+
+			oNFE[#"itens"]				:= {}
+
+			For _nX := 1 To Len(_aProdutos)
+
+				//---------------+
+				// Itens da Nota |
+				//---------------+
+				aAdd(oNFE[#"itens"],Array(#))
+				oItens := aTail(oNFE[#"itens"])
+				oItens[#"item"]			:= _aProdutos[_nX][1]
+				oItens[#"produto"]		:= _aProdutos[_nX][2]
+				oItens[#"quantidade"]	:= _aProdutos[_nX][3]
+				oItens[#"um"]			:= _aProdutos[_nX][4]
+				oItens[#"lote"]			:= _aProdutos[_nX][5]
+				oItens[#"data_validade"]:= _aProdutos[_nX][6]
+				oItens[#"armazem"]		:= _aProdutos[_nX][7]
+
+			Next _nX 
+
+		EndIf 
 		//-----------------------+
 		// Restaura filial atual | 
 		//-----------------------+
@@ -494,8 +529,10 @@ Local _cLote	:= ""
 	
 Local _nQtdConf	:= 0
 Local _nNFE		:= 0
+Local _nPProd	:= 0
 
 Local _aDiverg	:= {}
+Local _aProdutos:= {}
 
 Local _lContinua:= .T.	
 
@@ -583,7 +620,16 @@ For _nNFE := 1 To Len(_oItNFE)
 	// Valida conferencia |
 	//--------------------+
 	If _lContinua
+		If ( _nPProd := aScan(_aProdutos,{|x| RTrim(x[2]) == RTrim(SD1->D1_COD)}) > 0 )
+			_aProdutos[_nPProd][3] += SD1->D1_QUANT
+		Else 
+			aAdd(_aProdutos,{SD1->D1_ITEM,SD1->D1_COD,_nQtdConf,SD1->D1_UM,SD1->D1_LOTECTL,SD1->D1_DTVALID,SD1->D1_LOCAL})
+		EndIf 
+	EndIf			
 		
+Next _nNFE
+
+If Len(_aProdutos) > 0 
 		//---------------------+
 		// Quantidade a Maior  |
 		//---------------------+
@@ -597,10 +643,7 @@ For _nNFE := 1 To Len(_oItNFE)
 							SD1->D1_LOTECTL		,;	// 4 - Lote Produto
 							SD1->D1_LOCAL		})	// 5 - Armazem 	
 		EndIf
-	
-	EndIf			
-		
-Next _nNFE
+EndIf 
 
 
 If _lContinua

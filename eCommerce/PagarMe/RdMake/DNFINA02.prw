@@ -89,7 +89,7 @@ XT9->( dbSetOrder(2) )
 // XTA - Itens pagamentos disponiveis |
 //------------------------------------+
 dbSelectArea("XTA")
-XTA->( dbSetOrder(1) )
+XTA->( dbSetOrder(2) )
 
 //-----------------------------------------+
 // Processa baixa dos pagamentos eCommerce |
@@ -137,7 +137,7 @@ While _dDtaIni <= _dDtaFim
                 _lGrvPgto   := .T.
                 _lBaixado   := DnFinA02C(_cTID,_cParcela)
 
-                If !XTA->( dbSeek(xFilial("XTA") + PadR(_cID,_nTID) + PadR(_cParcela,_nTParc)) )
+                If !XTA->( dbSeek(xFilial("XTA") + _cCodigo +  PadR(_cTID,_nTID) + PadR(_cParcela,_nTParc)) )
                     //----------------------------------------+
                     // Gravação itens do pagamento e-Commerce |
                     //----------------------------------------+
@@ -225,9 +225,9 @@ _cQuery += "	E1.D_E_L_E_T_ = '' "
 
 _cAlias := MPSysOpenQuery(_cQuery)
 
-If Empty((_cAlias)->STATUS) .Or. (_cAlias)->STATUS == "ABERTO"
+If Empty((_cAlias)->STATUS) .Or. RTrim((_cAlias)->STATUS) == "ABERTO"
     _lRet := .F.
-ElseIf (_cAlias)->STATUS == "BAIXADO"
+ElseIf RTrim((_cAlias)->STATUS) == "BAIXADO"
     _lRet := .T.
 EndIf
 

@@ -17,7 +17,7 @@ Local cMensCli	:= aParam[2]
 Local cMensFis	:= aParam[3]
 Local cNotaES	:= ""
 Local cTpNota	:= ""
-Local _cFilWMS	:= GetNewPar("DN_FILWMS","05,06")
+//Local _cFilWMS	:= GetNewPar("DN_FILWMS","05,06")
 Local _cFilMSL  := GetNewPar("DN_FILMSL","07")
 
 Local aDest 	:= aParam[4]

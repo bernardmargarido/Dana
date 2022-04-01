@@ -3574,16 +3574,34 @@ Local cAlias	:= GetNextAlias()
 Local cQuery 	:= ""
 Local cIdPost	:= ""
 
-cQuery := "	SELECT " + CRLF  
-cQuery += "		A4.A4_COD, " + CRLF
-cQuery += "		COALESCE(ZZ0.ZZ0_IDSER,'') ZZ0_IDSER " + CRLF
-cQuery += "	FROM " + CRLF
-cQuery += "		" + RetSqlName("SA4") + " A4 " + CRLF  
-cQuery += "		LEFT JOIN " + RetSqlName("ZZ0") + " ZZ0 ON ZZ0.ZZ0_FILIAL = '" + xFilial("ZZ0") + "' AND UPPER(ZZ0.ZZ0_CODECO) = '" + Upper(cIdTran) + "' AND ZZ0.D_E_L_E_T_ = '' " + CRLF 
-cQuery += "	WHERE " + CRLF 
-cQuery += "		A4.A4_FILIAL = '" + xFilial("SA4") + "' AND " + CRLF 
-cQuery += "		UPPER(A4.A4_ECSERVI) = '" + Upper(cIdTran) + "' AND " + CRLF
-cQuery += "		A4.D_E_L_E_T_ = '' "
+
+
+cQuery := " SELECT " + CRLF  
+cQuery += "		COD_TRANSP, " + CRLF  
+cQuery += "		ZZ0_IDSER " + CRLF  
+cQuery += " FROM " + CRLF  
+cQuery += " ( " + CRLF  
+cQuery += "		SELECT " + CRLF  
+cQuery += "			ZZ7.ZZ7_TRANSP COD_TRANSP, " + CRLF
+cQuery += "			'' ZZ0_IDSER " + CRLF
+cQuery += "		FROM " + CRLF
+cQuery += "			" + RetSqlName("ZZ7") + " ZZ7 " + CRLF  
+cQuery += "		WHERE " + CRLF 
+cQuery += "			ZZ7.ZZ7_FILIAL = '" + xFilial("ZZ7") + "' AND " + CRLF 
+cQuery += "			UPPER(ZZ7.ZZ7_IDECOM) = '" + Upper(cIdTran) + "' AND " + CRLF
+cQuery += "			ZZ7.D_E_L_E_T_ = '' "  + CRLF  
+cQuery += "		UNION ALL " + CRLF  
+cQuery += "		SELECT " + CRLF  
+cQuery += "			A4.A4_COD COD_TRANSP, " + CRLF
+cQuery += "			COALESCE(ZZ0.ZZ0_IDSER,'') ZZ0_IDSER " + CRLF
+cQuery += "		FROM " + CRLF
+cQuery += "			" + RetSqlName("SA4") + " A4 " + CRLF  
+cQuery += "			LEFT JOIN " + RetSqlName("ZZ0") + " ZZ0 ON ZZ0.ZZ0_FILIAL = '" + xFilial("ZZ0") + "' AND UPPER(ZZ0.ZZ0_CODECO) = '" + Upper(cIdTran) + "' AND ZZ0.D_E_L_E_T_ = '' " + CRLF 
+cQuery += "		WHERE " + CRLF 
+cQuery += "			A4.A4_FILIAL = '" + xFilial("SA4") + "' AND " + CRLF 
+cQuery += "			UPPER(A4.A4_ECSERVI) = '" + Upper(cIdTran) + "' AND " + CRLF
+cQuery += "			A4.D_E_L_E_T_ = '' " + CRLF
+cQuery += " ) TRANSP " 
 
 dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
 
@@ -3595,7 +3613,7 @@ If (cAlias)->( Eof() )
 	Return cIdPost
 EndIf
 
-cCodTransp	:= (cAlias)->A4_COD
+cCodTransp	:= (cAlias)->COD_TRANSP
 _cIdServ	:= (cAlias)->ZZ0_IDSER
 
 (cAlias)->( dbCloseArea() )
