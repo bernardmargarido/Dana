@@ -62,7 +62,7 @@ If _oPagarMe:Transferencia()
             XTB->XTB_STATUS := "2"
         XTB->( MsUnlock() )
 
-        _cMsg := "Transferencia " + XTB->XTB_CODIGO + " enviada com sucesso. ID " + _cID
+        _cMsg := "Transferencia " + XTB->XTB_CODIGO + " enviada com sucesso. ID " + cValToChar(_cID)
     EndIf
 Else
     _cMsg := "Erro ao enviar transferencia: " + _oPagarMe:cError

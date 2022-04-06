@@ -63,27 +63,29 @@ Else
     _cTracking := "https://www.linkcorreios.com.br/?id=" + RTrim(WSA->WSA_TRACKI)
 EndIf 
 
-//--------------------+
-// Cria HTML de envio | 
-//--------------------+
-CoNout("<< ECLOJM08 >> - CRIANDO ARQUIVO HTML")
-_cNome          := RTrim(Capital(WSA->WSA_NOMDES))
-_cNumEco        := RTrim(WSA->WSA_NUMECO)
-_cEnd           := RTrim(Capital(WSA->WSA_ENDENT))
-_cBairro        := RTrim(Capital(WSA->WSA_BAIRRE))
-_cMunicipio     := RTrim(Capital(WSA->WSA_MUNE))
-_cEstado        := WSA->WSA_ESTE
-_cCep           := Transform(WSA->WSA_CEPE,PesqPict("SA1","A1_CEP"))
-_cComplemento   := RTrim(Capital(WSA->WSA_COMPLE))
-_cReferencia    := RTrim(Capital(WSA->WSA_REFEN))
-_cEmail         := RTrim(Lower(SA1->A1_XMAILEC))
-EcLojM08B(_cNumEco,_cNome,_cEnd,_cBairro,_cMunicipio,_cEstado,_cCep,_cComplemento,_cReferencia,_cTracking,@_cBody)
+If !Empty(_cTracking)
+    //--------------------+
+    // Cria HTML de envio | 
+    //--------------------+
+    CoNout("<< ECLOJM08 >> - CRIANDO ARQUIVO HTML")
+    _cNome          := RTrim(Capital(WSA->WSA_NOMDES))
+    _cNumEco        := RTrim(WSA->WSA_NUMECO)
+    _cEnd           := RTrim(Capital(WSA->WSA_ENDENT))
+    _cBairro        := RTrim(Capital(WSA->WSA_BAIRRE))
+    _cMunicipio     := RTrim(Capital(WSA->WSA_MUNE))
+    _cEstado        := WSA->WSA_ESTE
+    _cCep           := Transform(WSA->WSA_CEPE,PesqPict("SA1","A1_CEP"))
+    _cComplemento   := RTrim(Capital(WSA->WSA_COMPLE))
+    _cReferencia    := RTrim(Capital(WSA->WSA_REFEN))
+    _cEmail         := RTrim(Lower(SA1->A1_XMAILEC))
+    EcLojM08B(_cNumEco,_cNome,_cEnd,_cBairro,_cMunicipio,_cEstado,_cCep,_cComplemento,_cReferencia,_cTracking,@_cBody)
 
-//---------------------------+
-// Envia e-mail para cliente |
-//---------------------------+
-CoNout("<< ECLOJM08 >> - ENVIANDO HTML POR E-MAIL")
-EcLojM08C(_cEmail,_cBody)
+    //---------------------------+
+    // Envia e-mail para cliente |
+    //---------------------------+
+    CoNout("<< ECLOJM08 >> - ENVIANDO HTML POR E-MAIL")
+    EcLojM08C(_cEmail,_cBody)
+EndIf 
 
 RestArea(_aArea)
 Return Nil 

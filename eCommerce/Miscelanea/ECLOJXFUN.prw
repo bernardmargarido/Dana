@@ -6,25 +6,21 @@ Static _nTOrderId	:= TamSx3("WSA_NUMECO")[1]
 
 /*********************************************************************************/
 /*/{Protheus.doc} ECLOJXFUN
-
-@description Funções utilizadas template e-Commerce
-
-@author Bernard M. Margarido    
-@since 23/04/2019
-@version 1.0
-@type function
+	@description Funções utilizadas template e-Commerce
+	@author Bernard M. Margarido    
+	@since 23/04/2019
+	@version 1.0
+	@type function
 /*/
 /*********************************************************************************/
 
 /*********************************************************************************/
 /*/{Protheus.doc} ECLOJ01A
-
-@description Cria categoria incial
-
-@author Bernard M. Margarido    
-@since 23/04/2019
-@version 1.0
-@type function
+	@description Cria categoria incial
+	@author Bernard M. Margarido    
+	@since 23/04/2019
+	@version 1.0
+	@type function
 /*/
 /*********************************************************************************/
 User Function ECLOJ01A()
@@ -1078,9 +1074,9 @@ If WSA->( dbSeek(xFilial("WSA") +_cOrderId) )
 	RecLock("WSA",.F.)
 		WSA->WSA_DOC	:= _cDoc
 		WSA->WSA_SERIE	:= _cSerie
-		WSA->WSA_CODSTA	:= IIF(Empty(WSA->WSA_TRANSP) ,"006", _cCodSta)
+		WSA->WSA_CODSTA	:= IIF(Empty(WSA->WSA_SERPOS) ,"006", _cCodSta)
 		WSA->WSA_DESTAT	:= WS1->WS1_DESCRI
-		WSA->WSA_ENVLOG	:= IIF(Empty(WSA->WSA_TRANSP), "4", "3")
+		WSA->WSA_ENVLOG	:= IIF(Empty(WSA->WSA_SERPOS), "4", "3")
 	WSA->( MsUnlock() )
 EndIf
 
