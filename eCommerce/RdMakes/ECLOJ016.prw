@@ -23,9 +23,20 @@ Static _cAliasXTD   := "XTD"
 /*/
 /************************************************************************************/
 User Function ECLOJ016()
-Private _oBrowse    := Nil 
+Local aStruct       := {}
+Local aColumns      := {}
+Local aFilter       := {}
+Local aSeek         := {}
 
+Local cAliasTMP     := ""
+
+Private _oBrowse    := Nil 
 Private _nOldLen    := SetVarNameLen(255) 
+
+//-------------------------+
+// Cria arquivo temporario |
+//-------------------------+
+EcLoj16G(@cAliasTMP,@aStruct,@aColumns,@aFilter,@aSeek)
 
 //---------------------------------+
 // Instanciamento da Classe Browse |
@@ -35,7 +46,7 @@ _oBrowse := FWMBrowse():New()
 //------------------+
 // Tabela utilizado |
 //------------------+
-_oBrowse:SetAlias("WSA")
+_oBrowse:SetAlias(cAliasTMP)
 
 //-------------------+
 // Adiciona Legendas |
@@ -51,7 +62,12 @@ EndDo
 // Titulo do Browse |
 //------------------+
 _oBrowse:SetDescription('Monitor Pedidos eCommerce')
-
+_oBrowse:SetTemporary(.T.)
+_oBrowse:SetUseFilter(.T.)
+_oBrowse:OptionReport(.F.)
+_oBrowse:SetColumns(aColumns)
+_oBrowse:SetFieldFilter(aFilter)
+_oBrowse:SetSeek(.T.,aSeek)
 _oBrowse:SetAttach(.T.)
 _oBrowse:SetOpenChart(.T.)
 
@@ -181,8 +197,6 @@ Local _oStrViewXTA	:= Nil
 Local _oStrViewXTB	:= Nil
 Local _oStrViewXTC	:= Nil
 Local _oStrViewXTD	:= Nil
-
-Local _nOldLen      := SetVarNameLen(255) 
 
 //-------------------------+
 // Carrega Modelo de Dados | 
@@ -1196,6 +1210,156 @@ EndDo
 (_cAlias)->( dbCloseArea() )
 
 Return .T.
+
+/************************************************************************************/
+/*/{Protheus.doc} EcLoj16G
+    @description Monta arquivo temporario
+    @type  Static Function
+    @author Bernard M Margarido
+    @since 07/04/2022
+/*/
+/************************************************************************************/
+Static Function EcLoj16G(cAliasTMP,aStruct,aColumns,aFilter,aSeek)
+Local nX            := 0 
+Local nOrder        := 0
+
+Local cQuery        := ""
+Local cAliasQry     := ""
+
+Local oTempTable    := Nil 
+
+aAdd(aStruct, {"NUMREG"     , "N", 12                           , 00})
+aAdd(aStruct, {"WSA_CODSTA" , "C", TamSX3("WSA_CODSTA")[01]     , TamSX3("WSA_CODSTA")[02]})
+aAdd(aStruct, {"WSA_FILIAL" , "C", TamSX3("WSA_FILIAL")[01]     , TamSX3("WSA_FILIAL")[02]})
+aAdd(aStruct, {"WSA_NUM"    , "C", TamSX3("WSA_NUM")[01]        , TamSX3("WSA_NUM")[02]})
+aAdd(aStruct, {"WSA_NUMSC5" , "C", TamSX3("WSA_NUMSC5")[01]     , TamSX3("WSA_NUMSC5")[02]})
+aAdd(aStruct, {"WSA_CLIENT" , "C", TamSX3("WSA_CLIENT")[01]     , TamSX3("WSA_CLIENT")[02]})
+aAdd(aStruct, {"WSA_LOJA"   , "C", TamSX3("WSA_LOJA")[01]       , TamSX3("WSA_LOJA")[02]})
+aAdd(aStruct, {"WSA_VEND"   , "C", TamSX3("WSA_VEND")[01]       , TamSX3("WSA_VEND")[02]})
+aAdd(aStruct, {"WSA_DOC"    , "C", TamSX3("WSA_DOC")[01]        , TamSX3("WSA_DOC")[02]})
+aAdd(aStruct, {"WSA_SERIE"  , "C", TamSX3("WSA_SERIE")[01]      , TamSX3("WSA_SERIE")[02]})
+aAdd(aStruct, {"WSA_EMISSA" , "D", TamSX3("WSA_EMISSA")[01]     , TamSX3("WSA_EMISSA")[02]})
+aAdd(aStruct, {"WSA_NOMDES" , "C", TamSX3("WSA_NOMDES")[01]     , TamSX3("WSA_NOMDES")[02]})
+aAdd(aStruct, {"WSA_NUMECO" , "C", TamSX3("WSA_NUMECO")[01]     , TamSX3("WSA_NUMECO")[02]})
+aAdd(aStruct, {"WSA_NUMSL1" , "C", TamSX3("WSA_NUMSL1")[01]     , TamSX3("WSA_NUMSL1")[02]})
+aAdd(aStruct, {"WSA_VALBRU" , "N", TamSX3("WSA_VALBRU")[01]     , TamSX3("WSA_VALBRU")[02]})
+aAdd(aStruct, {"WSA_NUMECL", "C", TamSX3("WSA_NUMECL")[01]      , TamSX3("WSA_NUMECL")[02]})
+aAdd(aStruct, {"WSA_VLRLIQ", "N", TamSX3("WSA_VLRLIQ")[01]      , TamSX3("WSA_VLRLIQ")[02]})
+aAdd(aStruct, {"WSA_VLRTOT", "N", TamSX3("WSA_VLRTOT")[01]      , TamSX3("WSA_VLRTOT")[02]})
+aAdd(aStruct, {"WSA_TRANSP", "C", TamSX3("WSA_TRANSP")[01]      , TamSX3("WSA_TRANSP")[02]})
+aAdd(aStruct, {"WSA_FRETE ", "N", TamSX3("WSA_FRETE")[01]       , TamSX3("WSA_FRETE")[02]})
+aAdd(aStruct, {"WSA_ENDENT", "C", TamSX3("WSA_ENDENT")[01]      , TamSX3("WSA_ENDENT")[02]})
+aAdd(aStruct, {"WSA_BAIRRE", "C", TamSX3("WSA_BAIRRE")[01]      , TamSX3("WSA_BAIRRE")[02]})
+aAdd(aStruct, {"WSA_MUNE"  , "C", TamSX3("WSA_MUNE")[01]        , TamSX3("WSA_MUNE")[02]})
+aAdd(aStruct, {"WSA_CEPE"  , "C", TamSX3("WSA_CEPE")[01]        , TamSX3("WSA_CEPE")[02]})
+aAdd(aStruct, {"WSA_ESTE"  , "C", TamSX3("WSA_ESTE")[01]        , TamSX3("WSA_ESTE")[02]})
+aAdd(aStruct, {"WSA_COMPLE", "C", TamSX3("WSA_COMPLE")[01]      , TamSX3("WSA_COMPLE")[02]})
+aAdd(aStruct, {"WSA_REFEN" , "C", TamSX3("WSA_REFEN")[01]       , TamSX3("WSA_REFEN")[02]})
+
+// Set Columns
+aColumns := {}
+aFilter  := {}
+For nX := 03 To Len(aStruct)
+    //Columns
+    aAdd(aColumns,FWBrwColumn():New())
+    aColumns[Len(aColumns)]:SetData( &("{||"+aStruct[nX][1]+"}") )
+    aColumns[Len(aColumns)]:SetTitle(RetTitle(aStruct[nX][1]))
+    aColumns[Len(aColumns)]:SetSize(aStruct[nX][3])
+    aColumns[Len(aColumns)]:SetDecimal(aStruct[nX][4])
+    aColumns[Len(aColumns)]:SetPicture(PesqPict("WSA",aStruct[nX][1]))
+    //Filters
+    aAdd(aFilter, {aStruct[nX][1], RetTitle(aStruct[nX][1]), TamSX3(aStruct[nX][1])[3], TamSX3(aStruct[nX][1])[1], TamSX3(aStruct[nX][1])[2], PesqPict("WSA", aStruct[nX][1])} )
+Next nX
+
+//Instance of Temporary Table
+oTempTable := FWTemporaryTable():New()
+//Set Fields
+oTempTable:SetFields(aStruct)
+//Set Indexes
+oTempTable:AddIndex("INDEX1", {"WSA_NUM"} )
+oTempTable:AddIndex("INDEX2", {"WSA_NUMSC5"} )
+//Create
+oTempTable:Create()
+cAliasTmp := oTemptable:GetAlias()
+
+cQuery := " SELECT " + CRLF
+cQuery += "	    WSA.* " + CRLF 
+cQuery += " FROM " + CRLF
+cQuery += "	    " + RetSqlName("WSA") + " WSA " + CRLF
+cQuery += "	    INNER JOIN " + RetSqlName("SF3") + " SF3 ON SF3.F3_FILIAL = WSA.WSA_FILIAL AND SF3.F3_NFISCAL = WSA_DOC AND SF3.F3_SERIE = WSA_SERIE AND SF3.F3_CLIENT = WSA_CLIENT AND SF3.F3_LOJA = WSA_LOJA AND SF3.F3_DTCANC = '' AND SF3.D_E_L_E_T_= '' " + CRLF
+cQuery += " WHERE " + CRLF
+cQuery += "	    WSA.WSA_FILIAL = '" + xFilial("WSA") + "' AND " + CRLF
+cQuery += "	    WSA.D_E_L_E_T_ = '' "
+
+_cAlias := MPSysOpenQuery(cQuery)
+nOrder  := 01
+
+DBSelectArea(cAliasTMP)
+(_cAlias)->(DbGoTop())
+While !(_cAlias)->(Eof())
+    //Add Temporary Table
+    If (RecLock(cAliasTMP, .T.))
+        (cAliasTMP)->NUMREG     := nOrder
+        (cAliasTMP)->WSA_CODSTA := (_cAlias)->WSA_CODSTA
+        (cAliasTMP)->WSA_FILIAL := (_cAlias)->WSA_FILIAL
+        (cAliasTMP)->WSA_NUM    := (_cAlias)->WSA_NUM
+        (cAliasTMP)->WSA_NUMSC5 := (_cAlias)->WSA_NUMSC5
+        (cAliasTMP)->WSA_CLIENT := (_cAlias)->WSA_CLIENT
+        (cAliasTMP)->WSA_LOJA   := (_cAlias)->WSA_LOJA
+        (cAliasTMP)->WSA_VEND   := (_cAlias)->WSA_VEND
+        (cAliasTMP)->WSA_DOC    := (_cAlias)->WSA_DOC
+        (cAliasTMP)->WSA_SERIE  := (_cAlias)->WSA_SERIE
+        (cAliasTMP)->WSA_EMISSA := sTod((_cAlias)->WSA_EMISSA)
+        (cAliasTMP)->WSA_NOMDES := (_cAlias)->WSA_NOMDES
+        (cAliasTMP)->WSA_NUMECO := (_cAlias)->WSA_NUMECO
+        (cAliasTMP)->WSA_NUMSL1 := (_cAlias)->WSA_NUMSL1
+        (cAliasTMP)->WSA_VALBRU := (_cAlias)->WSA_VALBRU
+        (cAliasTMP)->WSA_NUMECL := (_cAlias)->WSA_NUMECL
+        (cAliasTMP)->WSA_VLRLIQ := (_cAlias)->WSA_VLRLIQ
+        (cAliasTMP)->WSA_VLRTOT := (_cAlias)->WSA_VLRTOT
+        (cAliasTMP)->WSA_TRANSP := (_cAlias)->WSA_TRANSP
+        (cAliasTMP)->WSA_FRETE  := (_cAlias)->WSA_FRETE
+        (cAliasTMP)->WSA_ENDENT := (_cAlias)->WSA_ENDENT
+        (cAliasTMP)->WSA_BAIRRE := (_cAlias)->WSA_BAIRRE
+        (cAliasTMP)->WSA_MUNE   := (_cAlias)->WSA_MUNE
+        (cAliasTMP)->WSA_CEPE   := (_cAlias)->WSA_CEPE
+        (cAliasTMP)->WSA_ESTE   := (_cAlias)->WSA_ESTE
+        (cAliasTMP)->WSA_COMPLE := (_cAlias)->WSA_COMPLE
+        (cAliasTMP)->WSA_REFEN  := (_cAlias)->WSA_REFEN
+        (cAliasTMP)->(MsUnlock())
+    EndIf
+    nOrder ++
+    (_cAlias)->( DBSkip() )
+EndDo
+
+(cAliasTMP)->( DbGoTop() )
+(_cAlias)->( dbCloseArea() )
+
+// Array de pesquisa
+aAdd( aSeek, {; // WSA_FILIAL + WSA_NUM
+    		    AllTrim(RetTitle("WSA_FILIAL")) + ' + ' + AllTrim(RetTitle("WSA_NUM")) ,;
+				{; //,;
+					{'WSA',"C",TamSx3("WSA_FILIAL")[1],TamSx3("WSA_FILIAL")[2],RetTitle("WSA_FILIAL"),Nil},;
+					{'WSA',"C",TamSx3("WSA_NUM")[1],TamSx3("WSA_NUM")[2],RetTitle("WSA_NUM"),Nil};
+				}})
+aAdd( aSeek, {; // WSA_FILIAL+WSA_NUMECO+WSA_NUMECL
+				AllTrim(RetTitle("WSA_FILIAL")) + ' + ' + AllTrim(RetTitle("WSA_NUMECO")) + ' + ' + AllTrim(RetTitle("WSA_NUMECL")),;
+				{; //,;
+					{'WSA',"C",TamSx3("WSA_FILIAL")[1],TamSx3("WSA_FILIAL")[2],RetTitle("WSA_FILIAL"),Nil},;
+                    {'WSA',"C",TamSx3("WSA_NUMECO")[1],TamSx3("WSA_NUMECO")[2],RetTitle("WSA_NUMECO"),Nil},;
+                    {'WSA',"C",TamSx3("WSA_NUMECL")[1],TamSx3("WSA_NUMECL")[2],RetTitle("WSA_NUMECL"),Nil};
+				}})
+
+aAdd( aSeek, {; // WSA_FILIAL+WSA_NUMSC5
+				AllTrim(RetTitle("WSA_FILIAL")) + ' + ' + AllTrim(RetTitle("WSA_NUMSC5")) ,;
+				{; //,;
+					{'WSA',"C",TamSx3("WSA_FILIAL")[1],TamSx3("WSA_FILIAL")[2],RetTitle("WSA_FILIAL"),Nil},;
+                    {'WSA',"C",TamSx3("WSA_NUMSC5")[1],TamSx3("WSA_NUMSC5")[2],RetTitle("WSA_NUMSC5"),Nil};
+				}})
+
+
+
+Return Nil 
 
 /************************************************************************************/
 /*/{Protheus.doc} MenuDef

@@ -65,6 +65,7 @@ Local _nValor       := 0
 Local _nDesc        := 0
 Local _nTaxa        := 0
 Local _nX           := 0
+Local _nPage        := 0
 Local _nTotal       := 0
 Local _nTotLiq      := 0
 
@@ -75,6 +76,7 @@ Local _dDtaPgto     := ""
 
 Local _lGrava       := .F.
 Local _lBaixado     := .F.
+Local _lRecebivel   := .T.
 
 Local _oPagarMe     := PagarMe():New()
 Local _oJSon        := Nil 
@@ -97,98 +99,113 @@ XTA->( dbSetOrder(2) )
 While _dDtaIni <= _dDtaFim
 
     _oSay:cCaption  := "Integrando pagamentos " + dToc(_dDtaIni)
+    ProcessMessages()
     _nTotal         := 0
     _nTotLiq        := 0
+    _nPage          := 1
     _lGrava         := .F.
+    _lRecebivel     := .T.
 
+    //-----------------------------------+
+    // Valida se contem pagamento do dia |
+    //-----------------------------------+
+    If !XT9->( dbSeek(xFilial("XT9") + DToS(_dDtaIni)) )
+        _cCodigo := GetSxeNum("XT9","XT9_CODIGO")
+        _lGrava  := .T.
+    Else 
+        _cCodigo := XT9->XT9_CODIGO
+        _lGrava  := .F.
+    EndIf
+            
     //--------------------------+
     // Conecta com a adquirente |
     //--------------------------+
-    _oPagarMe:dDtaPayment := dToc(_dDtaIni)
-    If _oPagarMe:Recebivel()
+    While _lRecebivel
 
-        _oJSon := xFromJson(_oPagarMe:cRetJSon)
+        _oPagarMe:dDtaPayment   := dToc(_dDtaIni)
+        _oPagarMe:nPage         := _nPage
+        If _oPagarMe:Recebivel()
 
-        If ValType(_oJSon) <> "U" .And. Len(_oJSon) > 0
+            _oJSon := xFromJson(_oPagarMe:cRetJSon)
 
-            //-----------------------------------+
-            // Valida se contem pagamento do dia |
-            //-----------------------------------+
-            If !XT9->( dbSeek(xFilial("XT9") + DToS(_dDtaIni)) )
-                _cCodigo := GetSxeNum("XT9","XT9_CODIGO")
-                _lGrava  := .T.
+            If ValType(_oJSon) <> "U" .And. Len(_oJSon) > 0
+
+                For _nX := 1 To Len(_oJSon)
+
+                    _cStatus    := "1"
+                    _cID        := cValToChar(_oJSon[_nX][#"id"])
+                    _cTID       := cValToChar(_oJSon[_nX][#"transaction_id"])
+                    _cParcela   := IIF(_oJSon[_nX][#"installment"] == Nil,"A",LJParcela(_oJSon[_nX][#"installment"], _c1DUP ))
+                    _cType      := _oJSon[_nX][#"type"]
+                    _nValor     := _oJSon[_nX][#"amount"] / 100   
+                    _nDesc      := (_oJSon[_nX][#"amount"] / 100) - ( _oJSon[_nX][#"fee"] / 100 )
+                    _nTaxa      := _oJSon[_nX][#"fee"] / 100
+                    _dDtaEmiss  := sTod(SubStr(StrTran(_oJSon[_nX][#"date_created"],"-",""),1,10))
+                    _dDtaPgto   := sTod(SubStr(StrTran(_oJSon[_nX][#"payment_date"],"-",""),1,10))
+                    _lGrvPgto   := .T.
+                    _lBaixado   := DnFinA02C(_cTID,_cParcela)
+
+                    If !XTA->( dbSeek(xFilial("XTA") + _cCodigo +  PadR(_cTID,_nTID) + PadR(_cParcela,_nTParc)) )
+                        //----------------------------------------+
+                        // Gravação itens do pagamento e-Commerce |
+                        //----------------------------------------+
+                        RecLock("XTA",_lGrvPgto)
+                            XTA->XTA_FILIAL     := xFilial("XTA")
+                            XTA->XTA_CODIGO     := _cCodigo
+                            XTA->XTA_ID         := _cID
+                            XTA->XTA_IDPAY      := _cTID
+                            XTA->XTA_DTEMIS     := _dDtaEmiss
+                            XTA->XTA_DTPGTO     := _dDtaPgto
+                            XTA->XTA_PARC       := _cParcela
+                            XTA->XTA_VALOR      := IIF(_nValor < 0,0, _nValor)
+                            XTA->XTA_VLRLIQ     := IIF(_nDesc < 0,0, _nDesc )
+                            XTA->XTA_TAXA       := IIF(_nTaxa < 0, _nTaxa * -1, _nTaxa)
+                            XTA->XTA_VLRREB     := IIF(_nValor < 0, _nValor * -1, 0)
+                            XTA->XTA_STATUS     := IIf(_lBaixado,"2","1")
+                            XTA->XTA_TYPE       := _cType
+                        XTA->( MsUnLock() )
+                    EndIf
+                    
+                    //----------------+
+                    // Calcula totais | 
+                    //----------------+
+                    _nTotal     += _nValor
+                    _nTotLiq    += _nDesc
+
+                Next _nX
+
+                //----------------+     
+                // Proxima pagina |
+                //----------------+ 
+                _nPage++
             Else 
-                _cCodigo := XT9->XT9_CODIGO
-                _lGrava  := .F.
+                _lRecebivel := .F.
             EndIf
-
-            For _nX := 1 To Len(_oJSon)
-
-                _cStatus    := "1"
-                _cID        := cValToChar(_oJSon[_nX][#"id"])
-                _cTID       := cValToChar(_oJSon[_nX][#"transaction_id"])
-                _cParcela   := IIF(_oJSon[_nX][#"installment"] == Nil,"A",LJParcela(_oJSon[_nX][#"installment"], _c1DUP ))
-                _cType      := _oJSon[_nX][#"type"]
-                _nValor     := _oJSon[_nX][#"amount"] / 100   
-                _nDesc      := (_oJSon[_nX][#"amount"] / 100) - ( _oJSon[_nX][#"fee"] / 100 )
-                _nTaxa      := _oJSon[_nX][#"fee"] / 100
-                _dDtaEmiss  := sTod(SubStr(StrTran(_oJSon[_nX][#"date_created"],"-",""),1,10))
-                _dDtaPgto   := sTod(SubStr(StrTran(_oJSon[_nX][#"payment_date"],"-",""),1,10))
-                _lGrvPgto   := .T.
-                _lBaixado   := DnFinA02C(_cTID,_cParcela)
-
-                If !XTA->( dbSeek(xFilial("XTA") + _cCodigo +  PadR(_cTID,_nTID) + PadR(_cParcela,_nTParc)) )
-                    //----------------------------------------+
-                    // Gravação itens do pagamento e-Commerce |
-                    //----------------------------------------+
-                    RecLock("XTA",_lGrvPgto)
-                        XTA->XTA_FILIAL     := xFilial("XTA")
-                        XTA->XTA_CODIGO     := _cCodigo
-                        XTA->XTA_ID         := _cID
-                        XTA->XTA_IDPAY      := _cTID
-                        XTA->XTA_DTEMIS     := _dDtaEmiss
-                        XTA->XTA_DTPGTO     := _dDtaPgto
-                        XTA->XTA_PARC       := _cParcela
-                        XTA->XTA_VALOR      := IIF(_nValor < 0,0, _nValor)
-                        XTA->XTA_VLRLIQ     := IIF(_nDesc < 0,0, _nDesc )
-                        XTA->XTA_TAXA       := IIF(_nTaxa < 0, _nTaxa * -1, _nTaxa)
-                        XTA->XTA_VLRREB     := IIF(_nValor < 0, _nValor * -1, 0)
-                        XTA->XTA_STATUS     := IIf(_lBaixado,"2","1")
-                        XTA->XTA_TYPE       := _cType
-                    XTA->( MsUnLock() )
-                EndIf
-                
-                //----------------+
-                // Calcula totais | 
-                //----------------+
-                _nTotal     += _nValor
-                _nTotLiq    += _nDesc
-
-            Next _nX 
-
-            //--------------------------------+
-            // Grava dados da baixa eCommerce |
-            //--------------------------------+
-            RecLock("XT9",_lGrava)
-                XT9->XT9_FILIAL := xFilial("XT9")
-                XT9->XT9_CODIGO := _cCodigo
-                XT9->XT9_DATA   := _dDtaIni
-                XT9->XT9_VLRTOT := _nTotal
-                XT9->XT9_VLRLIQ := _nTotLiq
-                XT9->XT9_STATUS := "1"
-            XT9->( MsUnLock() )
-
-            //-------------------------------------------+
-            // Valida numeração no controle de numeração | 
-            //-------------------------------------------+
-            If _lGrava
-                ConfirmSX8()
-            EndIf
-
+        Else 
+            _cMsgErro   := _oPagarMe:cError + " " + CRLF
+            _lRecebivel := .F.
         EndIf
-    Else 
-        _cMsgErro := _oPagarMe:cError + " " + CRLF
+
+    EndDo 
+    //--------------------------------+
+    // Grava dados da baixa eCommerce |
+    //--------------------------------+
+    RecLock("XT9",_lGrava)
+        XT9->XT9_FILIAL := xFilial("XT9")
+        XT9->XT9_CODIGO := _cCodigo
+        XT9->XT9_DATA   := _dDtaIni
+        XT9->XT9_VLRTOT := _nTotal
+        XT9->XT9_VLRLIQ := _nTotLiq
+        XT9->XT9_STATUS := "1"
+    XT9->( MsUnLock() )
+
+    //-------------------------------------------+
+    // Valida numeração no controle de numeração | 
+    //-------------------------------------------+
+    If _lGrava
+        ConfirmSX8()
     EndIf
+
     _dDtaIni := DaySum(_dDtaIni,1)
 EndDo
 

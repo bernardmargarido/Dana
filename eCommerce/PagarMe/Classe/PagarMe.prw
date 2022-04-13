@@ -33,6 +33,7 @@ Class PagarMe
 
     Data dDtaPayment    As Date 
 
+    Data nPage          As Integer
     Data _nSSL2		    As Integer 
 	Data _nSSL3		    As Integer
 	Data _nTLS1		    As Integer 
@@ -80,6 +81,8 @@ Method New() Class PagarMe
 	::_cCACertPath	:= ""
     ::cError        := ""
 
+    ::nPage         := 1
+
     ::dDtaPayment   := "" 
 
     ::_nSSL2		:= 0
@@ -89,7 +92,7 @@ Method New() Class PagarMe
 	::_nVerbose		:= 1
 	::_nBugs		:= 1
 	::_nState	    := 1
-
+    
     ::aHeadOut      := {}
 
     ::oFwRest       := Nil 
@@ -226,6 +229,7 @@ aAdd(::aHeadOut,"Content-Type: application/json" )
 //----------------------+
 If !Empty(::dDtaPayment)
     _cParam := "payment_date=" + ::dDtaPayment
+    _cParam += "&page=" + cValToChar(::nPage)
 EndIf
 
 ::oFwRest:SetPath("/1/payables?" + _cParam)
