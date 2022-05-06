@@ -6,6 +6,9 @@ Local _aArea		:= GetArea()
 Local cGerente		:= ""
 Local _cFilWMS		:= GetNewPar("DN_FILWMS","05,06")
 Local _cFilMSL  	:= GetNewPar("DN_FILMSL","07")
+Local dNovaData := ""
+Local nMes		:= Month(Date()) + 1 
+Local nAno		:= Year(Date())
 
 Private oDlgDI2		:= NIL
 Private lCat		:= .T.
@@ -15,8 +18,13 @@ Private cSerSF2		:= SF2->F2_SERIE
 Private cForSF2		:= SF2->F2_CLIENTE
 Private cLojSF2		:= SF2->F2_LOJA
 Private cTipSF2		:= SF2->F2_TIPO
+Private cPreSF2		:= SF2->F2_PREFIXO
 Private nValBSF2	:= SF2->F2_VALBRUT
 Private dEmiSF2		:= SF2->F2_EMISSAO
+Private cICMSF2		:= SF2->F2_NFICMST
+//Private cFECSF2		:= SF2->F2_NTFECP
+Private cFECSF2		:= SF2->F2_GNRFECP
+Private cDIFSF2		:= SF2->F2_GNRDIF
 Private cCodCat		:= Space(03)
 Private lContinua2 	:= .T.
 Private cConvUN		:= ""
@@ -77,48 +85,74 @@ EndIf
 If SF2->F2_TIPO <> 'D' .Or. SF2->F2_TIPO <> 'B'
 	DbSelectArea("SE1")
 	DbSetOrder(2)
-	DbSeek(xFilial("SE1") + SF2->F2_CLIENTE + SF2->F2_LOJA + SF2->F2_PREFIXO + SF2->F2_DOC)
+	DbSeek(xFilial("SE1") + cForSF2 + cLojSF2 + cPreSF2 + cDocSF2)
 	If Found()
 		cGerente	:= Posicione("SA3",1,xFilial("SA3")+_VEND,"A3_GEREN")
-		While SE1->(!Eof() .And. xFilial("SE1")+SF2->(F2_CLIENTE+F2_LOJA+F2_PREFIXO+F2_DOC) == SE1->(E1_FILIAL+E1_CLIENTE+E1_LOJA+E1_PREFIXO+E1_NUM) )
-			
+		While SE1->(!Eof() .And. xFilial("SE1")+ cForSF2 + cLojSF2 + cPreSF2 + cDocSF2 == SE1->(E1_FILIAL+E1_CLIENTE+E1_LOJA+E1_PREFIXO+E1_NUM) )
 			RecLock("SE1", .F.)
 				SE1->E1_XGERENT		:= cGerente
 			SE1->( MsUnlock() )
-
 			SE1->(DbSkip())
 		EndDo
 	Endif
 
+	If nMes > 12
+		nAno ++
+		nMes := 1
+	EndIf
+	
+	dNovaData := DataValida(  "01/" + Alltrim(Str(nMes)) + "/" + Alltrim(Str(nAno))  ,.T.)
+	
+	
 	//Manutenção título GNRE
-	DbSelectArea("SE2")
-	SE2->(dbSetOrder(1))//E2_FILIAL+E2_PREFIXO+E2_NUM+E2_PARCELA+E2_TIPO+E2_FORNECE+E2_LOJA
-	If SE2->(dbSeek(xFilial("SE2") + Alltrim(SF2->F2_NFICMST)))
-		RecLock("SE2",.F.)
-		SE2->E2_VENCORI	:= DataValida(Date(),.T.)
-		SE2->E2_VENCTO 	:= DataValida(Date(),.T.)
-		SE2->E2_VENCREA := DataValida(Date(),.T.)
-		SE2->E2_NATUREZ	:= "PROV"
-		SE2->E2_HIST	:= "Nota:" + Alltrim(SF2->F2_DOC) + " - Serie:" + Alltrim(SF2->F2_SERIE)
-		SE2->(MsUnLock())
+	If !Empty(cICMSF2)
+		DbSelectArea("SE2")
+		SE2->(dbSetOrder(1))//E2_FILIAL+E2_PREFIXO+E2_NUM+E2_PARCELA+E2_TIPO+E2_FORNECE+E2_LOJA
+		If SE2->(dbSeek(xFilial("SE2") + Alltrim(cICMSF2)))
+			RecLock("SE2",.F.)
+			SE2->E2_VENCORI	:= dNovaData	// DataValida(Date(),.T.)
+			SE2->E2_VENCTO 	:= dNovaData	// DataValida(Date(),.T.)
+			SE2->E2_VENCREA := dNovaData	// DataValida(Date(),.T.)
+			SE2->E2_NATUREZ	:= "PROV"
+			SE2->E2_HIST	:= "Nota:" + Alltrim(cDocSF2) + " - Serie:" + Alltrim(cSerSF2)
+			SE2->(MsUnLock())
+		Endif
 	Endif
 
 	//Manutenção título FECP
-	DbSelectArea("SE2")
-	SE2->(dbSetOrder(1))//E2_FILIAL+E2_PREFIXO+E2_NUM+E2_PARCELA+E2_TIPO+E2_FORNECE+E2_LOJA
-	If SE2->(dbSeek(xFilial("SE2") + Alltrim(SF2->F2_NTFECP)))
-		RecLock("SE2",.F.)
-		SE2->E2_VENCORI	:= DataValida(Date(),.T.)
-		SE2->E2_VENCTO 	:= DataValida(Date(),.T.)
-		SE2->E2_VENCREA := DataValida(Date(),.T.)
-		SE2->E2_NATUREZ	:= "PROV"
-		SE2->E2_HIST	:= "Nota:" + Alltrim(SF2->F2_DOC) + " - Serie:" + Alltrim(SF2->F2_SERIE)
-		SE2->(MsUnLock())
+	If !Empty(cFECSF2)
+		DbSelectArea("SE2")
+		SE2->(dbSetOrder(1))//E2_FILIAL+E2_PREFIXO+E2_NUM+E2_PARCELA+E2_TIPO+E2_FORNECE+E2_LOJA
+		If SE2->(dbSeek(xFilial("SE2") + Alltrim(cFECSF2)))
+			RecLock("SE2",.F.)
+			SE2->E2_VENCORI	:= dNovaData	// DataValida(Date(),.T.)
+			SE2->E2_VENCTO 	:= dNovaData	// DataValida(Date(),.T.)
+			SE2->E2_VENCREA := dNovaData	// DataValida(Date(),.T.)
+			SE2->E2_NATUREZ	:= "PROV"
+			SE2->E2_HIST	:= "Nota:" + Alltrim(cDocSF2) + " - Serie:" + Alltrim(cSerSF2)
+			SE2->(MsUnLock())
+		Endif
 	Endif
+
+	//Manutenção título DIFAL
+	If !Empty(cDIFSF2)
+		DbSelectArea("SE2")
+		SE2->(dbSetOrder(1))//E2_FILIAL+E2_PREFIXO+E2_NUM+E2_PARCELA+E2_TIPO+E2_FORNECE+E2_LOJA
+		If SE2->(dbSeek(xFilial("SE2") + Alltrim(cDIFSF2)))
+			RecLock("SE2",.F.)
+			SE2->E2_VENCORI	:= dNovaData	// DataValida(Date(),.T.)
+			SE2->E2_VENCTO 	:= dNovaData	// DataValida(Date(),.T.)
+			SE2->E2_VENCREA := dNovaData	// DataValida(Date(),.T.)
+			SE2->E2_NATUREZ	:= "PROV"
+			SE2->E2_HIST	:= "Nota:" + Alltrim(cDocSF2) + " - Serie:" + Alltrim(cSerSF2)
+			SE2->(MsUnLock())
+		Endif
+	Endif
+
 
 Endif
 
-If SF2->F2_TIPO == 'D' .Or. SF2->F2_TIPO == 'B'
+If cTipSF2 == 'D' .Or. cTipSF2 == 'B'
 	While lContinua2
 		@ 000,000 TO 150,400 DIALOG oDlgDI2 TITLE "Categoria da Nota Fiscal - Devolução"
 		@ 015, 005 SAY "Categoria NF"
@@ -126,12 +160,12 @@ If SF2->F2_TIPO == 'D' .Or. SF2->F2_TIPO == 'B'
 		@ 015,130 BUTTON "Confirmar" SIZE 040,012 ACTION _Gravar(cCodCat)
 		ACTIVATE DIALOG oDlgDI2 CENTER
 	EndDo
-	If SF2->F2_TIPO == 'D'
+	If cTipSF2 == 'D'
 		DCAVNFDEV()//Avisa departamento financeiro do lançamento de Nota de devolução
 	Endif
 Endif
 
-If SF2->F2_TIPO == 'N'
+If cTipSF2 == 'N'
 	DCEMAGEN()
 Endif
 
@@ -139,7 +173,7 @@ Endif
 DbSelectArea("SD2")
 DbSetOrder(3)//D2_FILIAL+D2_DOC+D2_SERIE+D2_CLIENTE+D2_LOJA+D2_COD+D2_ITEM
 If Dbseek(cFilSF2 + cDocSF2 + cSerSF2 + cForSF2 + cLojSF2)
-	While !SD2->(Eof()) .And. cFilSF2 + cDocSF2 + cSerSF2 + cForSF2 + cLojSF2 == SD2->(D2_FILIAL+D2_DOC+D2_SERIE+D2_CLIENTE+D2_LOJA)
+	While !SD2->(Eof()) .And. cFilSF2 + cDocSF2 + cSerSF2 + cForSF2 + cLojSF2 == SD2->(D2_FILIAL+D2_DOC+D2_SERIE+D2_CLIENTE+D2_LOJA)		
 		If !Empty(_VEND)
 			RecLock("SD2",.F.)
 			SD2->D2_VEND1	:= _VEND 

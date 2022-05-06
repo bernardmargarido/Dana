@@ -153,7 +153,9 @@ For _nX := 1 To Len(_aArquivo)
         //------------------------------------+
         // Deleta arquivo enviado com sucesso | 
         //------------------------------------+
-        FErase(_cDirRaiz + _cDirUpl + "/" + RTrim(_aArquivo[_nX][1]))
+        //FErase(_cDirRaiz + _cDirUpl + "/" + RTrim(_aArquivo[_nX][1]))
+        _cArqBkp := StrTran(_aArquivo[_nX,1] , ".TXT", ".ENVIADO" )
+		FRename(_cDirRaiz + _cDirUpl + "/" + _aArquivo[_nX,1] , _cDirRaiz + _cDirUpl + "/" + _cArqBkp)
     Else 
         LogExec("<< DNFATM07 >> - ERRO AO ENVIAR ARQUIVO " + RTrim(_aArquivo[_nX][1]))
     EndIf
