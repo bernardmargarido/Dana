@@ -129,6 +129,7 @@ _cQuery += "		INNER JOIN " + RetSqlName("SE1") + " E1 ON E1.E1_FILORIG = XTA.XTA
 _cQuery += "	WHERE " + CRLF
 _cQuery += "		XTA.XTA_FILIAL = '" + xFilial("XTA") + "' AND " + CRLF
 _cQuery += "		XTA.XTA_STATUS = '1' AND " + CRLF
+_cQuery += "		XTA.XTA_VALOR > 0 AND " + CRLF
 _cQuery += "		XTA.D_E_L_E_T_ = ''	" + CRLF
 _cQuery += " )ID_PAGAMENTO " + CRLF
 _cQuery += " GROUP BY ID_PAY,DT_EMISS,DT_PGTO,PARCELA,VALOR_TOTAL,VALOR_LIQUIDO,VALOR_TAXA,VALOR_REEMBOLSO,TITULO,PREFIXO,ID_PAY_TITULO,DT_EMISS_TITULO,DT_PGTO_TITULO,PARCELA_TITULO,VALOR_TOTAL_TITULO " + CRLF
@@ -174,8 +175,8 @@ While (_cAlias)->( !Eof() )
         _aTitulo[Len(_aTitulo)][COL_TPREFI]     := (_cAlias)->PREFIXO
         _aTitulo[Len(_aTitulo)][COL_TIDPAY]     := (_cAlias)->ID_PAY_TITULO
         _aTitulo[Len(_aTitulo)][COL_TPARCELA]   := (_cAlias)->PARCELA_TITULO    
-        _aTitulo[Len(_aTitulo)][COL_TDTEMIS]    := dToc(sTod((_cAlias)->DT_EMISS))
-        _aTitulo[Len(_aTitulo)][COL_TDTPGTO]    := dToc(sTod((_cAlias)->DT_EMISS))
+        _aTitulo[Len(_aTitulo)][COL_TDTEMIS]    := dToc(sTod((_cAlias)->DT_EMISS_TITULO))
+        _aTitulo[Len(_aTitulo)][COL_TDTPGTO]    := dToc(sTod((_cAlias)->DT_PGTO_TITULO))
         _aTitulo[Len(_aTitulo)][COL_TVLRTOT]    := (_cAlias)->VALOR_TOTAL_TITULO
     EndIf
 
@@ -679,10 +680,6 @@ Next _nX
 
 For _nX := 1 To Len(_aTitulo)
     _aTitulo[_nX][COL_TMARK]  := IIF(_lMark,"LBOK","LBNO")
-    If _lMark
-        _nTotal += _aEcomm[_nX][COL_VLRTOT]
-        _nCount++
-    EndIf
 Next _nX 
 
 _oBrowseA:Refresh()

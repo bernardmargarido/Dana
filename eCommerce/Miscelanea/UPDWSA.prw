@@ -9,6 +9,7 @@
 User Function UPDASQL()
 Local _cQuery   := ""
 
+/*
 _cQuery := " UPDATE SE1010 SET E1_XNOTA = WSA.WSA_DOC, E1_XSERIE = WSA.WSA_SERIE "
 _cQuery += " FROM "
 _cQuery += "	WSA010 WSA (NOLOCK) "
@@ -18,6 +19,15 @@ _cQuery += "	INNER JOIN SE1010 E1 (NOLOCK) ON E1.E1_FILORIG = L1.L1_FILIAL AND E
 _cQuery += " WHERE "
 _cQuery += "	WSA.WSA_FILIAL = '06' AND "
 _cQuery += "	WSA.D_E_L_E_T_ = '' "
+*/
+
+_cQuery := " UPDATE XTA010 SET XTA_STATUS = '2'"
+_cQuery += " FROM " 
+_cQuery += "    XTA010 XTA "
+_cQuery += "	INNER JOIN SE1010 E1 ON E1.E1_FILORIG = XTA.XTA_FILIAL AND E1.E1_XTID = XTA.XTA_IDPAY AND E1.E1_PREFIXO = 'ECO' AND E1.E1_BAIXA <> '' AND E1.D_E_L_E_T_ = '' "
+_cQuery += " WHERE "
+_cQuery += "	XTA.XTA_FILIAL = '06' AND "
+_cQuery += "	XTA.D_E_L_E_T_ = '' "
 
 TCSqlExec(_cQuery)
 

@@ -24,7 +24,8 @@ Class Zendesk
 
     Data cToken     As String 
     Data cJSon      As String 
-    Data cIDCliente As String     
+    Data cIDCliente As String    
+    Data cDocument  As String  
     Data cURLVtex   As String 
     Data cAppKey    As String 
     Data cAppToken  As String 
@@ -53,6 +54,7 @@ Method New() Class Zendesk
     ::cToken        := ""
     ::cJSon         := ""
     ::cIDCliente    := ""
+    ::cDocument     := ""
     ::cURLVtex      := GetMv("EC_URLRES2")
     ::cAppKey       := GetMv("EC_APPKEY")
     ::cAppToken     := GetMv("EC_APPTOKE")
@@ -140,11 +142,11 @@ If _oRest:Get(aHeadOut)
     If ValType(_oVtex) <> "U"
         If ValType(_oVtex) == "A" .And. Len(_oVtex) > 0
             For _nX := 1 To Len(_oVtex)
-                _cEMail       := _oVtex[_nX][#"email"]
-                _cFirstName   := _oVtex[_nX][#"firstName"]
-                _cLastName    := _oVtex[_nX][#"lastName"]
-                _cDocument    := _oVtex[_nX][#"document"]
-                _cUserID      := _oVtex[_nX][#"userId"]
+                _cEMail       := IIF(ValType(_oVtex[_nX][#"email"]) <> "U", _oVtex[_nX][#"email"] ,"")
+                _cFirstName   := IIF(ValType(_oVtex[_nX][#"firstName"]) <> "U", _oVtex[_nX][#"firstName"] ,"")
+                _cLastName    := IIF(ValType(_oVtex[_nX][#"lastName"]) <> "U", _oVtex[_nX][#"lastName"] ,"")
+                _cDocument    := IIF(ValType(_oVtex[_nX][#"document"]) <> "U",_oVtex[_nX][#"document"], ::cDocument)
+                _cUserID      := IIF(ValType(_oVtex[_nX][#"userId"]) <> "U", _oVtex[_nX][#"userId"] ,"")
                 //-----------------------+
                 // Monta JSon de retorno |
                 //-----------------------+

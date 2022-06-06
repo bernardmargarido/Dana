@@ -440,7 +440,7 @@ cEmail			:= IIF(nOpcA == 3,	Alltrim(oDadosCli:eMail)										, SA1->A1_EMAIL		)
 // Consulta Master Data |
 //----------------------+
 If !Empty(oDadosCli:userProfileId)
-	aEcoI011MdV(oDadosCli:userProfileId,@_cEMailEc)
+	aEcoI011MdV(oDadosCli:userProfileId,cCnpj,@_cEMailEc)
 EndIf
 
 //----------------+
@@ -895,11 +895,12 @@ Return cIbge
 	@since 16/08/2020
 /*/
 /**************************************************************************************************/
-Static Function aEcoI011MdV(_cProfileID,_cEMailEc)
+Static Function aEcoI011MdV(_cProfileID,cCnpj,_cEMailEc)
 Local _oVTex	:= Zendesk():New()
 Local _oJSon	:= Nil 
 
 _oVTex:cIDCliente := _cProfileID
+_oVTex:cDocument  := cCnpj
 If _oVTex:Clientes()
 	_oJSon := xFromJson(_oVTex:cJson)
 	_cEMailEc := _oJSon[#"email"]
