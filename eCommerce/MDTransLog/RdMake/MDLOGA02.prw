@@ -15,36 +15,36 @@
 #DEFINE COL_HORA    04
 
 /***********************************************************************************/
-/*/{Protheus.doc} DLOGA02
+/*/{Protheus.doc} MDLOGA02
     @description Recupera status tracking
     @type  Function
     @author Bernard M. Margarido
-    @since 05/01/2021
+    @since 07/06/2022
 /*/
 /***********************************************************************************/
-User Function DLOGA02()
+User Function MDLOGA02()
 Local   _lRet       := .T.
 
-CoNout("<< DLOGA02 >> - INICIO " + dTos( Date() ) + " - " + Time() )
+CoNout("<< MDLOGA02 >> - INICIO " + dTos( Date() ) + " - " + Time() )
 
-Processa({|| _lRet := DLOGM02A()},"Aguarde...","Recuperando status pedido." )
+Processa({|| _lRet := MDLOGM02A()},"Aguarde...","Recuperando status coleta." )
 
-CoNout("<< DLOGA02 >> - FIM " + dTos( Date() ) + " - " + Time() )
+CoNout("<< MDLOGA02 >> - FIM " + dTos( Date() ) + " - " + Time() )
 Return _lRet 
 
 /***********************************************************************************/
-/*/{Protheus.doc} DLOGM02A
+/*/{Protheus.doc} MDLOGM02A
     @description Recupera status tracking
     @type  Static Function
     @author Bernard M. Margarido
-    @since 05/01/2021
+    @since 07/06/2022
 /*/
 /***********************************************************************************/
-Static Function DLOGM02A()
+Static Function MDLOGM02A()
 Local _aArea	:= GetArea()
 Local _aRastreio:= {}
 
-Local _cCodDLog := GetNewPar("DN_CODDLOG")
+Local _cCodDLog := GetNewPar("DN_CDMDLOG")
 Local _cChaveNfe:= ""
 Local _cError   := ""
 
@@ -78,7 +78,7 @@ _cChaveNfe := SF2->F2_CHVNFE
 //----------------------------+
 // Consulta historico entrega |
 //----------------------------+
-If !DLogM02B(_cChaveNfe,@_cError,@_aRastreio)
+If !MDLogM02B(_cChaveNfe,@_cError,@_aRastreio)
     //MsgStop("Não foi possivel localizar rastreio do pedido " + WSA->WSA_NUMECO + " ." + _cError,"Dana -Avisos!")
     RestArea(_aArea)
     Return .F.
@@ -131,14 +131,14 @@ RestArea(_aArea)
 Return _lRet 
 
 /***********************************************************************************/
-/*/{Protheus.doc} DLogM02B
+/*/{Protheus.doc} MDLogM02B
     @description Consulta historico do rastreio 
     @type  Static Function
     @author Bernard M. Margarido
-    @since 05/01/2021
+    @since 07/06/2022
 /*/
 /***********************************************************************************/
-Static Function DLogM02B(_cChaveNfe,_cError,_aRastreio)
+Static Function MDLogM02B(_cChaveNfe,_cError,_aRastreio)
 Local _lRet     := .F.
 
 Local _nX       := 0 
