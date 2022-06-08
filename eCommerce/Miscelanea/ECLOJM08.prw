@@ -54,7 +54,7 @@ EndIf
 // Rastreio DLOG |
 //---------------+
 CoNout("<< ECLOJM08 >> - BUSCANDO LINK DE RASTREIO")
-If Empty(WSA->WSA_SERPOS)
+If Empty(WSA->WSA_SERPOS) 
     EcLojM08A(WSA->WSA_NUMECO,@_cTracking)
 //-------------------+
 // Rastreio correios | 

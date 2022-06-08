@@ -125,7 +125,7 @@ EndIf
 
 (_cAlias)->( dbCloseArea() )
 
-CoNout("<< SIGM006A >> - FIM GERACAO LISTA DE POSTAGEM")
+CoNout("<< MDLOGM02A >> - FIM GERACAO LISTA DE POSTAGEM")
 
 RestArea(_aArea)
 Return _lRet 
@@ -141,7 +141,7 @@ Return _lRet
 /**********************************************************************************/
 Static Function MDLOGM02Qry(_cAlias,_nToReg)
 Local _cQuery   := ""
-Local _cCodDLog := GetNewPar("DN_CDMDLOG")
+Local _cCodDLog := FormatIn(GetNewPar("DN_CDMDLOG"),"/")
 
 _cQuery := " SELECT " + CRLF
 _cQuery += "	WSA.WSA_NUM, " + CRLF
@@ -156,14 +156,14 @@ _cQuery += "	WSA.WSA_SERPOS, " + CRLF
 _cQuery += "	WSA.R_E_C_N_O_ RECNOWSA " + CRLF
 _cQuery += " FROM " + CRLF
 _cQuery += "	" + RetSqlName("WSA") + " WSA  " + CRLF
-_cQuery += "    INNER JOIN " + RetSqlName("SF2") + " F2 ON F2.F2_FILIAL = WSA.WSA_FILIAL AND F2.F2_DOC = WSA.WSA_DOC AND F2.F2_SERIE = WSA.WSA_SERIE AND F2.F2_CLIENTE = WSA.WSA_CLIENT AND F2.F2_LOJA = WSA.WSA_LOJA AND F2.F2_CHVNFE <> '' AND F2.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "    INNER JOIN " + RetSqlName("SF2") + " F2 ON F2.F2_FILIAL = WSA.WSA_FILIAL AND F2.F2_DOC = WSA.WSA_DOC AND F2.F2_SERIE = WSA.WSA_SERIE AND F2.F2_CLIENTE = WSA.WSA_CLIENT AND F2.F2_LOJA = WSA.WSA_LOJA AND F2.F2_CHVNFE <> '' AND F2.F2_FIMP = 'S' AND F2.D_E_L_E_T_ = '' " + CRLF
 _cQuery += " WHERE " + CRLF
 _cQuery += "	WSA.WSA_FILIAL = '" + xFilial("WSA") + "' AND " + CRLF
 _cQuery += "	WSA.WSA_DOC <> '' AND " + CRLF 
 _cQuery += "	WSA.WSA_SERIE <> '' AND " + CRLF
 _cQuery += "	WSA.WSA_ENVLOG = '3' AND " + CRLF
 _cQuery += "	WSA.WSA_SERPOS = '' AND " + CRLF
-_cQuery += "	WSA.WSA_TRANSP = '" + _cCodDLog + "' AND " + CRLF
+_cQuery += "	WSA.WSA_TRANSP IN '" + _cCodDLog + "' AND " + CRLF
 _cQuery += "	NOT EXISTS( " + CRLF
 _cQuery += "				SELECT " + CRLF
 _cQuery += "					ZZC.ZZC_NOTA, " + CRLF

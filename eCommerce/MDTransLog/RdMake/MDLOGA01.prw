@@ -38,7 +38,7 @@ _oBrowse:AddLegend( "ZZB_STATUS == '3'", "BLACK"    , "Erro ao Enviar Lista" )
 //------------------+
 _oBrowse:SetDescription('MDLOG - Monitor')
 
-_cFilter := "ZZB_DATA > 20220215"
+_cFilter := "ZZB_STATUS > '1'"
 _oBrowse:setFilterDefault(_cFilter)
 
 //--------------------+
@@ -277,7 +277,7 @@ Local _oJSon	:= Nil
 Local _oStatus	:= Nil 
 Local _oRetSta	:= Nil 
 Local _oMemo	:= Nil 
-Local _oDLog	:= DLog():New()
+Local _oDLog	:= MDLog():New()
 
 //----------------------------+
 // Posiciona Pedido eCommerce |
@@ -379,9 +379,9 @@ Static Function MenuDef()
 										
 	ADD OPTION aRotina TITLE "Pesquisa"  			ACTION 'PesqBrw'            	OPERATION 1 ACCESS 0
 	ADD OPTION aRotina TITLE "Visualizar"          	ACTION "VIEWDEF.DLOGA01" 		OPERATION 2 ACCESS 0 
-	ADD OPTION aRotina TITLE "Incluir" 	            ACTION "U_DLOGM02" 				OPERATION 3 ACCESS 0 
+	ADD OPTION aRotina TITLE "Incluir" 	            ACTION "U_MDLOGM02"				OPERATION 3 ACCESS 0 
 	ADD OPTION aRotina TITLE "Alterar"              ACTION "VIEWDEF.DLOGA01" 		OPERATION 4 ACCESS 0 
 	ADD OPTION aRotina TITLE "Excluir"              ACTION "VIEWDEF.DLOGA01" 		OPERATION 5 ACCESS 0 
-	ADD OPTION aRotina TITLE "Envia Coleta"			ACTION 'U_DLOGM03'		  		OPERATION 4 ACCESS 0
+	ADD OPTION aRotina TITLE "Envia Coleta"			ACTION 'U_MDLOGM03'		  		OPERATION 4 ACCESS 0
 		
 Return aRotina

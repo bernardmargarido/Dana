@@ -50,7 +50,7 @@ Local _cError   := ""
 
 Local _lRet		:= .T.
 
-Local _oDLog	:= DLog():New()
+Local _oDLog	:= MDLog():New()
 Local _oJSon	:= Nil 
 Local _oStatus	:= Nil 
 Local _oPnlBtn  := Nil
@@ -144,7 +144,7 @@ Local _lRet     := .F.
 Local _nX       := 0 
 Local _nY       := 0
 
-Local _oDLog	:= DLog():New()
+Local _oDLog	:= MDLog():New()
 Local _oJSon	:= Nil 
 Local _oStatus	:= Nil 
 Local _oRetSta  := Nil 
