@@ -38,7 +38,8 @@ _oBrowse:AddLegend( "ZZB_STATUS == '3'", "BLACK"    , "Erro ao Enviar Lista" )
 //------------------+
 _oBrowse:SetDescription('MDLOG - Monitor')
 
-_cFilter := "ZZB_STATUS > '1'"
+_cFilter := "ZZB_DATA >= '20220609'"
+
 _oBrowse:setFilterDefault(_cFilter)
 
 //--------------------+

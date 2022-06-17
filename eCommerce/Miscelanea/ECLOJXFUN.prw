@@ -1042,7 +1042,7 @@ Local _aArea	:= GetArea()
 
 Local _cCodSta	:= "005"
 
-Local _oSigWeb	:= Nil
+Local _cCodDLog := GetNewPar("DN_CDMDLOG")
 
 //-------------------------------+
 // Atualiza dados da nota fiscal |
@@ -1071,12 +1071,27 @@ WS1->( dbSeek(xFilial("WS1") + _cCodSta) )
 dbSelectArea("WSA")
 WSA->( dbSetOrder(2) )
 If WSA->( dbSeek(xFilial("WSA") +_cOrderId) )
+
+	If Empty(WSA->WSA_SERPOS)
+		_cCodSta := "006"
+		_cEnvLog := "4"
+	ElseIf !Empty(WSA->WSA_SERPOS)
+		_cCodSta := "005"
+		_cEnvLog := "3"
+	EndIf 
+
+	If RTrim(WSA->WSA_TRANSP) $ RTrim(_cCodDLog)
+		_cCodSta := "005"
+		_cEnvLog := "3"
+	EndIf 
+
 	RecLock("WSA",.F.)
 		WSA->WSA_DOC	:= _cDoc
 		WSA->WSA_SERIE	:= _cSerie
-		WSA->WSA_CODSTA	:= IIF(Empty(WSA->WSA_SERPOS) ,"006", _cCodSta)
+		WSA->WSA_CODSTA	:= _cCodSta
+		WSA->WSA_DESTAT	:= Posicione("WS1", 1, xFilial("WS1") + _cCodSta, "WS1_DESCRI")
 		WSA->WSA_DESTAT	:= WS1->WS1_DESCRI
-		WSA->WSA_ENVLOG	:= IIF(Empty(WSA->WSA_SERPOS), "4", "3")
+		WSA->WSA_ENVLOG	:= _cEnvLog
 	WSA->( MsUnlock() )
 EndIf
 

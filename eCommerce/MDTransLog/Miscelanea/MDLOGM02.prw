@@ -163,7 +163,7 @@ _cQuery += "	WSA.WSA_DOC <> '' AND " + CRLF
 _cQuery += "	WSA.WSA_SERIE <> '' AND " + CRLF
 _cQuery += "	WSA.WSA_ENVLOG = '3' AND " + CRLF
 _cQuery += "	WSA.WSA_SERPOS = '' AND " + CRLF
-_cQuery += "	WSA.WSA_TRANSP IN '" + _cCodDLog + "' AND " + CRLF
+_cQuery += "	WSA.WSA_TRANSP IN " + _cCodDLog + " AND " + CRLF
 _cQuery += "	NOT EXISTS( " + CRLF
 _cQuery += "				SELECT " + CRLF
 _cQuery += "					ZZC.ZZC_NOTA, " + CRLF

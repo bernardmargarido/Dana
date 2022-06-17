@@ -51,8 +51,9 @@ Local _aArea	:= GetArea()
 Local _cAlias	:= GetNextAlias()
 Local _cCodPLP	:= ""
 Local _cExpress	:= GetNewPar("DN_TRANEXP","1056")
-Local _cCnpjEmb := GetNewPar("DN_CGCEMBA","61105722000103")
+Local _cCnpjEmb := GetNewPar("DN_CGCEMBA","61105722000600")
 
+Local _nY		:= 0
 Local _nToReg	:= 0
 Local _nRecnoZZB:= 0
 
@@ -139,7 +140,7 @@ While (_cAlias)->( !Eof() )
 			aAdd(_oJSon[#"listaSolicitacoes"],Array(#))
 			_oLista := aTail(_oJSon[#"listaSolicitacoes"])	
 			_oLista[#"idSolicitacaoInterno"] 	:= RTrim((_cAlias)->ZZC_NOTA) + RTrim((_cAlias)->ZZC_SERIE)
-			_oLista[#"idServico"] 				:= IIF(RTrim((_cAlias)->F2_TRANSP) == _cExpress, 8, 4)
+			_oLista[#"idServico"] 				:= IIF(RTrim((_cAlias)->F2_TRANSP) == RTrim(_cExpress), 8, 4)
 			_oLista[#"flagLiberacaoEmbarcador"] := Nil 
 			_oLista[#"dtPrazoInicio"]			:= Nil 		
 			_oLista[#"dtPrazoFim"]				:= Nil 
@@ -163,8 +164,8 @@ While (_cAlias)->( !Eof() )
             _oLista[#"Remetente"][#"Endereco"][#"siglaEstado"]					:= SM0->M0_ESTCOB
             _oLista[#"Remetente"][#"Endereco"][#"idCidadeIBGE"]					:= SM0->M0_CODMUN
 			_oLista[#"Destinatario"]											:= Array(#)		
-			_oLista[#"Destinatario"][#"cpf"]									:= IIF( (_cAlias)->A1_PESSOA == "F",,Nil)
-            _oLista[#"Destinatario"][#"cnpj"]									:= IIF( (_cAlias)->A1_PESSOA == "F",Nil,(_cAlias)->A1_CGC)
+			_oLista[#"Destinatario"][#"cpf"]									:= IIF( (_cAlias)->A1_PESSOA == "F", (_cAlias)->A1_CGC, Nil)
+            _oLista[#"Destinatario"][#"cnpj"]									:= IIF( (_cAlias)->A1_PESSOA == "F", Nil, (_cAlias)->A1_CGC)
             _oLista[#"Destinatario"][#"inscricaoEstadual"]						:= IIF( (_cAlias)->A1_PESSOA == "F", Nil, RTrim((_cAlias)->A1_INSCR))
             _oLista[#"Destinatario"][#"nome"]									:= RTrim((_cAlias)->WSA_NOMDES)
             _oLista[#"Destinatario"][#"razaoSocial"]							:= IIF( (_cAlias)->A1_PESSOA == "F", Nil, (_cAlias)->A1_NOME)
@@ -202,16 +203,39 @@ While (_cAlias)->( !Eof() )
 			_oNota[#"valorICMS"]												:= (_cAlias)->F2_VALICM
 			_oNota[#"valorPendenteCompra"]										:= Nil
 			
+			//------------------+
+			// Array de Volumes |
+			//------------------+
 			_oNota[#"listaVolumes"]												:= {}
+			_nVolume	:= (_cAlias)->F2_VOLUME1
+			_nPesBruto	:= (_cAlias)->F2_PBRUTO / _nVolume
+
+			For _nY := 1 To _nVolume
+
+				aAdd(_oNota[#"listaVolumes"],Array(#))
+				_oVolumeNF := aTail(_oNota[#"listaVolumes"])
+
+				//--------------+
+				// Lista Volume |
+				//--------------+
+				_oVolumeNF[#"idVolume"]			:= Nil 
+				_oVolumeNF[#"nroEtiqueta"]		:= RTrim((_cAlias)->ZZC_NUMSC5)
+				_oVolumeNF[#"codigoBarras"]		:= RTrim((_cAlias)->ZZC_NOTA) + RTrim((_cAlias)->ZZC_SERIE)
+				_oVolumeNF[#"pesoVolume"]		:= _nPesBruto
+				_oVolumeNF[#"cubagemVolume"]	:= Nil
+				_oVolumeNF[#"altura"]			:= Nil 
+				_oVolumeNF[#"largura"]			:= Nil 
+				_oVolumeNF[#"comprimento"]		:= Nil 
+				_oVolumeNF[#"descricaoVolumes"] := Nil 
+
+			Next _nY 
+
 			_oNota[#"listaItens"]												:= {}
 
 			If SD2->( dbSeek(xFilial("SD2") + (_cAlias)->ZZC_NOTA + (_cAlias)->ZZC_SERIE))
 				While SD2->( !Eof() .And. xFilial("SD2") + (_cAlias)->ZZC_NOTA + (_cAlias)->ZZC_SERIE == SD2->D2_FILIAL + SD2->D2_DOC + SD2->D2_SERIE )
 					aAdd(_oNota[#"listaItens"],Array(#))
 					_oItensNF := aTail(_oNota[#"listaItens"])
-
-					aAdd(_oNota[#"listaVolumes"],Array(#))
-					_oVolumeNF := aTail(_oNota[#"listaVolumes"])
 
 					//-------------------+	
 					// Posiciona produto |
@@ -222,19 +246,6 @@ While (_cAlias)->( !Eof() )
 					// Posiciona complemento de produto |
 					//----------------------------------+		
 					SB5->( dbSeek(xFilial("SB5") + SD2->D2_COD) )
-
-					//--------------+
-					// Lista Volume |
-					//--------------+
-					_oVolumeNF[#"idVolume"]			:= Nil 
-                    _oVolumeNF[#"nroEtiqueta"]		:= RTrim((_cAlias)->ZZC_NUMSC5)
-                    _oVolumeNF[#"codigoBarras"]		:= SB1->B1_EAN
-                    _oVolumeNF[#"pesoVolume"]		:= SB1->B1_PESBRU
-                    _oVolumeNF[#"cubagemVolume"]	:= Nil
-                    _oVolumeNF[#"altura"]			:= Nil 
-                    _oVolumeNF[#"largura"]			:= Nil 
-                    _oVolumeNF[#"comprimento"]		:= Nil 
-                    _oVolumeNF[#"descricaoVolumes"] := Nil 
 
 					//-------------+
 					// Lista Itens |
