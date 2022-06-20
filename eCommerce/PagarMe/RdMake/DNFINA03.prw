@@ -867,6 +867,17 @@ If Len(_aItem) > 0 .And. Len(_aCabec) > 0
 	
 	lMsErroAuto := .F.
 
+    Pergunte("AFI460",.F.)
+    mv_par01 := 2
+    mv_par02 := 2
+    mv_par03 := 2
+    mv_par04 := 1
+    mv_par05 := 2
+    mv_par06 := 2
+    mv_par07 := 2
+    mv_par08 := ""
+    mv_par09 := 1
+
 	FINA460(,_aCabec,_aItem,3,_cFiltro)
 		
 	//------+
