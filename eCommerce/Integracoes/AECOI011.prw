@@ -729,6 +729,8 @@ If ValType(oDadosEnd) == "O"
 		aEndEnt := EcLoadEnd(oDadosEnd)
 	ElseIf SubStr(Upper(oDadosEnd:AddressType),1,3) == "COM"
 		aEndCob := EcLoadEnd(oDadosEnd)
+	ElseIf SubStr(Upper(oDadosEnd:AddressType),1,3) == "IND"
+		aEndRes := EcLoadEnd(oDadosEnd)
 	EndIf	
 ElseIf ValType(oDadosEnd) == "A"
 	For nEnd := 1 To Len(oDadosEnd)
@@ -738,6 +740,8 @@ ElseIf ValType(oDadosEnd) == "A"
 			aEndEnt := EcLoadEnd(oDadosEnd[nEnd])
 		ElseIf SubStr(Upper(oDadosEnd[nEnd]:AddressType),1,3) == "COM"
 			aEndCob := EcLoadEnd(oDadosEnd[nEnd])
+		ElseIf SubStr(Upper(oDadosEnd[nEnd]:AddressType),1,3) == "IND"
+			aEndRes := EcLoadEnd(oDadosEnd[nEnd])
 		EndIf
 	Next nEnd
 EndIf
