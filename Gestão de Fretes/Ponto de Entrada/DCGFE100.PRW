@@ -30,6 +30,8 @@ Local cBcc		:=""
 Local cSubject	:=""
 Local cCmdEnv	:=""
 Local nX		:= 0
+Local i			:= 0
+Local w			:= 0
 
 //ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
 //³ Conectado ao servidor POP ³
@@ -62,10 +64,10 @@ If lConectou
 		For i:=1 to len(aFiles)
 			If Right(aFiles[1],4) $ "#.xml#.XML#"
 				Private nHdl := FOpen("\xmlnfe\emp15\tmp\log_salva_anexos_hist.txt",0,,.F.)
-				cLog := StrTran(aFiles[1],‘ ‘,‘‘,1)+" "+cData+" "+cHora
+				cLog := StrTran(aFiles[1],'‘ ‘','‘‘',1)+" "+cData+" "+cHora
 				Acalog("\xmlnfe\emp15\tmp\log_salva_anexos_hist.txt",cLog)
 
-				xFile := STRTRAN(lower(StrTran(aFiles[1],‘ ‘,‘‘,1)),cPathTmp,cPath)
+				xFile := STRTRAN(lower(StrTran(aFiles[1],'‘ ‘','‘‘',1)),cPathTmp,cPath)
 				
 				COPY FILE &aFiles[1] TO &xFile
 				nX++
