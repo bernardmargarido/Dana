@@ -4,16 +4,17 @@
     // Para obter mais informações, acesse: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-    
+        
         {
             "type": "totvs_language_debug",
             "request": "launch",
             "name": "Depuração do idioma TOTVS",
             "program": "${command:AskForProgramName}",
             "cwb": "${workspaceFolder}",
-            "smartclientBin": "D:/Totvs/Remotes/Dana/smartclient_T_Cloud/smartclient.exe",
+            "smartclientBin": "D:/Totvs/Remotes/Dana/smartclient_teste/smartclient.exe",
             "isMultiSession": true,
-            "enableTableSync": true
+            "enableTableSync": true,
+            "enableMultiThread": true
         }
     ]
 }

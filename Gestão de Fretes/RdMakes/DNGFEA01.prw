@@ -10,7 +10,10 @@
 /*/
 /***************************************************************************************************/
 User Function DNGFEA01(_cRomaneio)
-Local _aAgenda := {}
+Local _aAgenda  := {}
+
+Local _nTDoc    := TamSx3("F2_DOC")[1]
+Local _nTSer    := TamSx3("F2_SERIE")[1]
 
 //---------------------------+
 // GW1 - Documentos de Carga |
@@ -37,17 +40,17 @@ While GW1->( !Eof() .And. xFilial("GW1") + _cRomaneio == GW1->GW1_FILIAL + GW1->
     //-----------------------------+
     // SF2 - Posiciona Nota fiscal |
     //-----------------------------+
-    If SF2->( dbSeek(xFilial("SF2") + GW1->GW1_NRDC + GW1->GW1_SERDC))
+    If SF2->( dbSeek(xFilial("SF2") + PadR(GW1->GW1_NRDC,_nTDoc) + PadR(GW1->GW1_SERDC,_nTSer)))
         SA1->( dbSeek(xFilial("SA1") + SF2->F2_CLIENTE + SF2->F2_LOJA) )
-        If SA1->A1_XAGENDA == "1"
+        //If SA1->A1_XAGENDA == "1"
             aAdd(_aAgenda, {    SF2->F2_DOC     ,;
                                 SF2->F2_SERIE   ,;
                                 SF2->F2_CLIENTE ,;
                                 SF2->F2_LOJA    ,;
-                                SA1->A1_XMAILAG ,;
-                                GW1->GW1_DTSA1  ,;
-                                GW1->GW1_HRSAI  })
-        EndIf 
+                                /*SA1->A1_XMAILAG*/"bernard.margarido@vitreoerp.com.br" ,;
+                                IIF(Empty(GW1->GW1_DTSAI),Date(),GW1->GW1_DTSAI)        ,;
+                                IIF(Empty(GW1->GW1_HRSAI),Left(Time(),5),GW1->GW1_HRSAI)})
+        //EndIf 
     EndIf 
     GW1->( dbSkip() )
 EndDo
@@ -139,6 +142,12 @@ dbSelectArea("SA1")
 SA1->( dbSetOrder(1) )
 SA1->(dbSeek(xFilial("SA1") + _cCliente + _cLoja) )
 
+//----------------+
+// SB1 - Produtos |
+//----------------+
+dbSelectArea("SB1")
+SB1->( dbSetOrder(1) )
+
 
 _oProcess := TWFProcess():New( "MAILMKT", _cAssunto )
 _oProcess:NewTask( "Mail Markteing", _cArqHTM )
@@ -151,15 +160,17 @@ _oHtml:ValbyName("serie"    , RTrim(SF2->F2_SERIE) )
 _oHtml:ValbyName("emissao"  , dToC(SF2->F2_EMISSAO) )
 _oHtml:ValbyName("chave"    , RTrim(SF2->F2_CHVNFE) )
 
-While SD2->( !Eof() .And. xFilial("SD2") + _cDoc + _cSerie == SD2->D2_FILIAL + SD2->D2_COD + SD2->D2_SERIE )
+While SD2->( !Eof() .And. xFilial("SD2") + _cDoc + _cSerie == SD2->D2_FILIAL + SD2->D2_DOC + SD2->D2_SERIE )
 
-    aAdd( _oHtml:ValByName( "item" )	    , RTrim(SD2->D2_ITEM) )
-    aAdd( _oHtml:ValByName( "produto" )	    , RTrim(SD2->D2_COD) )
-    aAdd( _oHtml:ValByName( "descricao" )	, RTrim(SB1->B1_DESC) )
-    aAdd( _oHtml:ValByName( "unidade" )	    , RTrim(SD2->D2_UM) )
-    aAdd( _oHtml:ValByName( "quantidade" )	, Transform(SD2->D2_QUANT,PesqPict("SD2","D2_QUANT")) )
-    aAdd( _oHtml:ValByName( "vlrUnit" )	    , Transform(SD2->D2_PRCVEN,PesqPict("SD2","D2_PRCVEN")) )
-    aAdd( _oHtml:ValByName( "total" )	    , Transform(SD2->D2_TOTAL,PesqPict("SD2","D2_TOTAL")) )
+    SB1->(dbSeek(xFilial("SB1") + SD2->D2_COD) )
+
+    aAdd( _oHtml:ValByName( "it.item" )	        , RTrim(SD2->D2_ITEM) )
+    aAdd( _oHtml:ValByName( "it.produto" )	    , RTrim(SD2->D2_COD) )
+    aAdd( _oHtml:ValByName( "it.descricao" )	, RTrim(SB1->B1_DESC) )
+    aAdd( _oHtml:ValByName( "it.unidade" )	    , RTrim(SD2->D2_UM) )
+    aAdd( _oHtml:ValByName( "it.quantidade" )	, Transform(SD2->D2_QUANT,PesqPict("SD2","D2_QUANT")) )
+    aAdd( _oHtml:ValByName( "it.vlrunit" )	    , Transform(SD2->D2_PRCVEN,PesqPict("SD2","D2_PRCVEN")) )
+    aAdd( _oHtml:ValByName( "it.total" )	    , Transform(SD2->D2_TOTAL,PesqPict("SD2","D2_TOTAL")) )
 
     SD2->( dbSkip() )
 EndDo 
@@ -185,7 +196,7 @@ Return Nil
 /*/
 /***************************************************************************************************/
 Static Function DNGFEA01C(_cDoc,_cSerie,_cCliente,_cLoja,_cFileWF,_cIdProcess,_cBody)
-Local _cUrlWF   := "http://perfumesdana134461.protheus.cloudtotvs.com.br:1322/emp" + cEmpAnt + "/wfagenda/" + RTrim(_cIdProcess)
+Local _cUrlWF   := "http://perfumesdana134461.protheus.cloudtotvs.com.br:1322/emp" + cEmpAnt + "/wfagenda/" + RTrim(_cIdProcess) + ".htm"
 Local _cHtml    := ''
 Local _cPedido  := ""
 Local _cRazao   := ""
