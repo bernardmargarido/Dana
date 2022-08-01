@@ -1035,6 +1035,7 @@ Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt)
 	Local nVlrTotal		:= 0
 	Local nQtdItem		:= 0
 	Local nVlrTotMkt	:= 0
+	Local nJuros 		:= 0
 
 	Local lUsaVend		:= GetNewPar("EC_USAVEND",.F.)
 		
@@ -1172,7 +1173,8 @@ Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt)
 	aRet := AEcoGrvCab(	cNumOrc,cOrderId,cCodCli,cLojaCli,cTipoCli,cVendedor,cEndDest,cNumDest,;
 						cMunDest,cBaiDest,cCepDest,cEstDest,cNomDest,cDddCel,cDdd1,cTel01,cCelular,;
 						cIdEnd,cMotCancel,cPedCodCli,cPedCodInt,cHoraEmis,dDtaEmiss,cPedStatus,nVlrFrete,;
-						nVrSubTot,nVlrTotal,nQtdParc,nDesconto,nPesoBruto,cIdPost,cEndComp,cEndRef,cCodTransp,_cIdServ)
+						nVrSubTot,nVlrTotal,nQtdParc,nDesconto,nPesoBruto,cIdPost,cEndComp,cEndRef,;
+						cCodTransp,_cIdServ,cCodAfili,nJuros)
 
 	//------------------------------+					
 	// Efetua a gravação da Reserva |
@@ -1189,7 +1191,7 @@ Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt)
 	//------------------+
 	// Grava Financeiro |
 	//------------------+
-	aRet := AEcoGrvFin(oRestPv:PaymentData,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmis,cCodAfili,dDtaEmiss,nVlrTotMkt,nVlrFrete)
+	aRet := AEcoGrvFin(oRestPv:PaymentData,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmis,cCodAfili,dDtaEmiss,nVlrTotMkt,nVlrFrete,nJuros,nVlrTotal)
 		
 	If!aRet[1]
 		RestArea(aArea)
@@ -1894,6 +1896,12 @@ For nPrd := 1 To Len(oItems)
 		aEcoI011Sb1(oItems[nPrd]:productId,@cProduto)
 	Else
 		cProduto := oItems[nPrd]:RefId
+		If Empty(oItems[nPrd]:RefId)
+			cProduto	:= ""
+			aEcoI011Sb1(oItems[nPrd]:productId,@cProduto)
+		Else 
+			cProduto := oItems[nPrd]:RefId
+		EndIf 
 	EndIf
 
 	LogExec(" GERANDO A RESERVA DO PRODUTO " + cProduto )
@@ -2086,11 +2094,16 @@ For nX := 1 To Len(oItKit)
 	//---------------------------+
 	// Formata codigo do Produto |
 	//---------------------------+
-	If ValType(oItKit[nX]:RefId) == "U"
+	If ValType(oItKit[nX]:RefId) == "U" 
 		cProduto	:= ""
 		aEcoI011Sb1(oItKit[nX]:productId,@cProduto)
 	Else
-		cProduto	:= PadR(oItKit[nX]:RefId,nTamProd) 
+		If Empty(oItKit[nX]:RefId)
+			cProduto	:= ""
+			aEcoI011Sb1(oItKit[nX]:productId,@cProduto)
+		Else 
+			cProduto	:= PadR(oItKit[nX]:RefId,nTamProd) 
+		EndIf 
 	EndIf
 
 	nQtdItem	:= nQtdKit * oItKit[nX]:Quantity
@@ -2213,7 +2226,8 @@ Return aRet
 Static Function AEcoGrvCab(	cNumOrc,cOrderId,cCodCli,cLojaCli,cTipoCli,cVendedor,cEndDest,cNumDest,;
 							cMunDest,cBaiDest,cCepDest,cEstDest,cNomDest,cDddCel,cDdd1,cTel01,cCelular,;
 							cIdEnd,cMotCancel,cPedCodCli,cPedCodInt,cHoraEmis,dDtaEmiss,cPedStatus,nVlrFrete,;
-							nVrSubTot,nVlrTotal,nQtdParc,nDesconto,nPesoBruto,cIdPost,cEndComp,cEndRef,cCodTransp,_cIdServ)
+							nVrSubTot,nVlrTotal,nQtdParc,nDesconto,nPesoBruto,cIdPost,cEndComp,cEndRef,;
+							cCodTransp,_cIdServ,cCodAfili,nJuros)
 
 	Local aArea			:= GetArea()
 	Local aRet			:= {.T.,"",""}
@@ -2374,7 +2388,7 @@ Return aRet
 	@since     		10/02/2016
 /*/			
 /**************************************************************************************************/
-Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmis,cCodAfili,dDtaEmiss,nVlrTotMkt,nVlrFrete)
+Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmis,cCodAfili,dDtaEmiss,nVlrTotMkt,nVlrFrete,nJuros,nTotal)
 	Local aArea		:= GetArea()
 	Local aRet		:= {.T.,"",""}
 	Local aVencTo	:= {}
@@ -2393,6 +2407,7 @@ Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmi
 	Local cSemNsu	:= ""
 	Local cTID		:= ""
 	Local cCodAdm	:= ""
+	Local cFormPG	:= ""
 	Local cPrefixo	:= GetNewPar("EC_PREFIXO","ECO")
 		
 	Local nVlrParc	:= 0
@@ -2402,7 +2417,8 @@ Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmi
 	Local nParc		:= 0
 	Local nQtdParc	:= 0
 	Local nVlrTotal	:= 0
-		
+	Local nVlrRefe	:= 0
+
 	Local dDtaVencto:= cTod('  /  /    ')	
 	
 	Local lTaxaCC	:= GetNewPar("EC_ADMFIN",.F.)
@@ -2433,6 +2449,19 @@ Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmi
 				cOpera 		:= PadL(oPayMent:Transactions[nTran]:Payments[nPay]:PayMentSystem,nTamOper,"0")
 				nQtdParc	:= oPayMent:Transactions[nTran]:Payments[nPay]:InstallMents	
 				nVlrTotal	:= RetPrcUni(oPayMent:Transactions[nTran]:Payments[nPay]:Value)
+				nVlrRefe	:= RetPrcUni(oPayMent:Transactions[nTran]:Payments[nPay]:referenceValue)
+				nJuros		:= nVlrTotal - nVlrRefe
+
+				//-----------------------------------------+
+				// Valida se frete é maior que valor total | 
+				//-----------------------------------------+
+				/*
+				If cCodAfili $ "BWW" .And. At("Lojas_Americanas",cOrderId) > 0
+					If nVlrFrete > nTotal
+						nVlrTotal := nVlrTotal + nVlrFrete	
+					EndIf 
+				EndIf 
+				*/
 				
 				//-------------------------------------------+
 				// Posiciona Operadora de Pagamento eCommerce|
@@ -2451,6 +2480,7 @@ Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmi
 				//------------+
 				If WS4->WS4_TIPO == "1"
 					cTipo 		:= "CC"
+					cFormPG 	:= "CC"
 					oDadCart	:= oPayMent:Transactions[nTran]:Payments[nPay]
 					cSemNsu 	:= FWJsonSerialize(oPayMent:Transactions[nTran]:Payments[nPay]:ConnectorResponses)
 					cCodAuto	:= IIF(AT("AUTHID",cSemNsu) > 0,oPayMent:Transactions[nTran]:Payments[nPay]:ConnectorResponses:Authid,"")
@@ -2462,6 +2492,7 @@ Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmi
 				//--------+
 				ElseIf WS4->WS4_TIPO == "2"
 					cTipo 		:= "BOL"
+					cFormPG 	:= "BO"
 					cSemNsu 	:= FWJsonSerialize(oPayMent:Transactions[nTran]:Payments[nPay]:ConnectorResponses)
 					cCodAuto	:= IIF(AT("AUTHID",cSemNsu) > 0,oPayMent:Transactions[nTran]:Payments[nPay]:ConnectorResponses:Authid,"")
 					cNsuId		:= IIF(AT("NSU",cSemNsu) > 0,oPayMent:Transactions[nTran]:Payments[nPay]:ConnectorResponses:Nsu,"")
@@ -2471,6 +2502,7 @@ Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmi
 				//--------+
 				ElseIf WS4->WS4_TIPO == "3"
 					cTipo 		:= "CD"
+					cFormPG 	:= "CD"
 					oDadCart	:= oPayMent:Transactions[nTran]:Payments[nPay]
 					cSemNsu 	:= FWJsonSerialize(oPayMent:Transactions[nTran]:Payments[nPay]:ConnectorResponses)
 					cCodAuto	:= IIF(AT("AUTHID",cSemNsu) > 0,oPayMent:Transactions[nTran]:Payments[nPay]:ConnectorResponses:Authid,"")
@@ -2482,7 +2514,7 @@ Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmi
 				//--------------+ 
 				ElseIf WS4->WS4_TIPO == "4"
 					cTipo 		:= "MKT"
-
+					cFormPG 	:= "BO"
 					If nVlrTotal < nVlrTotMkt
 						nVlrTotal	:= nVlrTotMkt
 					EndIf
@@ -2492,7 +2524,7 @@ Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmi
 				//-----+ 
 				ElseIf WS4->WS4_TIPO == "5"
 					cTipo 		:= "PIX"
-
+					cFormPG		:= "PI"
 					cSemNsu 	:= FWJsonSerialize(oPayMent:Transactions[nTran]:Payments[nPay]:ConnectorResponses)
 					cCodAuto	:= IIF(AT("AUTHID",cSemNsu) > 0,oPayMent:Transactions[nTran]:Payments[nPay]:ConnectorResponses:Authid,"")
 					cNsuId		:= IIF(AT("NSU",cSemNsu) > 0,oPayMent:Transactions[nTran]:Payments[nPay]:ConnectorResponses:Nsu,"")
@@ -2555,7 +2587,7 @@ Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmi
 					//----------------------------------------------+
 					// Valida se utiliza Administradora ficnanceira |
 					//----------------------------------------------+
-					If lTaxaCC .And. WS4->WS4_TIPO $ "1/2"
+					If lTaxaCC .And. WS4->WS4_TIPO $ "1/2/5"
 						nVlrParc 	:= Round( aVencTo[nParc][2] - ( aVencTo[nParc][2] *  nTxParc / 100 ) , 2 ) 
 						dDtaVencto	:= aVencTo[nParc][1]
 					Else
@@ -2571,7 +2603,7 @@ Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmi
 						WSC->WSC_DATA   	:= dDtaVencto
 						WSC->WSC_VALOR  	:= nVlrParc		
 						WSC->WSC_FORMA  	:= cTipo
-						WSC->WSC_FORMPG		:= cTipo
+						WSC->WSC_FORMPG		:= cFormPG
 						WSC->WSC_ADMINI		:= IIF(Empty(cCodAdm),cOpera,cCodAdm)
 						WSC->WSC_NUMCAR		:= cNumCart
 						WSC->WSC_OBS    	:= cRetMsg
@@ -2591,6 +2623,20 @@ Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmi
 		EndIf	
 	Next nTran
 	
+
+	//---------------------+
+	// Valida se tem juros |
+	//---------------------+
+	If nJuros > 0 .And. cCodAfili $ "MGZ"
+		dbSelectArea("WSA")
+		WSA->( dbSetOrder(2) )
+		If WSA->( dbSeek(xFilial("WSA") + cOrderId) )
+			RecLock("WSA",.F.)
+				WSA->WSA_DESPES := nJuros
+			WSA->( MsUnLock() )
+		EndIf 
+	EndIf 
+
 	//----------+
 	// Grava SE1|
 	//----------+

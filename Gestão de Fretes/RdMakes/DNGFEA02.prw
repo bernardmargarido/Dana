@@ -175,17 +175,16 @@ EndIf
 //------------------------------------------+
 // Valida se contem e-mail para agendamento |
 //------------------------------------------+
-/*
 If Empty(SA4->A4_XMAILAG)
     CoNout("<< DNGFEA02 >> - TRANSPORTADORA SEM E-MAIL DE AGENDAMENTO CADASTRADO.")
     RestArea(_aArea)
     Return .F.
 EndIf 
-*/
+
 //----------------------------+
 // Cria HTML do transportador |
 //----------------------------+
-_cEmail     := "bernard.margarido@gmail.com"//SA4->A4_XMAILAG
+_cEmail     := SA4->A4_XMAILAG
 _cNomeTran  := RTrim(SA4->A4_NOME)
 _cNomeCli   := RTrim(SA1->A1_NOME)
 _cChave     := SF2->F2_CHVNFE
@@ -360,6 +359,7 @@ Local _cServer	:= GetMv("MV_RELSERV")
 Local _cUser	:= GetMv("MV_RELAUSR")
 Local _cPassword:= GetMv("MV_RELAPSW")
 Local _cFrom	:= GetMv("MV_RELACNT")
+Local _cMailCC  := GetMv("DN_LOGMAIL")
 Local _cTitulo  := "Dana - Agendamento"
 Local _xRet     := ""
 
@@ -396,7 +396,9 @@ If  ( _xRet := _oServer:Init( "", _cServer, _cUser, _cPassword,,_nPort) ) == 0
             _oMessage:cDate  	:= cValToChar( Date() )
             _oMessage:cFrom  	:= _cFrom
             _oMessage:cTo   	:= _cEmail
-            _oMessage:cBCC   	:= "bernard_tcn1@hotmail.com"
+            If !Empty(_cMailCC)
+                _oMessage:cBCC   	:= _cMailCC
+            EndIf 
             _oMessage:cSubject 	:= _cTitulo
             _oMessage:cBody   	:= _cBody
             If (_xRet := _oMessage:Send( _oServer )) <> 0

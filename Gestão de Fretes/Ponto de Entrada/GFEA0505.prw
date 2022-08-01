@@ -15,15 +15,17 @@ Local _aArea        := GetArea()
 Local _cRomaneio    := GWN->GWN_NRROM
 
 Local _lJob         := IsBlind()
+Local _lAtvAgen     := GetNewPar("DN_ATVAGEN",.F.)
 
 //------------------------------------------------------------+
 // Rotina valida se envia e-mail para cliente com agendamento |
 //------------------------------------------------------------+
-If _lJob
-    U_DNGFEA01(_cRomaneio)
-Else 
-    FwMsgRun(,{|| U_DNGFEA01(_cRomaneio)},"Aguarde....","Enviando e-mail para clientes com agendamento.")
+If _lAtvAgen
+    If _lJob
+        U_DNGFEA01(_cRomaneio)
+    Else 
+        FwMsgRun(,{|| U_DNGFEA01(_cRomaneio)},"Aguarde....","Enviando e-mail para clientes com agendamento.")
+    EndIf 
 EndIf 
-
 RestArea(_aArea)
 Return {} 

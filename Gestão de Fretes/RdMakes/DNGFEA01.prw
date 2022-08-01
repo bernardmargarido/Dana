@@ -42,15 +42,15 @@ While GW1->( !Eof() .And. xFilial("GW1") + _cRomaneio == GW1->GW1_FILIAL + GW1->
     //-----------------------------+
     If SF2->( dbSeek(xFilial("SF2") + PadR(GW1->GW1_NRDC,_nTDoc) + PadR(GW1->GW1_SERDC,_nTSer)))
         SA1->( dbSeek(xFilial("SA1") + SF2->F2_CLIENTE + SF2->F2_LOJA) )
-        //If SA1->A1_XAGENDA == "1"
+        If SA1->A1_XAGENDA == "1"
             aAdd(_aAgenda, {    SF2->F2_DOC     ,;
                                 SF2->F2_SERIE   ,;
                                 SF2->F2_CLIENTE ,;
                                 SF2->F2_LOJA    ,;
-                                /*SA1->A1_XMAILAG*/"bernard.margarido@vitreoerp.com.br" ,;
+                                SA1->A1_XMAILAG,;
                                 IIF(Empty(GW1->GW1_DTSAI),Date(),GW1->GW1_DTSAI)        ,;
                                 IIF(Empty(GW1->GW1_HRSAI),Left(Time(),5),GW1->GW1_HRSAI)})
-        //EndIf 
+        EndIf 
     EndIf 
     GW1->( dbSkip() )
 EndDo
@@ -117,6 +117,11 @@ Local _oHtml        := Nil
 Local _cAssunto     := "Dana - Agendamento Recebimento"
 Local _cArqHTM	    := "\workflow\danaagenda.htm"
 
+Local _nDiasAg      := GetMv("DN_DIASAG",,10)
+Local _nDiasTi      := GetMv("DN_DIASTI",,0)
+Local _nHorasTi     := GetMv("DN_HORATI",,24)
+Local _nMinuTi      := GetMv("DN_MINUTI",,0)
+
 //----------------------+
 // SF2 - Notas de Saida |
 //----------------------+
@@ -176,11 +181,11 @@ While SD2->( !Eof() .And. xFilial("SD2") + _cDoc + _cSerie == SD2->D2_FILIAL + S
 EndDo 
 
 _oHtml:ValbyName("dt_min", SubStr(FwTimeStamp(3,DaySum(_dDTSaida,1)),1,10)  )
-_oHtml:ValbyName("dt_max", SubStr(FwTimeStamp(3,DaySum(_dDTSaida,11)),1,10) )
+_oHtml:ValbyName("dt_max", SubStr(FwTimeStamp(3,DaySum(_dDTSaida,_nDiasAg)),1,10) )
 
 _oProcess:cTo 			:= Nil
 _oProcess:bReturn		:= "U_DNGFEA02()"
-_oProcess:bTimeOut 		:= {{"U_DNGFEA03()", 0, 24, 0}}
+_oProcess:bTimeOut 		:= {{"U_DNGFEA03()", _nDiasTi, _nHorasTi, _nMinuTi}}
 _oProcess:nEncodeMime 	:= 0
 _cIdProcess 			:= _oProcess:Start(_cFileWF)
 
@@ -292,6 +297,7 @@ Local _cServer	:= GetMv("MV_RELSERV")
 Local _cUser	:= GetMv("MV_RELAUSR")
 Local _cPassword:= GetMv("MV_RELAPSW")
 Local _cFrom	:= GetMv("MV_RELACNT")
+Local _cMailCC  := GetMv("DN_LOGMAIL",,"bernard_tcn1@hotmail.com")
 Local _cTitulo  := "Dana - Agendamento"
 Local _xRet     := ""
 
@@ -328,7 +334,9 @@ If  ( _xRet := _oServer:Init( "", _cServer, _cUser, _cPassword,,_nPort) ) == 0
             _oMessage:cDate  	:= cValToChar( Date() )
             _oMessage:cFrom  	:= _cFrom
             _oMessage:cTo   	:= _cEmail
-            _oMessage:cBCC   	:= "bernard.margarido@vitreoerp.com.br"
+            If !Empty(_cMailCC)
+                _oMessage:cBCC   	:= _cMailCC
+            EndIf 
             _oMessage:cSubject 	:= _cTitulo
             _oMessage:cBody   	:= _cBody
             If (_xRet := _oMessage:Send( _oServer )) <> 0
