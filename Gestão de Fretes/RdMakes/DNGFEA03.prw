@@ -422,6 +422,7 @@ _cQuery += "	A1.A1_COD, " + CRLF
 _cQuery += "	A1.A1_LOJA, " + CRLF
 _cQuery += "	A1.A1_XMAILAG, " + CRLF
 _cQuery += "	A1.A1_XAGENDA, " + CRLF
+_cQuery += "    A1.A1_XLEADTI, " + CRLF
 _cQuery += "	GW1.GW1_DTSAI, " + CRLF
 _cQuery += "	GW1.GW1_HRSAI " + CRLF
 _cQuery += " FROM " + CRLF
@@ -448,7 +449,8 @@ If (_cAlias)->A1_XAGENDA == "1" .And. !Empty((_cAlias)->A1_XMAILAG)
                         (_cAlias)->A1_LOJA      ,;
                         (_cAlias)->A1_XMAILAG   ,;
                         IIF(Empty((_cAlias)->GW1_DTSAI),Date(),sTod((_cAlias)->GW1_DTSAI)),;
-                        IIF(Empty((_cAlias)->GW1_HRSAI),Left(Time(),5),(_cAlias)->GW1_HRSAI)})
+                        IIF(Empty((_cAlias)->GW1_HRSAI),Left(Time(),5),(_cAlias)->GW1_HRSAI),;
+                        (_cAlias)->A1_XLEADTI   })
 Else
     _cMsg += "Cliente " + RTrim((_cAlias)->A1_COD) + " loja " + RTrim((_cAlias)->A1_LOJA) + " sem e-mail de agendamento cadastrado." + CRLF
 EndIf 

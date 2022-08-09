@@ -36,9 +36,9 @@ Local aNfVinc	:= aParam[15]
 Local aDetPag	:= aParam[16]
 Local aRetSefaz	:= {}
 
-Local dNovaData := ""
-Local nMes		:= Month(Date()) + 1 
-Local nAno		:= Year(Date())
+//Local dNovaData := ""
+//Local nMes		:= Month(Date()) + 1 
+//Local nAno		:= Year(Date())
 
 //--------------------------+
 // Tipo de Nota Transmitida |
@@ -46,7 +46,7 @@ Local nAno		:= Year(Date())
 cNotaES			:= aNota[04]
 cTpNota			:= aNota[05]
 
-dNovaData := DataValida(  "01/" + Alltrim(Str(nMes)) + "/" + Alltrim(Str(nAno))  ,.T.)
+//dNovaData := DataValida(  "01/" + Alltrim(Str(nMes)) + "/" + Alltrim(Str(nAno))  ,.T.)
 
 //---------------+
 // Nota de Saida |
@@ -75,7 +75,7 @@ If cNotaES == '1'
 	//------------------------+
 	// Faturamento e-Commerce |
 	//------------------------+
-	U_DnFatM10(aNota[02],aNota[01],@aDetPag)
+	U_DnFatM10(aNota[02],aNota[01],@aDetPag,@cMensCli)
 
 EndIf
 
@@ -91,7 +91,7 @@ If SF2->(dbSeek(xFilial("SF2") + aNota[02] + aNota[01]))
 		If SE2->(dbSeek(xFilial("SE2") + Alltrim(SF2->F2_NFICMST)))
 			RecLock("SE2",.F.)
 			//SE2->E2_VENCTO 	:= DataValida(Date()+1,.T.)
-			SE2->E2_VENCREA := dNovaData	//DataValida(Date(),.T.)
+			SE2->E2_VENCREA := Date()	//dNovaData	//DataValida(Date(),.T.)
 			SE2->E2_NATUREZ	:= "ICMS"
 			SE2->(MsUnLock())
 		Endif
@@ -108,11 +108,11 @@ If SF2->(dbSeek(xFilial("SF2") + aNota[02] + aNota[01]))
 	If !Empty(SF2->F2_GNRFECP)
 		dbSelectArea("SE2")
 		SE2->(dbSetOrder(1))//E2_FILIAL+E2_PREFIXO+E2_NUM+E2_PARCELA+E2_TIPO+E2_FORNECE+E2_LOJA
-		If SE2->(dbSeek(xFilial("SE2") + Alltrim(SF2->F2_NTFECP)))
+		If SE2->(dbSeek(xFilial("SE2") + Alltrim(SF2->F2_GNRFECP)))
 			//If Altrim(SE2->E2_PREFIXO) 
 			RecLock("SE2",.F.)
 			//SE2->E2_VENCTO 	:= DataValida(Date()+1,.T.)
-			SE2->E2_VENCREA := dNovaData	//DataValida(Date(),.T.)
+			SE2->E2_VENCREA := Date() //dNovaData	//DataValida(Date(),.T.)
 			SE2->E2_NATUREZ	:= "ICMS"
 			SE2->(MsUnLock())
 		Endif
@@ -128,11 +128,11 @@ If SF2->(dbSeek(xFilial("SF2") + aNota[02] + aNota[01]))
 	If !Empty(SF2->F2_GNRDIF)
 		dbSelectArea("SE2")
 		SE2->(dbSetOrder(1))	//E2_FILIAL+E2_PREFIXO+E2_NUM+E2_PARCELA+E2_TIPO+E2_FORNECE+E2_LOJA
-		If SE2->(dbSeek(xFilial("SE2") + Alltrim(SF2->F2_NTFECP)))
+		If SE2->(dbSeek(xFilial("SE2") + Alltrim(SF2->F2_GNRDIF)))
 			//If Altrim(SE2->E2_PREFIXO) 
 			RecLock("SE2",.F.)
 			//SE2->E2_VENCTO 	:= DataValida(Date()+1,.T.)
-			SE2->E2_VENCREA := dNovaData	//DataValida(Date(),.T.)
+			SE2->E2_VENCREA := Date()  //dNovaData	//DataValida(Date(),.T.)
 			SE2->E2_NATUREZ	:= "ICMS"
 			SE2->(MsUnLock())
 		Endif

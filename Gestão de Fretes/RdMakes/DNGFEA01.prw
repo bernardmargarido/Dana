@@ -49,7 +49,8 @@ While GW1->( !Eof() .And. xFilial("GW1") + _cRomaneio == GW1->GW1_FILIAL + GW1->
                                 SF2->F2_LOJA    ,;
                                 SA1->A1_XMAILAG,;
                                 IIF(Empty(GW1->GW1_DTSAI),Date(),GW1->GW1_DTSAI)        ,;
-                                IIF(Empty(GW1->GW1_HRSAI),Left(Time(),5),GW1->GW1_HRSAI)})
+                                IIF(Empty(GW1->GW1_HRSAI),Left(Time(),5),GW1->GW1_HRSAI),;
+                                SA1->A1_XLEADTI})
         EndIf 
     EndIf 
     GW1->( dbSkip() )
@@ -85,7 +86,7 @@ For _nX := 1 To Len(_aAgenda)
     //-----------------------------------------------+
     // Cria e salva na pasta WorkFlow de Agendamento |
     //-----------------------------------------------+
-    DNGFEA01B(_aAgenda[_nX][1],_aAgenda[_nX][2],_aAgenda[_nX][3],_aAgenda[_nX][4],_aAgenda[_nX][6],_cFileWF,@_cIdProcess)
+    DNGFEA01B(_aAgenda[_nX][1],_aAgenda[_nX][2],_aAgenda[_nX][3],_aAgenda[_nX][4],_aAgenda[_nX][6],_aAgenda[_nX][8],_cFileWF,@_cIdProcess)
 
     //----------------------------------+
     // Cria e envia link de agendamento |
@@ -110,7 +111,7 @@ Return Nil
     @version version
 /*/
 /***************************************************************************************************/
-Static Function DNGFEA01B(_cDoc,_cSerie,_cCliente,_cLoja,_dDTSaida,_cFileWF,_cIdProcess)
+Static Function DNGFEA01B(_cDoc,_cSerie,_cCliente,_cLoja,_dDTSaida,_nLeadT,_cFileWF,_cIdProcess)
 Local _oProcess     := Nil 
 Local _oHtml        := Nil 
 
@@ -121,6 +122,7 @@ Local _nDiasAg      := GetMv("DN_DIASAG",,10)
 Local _nDiasTi      := GetMv("DN_DIASTI",,0)
 Local _nHorasTi     := GetMv("DN_HORATI",,24)
 Local _nMinuTi      := GetMv("DN_MINUTI",,0)
+Local _nDiasLead    := 0
 
 //----------------------+
 // SF2 - Notas de Saida |
@@ -180,8 +182,9 @@ While SD2->( !Eof() .And. xFilial("SD2") + _cDoc + _cSerie == SD2->D2_FILIAL + S
     SD2->( dbSkip() )
 EndDo 
 
+_nDiasLead := IIF(_nLeadT > 0, _nLeadT, _nDiasAg)
 _oHtml:ValbyName("dt_min", SubStr(FwTimeStamp(3,DaySum(_dDTSaida,1)),1,10)  )
-_oHtml:ValbyName("dt_max", SubStr(FwTimeStamp(3,DaySum(_dDTSaida,_nDiasAg)),1,10) )
+_oHtml:ValbyName("dt_max", SubStr(FwTimeStamp(3,DaySum(_dDTSaida,_nDiasLead)),1,10) )
 
 _oProcess:cTo 			:= Nil
 _oProcess:bReturn		:= "U_DNGFEA02()"

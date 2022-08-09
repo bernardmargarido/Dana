@@ -1,3 +1,0 @@
-Release deste PTM: 12.1.17
-Programas contidos neste PTM (20180206):
-MATR260.PRX  05/02/2018 15:01:20 17

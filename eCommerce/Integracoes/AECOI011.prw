@@ -374,6 +374,7 @@ Local aCliente  := {}
 Local nOpcA		:= 0
 
 Local lEcCliCpo	:= ExistBlock("ECADDCPO")
+Local _lAtvPut	:= .F.
 
 Private lMsErroAuto := .F.
 
@@ -599,6 +600,16 @@ If Len(aCliente) > 0
  
 	lMsErroAuto := .F.
 	
+	
+	//--------------------------------+
+	// Desativa historico de clientes |
+	//--------------------------------+
+	_lAtvPut := .F.
+	If GetMv("MV_HISTTAB")
+		PutMv("MV_HISTTAB",.F.)
+		_lAtvPut := .T.
+	EndIf
+
 	//-------------------+
 	// ExecAuto Cliente. |
 	//-------------------+
@@ -691,7 +702,14 @@ If Len(aCliente) > 0
 		LogExec("CLIENTE " + Iif(nOpcA == 3,"INCLUIDO","ALTERADO") + " COM SUCESSO " + cCodCli + "-" + cLoja  )					
 		
 	EndIf
-					
+
+	//--------------------------------+
+	// Desativa historico de clientes |
+	//--------------------------------+
+	If _lAtvPut
+		PutMv("MV_HISTTAB",.T.)
+	EndIf
+
 EndIf
 
 LogExec("FIM MANUTENCAO DE CLIENTES" )
