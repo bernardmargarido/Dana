@@ -11,28 +11,29 @@ Static cDirImp	:= "/ecommerce/"
 
 /*******************************************************************************************/
 /*/{Protheus.doc} AECOI03A
-
-@description Envia as Especificações 
-
-@author Bernard M. Margarido
-@since 22/01/2018
-@version 1.0
-
-@type function
+	@description Envia as Especificações 
+	@author Bernard M. Margarido
+	@since 22/01/2018
+	@version 1.0
+	@type function
 /*/
 /*******************************************************************************************/
 User Function AECOI03A()
 
-Private cThread	:= Alltrim(Str(ThreadId()))
-Private cStaLog	:= "0"
-Private cArqLog	:= ""	
+Private cThread		:= Alltrim(Str(ThreadId()))
+Private cStaLog		:= "0"
+Private cArqLog		:= ""	
 
-Private nQtdInt	:= 0
+Private nQtdInt		:= 0
 
-Private cHrIni	:= Time()
-Private dDtaInt	:= Date()
+Private cHrIni		:= Time()
+Private dDtaInt		:= Date()
 
-Private aMsgErro:= {}
+Private aMsgErro	:= {}
+
+Private _lMultLj	:= GetNewPar("EC_MULTLOJ",.T.)
+
+Private _oProcess 	:= Nil
 
 //----------------------------------+
 // Grava Log inicio das Integrações | 
@@ -48,10 +49,15 @@ ConOut("")
 LogExec(Replicate("-",80))
 LogExec("INICIA INTEGRACAO ESPECIFICACAO DE PRODUTOS COM A VTEX - DATA/HORA: "+DTOC( DATE() )+" AS "+TIME())
 
-//---------------------------------------+
-// Inicia processo de envio dos produtos |
-//---------------------------------------+
-Processa({|| AECOINT3A() },"Aguarde...","Consultando Produtos.")
+If _lMultLj
+	_oProcess:= MsNewProcess():New( {|_lEnd| AECMULT03A(@_lEnd)},"Aguarde...","Consultando Produtos" )
+	_oProcess:Activate()
+Else 
+	//---------------------------------------+
+	// Inicia processo de envio dos produtos |
+	//---------------------------------------+
+	Processa({|| AECOINT3A() },"Aguarde...","Consultando Produtos.")
+EndIf 
 
 LogExec("FINALIZA INTEGRACAO ESPECIFICACAO DE PRODUTOS COM A VTEX - DATA/HORA: "+DTOC( DATE() )+" AS "+TIME())
 LogExec(Replicate("-",80))
@@ -72,14 +78,114 @@ u_AEcoGrvLog(cCodInt,cDescInt,dDtaInt,cHrIni,Time(),cStaLog,nQtdInt,aMsgErro,cTh
 
 Return Nil
 
+/*****************************************************************************************/
+/*/{Protheus.doc} AECMULT03A
+	@description Multi Lojas e-Commerce
+	@author Bernard M. Margarido
+	@since 17/05/2018
+	@version 1.0
+	@type function
+/*/
+/*****************************************************************************************/
+Static Function AECMULT03A(_lEnd)
+Local _aArea		:= GetArea()
+
+//-----------------+
+// Lojas eCommerce |
+//-----------------+
+dbSelectArea("XTC")
+XTC->( dbSetOrder(1) ) 
+XTC->( dbGoTop() )
+_oProcess:SetRegua1( XTC->( RecCount()))
+While XTC->( !Eof() )
+	
+	_oProcess:IncRegua1("Loja eCommerce " + RTrim(XTC->XTC_DESC) )
+	
+	//----------------------+
+	// Somente lojas ativas |
+	//----------------------+
+	If XTC->XTC_STATUS == "1"
+
+		//--------------------------------+
+		// Envia as categorias multi loja |
+		//--------------------------------+
+		AECOINT3AM(XTC->XTC_CODIGO,XTC->XTC_URL,XTC->XTC_URL2,XTC->XTC_APPKEY,XTC->XTC_APPTOK)
+
+	EndIf
+	
+	XTC->( dbSkip() )
+	
+EndDo
+
+RestArea(_aArea)
+Return .T.
+
 /**************************************************************************************************/
 /*/{Protheus.doc} AECOINT3A
+	@description	Rotina consulta e envia Produtos para a pataforma e-Commerce
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
+/*/
+/**************************************************************************************************/
+Static Function AECOINT3AM(_cLojaID,_cUrl,_cUrl_2,_cAppKey,_cAppToken)
+Local aArea			:= GetArea()
 
-@description	Rotina consulta e envia Produtos para a pataforma e-Commerce
+Local cCodPai 		:= ""
+Local cNomePrd		:= ""
+Local cCampo		:= ""
 
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		10/02/2016
+Local cAlias		:= GetNextAlias()
+
+Local nIdProd		:= 0
+Local nToReg		:= 0
+
+//---------------------------------------------+
+// Valida se existem produtos a serem enviadas |
+//---------------------------------------------+
+If !AEcoQry(cAlias,@nToReg,_cLojaID)
+	aAdd(aMsgErro,{"03A","NAO EXISTEM REGISTROS PARA SEREM ENVIADOS."})  
+	RestArea(aArea)
+	Return .T.
+EndIf
+
+//-----------------------------+
+// Inicia o envio das produtos |
+//-----------------------------+
+_oProcess:SetRegua2( nToReg )
+While (cAlias)->( !Eof() )
+	
+	//-----------------------------------+
+	// Incrementa regua de processamento |
+	//-----------------------------------+
+	_oProcess:IncRegua2("Produtos " + Alltrim((cAlias)->CODIGO) + " - " + Alltrim((cAlias)->NOME))
+					
+	//----------------------+
+	// Dados da Produto Pai |
+	//----------------------+
+	cCodPai 	:= (cAlias)->CODIGO
+	cNomePrd	:= (cAlias)->NOME
+	nIdProd		:= (cAlias)->IDPROD
+	cCampo		:= RTrim((cAlias)->NOME_CAMPO)
+	cDesCampo	:= (cAlias)->DESC_ESPE
+	
+	LogExec("ENVIANDO ESPECIFICACAO PRODUTO " + Alltrim((cAlias)->CODIGO) + " - " + Alltrim((cAlias)->NOME) )
+		 
+	//---------------------------------------+
+	// Rotina realiza o envio para a Rakuten |
+	//---------------------------------------+
+	AEcoEnv(cCodPai,cNomePrd,nIdProd,cCampo,cDesCampo,_cLojaID,_cUrl,_cAppKey,_cAppToken)
+	
+	(cAlias)->( dbSkip() )
+				
+EndDo
+
+/**************************************************************************************************/
+/*/{Protheus.doc} AECOINT3A
+	@description	Rotina consulta e envia Produtos para a pataforma e-Commerce
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
 /*/
 /**************************************************************************************************/
 Static Function AECOINT3A()
@@ -142,20 +248,17 @@ EndDo
 
 RestArea(aArea)
 Return .T.
-						
+
 /**************************************************************************************************/
 /*/{Protheus.doc} AEcoEnv
-
-@description	Rotina envia dados do produto para a plataforma e-commerce
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		02/02/2016
-
-@type function
+	@description	Rotina envia dados do produto para a plataforma e-commerce
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		02/02/2016
+	@type function
 /*/
 /**************************************************************************************************/
-Static Function AEcoEnv(cCodPai,cNomePrd,nIdProd,cCampo,cDesCampo)
+Static Function AEcoEnv(cCodPai,cNomePrd,nIdProd,cCampo,cDesCampo,_cLojaID,_cUrl,_cAppKey,_cAppToken)
 						
 Local aArea			:= GetArea()
 
@@ -164,6 +267,15 @@ Local cUsrVTex		:= GetNewPar("EC_USRVTEX")
 Local cPswVTex		:= GetNewPar("EC_PSWVTEX")
 
 Local oWsProd		:= Nil
+
+Default _cLojaID	:= ""
+Default _cUrl		:= ""
+Default _cAppKey	:= ""
+Default _cAppToken	:= ""
+
+cUrl				:= RTrim(IIF(Empty(_cUrl), GetNewPar("EC_URLECOM"), _cUrl))
+cUsrVTex			:= RTrim(IIF(Empty(_cAppKey), GetNewPar("EC_USRVTEX"), _cAppKey))
+cPswVTex			:= RTrim(IIF(Empty(_cAppToken), GetNewPar("EC_PSWVTEX"), _cAppToken))
 
 //------------------+
 // Instancia Classe |
@@ -215,23 +327,17 @@ RestArea(aArea)
 Return .T.
 
 /**************************************************************************************************/
-
 /*/{Protheus.doc} AECOQRY
-
-@description 	Rotina consulta os produtos a serem enviados para a pataforma e-Commerce
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		10/02/2016
-
-@param			cAlias 		, Nome Arquivo Temporario
-@param			nToReg		, Grava total de registros encontrados
-
-@return			lRet - Variavel Logica
+	@description 	Rotina consulta os produtos a serem enviados para a pataforma e-Commerce
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
 /*/			
 /**************************************************************************************************/
-Static Function AEcoQry(cAlias,nToReg)
-Local cQuery := ""
+Static Function AEcoQry(cAlias,nToReg,_cLojaID)
+Local cQuery 		:= ""
+
+Default _cLojaID	:= ""
 
 //-----------------------------+
 // Query consulta produtos pai |
@@ -249,19 +355,35 @@ cQuery += "	( " + CRLF
 cQuery += "		SELECT " + CRLF 
 cQuery += "			B5.B5_COD CODIGO, " + CRLF 
 cQuery += "			B5.B5_XNOMPRD NOME, " + CRLF
-cQuery += "			B5.B5_XIDPROD IDPROD, " + CRLF
+
+If Empty(_cLojaID)
+	cQuery += "			B5.B5_XIDPROD IDPROD, " + CRLF
+Else 
+	cQuery += "			XTD.XTD_IDECOM IDPROD, " + CRLF
+EndIf 
+
 cQuery += "			WS6.WS6_CODIGO COD_CAMPO, " + CRLF     
 cQuery += "			WS6.WS6_CAMPO NOME_CAMPO, " + CRLF     
 cQuery += "			COALESCE(CAST(CAST(WS6.WS6_DESCEC AS BINARY(8000)) AS VARCHAR(8000)),'') DESC_ESPE, " + CRLF 
 cQuery += "			B5.R_E_C_N_O_ RECNOB5 " + CRLF
 cQuery += "		FROM " + CRLF
 cQuery += "			" + RetSqlName("SB5") + " B5 " + CRLF 
-cQuery += "			INNER JOIN " + RetSqlName("SB1") + " B1 ON B1.B1_FILIAL = '" + xFilial("SB1") + "' AND B1.B1_COD = '" + SB5->B5_COD + "' AND B1.D_E_L_E_T_ = '' " + CRLF
+cQuery += "			INNER JOIN " + RetSqlName("SB1") + " B1 ON B1.B1_FILIAL = '" + xFilial("SB1") + "' AND B1.B1_COD = B5.B5_COD AND B1.D_E_L_E_T_ = '' " + CRLF
 cQuery += "			INNER JOIN " + RetSqlName("WS6") + " WS6 ON WS6.WS6_FILIAL = '" + xFilial("WS6") + "' AND WS6.WS6_CODPRD = B5.B5_COD AND WS6.WS6_ENVECO = '1' AND WS6.D_E_L_E_T_ = ''  " + CRLF    
+
+If !Empty(_cLojaID)
+	cQuery += "			INNER JOIN " + RetSqlName("XTD") + " XTD ON XTD.XTD_FILIAL = '" + xFilial("XTD") + "' AND XTD.XTD_ALIAS = 'SB5' AND XTD.XTD_CODIGO = '" + _cLojaID + "' AND XTD.XTD_CODERP = B5.B5_COD AND XTD.D_E_L_E_T_ = '' " + CRLF
+EndIf 
+
 cQuery += "		WHERE " + CRLF
 cQuery += "			B5.B5_FILIAL = '" + xFilial("SB5") + "' AND " + CRLF  
 cQuery += "			B5.B5_XENVECO = '2' AND " + CRLF
 cQuery += "			B5.B5_XUSAECO = 'S' AND " + CRLF
+
+If !Empty(_cLojaID)
+	cQuery += "			B5.B5_XIDLOJA LIKE '%" + _cLojaID + "%' AND " + CRLF
+EndIf 
+
 cQuery += "			B5.D_E_L_E_T_ = '' " + CRLF
 cQuery += "	) CAMPOS_ESPECIFICOS " + CRLF
 cQuery += "	ORDER BY CODIGO "
@@ -286,18 +408,12 @@ Return .T.
 
 /*********************************************************************************/
 /*/{Protheus.doc} LogExec
-
-@description Grava Log do processo 
-
-@author SYMM Consultoria
-@since 26/01/2017
-@version undefined
-
-@param cMsg, characters, descricao
-
-@type function
+	@description Grava Log do processo 
+	@author SYMM Consultoria
+	@since 26/01/2017
+	@version undefined
+	@type function
 /*/
-
 /*********************************************************************************/
 Static Function LogExec(cMsg)
 	CONOUT(cMsg)
