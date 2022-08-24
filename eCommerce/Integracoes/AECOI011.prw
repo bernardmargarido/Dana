@@ -58,22 +58,25 @@ Static nTamOper	:= TamSx3("WS4_CODIGO")[1]
 /*/
 /**************************************************************************************************/
 User Function AECOI011()
-	Local _aArea	:= GetArea()
+	Local _aArea		:= GetArea()
 
-	Private cThread	:= Alltrim(Str(ThreadId()))
-	Private cStaLog	:= "0"
-	Private cArqLog	:= ""	
+	Private cThread		:= Alltrim(Str(ThreadId()))
+	Private cStaLog		:= "0"
+	Private cArqLog		:= ""	
 
-	Private nQtdInt	:= 0
+	Private nQtdInt		:= 0
 
-	Private cHrIni	:= Time()
-	Private dDtaInt	:= Date()
+	Private cHrIni		:= Time()
+	Private dDtaInt		:= Date()
 
-	Private aMsgErro:= {}
-	Private aOrderId:= {}	
+	Private aMsgErro	:= {}
+	Private aOrderId	:= {}	
 
-	Private _lJob	:= IIF(Isincallstack("U_ECLOJM03"),.T.,.F.)
-			
+	Private _lJob		:= IIF(Isincallstack("U_ECLOJM03"),.T.,.F.)
+	Private _lMultLj	:= GetNewPar("EC_MULTLOJ",.T.)
+
+	Private _oProcess 	:= Nil
+
 	//----------------------------------+
 	// Grava Log inicio das Integrações | 
 	//----------------------------------+
@@ -91,23 +94,35 @@ User Function AECOI011()
 	//----------------------------+
 	// Inicia processo de Pedidos |
 	//----------------------------+
-	If _lJob
-		AECOINT11()
-	Else
-		Processa({|| AECOINT11() },"Aguarde...","Consultando Pedidos.")
-	EndIf	
-
-	//-------------------------------+
-	// Inicia gravação / atualização |
-	//-------------------------------+
-	If Len(aOrderId) > 0 
+	
+	If _lMultLj
 		If _lJob
-			AEcoI11PvC()
+			AECOMULT11()
+		Else 
+			_oProcess:= MsNewProcess():New( {|| AECOMULT11()},"Aguarde...","Consultando Pedidos." )
+			_oProcess:Activate()
+		EndIf 
+
+	Else 
+		If _lJob
+			AECOINT11()
 		Else
-			Processa({|| AEcoI11PvC() },"Aguarde...","Gravando/Atualizando Novos Pedidos.")
+			Processa({|| AECOINT11() },"Aguarde...","Consultando Pedidos.")
 		EndIf	
-	EndIf
-		
+
+		//-------------------------------+
+		// Inicia gravação / atualização |
+		//-------------------------------+
+		If Len(aOrderId) > 0 
+			If _lJob
+				AEcoI11PvC()
+			Else
+				Processa({|| AEcoI11PvC() },"Aguarde...","Gravando/Atualizando Novos Pedidos.")
+			EndIf	
+		EndIf
+
+	EndIf 
+
 	LogExec("FINALIZA INTEGRACAO CLIENTES / PEDIDOS ECOMMERCE - DATA/HORA: " + DTOC(DATE()) + " AS " + TIME())
 	LogExec(Replicate("-",80))
 	ConOut("")
@@ -128,6 +143,67 @@ User Function AECOI011()
 	RestArea(_aArea)	
 Return .T.
 
+/*****************************************************************************************/
+/*/{Protheus.doc} AECOMULT09
+	@description Multi Lojas e-Commerce
+	@author Bernard M. Margarido
+	@since 17/05/2018
+	@version 1.0
+	@type function
+/*/
+/*****************************************************************************************/
+Static Function AECOMULT11()
+Local _aArea		:= GetArea()
+
+//-----------------+
+// Lojas eCommerce |
+//-----------------+
+dbSelectArea("XTC")
+XTC->( dbSetOrder(1) ) 
+XTC->( dbGoTop() )
+
+If !_lJob
+	_oProcess:SetRegua1( XTC->( RecCount()))
+EndIf 
+
+While XTC->( !Eof() )
+
+	If !_lJob
+		_oProcess:IncRegua1("Loja eCommerce " + RTrim(XTC->XTC_DESC) )
+	EndIf 
+
+	LogExec("Loja eCommerce " + RTrim(XTC->XTC_DESC))
+
+	//----------------------+
+	// Somente lojas ativas |
+	//----------------------+
+	If XTC->XTC_STATUS == "1"
+
+		//--------------------------------+
+		// Envia as categorias multi loja |
+		//--------------------------------+
+		AECOINT11(XTC->XTC_CODIGO,XTC->XTC_URL2,XTC->XTC_APPKEY,XTC->XTC_APPTOK)
+
+		//-------------------------------+
+		// Inicia gravação / atualização |
+		//-------------------------------+
+		If Len(aOrderId) > 0 
+			If _lJob
+				AEcoI11PvC(XTC->XTC_CODIGO,XTC->XTC_URL2,XTC->XTC_APPKEY,XTC->XTC_APPTOK)
+			Else
+				Processa({|| AEcoI11PvC(XTC->XTC_CODIGO,XTC->XTC_URL2,XTC->XTC_APPKEY,XTC->XTC_APPTOK) },"Aguarde...","Gravando/Atualizando Novos Pedidos.")
+			EndIf	
+		EndIf
+
+	EndIf
+	
+	XTC->( dbSkip() )
+	
+EndDo
+
+RestArea(_aArea)
+Return .T.
+
 /**************************************************************************************************/
 /*/{Protheus.doc} AECOINT11
 	@description	Rotina realiza a integração dos Pedidos de Venda.
@@ -136,13 +212,13 @@ Return .T.
 	@since     		10/02/2016
 /*/
 /**************************************************************************************************/
-Static Function AECOINT11()
+Static Function AECOINT11(_cLojaID,_cUrl,_cAppKey,_cAppToken)
 Local aArea			:= GetArea()
 Local aHeadOut  	:= {}
 
-Local cUrl			:= GetNewPar("EC_URLREST")
-Local cAppKey		:= GetNewPar("EC_APPKEY")
-Local cAppToken		:= GetNewPar("EC_APPTOKE")
+Local cUrl			:= ""
+Local cAppKey		:= ""
+Local cAppToken		:= ""
 Local cXmlHead 	 	:= ""
 Local cUrlParms		:= ""     
 
@@ -151,12 +227,21 @@ Local nList			:= 0
 
 Local oRestRet   	:= Nil 
 
+Default _cLojaID	:= ""
+Default _cUrl		:= ""
+Default _cAppKey	:= ""
+Default _cAppToken	:= ""
+
+cUrl				:= RTrim(IIF(Empty(_cUrl), GetNewPar("EC_URLREST"), _cUrl))
+cAppKey				:= RTrim(IIF(Empty(_cAppKey), GetNewPar("EC_APPKEY"), _cAppKey))
+cAppToken			:= RTrim(IIF(Empty(_cAppToken), GetNewPar("EC_APPTOKE"), _cAppToken))
+
 aAdd(aHeadOut,"Content-Type: application/json" )
 aAdd(aHeadOut,"X-VTEX-API-AppKey:" + cAppKey )
 aAdd(aHeadOut,"X-VTEX-API-AppToken:" + cAppToken ) 
 
-cUrlParms := "ready-for-handling"
-//cUrlParms := "handling"
+//cUrlParms := "ready-for-handling"
+cUrlParms := "payment-pending"
 //cUrlParms := "canceled,invoiced" //handling,payment-pending,
 
 cHtmlPage := HttpGet(cUrl + "/api/oms/pvt/orders?f_status=" + cUrlParms , /*cUrlParms*/, nTimeOut, aHeadOut, @cXmlHead)
@@ -228,11 +313,11 @@ Return Nil
 	@type function
 /*/
 /********************************************************************************************/
-Static Function AEcoI11PvC()
+Static Function AEcoI11PvC(_cLojaID,_cUrl,_cAppKey,_cAppToken)
 Local aArea			:= GetArea()
-Local cUrl			:= GetNewPar("EC_URLREST")
-Local cAppKey		:= GetNewPar("EC_APPKEY")
-Local cAppToken		:= GetNewPar("EC_APPTOKE")
+Local cUrl			:= ""
+Local cAppKey		:= ""
+Local cAppToken		:= ""
 
 Local nTimeOut		:= 240
 Local nPed			:= 0
@@ -246,6 +331,15 @@ Local aEndEnt		:= {}
 Local cXmlRest 	 	:= ""
 
 Local oRestPv   	:= Nil 
+
+Default _cLojaID	:= ""
+Default _cUrl		:= ""
+Default _cAppKey	:= ""
+Default _cAppToken	:= ""
+
+cUrl				:= RTrim(IIF(Empty(_cUrl), GetNewPar("EC_URLREST"), _cUrl))
+cAppKey				:= RTrim(IIF(Empty(_cAppKey), GetNewPar("EC_APPKEY"), _cAppKey))
+cAppToken			:= RTrim(IIF(Empty(_cAppToken), GetNewPar("EC_APPTOKE"), _cAppToken))
 
 aAdd(aHeadPv,"Content-Type: application/json" )
 aAdd(aHeadPv,"X-VTEX-API-AppKey:" + cAppKey )
@@ -280,13 +374,13 @@ For nPed := 1 To Len(aOrderId)
 			//---------------------------------+
 			// Grava/Atualiza dados do Cliente |
 			//---------------------------------+
-			aRet 	:= EcGrvCli(oRestPv:ClientProfileData,oRestPv:ShippingData,@aEndRes,@aEndCob,@aEndEnt)
+			aRet 	:= EcGrvCli(oRestPv:ClientProfileData,oRestPv:ShippingData,_cLojaID,_cUrl,_cAppKey,_cAppToken,@aEndRes,@aEndCob,@aEndEnt)
 			
 			//-----------------------+
 			// Grava Pedido de Venda |
 			//-----------------------+ 
 			If aRet[1]
-				aRet := EcGrvPed(oRestPv,aEndRes,aEndCob,aEndEnt,aOrderId[nPed])
+				aRet := EcGrvPed(oRestPv,aEndRes,aEndCob,aEndEnt,aOrderId[nPed],_cLojaID)
 			EndIf        
 			
 	     	//---------------------------------+
@@ -334,7 +428,7 @@ Return aRet
 	@type function
 /*/
 /************************************************************************************/
-Static Function EcGrvCli(oDadosCli,oDadosEnd,aEndRes,aEndCob,aEndEnt)
+Static Function EcGrvCli(oDadosCli,oDadosEnd,_cLojaID,_cUrl,_cAppKey,_cAppToken,aEndRes,aEndCob,aEndEnt)
 Local aArea		:= GetArea()
 Local aRet		:= {.T.,"",""}
 
@@ -441,7 +535,7 @@ cEmail			:= IIF(nOpcA == 3,	Alltrim(oDadosCli:eMail)										, SA1->A1_EMAIL		)
 // Consulta Master Data |
 //----------------------+
 If !Empty(oDadosCli:userProfileId)
-	aEcoI011MdV(oDadosCli:userProfileId,cCnpj,@_cEMailEc)
+	aEcoI011MdV(oDadosCli:userProfileId,cCnpj,_cUrl,_cAppKey,_cAppToken,@_cEMailEc)
 EndIf
 
 //----------------+
@@ -917,12 +1011,15 @@ Return cIbge
 	@since 16/08/2020
 /*/
 /**************************************************************************************************/
-Static Function aEcoI011MdV(_cProfileID,cCnpj,_cEMailEc)
+Static Function aEcoI011MdV(_cProfileID,cCnpj,_cUrl,_cAppKey,_cAppToken,_cEMailEc)
 Local _oVTex	:= Zendesk():New()
 Local _oJSon	:= Nil 
 
-_oVTex:cIDCliente := _cProfileID
-_oVTex:cDocument  := cCnpj
+_oVTex:cIDCliente 	:= _cProfileID
+_oVTex:cDocument  	:= cCnpj
+_oVTex:cURLVtex  	:= RTrim(_cUrl)
+_oVTex:cAppKey  	:= RTrim(_cAppKey)
+_oVTex:cAppToken  	:= RTrim(_cAppToken)
 If _oVTex:Clientes()
 	_oJSon := xFromJson(_oVTex:cJson)
 	_cEMailEc := _oJSon[#"email"]
@@ -943,7 +1040,7 @@ Return Nil
 	@since     		10/02/2016
 /*/			
 /**************************************************************************************************/
-Static Function EcGrvPed(oRestPv,aEndRes,aEndCob,aEndEnt,cOrderId)
+Static Function EcGrvPed(oRestPv,aEndRes,aEndCob,aEndEnt,cOrderId,_cLojaID)
 	Local aArea		:= GetArea()
 	Local aRet		:= {.T.,"",""}
 
@@ -977,7 +1074,7 @@ Static Function EcGrvPed(oRestPv,aEndRes,aEndCob,aEndEnt,cOrderId)
 		// dentro do controle de transação |
 		//---------------------------------+
 		Begin Transaction 
-			aRet := AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt)
+			aRet := AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt,_cLojaID)
 			If !aRet[1]
 				DisarmTransaction()
 			Endif
@@ -1015,7 +1112,7 @@ Return aRet
 	@since     		10/02/2016
 /*/			
 /**************************************************************************************************/
-Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt)
+Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt,_cLojaID)
 	Local aArea			:= GetArea()
 	Local aRet			:= {.T.,"",""}
 
@@ -1134,7 +1231,8 @@ Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt)
 	cPedStatus	:= Lower(oRestPv:Status)
 	cCodAfili	:= oRestPv:Affiliateid
 	dDtaEmiss	:= dToc(sTod(StrTran(SubStr(oRestPv:creationDate,1,10),"-","")))
-	
+	_cDescLoja  := IIF(Empty(_cLojaID) ,"", Posicione("XTC",1, xFilial("XTC") + _cLojaID,"XTC_DESC"))
+
 	//-------------------------+
 	// Valida o Id de Postagem |
 	//-------------------------+
@@ -1192,7 +1290,7 @@ Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt)
 						cMunDest,cBaiDest,cCepDest,cEstDest,cNomDest,cDddCel,cDdd1,cTel01,cCelular,;
 						cIdEnd,cMotCancel,cPedCodCli,cPedCodInt,cHoraEmis,dDtaEmiss,cPedStatus,nVlrFrete,;
 						nVrSubTot,nVlrTotal,nQtdParc,nDesconto,nPesoBruto,cIdPost,cEndComp,cEndRef,;
-						cCodTransp,_cIdServ,cCodAfili,nJuros)
+						cCodTransp,_cIdServ,cCodAfili,nJuros,_cLojaID,_cDescLoja)
 
 	//------------------------------+					
 	// Efetua a gravação da Reserva |
@@ -2245,7 +2343,7 @@ Static Function AEcoGrvCab(	cNumOrc,cOrderId,cCodCli,cLojaCli,cTipoCli,cVendedor
 							cMunDest,cBaiDest,cCepDest,cEstDest,cNomDest,cDddCel,cDdd1,cTel01,cCelular,;
 							cIdEnd,cMotCancel,cPedCodCli,cPedCodInt,cHoraEmis,dDtaEmiss,cPedStatus,nVlrFrete,;
 							nVrSubTot,nVlrTotal,nQtdParc,nDesconto,nPesoBruto,cIdPost,cEndComp,cEndRef,;
-							cCodTransp,_cIdServ,cCodAfili,nJuros)
+							cCodTransp,_cIdServ,cCodAfili,nJuros,_cLojaID,_cDescLoja)
 
 	Local aArea			:= GetArea()
 	Local aRet			:= {.T.,"",""}
@@ -2392,6 +2490,8 @@ Static Function AEcoGrvCab(	cNumOrc,cOrderId,cCodCli,cLojaCli,cTipoCli,cVendedor
 		WSA->WSA_REFEN		:= cEndRef 
 		WSA->WSA_IDENDE		:= cIdEnd
 		WSA->WSA_SERPOS		:= _cIdServ
+		WSA->WSA_IDLOJA		:= _cLojaID
+		WSA->WSA_DESLOJ		:= _cDescLoja
 
 	WSA->( MsUnLock() )	
 			
@@ -3239,10 +3339,11 @@ Static Function AEcoUpdPv(cOrderId,cOrdPvCli,cNumOrc,cNumDoc,cNumSer,cNumPv,oRes
 	//---------------------------+
 	// Atualiza status ecommerce |
 	//---------------------------+
+	/*
 	If lEnvStatus
 		aRet := u_AEcoStat(WSA->WSA_NUM)
 	EndIf	
-
+	*/
 RestArea(aArea)
 Return aRet
 

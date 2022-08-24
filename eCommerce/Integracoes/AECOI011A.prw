@@ -11,13 +11,11 @@ Static cDirImp	:= "/ecommerce/"
 
 /**************************************************************************************************/
 /*/{Protheus.doc} AECOI011A
-
-@description	Rotina realiza a integração da validação da baixa do pedido
-
-@type   		Function 
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		10/02/2016
+	@description	Rotina realiza a integração da validação da baixa do pedido
+	@type   		Function 
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
 /*/
 /**************************************************************************************************/
 User Function AECOI11A(cOrderId,cNumOrc)

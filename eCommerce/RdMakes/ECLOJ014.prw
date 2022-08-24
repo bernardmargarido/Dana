@@ -386,15 +386,11 @@ Return
 
 /************************************************************************************/
 /*/{Protheus.doc} MenuDef
-
-@description Menu 
-
-@author Bernard M. Margarido
-
-@since 10/08/2017
-@version undefined
-
-@type function
+	@description Menu 
+	@author Bernard M. Margarido
+	@since 10/08/2017
+	@version undefined
+	@type function
 /*/
 /************************************************************************************/
 Static Function MenuDef()
@@ -407,5 +403,6 @@ ADD OPTION aRotina TITLE "Incluir"              	ACTION "VIEWDEF.ECLOJ014" 			OP
 ADD OPTION aRotina TITLE "Alterar"              	ACTION "VIEWDEF.ECLOJ014" 			OPERATION 4 ACCESS 0 
 ADD OPTION aRotina TITLE "Excluir"              	ACTION "VIEWDEF.ECLOJ014" 			OPERATION 5 ACCESS 0 
 ADD OPTION aRotina TITLE "Imp. Planilha"           	ACTION "U_ECLJM002"		 			OPERATION 3 ACCESS 0 
+ADD OPTION aRotina TITLE "Ajusta ID eComm"         	ACTION "U_ECLOJ019"		 			OPERATION 6 ACCESS 0 
 
 Return ( aRotina )

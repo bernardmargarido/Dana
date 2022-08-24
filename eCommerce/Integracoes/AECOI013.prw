@@ -110,11 +110,11 @@ Local cQuant 	:= ""
 Local cPrcVen	:= ""
 Local cDtaFat	:= ""
 Local cVlrFat	:= ""
-Local cFilNf	:= ""
+Local cUrl		:= ""
+Local cAppKey	:= ""
+Local cAppToken	:= ""
 Local dDtaEmiss	:= ""
-Local cFilAux	:= cFilAnt
 
-Local nDecimal 	:= 2
 Local nIdSku	:= 0
 Local _nVlrTotal:= 0
 Local _nTOrderId:= TamSx3("WSA_NUMECO")[1]
@@ -207,10 +207,27 @@ _oJson[#"invoiceValue"]	:= cVlrFat
 //---------------------------+
 cRest := xToJson(_oJson)
 
+//----------------+
+// Valida ID loja |
+//----------------+
+If Empty(WSA->WSA_IDLOJA)
+	cUrl			:= GetNewPar("EC_URLREST")
+	cAppKey			:= GetNewPar("EC_APPKEY")
+	cAppToken		:= GetNewPar("EC_APPTOKE")
+Else 
+	dbSelectArea("XTC")
+	XTC->( dbSetOrder(1) )
+	XTC->( dbSeek(xFilial("XTC") + WSA->WSA_IDLOJA))
+
+	cUrl			:= RTrim(XTC->XTC_URL2)
+	cAppKey			:= RTrim(XTC->XTC_APPKEY)
+	cAppToken		:= RTrim(XTC->XTC_APPTOK)
+
+EndIf 
 //---------------+
 // Envia Invoice |
 //---------------+ 
-aRet := AEcoI13Inv(WSA->WSA_DOC,WSA->WSA_SERIE,cOrderId,cRest)
+aRet := AEcoI13Inv(WSA->WSA_DOC,WSA->WSA_SERIE,cOrderId,cRest,cUrl,cAppKey,cAppToken)
 
 RestArea(aArea)
 Return aRet[1]
@@ -283,18 +300,17 @@ Return Nil
 	@type function
 /*/
 /********************************************************************/
-Static Function AEcoI13Inv(cDocNum,cSerie,cOrderId,cRest)
+Static Function AEcoI13Inv(cDocNum,cSerie,cOrderId,cRest,cUrl,cAppKey,cAppToken)
 Local aRet			:= {.T.,"",""}
-Local cUrl			:= GetNewPar("EC_URLREST")
-Local cAppKey		:= GetNewPar("EC_APPKEY")
-Local cAppToken		:= GetNewPar("EC_APPTOKE")
+
+//Local cUrl		:= GetNewPar("EC_URLREST")
+//Local cAppKey		:= GetNewPar("EC_APPKEY")
+//Local cAppToken	:= GetNewPar("EC_APPTOKE")
 
 Local nTimeOut		:= 240
 
 Local aHeadOut  	:= {}
 Local cXmlHead 	 	:= ""     
-Local cError    	:= ""
-Local cWarning  	:= ""
 Local cRetPost  	:= ""
 Local oXmlRet   	:= Nil 
 

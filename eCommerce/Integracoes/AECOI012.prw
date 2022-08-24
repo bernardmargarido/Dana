@@ -12,34 +12,30 @@ Static cDescInt	:= "ATIVACAO PRODUTO/SKU"
 Static cDirImp	:= "/ecommerce/"
 
 /*************************************************************************/
-
 /*/{Protheus.doc} AECOI012
-
-@description Realiza a ativação dos produtos / SKU.
-
-@author Bernard M. Margarido
-@since 30/01/2017
-@version undefined
-
-@type function
+	@description Realiza a ativação dos produtos / SKU.
+	@author Bernard M. Margarido
+	@since 30/01/2017
+	@version undefined
+	@type function
 /*/
 /*************************************************************************/
 User Function AECOI012()
-Local aArea		:= GetArea()
-Local aRet		:= {.T.,"",""}
+Private cThread		:= Alltrim(Str(ThreadId()))
+Private cStaLog		:= "0"
+Private cArqLog		:= ""	
 
-Private cThread	:= Alltrim(Str(ThreadId()))
-Private cStaLog	:= "0"
-Private cArqLog	:= ""	
+Private nQtdInt		:= 0
 
-Private nQtdInt	:= 0
+Private cHrIni		:= Time()
+Private dDtaInt		:= Date()
 
-Private cHrIni	:= Time()
-Private dDtaInt	:= Date()
+Private aMsgErro	:= {}
 
-Private aMsgErro:= {}
+Private lJob 		:= .F.
+Private _lMultLj	:= GetNewPar("EC_MULTLOJ",.T.)
 
-Private lJob 	:= .F.
+Private _oProcess 	:= Nil
 
 //----------------------------------+
 // Grava Log inicio das Integrações | 
@@ -56,9 +52,15 @@ LogExec(Replicate("-",80))
 LogExec("INICIA ATIVACAO DE PRODUTOS/SKU COM O ECOMMERCE - DATA/HORA: "+DTOC(DATE())+" AS "+TIME())
 
 //-----------------------------------------+
-// Inicia processo de envio das categorias |
+// Inicia processo de ativacao de produtos |
 //-----------------------------------------+
-Processa({|| AECOINT12() },"Aguarde...","Consultando Produtos.")
+If _lMultLj
+	_oProcess:= MsNewProcess():New( {|| AECOMULT12()},"Aguarde...","Consultando Produtos." )
+	_oProcess:Activate()
+Else 
+	Processa({|| AECOINT12() },"Aguarde...","Consultando Produtos.")
+EndIf 
+
 
 LogExec("FINALIZA ATIVACAO DE PRODUTOS/SKU COM A ECOMMERCE - DATA/HORA: "+DTOC(DATE())+" AS "+TIME())
 LogExec(Replicate("-",80))
@@ -79,17 +81,133 @@ u_AEcoGrvLog(cCodInt,cDescInt,dDtaInt,cHrIni,Time(),cStaLog,nQtdInt,aMsgErro,cTh
 
 Return Nil
 
-/**************************************************************************************************/
-
-/*/{Protheus.doc} AECOINT12
-
-@description	Rotina consulta os produtos / sku para serem ativados
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		02/02/2016
+/*****************************************************************************************/
+/*/{Protheus.doc} AECOMULT09
+	@description Multi Lojas e-Commerce
+	@author Bernard M. Margarido
+	@since 17/05/2018
+	@version 1.0
+	@type function
 /*/
+/*****************************************************************************************/
+Static Function AECOMULT12()
+Local _aArea		:= GetArea()
 
+//-----------------+
+// Lojas eCommerce |
+//-----------------+
+dbSelectArea("XTC")
+XTC->( dbSetOrder(1) ) 
+XTC->( dbGoTop() )
+
+_oProcess:SetRegua1( XTC->( RecCount()))
+
+While XTC->( !Eof() )
+
+	_oProcess:IncRegua1("Loja eCommerce " + RTrim(XTC->XTC_DESC) )
+
+	LogExec("Loja eCommerce " + RTrim(XTC->XTC_DESC))
+
+	//----------------------+
+	// Somente lojas ativas |
+	//----------------------+
+	If XTC->XTC_STATUS == "1"
+
+		//--------------------------------+
+		// Envia as categorias multi loja |
+		//--------------------------------+
+		AECOINT12M(XTC->XTC_CODIGO,XTC->XTC_URL,XTC->XTC_URL3,XTC->XTC_APPKEY,XTC->XTC_APPTOK)
+
+	EndIf
+	
+	XTC->( dbSkip() )
+	
+EndDo
+
+RestArea(_aArea)
+Return .T.
+
+/**************************************************************************************************/
+/*/{Protheus.doc} AECOINT12
+	@description	Rotina consulta os produtos / sku para serem ativados
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		02/02/2016
+/*/
+/**************************************************************************************************/
+Static Function AECOINT12M(_cLojaID,_cUrl,_cUrl_3,_cAppKey,_cAppToken)
+Local aArea		:= GetArea()
+
+Local cAlias	:= GetNextAlias()
+Local cCodProd	:= ""
+Local cDescProd	:= ""
+	
+Local nIdProd	:= 0
+Local nToReg	:= 0
+Local nRecnoWs6	:= 0
+Local nRecnoWs5	:= 0
+Local nRecnoSB5	:= 0
+
+//-----------------------------------------------+
+// Valida se existem categorias a serem enviadas |
+//-----------------------------------------------+
+If !AEcoQry(cAlias,@nToReg,_cLojaID)
+	aAdd(aMsgErro,{"012","NAO EXISTEM REGISTROS PARA SEREM ENVIADOS."})  
+	RestArea(aArea)
+	Return .T.
+EndIf
+
+//-------------------------------+
+// Inicia o envio das categorias |
+//-------------------------------+
+_oProcess:SetRegua2( nToReg )
+While (cAlias)->( !Eof() )
+	
+	nIdProd 	:= (cAlias)->IDPROD
+	nRecnoSb5 	:= (cAlias)->RECNOSB5
+	nRecnoWs5	:= (cAlias)->RECNOWS5
+	nRecnoWs6	:= (cAlias)->RECNOWS6
+	cCodProd	:= (cAlias)->CODPROD
+	cDescProd	:= (cAlias)->DESCPROD
+		
+	While (cAlias)->( !Eof() .And. nIdProd == (cAlias)->IDPROD )
+		
+		//-----------------------------------+
+		// Incrementa regua de processamento |
+		//-----------------------------------+
+		_oProcess:IncRegua2("Ativando produto " + (cAlias)->CODPROD + " " + Alltrim((cAlias)->DESCPROD) )	
+
+		aAtivSku(	(cAlias)->IDSKU,(cAlias)->RECNOSB5,(cAlias)->RECNOWS5,;
+					(cAlias)->RECNOWS6,(cAlias)->CODPROD,(cAlias)->DESCPROD,;
+					_cLojaID,_cUrl,_cAppKey,_cAppToken)		
+				
+		(cAlias)->( dbSkip() )
+	EndDo
+	
+	//---------------------------------------+
+	// Rotina realiza o envio para a Rakuten |
+	//---------------------------------------+
+	aAtivProd(	nIdProd,nRecnoSb5,nRecnoWs5 ,;
+				nRecnoWs6,cCodProd,cDescProd,;
+				_cLojaID,_cUrl,_cAppKey,_cAppToken )
+		
+EndDo
+		
+//----------------------------+
+// Encerra arquivo temporario |
+//----------------------------+
+(cAlias)->( dbCloseArea() )
+
+RestArea(aArea)
+Return .T.
+
+/**************************************************************************************************/
+/*/{Protheus.doc} AECOINT12
+	@description	Rotina consulta os produtos / sku para serem ativados
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		02/02/2016
+/*/
 /**************************************************************************************************/
 Static Function AECOINT12()
 Local aArea		:= GetArea()
@@ -99,7 +217,6 @@ Local cCodProd	:= ""
 Local cDescProd	:= ""
 	
 Local nIdProd	:= 0
-Local nIdSku	:= 0
 Local nToReg	:= 0
 Local nRecnoWs6	:= 0
 Local nRecnoWs5	:= 0
@@ -157,32 +274,31 @@ RestArea(aArea)
 Return .T.
 
 /*****************************************************************************************************/
-
 /*/{Protheus.doc} aAtivProd
-
-@description	Rotina ativa os produtos no e-Commerce
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		02/02/2016
-
-@param nIdProd		, numeric	, descricao
-@param nRecnoSb5	, numeric	, descricao
-@param nRecnoWs5	, numeric	, descricao
-@param nRecnoWs6	, numeric	, descricao
-@param cCodProd		, characters, descricao
-@param cDescProd	, characters, descricao
-
-/*/				
+	@description	Rotina ativa os produtos no e-Commerce
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		02/02/2016
+/*/					
 /******************************************************************************************************/
 Static Function aAtivProd(	nIdProd,nRecnoSb5,nRecnoWs5 ,;
-							nRecnoWs6,cCodProd,cDescProd)
+							nRecnoWs6,cCodProd,cDescProd,;
+							_cLojaID,_cUrl,_cAppKey,_cAppToken)
 
-Local cUrl			:= GetNewPar("EC_URLECOM")
-Local cUsrVTex		:= GetNewPar("EC_USRVTEX")
-Local cPswVTex		:= GetNewPar("EC_PSWVTEX")
+Local cUrl			:= ""
+Local cUsrVTex		:= ""
+Local cPswVTex		:= ""
 
 Local oWsProd
+
+Default _cLojaID	:= ""
+Default _cUrl		:= ""
+Default _cAppKey	:= ""
+Default _cAppToken	:= ""
+
+cUrl				:= RTrim(IIF(Empty(_cUrl), GetNewPar("EC_URLECOM"), _cUrl))
+cUsrVTex			:= RTrim(IIF(Empty(_cAppKey), GetNewPar("EC_USRVTEX"), _cAppKey))
+cPswVTex			:= RTrim(IIF(Empty(_cAppToken), GetNewPar("EC_PSWVTEX"), _cAppToken ))
 
 //------------------+
 // Instancia Classe |
@@ -225,29 +341,31 @@ EndIf
 Return .T.
 
 /*****************************************************************************************************/
-
 /*/{Protheus.doc} aAtivSku
-
-@description	Rotina ativa os produtos no e-Commerce
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		02/02/2016
-
-@param			nIdSku		,	integer 	,Id do produto na VTEX
-
-
-@return			aRet - Array aRet[1] - Logico	aRet[2] - Codigo Erro	aRet[3] - Descricao do Erro
+	@description	Rotina ativa os produtos no e-Commerce
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		02/02/2016
 /*/				
 /******************************************************************************************************/
 Static Function aAtivSku(	nIdSku,nRecnoSb5,nRecnoWs5,;
-							nRecnoWs6,cCodProd,cDescProd)
+							nRecnoWs6,cCodProd,cDescProd,;
+							_cLojaID,_cUrl,_cAppKey,_cAppToken)
 
-Local cUrl			:= GetNewPar("EC_URLECOM")
-Local cUsrVTex		:= GetNewPar("EC_USRVTEX")
-Local cPswVTex		:= GetNewPar("EC_PSWVTEX")
+Local cUrl			:= ""
+Local cUsrVTex		:= ""
+Local cPswVTex		:= ""
 
 Local oWsSku		
+
+Default _cLojaID	:= ""
+Default _cUrl		:= ""
+Default _cAppKey	:= ""
+Default _cAppToken	:= ""
+
+cUrl				:= RTrim(IIF(Empty(_cUrl), GetNewPar("EC_URLECOM"), _cUrl))
+cUsrVTex			:= RTrim(IIF(Empty(_cAppKey), GetNewPar("EC_USRVTEX"), _cAppKey))
+cPswVTex			:= RTrim(IIF(Empty(_cAppToken), GetNewPar("EC_PSWVTEX"), _cAppToken ))
 
 //------------------+
 // Instancia Classe |
@@ -291,24 +409,18 @@ Return .T.
 
 /**************************************************************************************************/
 /*/{Protheus.doc} AECOQRY
-
-@description 	Rotina consulta e envia categorias para a pataforma e-Commerce
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		02/02/2016
-
-@param			cAlias 		, Nome Arquivo Temporario
-@param			nToReg		, Grava total de registros encontrados
-
-@return			lRet - Variavel Logica
+	@description 	Rotina consulta e envia categorias para a pataforma e-Commerce
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		02/02/2016
 /*/
 /**************************************************************************************************/
-Static Function AEcoQry(cAlias,nToReg)
+Static Function AEcoQry(cAlias,nToReg,_cLojaID)
 Local cQuery 		:= ""
 Local cCodTab		:= GetNewPar("EC_TABECO")
-Local cFilEst		:= GetNewPar("EC_FILEST")
 Local cLocal		:= GetNewPar("EC_ARMAZEM")
+
+Default _cLojaID	:= ""
 
 //---------------------------+
 // Query consulta categorias |
@@ -383,18 +495,12 @@ Return .T.
 
 /*********************************************************************************/
 /*/{Protheus.doc} LogExec
-
-@description Grava Log do processo 
-
-@author SYMM Consultoria
-@since 26/01/2017
-@version undefined
-
-@param cMsg, characters, descricao
-
-@type function
+	@description Grava Log do processo 
+	@author SYMM Consultoria
+	@since 26/01/2017
+	@version undefined
+	@type function
 /*/
-
 /*********************************************************************************/
 Static Function LogExec(cMsg)
 	CONOUT(cMsg)

@@ -11,14 +11,11 @@ Static cDirImp	:= "/ecommerce/"
 
 /*******************************************************************************************/
 /*/{Protheus.doc} AECOI04A
-
-@description Realiza envio das especificações de SKU
-
-@author Bernard M. Margarido
-@since 23/01/2018
-@version 1.0
-
-@type function
+	@description Realiza envio das especificações de SKU
+	@author Bernard M. Margarido
+	@since 23/01/2018
+	@version 1.0
+	@type function
 /*/
 /*******************************************************************************************/
 User Function AECOI04A()

@@ -44,6 +44,13 @@ CoNout("<< ECLOJM03 >> - INICIO INTEGRACAO DE ESTOQUES " + dTos( Date() ) + " - 
     U_AECOI008()
 CoNout("<< ECLOJM03 >> - FIM INTEGRACAO DE ESTOQUES " + dTos( Date() ) + " - " + Time() )
 
+//----------------------+
+// Integração de Precos |
+//----------------------+
+CoNout("<< ECLOJM03 >> - INICIO INTEGRACAO DE PRECOS " + dTos( Date() ) + " - " + Time() )
+    U_AECOI009()
+CoNout("<< ECLOJM03 >> - FIM INTEGRACAO DE PRECOS " + dTos( Date() ) + " - " + Time() )
+
 //------------------------+
 // Fecha empresa / filial |
 //------------------------+

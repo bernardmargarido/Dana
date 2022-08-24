@@ -506,9 +506,29 @@ Return _oStruct
 /************************************************************************************/
 Static Function EcLoj15C(_oModel,_cAlias)
 Local _aLoad    := {}
+Local _aRegs    := {}
 Local _aFields  := _oModel:oFormModelStruct:GetFields()
 
+Local _cIdLoja  := XTC->XTC_CODIGO
+
+dbSelectArea("XTD")
+XTD->( dbSetOrder(2) )
+If XTD->( dbSeek(xFilial("XTD") + _cIdLoja + _cAlias) )
+    While XTD->( !Eof() .And. xFilial("XTD") + _cIdLoja + _cAlias == XTD->XTD_FILIAL + XTD->XTD_CODIGO + XTD->XTD_ALIAS )
+
+        _aRegs := Array( Len( _aFields ) )
+        _aRegs[1] := XTD->XTD_CODERP
+        _aRegs[2] := XTD->XTD_IDECOM
+        _aRegs[3] := XTD->XTD_DTENV 
+
+        aAdd(_aLoad ,{ XTD->(Recno()),_aRegs} )
+
+        XTD->( dbSkip() )
+    EndDo 
+   
+Else 
     aAdd(_aLoad,{0 ,{"",0,""} })
+EndIf 
 
 Return _aLoad
 

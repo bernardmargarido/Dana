@@ -11,17 +11,11 @@ Static cDirImp	:= "/ecommerce/"
 
 /**************************************************************************************************/
 /*/{Protheus.doc} AECOI011B
-
-@description	Rotina realiza a integração dos status do pedido ecommerce
-
-@type   		Function 
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		10/02/2016
-
-@param			cNumOrc		, Numero do Orçamento Protheus
-
-@return			aRet 		- Array	aRet[1] - Logico aRet[2] - Codigo Erro aRet[3] - Descricao do Erro
+	@description	Rotina realiza a integração dos status do pedido ecommerce
+	@type   		Function 
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
 /*/
 /**************************************************************************************************/
 
@@ -92,26 +86,20 @@ Return aRet
 
 /*********************************************************************************************************/
 /*/{Protheus.doc} AEcoI011B
-
-@description	Envia status do pedido ecommerce
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		10/02/2016
-
-@param			cNumOrc		, Numero do Orçamento Protheus
-
-@return			aRet 		- Array	aRet[1] - Logico aRet[2] - Codigo Erro aRet[3] - Descricao do Erro  
+	@description	Envia status do pedido ecommerce
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
 /*/			
 /**********************************************************************************************************/
 User Function AEcoStat(cNumOrc,lCancel)
 Local aRet			:= {.T.,"",""}
 Local aHeadOut		:= {}
 
-Local cUrl			:= GetNewPar("EC_URLREST")
-Local cAppKey		:= GetNewPar("EC_APPKEY")
-Local cAppToken		:= GetNewPar("EC_APPTOKE")
-Local _cVtexName	:= "danacosmeticos"
+Local cUrl			:= ""
+Local cAppKey		:= ""
+Local cAppToken		:= ""
+Local _cVtexName	:= ""
 Local cXmlHead 	 	:= ""
 Local cError    	:= ""
 
@@ -128,10 +116,6 @@ If _lBloqueio
 	Return aRet
 EndIf
 
-aAdd(aHeadOut,"Content-Type: application/json" )
-aAdd(aHeadOut,"X-VTEX-API-AppKey:" + cAppKey )
-aAdd(aHeadOut,"X-VTEX-API-AppToken:" + cAppToken )
-
 //-------------------------------+
 // Pocisiona Pedido de eCommerce |
 //-------------------------------+
@@ -146,10 +130,34 @@ If !WSA->( dbSeek(xFilial("WSA") + cNumOrc) )
 	Return aRet
 EndIf
 
+If Empty(WSA->WSA_IDLOJA)
+
+	cUrl			:= GetNewPar("EC_URLREST")
+	cAppKey			:= GetNewPar("EC_APPKEY")
+	cAppToken		:= GetNewPar("EC_APPTOKE")
+	_cVtexName		:= "danacosmeticos"
+
+Else 
+	
+	dbSelectArea("XTC")
+	XTC->( dbSetOrder(1) )
+	XTC->( dbSeek(xFilial("XTC") + WSA->WSA_IDLOJA))
+
+	cUrl			:= RTrim(XTC->XTC_URL2)
+	cAppKey			:= RTrim(XTC->XTC_APPKEY)
+	cAppToken		:= RTrim(XTC->XTC_APPTOK)
+	_cVtexName		:= RTrim(XTC->XTC_NAME)
+
+EndIf 
+
+aAdd(aHeadOut,"Content-Type: application/json" )
+aAdd(aHeadOut,"X-VTEX-API-AppKey:" + cAppKey )
+aAdd(aHeadOut,"X-VTEX-API-AppToken:" + cAppToken )
+
 If lCancel
-	cHtmlPage :=  HttpPost(cUrl + "/api/oms/pvt/orders/" + Alltrim(WSA->WSA_NUMECO) + "/cancel/?an=" + _cVtexName + "","","",nTimeOut,aHeadOut,@cXmlHead)
+	cHtmlPage :=  HttpPost(cUrl + "/api/oms/pvt/orders/" + RTrim(WSA->WSA_NUMECO) + "/cancel/?an=" + _cVtexName + "","","",nTimeOut,aHeadOut,@cXmlHead)
 Else
-	cHtmlPage :=  HttpPost(cUrl + "/api/oms/pvt/orders/" + Alltrim(WSA->WSA_NUMECO) + "/start-handling/?an=" + _cVtexName + "","","",nTimeOut,aHeadOut,@cXmlHead)
+	cHtmlPage :=  HttpPost(cUrl + "/api/oms/pvt/orders/" + RTrim(WSA->WSA_NUMECO) + "/start-handling/?an=" + _cVtexName + "","","",nTimeOut,aHeadOut,@cXmlHead)
 EndIf	 
 	
 If HTTPGetStatus() == 200 .Or. Empty(cHtmlPage)

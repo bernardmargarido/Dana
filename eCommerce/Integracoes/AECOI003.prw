@@ -191,7 +191,7 @@ While (cAlias)->( !Eof() )
 	cKeyword	:= (cAlias)->KEYWORDS 
 	cStatus		:= (cAlias)->STATUSPRD
 	cTpProd		:= (cAlias)->TPPROD
-	cIdLoja		:= (cAlias)->IDLOJA
+	cIdLoja		:= "01" //(cAlias)->IDLOJA
 	
 	nCat01		:= (cAlias)->CATEGO01  
 	nCat02		:= (cAlias)->CATEGO02   
@@ -795,6 +795,50 @@ If (cAlias)->( Eof() )
 EndIf
 
 Return .T.
+
+/*********************************************************************************/
+/*/{Protheus.doc} AEcoI03C
+	@description Realiza a consulta dos ID dos produtos e-Commerce
+	@type  Static Function
+	@author Bernard M Margarido
+	@since 22/08/2022
+	@version version
+/*/
+/*********************************************************************************/
+Static Function AEcoI03C(_cLojaID,_cUrl,_cAppKey,_cAppToken,_cRefId,_cTpProd,_cRest)
+Local _oRest 	:= Nil 
+
+Local _lRet		:= .F.
+
+Local _aHeadOut	:= {}
+
+aAdd(_aHeadOut,"Content-Type: application/json" )
+aAdd(_aHeadOut,"X-VTEX-API-AppKey:" + _cAppKey )
+aAdd(_aHeadOut,"X-VTEX-API-AppToken:" + _cAppToken ) 
+
+_oRest := FWRest():New(RTrim(_cUrl))
+_oRest:nTimeOut := 600
+If _cTpProd == "1"
+	_oRest:SetPath("/api/catalog_system/pvt/products/productgetbyrefid/" + RTrim(_cRefId))
+	If _oRest:Get(_aHeadOut)
+		//---------------------+
+		// Desesserializa JSON |
+		//---------------------+
+		_cRest	:= _oRest:GetResult()
+		_lRet   := .T.
+	EndIf 
+ElseIf _cTpProd == "2"
+	_oRest:SetPath("/api/catalog/pvt/stockkeepingunit?refId=" + RTrim(_cRefId))
+	If _oRest:Get(_aHeadOut)
+		//---------------------+
+		// Desesserializa JSON |
+		//---------------------+
+		_cRest	:= _oRest:GetResult()
+		_lRet   := .T.
+	EndIf 
+EndIf 
+
+Return _lRet 
 
 /*********************************************************************************/
 /*/{Protheus.doc} LogExec
