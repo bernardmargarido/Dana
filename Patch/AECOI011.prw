@@ -3340,10 +3340,11 @@ Static Function AEcoUpdPv(cOrderId,cOrdPvCli,cNumOrc,cNumDoc,cNumSer,cNumPv,oRes
 	//---------------------------+
 	// Atualiza status ecommerce |
 	//---------------------------+
+	/*
 	If lEnvStatus
 		aRet := u_AEcoStat(WSA->WSA_NUM)
 	EndIf	
-
+	*/
 RestArea(aArea)
 Return aRet
 

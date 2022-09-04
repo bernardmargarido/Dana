@@ -187,7 +187,6 @@ _oView:SetOwnerView('AY2FORM'	,'INF_02')
 _oView:SetOwnerView('SB5FORM'	,'INF_03')
 _oView:SetOwnerView('SB1FORM'	,'INF_04')
 
-
 //_oView:bAfterViewActivate := { |_oView| EcLoj014Fld(_oView)}
 
 Return _oView

@@ -210,11 +210,7 @@ cRest := xToJson(_oJson)
 //----------------+
 // Valida ID loja |
 //----------------+
-If Empty(WSA->WSA_IDLOJA)
-	cUrl			:= GetNewPar("EC_URLREST")
-	cAppKey			:= GetNewPar("EC_APPKEY")
-	cAppToken		:= GetNewPar("EC_APPTOKE")
-Else 
+If WSA->(FieldPos("WSA_IDLOJA")) > 0 .And. !Empty(WSA->WSA_IDLOJA)
 	dbSelectArea("XTC")
 	XTC->( dbSetOrder(1) )
 	XTC->( dbSeek(xFilial("XTC") + WSA->WSA_IDLOJA))
@@ -222,7 +218,10 @@ Else
 	cUrl			:= RTrim(XTC->XTC_URL2)
 	cAppKey			:= RTrim(XTC->XTC_APPKEY)
 	cAppToken		:= RTrim(XTC->XTC_APPTOK)
-
+Else
+	cUrl			:= GetNewPar("EC_URLREST")
+	cAppKey			:= GetNewPar("EC_APPKEY")
+	cAppToken		:= GetNewPar("EC_APPTOKE")
 EndIf 
 //---------------+
 // Envia Invoice |

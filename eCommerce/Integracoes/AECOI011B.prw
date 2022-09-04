@@ -130,15 +130,7 @@ If !WSA->( dbSeek(xFilial("WSA") + cNumOrc) )
 	Return aRet
 EndIf
 
-If Empty(WSA->WSA_IDLOJA)
-
-	cUrl			:= GetNewPar("EC_URLREST")
-	cAppKey			:= GetNewPar("EC_APPKEY")
-	cAppToken		:= GetNewPar("EC_APPTOKE")
-	_cVtexName		:= "danacosmeticos"
-
-Else 
-	
+If WSA->(FieldPos("WSA_IDLOJA")) > 0 .And. !Empty(WSA->WSA_IDLOJA)
 	dbSelectArea("XTC")
 	XTC->( dbSetOrder(1) )
 	XTC->( dbSeek(xFilial("XTC") + WSA->WSA_IDLOJA))
@@ -147,7 +139,11 @@ Else
 	cAppKey			:= RTrim(XTC->XTC_APPKEY)
 	cAppToken		:= RTrim(XTC->XTC_APPTOK)
 	_cVtexName		:= RTrim(XTC->XTC_NAME)
-
+Else 
+	cUrl			:= GetNewPar("EC_URLREST")
+	cAppKey			:= GetNewPar("EC_APPKEY")
+	cAppToken		:= GetNewPar("EC_APPTOKE")
+	_cVtexName		:= "danacosmeticos"
 EndIf 
 
 aAdd(aHeadOut,"Content-Type: application/json" )

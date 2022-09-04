@@ -12,6 +12,7 @@
             "program": "${command:AskForProgramName}",
             "cwb": "${workspaceFolder}",
             "smartclientBin": "D:/Totvs/Remotes/Dana/smartclient_teste/smartclient.exe",
+            //"smartclientBin": "D:/Totvs/Remotes/Dana/smartclient_producao/smartclient.exe",
             "isMultiSession": true,
             "enableTableSync": true,
             "enableMultiThread": true

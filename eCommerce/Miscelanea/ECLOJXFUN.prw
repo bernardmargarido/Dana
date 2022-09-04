@@ -1227,7 +1227,7 @@ While (_cAlias)->( !Eof() )
 		SE1->E1_XNUMECL := (_cAlias)->WSA_NUMECL
 		SE1->E1_XTID 	:= (_cAlias)->WSC_TID
 		SE1->E1_XNOTA 	:= (_cAlias)->WSA_DOC
-		SE1->E1_SERIE	:= (_cAlias)->WSA_SERIE
+		SE1->E1_XSERIE	:= (_cAlias)->WSA_SERIE
 	SE1->( MsUnLock() )
 	(_cAlias)->( dbSkip() )
 EndDo

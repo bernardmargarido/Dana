@@ -12,5 +12,5 @@
     @see (links_or_references)
     /*/
 User Function LJ7083()
-    Alert("LJ7083")
-Return Nil 
+     CoNout('<< LJ7083 >> -- Passou Aqui.')
+Return .T. 

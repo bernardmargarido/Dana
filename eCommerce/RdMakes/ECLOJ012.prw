@@ -97,7 +97,7 @@ If _lContinua
         //-----------+
         ElseIf WSA->WSA_CODSTA $ "008"
             LogExec("==> INICIO CANCELAMENTO ORCAMENTO ECOMMERCE " + WSA->WSA_NUM + "DATA/HORA: " + dToc( Date() ) + " AS " + Time() )
-                EcLoj012Can()
+                //EcLoj012Can()
             LogExec("==> FIM CANCELAMENTO ORCAMENTO ECOMMERCE " + WSA->WSA_NUM + "DATA/HORA: " + dToc( Date() ) + " AS " + Time() )
         EndIf
         (_cAlias)->( dbSkip() )
