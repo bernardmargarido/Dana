@@ -62,6 +62,7 @@ GW1->( dbGoTo(_nRecno))
 RecLock("GW1",.F.)
     GW1->GW1_XDTAGE := sToD(StrTran(_dDtaAgend,"-",""))
     GW1->GW1_XOBSAG := _cObs
+    GW1->GW1_XSTAT   := "3"
 GW1->( MsUnlock() )
 
 //-------------------------------------+

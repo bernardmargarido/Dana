@@ -254,7 +254,7 @@ Return lEnviado
     @since 22/10/2019
 /*/
 /**************************************************************************************/
-User Function DnMailNf(_cNota,_cSerie,_cCodFor,_cLojafor,_aDiverg)
+User Function DnMailNf(_cNota,_cSerie,_cCodFor,_cLojafor,_aDiverg,_lError)
 Local aArea		:= GetArea()
 
 Local cServer	:= GetMv("MV_RELSERV")
@@ -263,7 +263,7 @@ Local cPassword := GetMv("MV_RELAPSW")
 Local cFrom		:= GetMv("MV_RELACNT")
 
 Local cMail		:= GetNewPar("DN_MAILWMS","bernard.modesto@alfaerp.com.br;bernard.margarido@gmail.com")
-Local cTitulo	:= "Dana - Divergencia recebimento."
+Local cTitulo	:= IIF(_lError,"Dana - Divergencia recebimento.","Dana - Confirmação de recebimento.")
 Local cHtml		:= ""
 
 Local lEnviado	:= .F.

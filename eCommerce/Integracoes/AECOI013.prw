@@ -284,6 +284,7 @@ _cAlias := MPSysOpenQuery(_cQuery)
 If (_cAlias)->STATUS == "2"
 	_oJSonUrl 	:= xFromJson(RTrim((_cAlias)->JSON_DLOG))
 	cUrlTrack	:= _oJSonUrl[#"linkRastreamento"]
+	cTracking	:= SubStr(cUrlTrack,Rat("/",cUrlTrack) + 1)
 EndIf
 
 (_cAlias)->( dbCloseArea() )

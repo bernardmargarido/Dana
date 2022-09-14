@@ -15,6 +15,8 @@ Local _aAgenda  := {}
 Local _nTDoc    := TamSx3("F2_DOC")[1]
 Local _nTSer    := TamSx3("F2_SERIE")[1]
 
+Local _dDTPrev  := cTod('  /  /    ')
+
 //---------------------------+
 // GW1 - Documentos de Carga |
 //---------------------------+
@@ -23,6 +25,11 @@ GW1->( dbSetOrder(9))
 If !GW1->( dbSeek(xFilial("GW1") + _cRomaneio) )
     Return .F.
 EndIf 
+
+//--------------------------+
+// Calcula prazo de entrega |
+//--------------------------+
+DnGfeA01E(GW1->GW1_FILIAL,GW1->GW1_NRROM)
 
 //----------------------+
 // SF2 - Notas de Saida |
@@ -36,6 +43,12 @@ SF2->( dbSetOrder(1) )
 dbSelectArea("SA1")
 SA1->( dbSetOrder(1) )
 
+//------------------------------------+
+// GWU - Posiciona rota de transporte |
+//------------------------------------+
+dbSelectArea("GWU")
+GWU->( dbSetOrder(1) )
+
 While GW1->( !Eof() .And. xFilial("GW1") + _cRomaneio == GW1->GW1_FILIAL + GW1->GW1_NRROM )
     //-----------------------------+
     // SF2 - Posiciona Nota fiscal |
@@ -43,14 +56,29 @@ While GW1->( !Eof() .And. xFilial("GW1") + _cRomaneio == GW1->GW1_FILIAL + GW1->
     If SF2->( dbSeek(xFilial("SF2") + PadR(GW1->GW1_NRDC,_nTDoc) + PadR(GW1->GW1_SERDC,_nTSer)))
         SA1->( dbSeek(xFilial("SA1") + SF2->F2_CLIENTE + SF2->F2_LOJA) )
         If SA1->A1_XAGENDA == "1"
+            
+            _dDTPrev := ""
+            If GWU->( dbSeek(GW1->GW1_FILIAL + GW1->GW1_CDTPDC + GW1->GW1_EMISDC + GW1->GW1_SERDC + GW1->GW1_NRDC) )
+                _dDTPrev := GWU->GWU_DTPENT
+            EndIf 
+
             aAdd(_aAgenda, {    SF2->F2_DOC     ,;
                                 SF2->F2_SERIE   ,;
                                 SF2->F2_CLIENTE ,;
                                 SF2->F2_LOJA    ,;
-                                SA1->A1_XMAILAG,;
+                                SA1->A1_XMAILAG ,;
                                 IIF(Empty(GW1->GW1_DTSAI),Date(),GW1->GW1_DTSAI)        ,;
                                 IIF(Empty(GW1->GW1_HRSAI),Left(Time(),5),GW1->GW1_HRSAI),;
-                                SA1->A1_XLEADTI})
+                                SA1->A1_XLEADTI,;
+                                _dDTPrev})
+
+            //------------------------------+
+            // Atualiza status como enviado |
+            //------------------------------+
+            RecLock("GW1",.F.)
+                GW1->GW1_XSTAT := "2"
+            GW1->( MsUnLock() )
+
         EndIf 
     EndIf 
     GW1->( dbSkip() )
@@ -86,7 +114,7 @@ For _nX := 1 To Len(_aAgenda)
     //-----------------------------------------------+
     // Cria e salva na pasta WorkFlow de Agendamento |
     //-----------------------------------------------+
-    DNGFEA01B(_aAgenda[_nX][1],_aAgenda[_nX][2],_aAgenda[_nX][3],_aAgenda[_nX][4],_aAgenda[_nX][6],_aAgenda[_nX][8],_cFileWF,@_cIdProcess)
+    DNGFEA01B(_aAgenda[_nX][1],_aAgenda[_nX][2],_aAgenda[_nX][3],_aAgenda[_nX][4],_aAgenda[_nX][6],_aAgenda[_nX][8],_aAgenda[_nX][9],_cFileWF,@_cIdProcess)
 
     //----------------------------------+
     // Cria e envia link de agendamento |
@@ -111,7 +139,7 @@ Return Nil
     @version version
 /*/
 /***************************************************************************************************/
-Static Function DNGFEA01B(_cDoc,_cSerie,_cCliente,_cLoja,_dDTSaida,_nLeadT,_cFileWF,_cIdProcess)
+Static Function DNGFEA01B(_cDoc,_cSerie,_cCliente,_cLoja,_dDTSaida,_nLeadT,_dDTPrev,_cFileWF,_cIdProcess)
 Local _oProcess     := Nil 
 Local _oHtml        := Nil 
 
@@ -123,6 +151,8 @@ Local _nDiasTi      := GetMv("DN_DIASTI",,0)
 Local _nHorasTi     := GetMv("DN_HORATI",,24)
 Local _nMinuTi      := GetMv("DN_MINUTI",,0)
 Local _nDiasLead    := 0
+
+Local _dDTPrazo     := ""
 
 //----------------------+
 // SF2 - Notas de Saida |
@@ -182,9 +212,10 @@ While SD2->( !Eof() .And. xFilial("SD2") + _cDoc + _cSerie == SD2->D2_FILIAL + S
     SD2->( dbSkip() )
 EndDo 
 
-_nDiasLead := IIF(_nLeadT > 0, _nLeadT, _nDiasAg)
-_oHtml:ValbyName("dt_min", SubStr(FwTimeStamp(3,DaySum(_dDTSaida,1)),1,10)  )
-_oHtml:ValbyName("dt_max", SubStr(FwTimeStamp(3,DaySum(_dDTSaida,_nDiasLead)),1,10) )
+_nDiasLead := _nDiasAg
+_dDTPrazo  := IIF( Empty(_dDTPrev), _dDTSaida, _dDTPrev)
+_oHtml:ValbyName("dt_min", SubStr(FwTimeStamp(3,DaySum(_dDTPrazo,1)),1,10)  )
+_oHtml:ValbyName("dt_max", SubStr(FwTimeStamp(3,DaySum(_dDTPrazo,_nDiasLead)),1,10) )
 
 _oProcess:cTo 			:= Nil
 _oProcess:bReturn		:= "U_DNGFEA02()"
@@ -355,4 +386,20 @@ Else
     Conout("<< DNGFEA01 >> - Erro ao Conectar ! ")
 EndIf
 
+Return Nil 
+
+/****************************************************************************************/
+/*/{Protheus.doc} DnGfeA01E
+    @descritpion Recalcula a previsão de entrega
+    @type  Static Function
+    @author Bernard M Margarido
+    @since 05/09/2022
+/*/
+/****************************************************************************************/
+Static Function DnGfeA01E(_cFilial,_cNumRom)
+Local _aArea    := GetArea() 
+
+    PrevEntreg(_cFilial, _cNumRom, Date(), Left(Time(),5))
+
+RestArea(_aArea)
 Return Nil 

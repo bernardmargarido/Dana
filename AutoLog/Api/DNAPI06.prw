@@ -378,6 +378,8 @@ While (cAlias)->( !Eof() )
 	aAdd(oJson[#"nfe"],Array(#))
 	oNFE := aTail(oJson[#"nfe"])
 	
+	_aProdutos	:= {}
+
 	cFilAtu		:= (cAlias)->FILIAL
 	cDoc 		:= (cAlias)->NOTA
 	cSerieNf	:= (cAlias)->SERIE
@@ -409,20 +411,25 @@ While (cAlias)->( !Eof() )
 		cFilAnt := cFilAtu
 	EndIf
 
+	LogExec("<< NFENTRADA >> - ENVIANDO NOTA " + RTrim(cDoc) + " SERIE " + RTrim(cSerieNf) )
+
 	If SD1->( dbSeek(xFilial("SD1") + cDoc + cSerieNf + cCodForn + cLoja) )
 
 		While SD1->( !Eof() .And. xFilial("SD1") + cDoc + cSerieNf + cCodForn + cLoja == SD1->D1_FILIAL + SD1->D1_DOC + SD1->D1_SERIE + SD1->D1_FORNECE + SD1->D1_LOJA )
 			
+			LogExec("<< NFENTRADA >> - ITEM " + SD1->D1_ITEM + " PRODUTO " + SD1->D1_COD + " QUANTIDADE " + Transform(SD1->D1_QUANT,PesqPict("SD1","D1_QUANT")) )
+
 			//-------------------+
 			// Posiciona produto |
 			//-------------------+
 			If SB1->( dbSeek(xFilial("SB1") + SD1->D1_COD) )
+
 				//-------------------------+
 				// Somente produto acabado |
 				//-------------------------+
 				If RTrim(SB1->B1_TIPO) $ 'PA/MR'
 					
-					If ( _nPProd := aScan(_aProdutos,{|x| RTrim(x[2]) == RTrim(SD1->D1_COD)}) > 0 )
+					If ( _nPProd := aScan(_aProdutos,{|x| RTrim(x[2]) == RTrim(SD1->D1_COD)}) ) > 0 
 						_aProdutos[_nPProd][3] += SD1->D1_QUANT
 					Else 
 						aAdd(_aProdutos,{SD1->D1_ITEM,SD1->D1_COD,SD1->D1_QUANT,SD1->D1_UM,SD1->D1_LOTECTL,SD1->D1_DTVALID,SD1->D1_LOCAL})
@@ -530,6 +537,7 @@ Local _cLote	:= ""
 Local _nQtdConf	:= 0
 Local _nNFE		:= 0
 Local _nPProd	:= 0
+Local _nX		:= 0
 
 Local _aDiverg	:= {}
 Local _aProdutos:= {}
@@ -623,28 +631,33 @@ For _nNFE := 1 To Len(_oItNFE)
 		If ( _nPProd := aScan(_aProdutos,{|x| RTrim(x[2]) == RTrim(SD1->D1_COD)}) > 0 )
 			_aProdutos[_nPProd][3] += SD1->D1_QUANT
 		Else 
-			aAdd(_aProdutos,{SD1->D1_ITEM,SD1->D1_COD,_nQtdConf,SD1->D1_UM,SD1->D1_LOTECTL,SD1->D1_DTVALID,SD1->D1_LOCAL})
+			aAdd(_aProdutos,{SD1->D1_ITEM,SD1->D1_COD,_nQtdConf,SD1->D1_LOTECTL,SD1->D1_LOCAL,SD1->D1_UM,SD1->D1_DTVALID})
 		EndIf 
 	EndIf			
 		
 Next _nNFE
 
 If Len(_aProdutos) > 0 
-		//---------------------+
-		// Quantidade a Maior  |
-		//---------------------+
-		If _nQtdConf <> SD1->D1_QUANT
-			//-------------------+
-			// Array Divergencia |
-			//-------------------+
-		 	aAdd(_aDiverg,{ SD1->D1_ITEM		,;	// 1 - Item Pre Nota
-		 					SD1->D1_COD			,;	// 2 - Codigo do Produto
-							_nQtdConf			,;	// 3 - Quantidade Transferida
-							SD1->D1_LOTECTL		,;	// 4 - Lote Produto
-							SD1->D1_LOCAL		})	// 5 - Armazem 	
-		EndIf
-EndIf 
 
+	For _nX := 1 To Len(_aProdutos)
+
+		If SD1->( dbSeek(xFilial("SD1") + _cNota + _cSerie + _cCodFor + _cLojafor + _aProdutos[_nX][2] + _aProdutos[_nX][1] ) )
+			//---------------------+
+			// Quantidade a Maior  |
+			//---------------------+
+			If _aProdutos[_nX][3] <> SD1->D1_QUANT
+				//-------------------+
+				// Array Divergencia |
+				//-------------------+
+				aAdd(_aDiverg,{ SD1->D1_ITEM		,;	// 1 - Item Pre Nota
+								SD1->D1_COD			,;	// 2 - Codigo do Produto
+								_nQtdConf			,;	// 3 - Quantidade Transferida
+								SD1->D1_LOTECTL		,;	// 4 - Lote Produto
+								SD1->D1_LOCAL		})	// 5 - Armazem 	
+			EndIf
+		EndIf 
+	Next _nX 
+EndIf 
 
 If _lContinua
 	//---------------------------------------------------+
@@ -652,7 +665,7 @@ If _lContinua
 	//---------------------------------------------------+
 	If Len(_aDiverg) > 0
 
-		DnaApi06P(_cNota,_cSerie,_cCodFor,_cLojafor,_aDiverg)
+		DnaApi06P(_cNota,_cSerie,_cCodFor,_cLojafor,_aDiverg,.T.)
 
 		//----------------------+	
 		// Log processo da nota |
@@ -671,6 +684,8 @@ If _lContinua
 			SF1->F1_XHRALT	:= Time()
 		SF1->( MsUnLock() )
 		
+		DnaApi06P(_cNota,_cSerie,_cCodFor,_cLojafor,_aProdutos,.F.)
+
 		//----------------------+	
 		// Log processo da nota |
 		//----------------------+
@@ -824,6 +839,7 @@ cQuery += "				F1.R_E_C_N_O_ RECNOSF1 " + CRLF
 cQuery += "			FROM " + CRLF
 cQuery += "				" + RetSqlName("SF1") + " F1 " + CRLF
 cQuery += "				INNER JOIN " + RetSqlName("SD1") + " D1 ON D1.D1_FILIAL = F1.F1_FILIAL AND D1.D1_DOC = F1.F1_DOC AND D1.D1_SERIE = F1.F1_SERIE AND D1.D1_FORNECE = F1.F1_FORNECE AND D1.D1_LOJA = F1.F1_LOJA AND D1.D1_PEDIDO <> '' AND D1.D1_ITEMPC <> '' AND D1.D_E_L_E_T_ = '' " + CRLF
+cQuery += "				INNER JOIN " + RetSqlName("SB1") + " B1 ON B1.B1_FILIAL = D1.D1_FILIAL AND B1.B1_COD = D1.D1_COD AND B1.B1_TIPO IN('PA','MR') AND B1.D_E_L_E_T_ = '' " + CRLF
 //cQuery += "				INNER JOIN " + RetSqlName("SD1") + " D1 ON D1.D1_FILIAL = F1.F1_FILIAL AND D1.D1_DOC = F1.F1_DOC AND D1.D1_SERIE = F1.F1_SERIE AND D1.D1_FORNECE = F1.F1_FORNECE AND D1.D1_LOJA = F1.F1_LOJA AND D1.D_E_L_E_T_ = '' " + CRLF
 //cQuery += "				INNER JOIN " + RetSqlName("SF4") + " F4 ON F4.F4_FILIAL = SD1.D1_FILIAL AND F4.F4_CODIGO = D1.D1_TES AND F4.F4_ESTOQUE = 'S' AND F4.D_E_L_E_T_ = '' " + CRLF 
 cQuery += "				INNER JOIN " + RetSqlName("SA2") + " A2 ON A2.A2_FILIAL = F1.F1_FILIAL AND A2.A2_COD = F1.F1_FORNECE AND A2.A2_LOJA = F1.F1_LOJA AND A2.D_E_L_E_T_ = '' " + CRLF
@@ -864,6 +880,7 @@ cQuery += "				F1.R_E_C_N_O_ RECNOSF1 " + CRLF
 cQuery += "			FROM " + CRLF
 cQuery += "				" + RetSqlName("SF1") + " F1 " + CRLF
 cQuery += "				INNER JOIN " + RetSqlName("SD1") + " D1 ON D1.D1_FILIAL = F1.F1_FILIAL AND D1.D1_DOC = F1.F1_DOC AND D1.D1_SERIE = F1.F1_SERIE AND D1.D1_FORNECE = F1.F1_FORNECE AND D1.D1_LOJA = F1.F1_LOJA AND D1.D_E_L_E_T_ = '' " + CRLF
+cQuery += "				INNER JOIN " + RetSqlName("SB1") + " B1 ON B1.B1_FILIAL = D1.D1_FILIAL AND B1.B1_COD = D1.D1_COD AND B1.B1_TIPO IN('PA','MR') AND B1.D_E_L_E_T_ = '' " + CRLF
 //cQuery += "				INNER JOIN " + RetSqlName("SF4") + " F4 ON F4.F4_FILIAL = SD1.D1_FILIAL AND F4.F4_CODIGO = D1.D1_TES AND F4.F4_ESTOQUE = 'S' AND F4.D_E_L_E_T_ = '' " + CRLF 
 cQuery += "				INNER JOIN " + RetSqlName("SA1") + " A1 ON A1.A1_FILIAL = '" + xFilial("SA1") + "' AND A1.A1_COD = F1.F1_FORNECE AND A1.A1_LOJA = F1.F1_LOJA AND A1.D_E_L_E_T_ = '' " + CRLF
 cQuery += "			WHERE " + CRLF
@@ -998,7 +1015,7 @@ Return .T.
 	@type function
 /*/
 /*************************************************************************************/
-Static Function DnaApi06P(_cNota,_cSerie,_cCodFor,_cLojafor,_aDiverg)
+Static Function DnaApi06P(_cNota,_cSerie,_cCodFor,_cLojafor,_aDiverg,_lErro)
 Local aArea			:= GetArea()
 
 Local lRet			:= .T.
@@ -1007,7 +1024,7 @@ Local _lEstorna		:= GetNewPar("DN_DELNFE",.T.)
 //--------------+
 // Envia e-Mail |
 //--------------+
-U_DnMailNf(_cNota,_cSerie,_cCodFor,_cLojafor,_aDiverg)
+U_DnMailNf(_cNota,_cSerie,_cCodFor,_cLojafor,_aDiverg,_lErro)
 
 //---------------------------------+
 // Posiciona Cabeçalho da Pre Nota |
@@ -1038,7 +1055,7 @@ EndIf
 //------------------+
 // Estorna pre nota |
 //------------------+
-If _lEstorna
+If _lEstorna .And. _lErro
 	LogExec("ESTORNANDO PRE NOTA COM DIVERGENCIA.")
 	lRet := u_DNEstM01(_cNota,_cSerie,_cCodFor,_cLojafor)
 Else

@@ -484,6 +484,55 @@ aAdd( aSX3, { ;
 	{ ''																	, .T. }, ; //X3_MODAL
 	{ ''																	, .T. }} ) //X3_PYME
 
+aAdd( aSX3, { ;
+	{ 'GW1'																	, .T. }, ; //X3_ARQUIVO
+	{ '68'																	, .T. }, ; //X3_ORDEM
+	{ 'GW1_XSTAT'															, .T. }, ; //X3_CAMPO
+	{ 'D'																	, .T. }, ; //X3_TIPO
+	{ 8																		, .T. }, ; //X3_TAMANHO
+	{ 0																		, .T. }, ; //X3_DECIMAL
+	{ 'Sta. Agend'															, .T. }, ; //X3_TITULO
+	{ 'Sta. Agend'															, .T. }, ; //X3_TITSPA
+	{ 'Sta. Agend'															, .T. }, ; //X3_TITENG
+	{ 'Status Agendamento'													, .T. }, ; //X3_DESCRIC
+	{ 'Status Agendamento'													, .T. }, ; //X3_DESCSPA
+	{ 'Status Agendamento'													, .T. }, ; //X3_DESCENG
+	{ ''																	, .T. }, ; //X3_PICTURE
+	{ ''																	, .T. }, ; //X3_VALID
+	{ Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(128) + ;
+	Chr(128) + Chr(128) + Chr(128) + Chr(128) + Chr(160)					, .T. }, ; //X3_USADO
+	{ ''																	, .T. }, ; //X3_RELACAO
+	{ ''																	, .T. }, ; //X3_F3
+	{ 0																		, .T. }, ; //X3_NIVEL
+	{ Chr(254) + Chr(192)													, .T. }, ; //X3_RESERV
+	{ ''																	, .T. }, ; //X3_CHECK
+	{ ''																	, .T. }, ; //X3_TRIGGER
+	{ 'U'																	, .T. }, ; //X3_PROPRI
+	{ 'N'																	, .T. }, ; //X3_BROWSE
+	{ 'V'																	, .T. }, ; //X3_VISUAL
+	{ 'R'																	, .T. }, ; //X3_CONTEXT
+	{ ''																	, .T. }, ; //X3_OBRIGAT
+	{ ''																	, .T. }, ; //X3_VLDUSER
+	{ '1=Pendente de Envio;2=Aguardando Agendamento;3=Agendado'				, .T. }, ; //X3_CBOX
+	{ '1=Pendente de Envio;2=Aguardando Agendamento;3=Agendado'				, .T. }, ; //X3_CBOXSPA
+	{ '1=Pendente de Envio;2=Aguardando Agendamento;3=Agendado'				, .T. }, ; //X3_CBOXENG
+	{ ''																	, .T. }, ; //X3_PICTVAR
+	{ ''																	, .T. }, ; //X3_WHEN
+	{ ''																	, .T. }, ; //X3_INIBRW
+	{ ''																	, .T. }, ; //X3_GRPSXG
+	{ ''																	, .T. }, ; //X3_FOLDER
+	{ ''																	, .T. }, ; //X3_CONDSQL
+	{ ''																	, .T. }, ; //X3_CHKSQL
+	{ ''																	, .T. }, ; //X3_IDXSRV
+	{ 'N'																	, .T. }, ; //X3_ORTOGRA
+	{ ''																	, .T. }, ; //X3_TELA
+	{ ''																	, .T. }, ; //X3_POSLGT
+	{ 'N'																	, .T. }, ; //X3_IDXFLD
+	{ ''																	, .T. }, ; //X3_AGRUP
+	{ ''																	, .T. }, ; //X3_MODAL
+	{ ''																	, .T. }} ) //X3_PYME
+
 //
 // Campos Tabela SA1
 //
