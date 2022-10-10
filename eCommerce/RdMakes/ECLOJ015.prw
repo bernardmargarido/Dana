@@ -15,7 +15,7 @@
     @description Cadastro de Lojas e-Commerce
     @type  Function
     @author Bernard M Margarido
-    @since 11/08/2022
+    @since 11/08/2022Admin  
     @version version
 /*/
 /************************************************************************************************/
