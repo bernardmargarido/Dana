@@ -556,6 +556,56 @@ EndIf
 Return _lRet
 
 /*********************************************************************************/
+/*/{Protheus.doc} AEcoI01D
+	@description Consulta categoria no e-Commerce
+	@author Bernard M. Margarido
+	@since 13/05/2019
+	@version undefined
+	@type function
+/*/
+/*********************************************************************************/
+Static Function AEcoI01D(_cLojaID,_cUrl,_cAppKey,_cAppToken,_cDedscCat,_cRest)
+Local cUrl			:= _cUrl
+Local cUsrVTex		:= _cAppKey
+Local cPswVTex		:= _cAppToken
+
+Local _lRet			:= .F.
+
+Local oWsCateg		:= Nil
+
+//------------------+
+// Instancia Classe |
+//------------------+
+oWsCateg 			:= WSVTex():New() 
+
+//---------------------+
+// Parametros de Envio |
+//---------------------+
+oWsCateg:_URL 		:= cUrl
+oWsCateg:_HEADOUT 	:= {}	
+
+//---------------------------------------------+
+// Adiciona Usuario e Senha para autenticação. |
+//---------------------------------------------+
+aAdd(oWsCateg:_HEADOUT, "Authorization: Basic " + Encode64(cUsrVTex + ":" + cPswVTex) )
+
+oWsCateg:cnameCategory	:= RTrim(_cDedscCat)
+
+//--------------------+
+// Consulta Categoria |
+//--------------------+
+WsdlDbgLevel(3)
+If oWsCateg:CategoryGetByName()  
+	If ValType(oWsCateg:oWSCategoryGetByNameResult:nId) <> "U"
+		_lRet := .T.
+	EndIf
+Else
+	_lRet := .F.
+EndIf
+
+Return _lRet
+
+/*********************************************************************************/
 /*/{Protheus.doc} AEcoI01K
 	@description Consulta ID produto pai 
 	@type  Static Function

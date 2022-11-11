@@ -16,13 +16,14 @@ Local _cFilWMS	:= GetNewPar("DN_FILWMS","05,06")
 Local _cFilMSL  := GetNewPar("DN_FILMSL","07")
 
 Local _lAtvWMS	:= GetNewPar("DN_ATVWSM",.T.)
+Local _lEstClas := SF1->F1_XESTCLA
 
 If !_lAtvWMS .Or. cFilAnt $ _cFilMSL
 	RestArea(_aArea)
 	Return .T.
 EndIf
 
-If !INCLUI .And. SF1->F1_XENVWMS $ "1/2"
+If !INCLUI .And. SF1->F1_XENVWMS $ "1/2" .And. !_lEstClas
 	MsgStop("Não é possivel classificar a nota " + SF1->F1_DOC + " Serie " + SF1->F1_SERIE + ". Aguardando conferencia WMS." )
 	RestArea(_aArea)
 	Return .F.

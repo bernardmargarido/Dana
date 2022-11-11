@@ -12,7 +12,7 @@
 User Function ECLOJ019()
 Local _aParamBox    := {}
 Local _aRet         := {}
-Local _aTpProd      := {"Produto","SKU"}
+Local _aTpProd      := {"Produto","SKU","Categorias"}
 
 Local _nTpProd      := 0
 
@@ -25,7 +25,7 @@ If cFilAnt <> _cFilEcom
 EndIf 
 
 
-aAdd(_aParamBox,{2, "Tipo de Produto"           ,"1", _aTpProd,080,,.T.})
+aAdd(_aParamBox,{2, "Cadastro"                  ,"1", _aTpProd,080,,.T.})
 aAdd(_aParamBox,{1, "Loja eCommerce"            , Space(TamSx3("XTC_CODIGO")[1])   , PesqPict("XTC","XTC_CODIGO")       , "", "IDLOJA"     , "", 80     , .F.})
 
 If ParamBox(_aParamBox,"Atualiza ID eCommerce",@_aRet,,,,,,,,.T.)
@@ -99,6 +99,11 @@ If _nTpProd == 1
 //-----+
 ElseIf _nTpProd == 2
     FwMsgRun(,{|_oSay| ECLOJ019C(_oSay,_cLojaID,_cUrl,_cAppKey,_cAppToken)},"Aguarde...","Atualizando ID dos sku's")
+//------------+
+// Categorias |
+//------------+
+ElseIf _nTpProd == 3
+    FwMsgRun(,{|_oSay| ECLOJ019D(_oSay,_cLojaID,_cUrl,_cAppKey,_cAppToken)},"Aguarde...","Atualizando ID das categorias's")
 EndIf 
 
 RestArea(_aArea)
@@ -193,6 +198,57 @@ While SB5->( !Eof() .And. xFilial("SB5") == SB5->B5_FILIAL)
 
     EndIf  
     SB5->( dbSkip() )
+EndDo 
+
+Return Nil 
+
+/***********************************************************************************************************/
+/*/{Protheus.doc} ECLOJ019D
+    @description Atualiza dados dos ID's das categorias
+    @type  Static Function
+    @author Bernard M Margarido
+    @since 22/08/2022
+    @version version
+/*/
+/***********************************************************************************************************/
+Static Function ECLOJ019D(_oSay,_cLojaID,_cUrl,_cAppKey,_cAppToken)
+//Local _cRest     := ""
+
+Local _lRet      := .T.
+
+Local _oDanaEcom := Nil  
+//Local _oJSon     := JSonObject():New() 
+
+If _cLojaID $ "002"
+    Return .T.
+EndIf 
+
+dbSelectArea("AY0")
+AY0->( dbSetOrder(1) )
+AY0->( dbGoTop() )
+While AY0->( !Eof() .And. xFilial("AY0") == AY0->AY0_FILIAL)
+    If RTrim(AY0->AY0_CODIGO) <> "000" 
+        _cCodigo    := AY0->AY0_CODIGO
+        _cDedscCat  := MsMm(AY0->AY0_CODDES)
+
+        _oSay:cCaption := "Consultando Categoria " + RTrim(_cCodigo) + " - " + _cDedscCat 
+        ProcessMessages()
+
+        If _lRet 
+            //_oJSon:fromJson(_cRest)
+            _nIDCat := AY0->AY0_XIDCAT
+
+            _oDanaEcom 			:= DanaEcom():New()
+            _oDanaEcom:cLojaID	:= _cLojaID
+            _oDanaEcom:cAlias	:= "AY0"
+            _oDanaEcom:cCodErp	:= _cCodigo
+            _oDanaEcom:nID		:= _nIDCat
+            _oDanaEcom:GravaID()
+
+        EndIf  
+        */
+    EndIf 
+    AY0->( dbSkip() )
 EndDo 
 
 

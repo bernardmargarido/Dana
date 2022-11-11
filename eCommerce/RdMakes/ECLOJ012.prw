@@ -729,7 +729,8 @@ SC5->(dbSeek(xFilial("SC5") + _cNumPv) )
 If !lMsErroAuto .And. !_lBloq
 	_lRet   := .T.
 Else
-	MostraErro("/erros/" + "SC5_LIB" + _cNumPv )
+    LogExec("ERRO AO LIBERAR PEDIDO " + _cNumPv)
+	//MostraErro("/erros/" + "SC5_LIB" + _cNumPv )
 	_lRet   := .F.
 EndIf
 

@@ -5,15 +5,11 @@
 
 /************************************************************************************/
 /*/{Protheus.doc} ECLOJ004
-
-@description Filtros e-Commerce
-
-@author Bernard M. Margarido
-
-@since 29/04/2019
-@version undefined
-
-@type function
+    @description Filtros e-Commerce
+    @author Bernard M. Margarido
+    @since 29/04/2019
+    @version undefined
+    @type function
 /*/
 /************************************************************************************/
 User Function ECLOJ004()

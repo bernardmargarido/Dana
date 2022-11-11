@@ -47,6 +47,7 @@ Static nTItemL2	:= TamSx3("WSB_ITEM")[1]
 Static nDecIt	:= TamSx3("WSB_VLRITE")[2]
 Static nTamStat	:= TamSx3("WS1_DESCVT")[1]
 Static nTamOper	:= TamSx3("WS4_CODIGO")[1]
+Static _nTEst	:= TamSx3("A1_EST")[1]
 
 /**************************************************************************************************/
 /*/{Protheus.doc} AECOI011
@@ -177,6 +178,7 @@ While XTC->( !Eof() )
 	//----------------------+
 	// Somente lojas ativas |
 	//----------------------+
+	aOrderId := {}			
 	If XTC->XTC_STATUS == "1"
 
 		//--------------------------------+
@@ -887,7 +889,11 @@ Local cIdEnd		:= ""
 // Acerta endereço no padrao protheus |
 //------------------------------------+
 cMunicipio	:= IIF(ValType(oEndereco:City) <> "U", AllTrim(u_ECACENTO(DecodeUtf8(oEndereco:City),.T.)), "")
-cEstado		:= IIF(ValType(oEndereco:State) <> "U", Upper(oEndereco:State), "")
+If ValType(oEndereco:State) <> "U" .And. Len(Alltrim(oEndereco:State)) > 2
+	cEstado 	:= AEcoI11UF(oEndereco:State)
+Else 
+	cEstado		:= IIF(ValType(oEndereco:State) <> "U", Upper(oEndereco:State), "")
+EndIf 
 cComplem	:= IIF(ValType(oEndereco:Complement) <> "U", AllTrim(u_ECACENTO(DecodeUtf8(oEndereco:Complement),.T.)), "")
 cPais		:= IIF(ValType(oEndereco:Country) <> "U", oEndereco:Country, "")
 cBairro		:= IIF(ValType(oEndereco:NeighBorhood) <> "U", AllTrim(u_ECACENTO(DecodeUtf8(oEndereco:NeighBorhood),.T.)), "")
@@ -920,6 +926,36 @@ aRet[IDENDE]	:= cIdEnd
 aRet[CONTAT]	:= cContato
 
 Return aRet
+
+/***********************************************************************************/
+/*/{Protheus.doc} AEcoI11UF
+	@description Retorna sigla do estoque de acordo com o nome
+	@type  Static Function
+	@author Bernard M Margarido
+	@since 11/10/2022
+	@version version
+/*/
+/***********************************************************************************/
+Static Function AEcoI11UF(_cEstado)
+Local _cNome := FWNoAccent(Upper(DecodeUTF8(_cEstado)))
+Local _cQuery:= ""
+Local _cAlias:= ""
+Local _cUF 	 := ""
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	X5_CHAVE " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += "	" + RetSqlName("SX5") + " " + CRLF
+_cQuery += " WHERE " + CRLF
+_cQuery += "	X5_TABELA = '12' AND " + CRLF
+_cQuery += "	X5_DESCRI LIKE '%" + _cNome + "%' AND " + CRLF
+_cQuery += "	D_E_L_E_T_ = '' "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+_cUF 	:= PadR((_cAlias)->X5_CHAVE,_nTEst)
+
+Return _cUF 
 
 /***********************************************************************************/
 /*/{Protheus.doc} EcCodMun

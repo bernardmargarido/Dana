@@ -2,14 +2,11 @@
 
 /********************************************************************************************/
 /*/{Protheus.doc} ECADDCPO
-
-@description Ponto de Entrada - Inserir novos campos no cadastro de clientes e-Commerce
-
-@author Bernard M. Margarido
-@since 29/05/2018
-@version 1.0
-
-@type function
+    @description Ponto de Entrada - Inserir novos campos no cadastro de clientes e-Commerce
+    @author Bernard M. Margarido
+    @since 29/05/2018
+    @version 1.0
+    @type function
 /*/
 /********************************************************************************************/
 User Function ECADDCPO()

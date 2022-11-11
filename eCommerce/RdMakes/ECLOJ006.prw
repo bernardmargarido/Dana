@@ -5,15 +5,11 @@
 
 /************************************************************************************/
 /*/{Protheus.doc} ECLOJ006
-
-@description Produtos E-Commerce
-
-@author Bernard M. Margarido
-
-@since 29/04/2019
-@version undefined
-
-@type function
+    @description Produtos E-Commerce
+    @author Bernard M. Margarido
+    @since 29/04/2019
+    @version undefined
+    @type function
 /*/
 /************************************************************************************/
 User Function ECLOJ006()

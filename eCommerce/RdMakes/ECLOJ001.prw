@@ -3,13 +3,11 @@
 
 /*********************************************************************************/
 /*/{Protheus.doc} ECLOJ001
-
-@description Cadastro de Categorias
-
-@author Bernard M. Margarido    
-@since 23/04/2019
-@version 1.0
-@type function
+    @description Cadastro de Categorias
+    @author Bernard M. Margarido    
+    @since 23/04/2019
+    @version 1.0
+    @type function
 /*/
 /*********************************************************************************/
 User Function ECLOJ001()

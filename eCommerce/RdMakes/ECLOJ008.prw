@@ -5,15 +5,11 @@
 
 /************************************************************************************/
 /*/{Protheus.doc} ECLOJ008
-
-@description Operadoras pagamento eCommerce
-
-@author Bernard M. Margarido
-
-@since 29/04/2019
-@version undefined
-
-@type function
+    @description Operadoras pagamento eCommerce
+    @author Bernard M. Margarido
+    @since 29/04/2019
+    @version undefined
+    @type function
 /*/
 /************************************************************************************/
 User Function ECLOJ008()
@@ -45,15 +41,11 @@ Return Nil
 
 /************************************************************************************/
 /*/{Protheus.doc} ModelDef
-
-@description  Modelo de dados, estrutura dos dados e modelo de negocio
-
-@author Bernard M. Margarido
-
-@since 10/08/2017
-@version undefined
-
-@type function
+    @description  Modelo de dados, estrutura dos dados e modelo de negocio
+    @author Bernard M. Margarido
+    @since 10/08/2017
+    @version undefined
+    @type function
 /*/
 /************************************************************************************/
 Static Function ModelDef()
@@ -94,15 +86,11 @@ Return(oModel)
 
 /************************************************************************************/
 /*/{Protheus.doc} ViewDef
-
-@description Cria interface com o usuario
-
-@author Bernard M. Margarido
-
-@since 10/08/2017
-@version undefined
-
-@type function
+    @description Cria interface com o usuario
+    @author Bernard M. Margarido
+    @since 10/08/2017
+    @version undefined
+    @type function
 /*/
 /************************************************************************************/
 Static Function ViewDef() 
@@ -150,15 +138,11 @@ Return( oDefView )
 
 /************************************************************************************/
 /*/{Protheus.doc} SyVa08TdOk
-
-@description Valida registro
-
-@author Bernard M. Margarido
-@since 22/01/2018
-@version 1.0
-
-@param oModel, object, descricao
-@type function
+    @description Valida registro
+    @author Bernard M. Margarido
+    @since 22/01/2018
+    @version 1.0
+    @type function
 /*/
 /************************************************************************************/
 Static Function EcLoj08TOk(oModel)
@@ -168,15 +152,11 @@ Return lRet
 
 /************************************************************************************/
 /*/{Protheus.doc} MenuDef
-
-@description Menu padrao para manutencao do cadastro
-
-@author Bernard M. Margarido
-
-@since 10/08/2017
-@version undefined
-
-@type function
+    @description Menu padrao para manutencao do cadastro
+    @author Bernard M. Margarido
+    @since 10/08/2017
+    @version undefined
+    @type function
 /*/
 /************************************************************************************/
 Static Function MenuDef()

@@ -5,15 +5,11 @@
 
 /************************************************************************************/
 /*/{Protheus.doc} ECLOJ003
-
-@description Cadastro de Marcas
-
-@author Bernard M. Margarido
-
-@since 29/04/2019
-@version undefined
-
-@type function
+	@description Cadastro de Marcas
+	@author Bernard M. Margarido
+	@since 29/04/2019
+	@version undefined
+	@type function
 /*/
 /************************************************************************************/
 User Function ECLOJ003()

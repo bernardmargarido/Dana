@@ -11,7 +11,7 @@
 User Function DnFatM02(_nPrcVen, _nPerDesc, _nValDesc,_cCpo,_nPrcX)
 Local _lRet     := .T.
 
-Local _cUserAut := GetNewPar("DN_USRPRC")
+Local _cUserAut := GetNewPar("DN_USRPRC","000000")
 
 //-------------------------------+
 // Valida campo que foi alterado | 

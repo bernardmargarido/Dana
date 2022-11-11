@@ -12,15 +12,11 @@
 
 /************************************************************************************/
 /*/{Protheus.doc} ECLOJ014
-
-@description Complemento de Produtos e-Commerce
-
-@author Bernard M. Margarido
-
-@since 08/08/2019
-@version undefined
-
-@type function
+	@description Complemento de Produtos e-Commerce
+	@author Bernard M. Margarido
+	@since 08/08/2019
+	@version undefined
+	@type function
 /*/
 /************************************************************************************/
 User Function ECLOJ014()
@@ -67,15 +63,11 @@ Return Nil
 
 /************************************************************************************/
 /*/{Protheus.doc} ModelDef
-
-@description  Modelo de dados, estrutura dos dados e modelo de negocio
-
-@author Bernard M. Margarido
-
-@since 10/08/2017
-@version undefined
-
-@type function
+	@description  Modelo de dados, estrutura dos dados e modelo de negocio
+	@author Bernard M. Margarido
+	@since 10/08/2017
+	@version undefined
+	@type function
 /*/
 /************************************************************************************/
 Static Function ModelDef()
@@ -95,6 +87,21 @@ _oStruSB5:AddTrigger( 	'B5_COD' 	/*cIdField*/ ,;
 					 	'B5_CEME'	/*cTargetIdField*/ ,;  
 					 	{ || .T. } /*bPre*/ ,;
 					 	{ || Padr( Posicione("SB1",1,xFilial("SB1") + FwFldGet('B5_COD'),'B1_DESC'), TamSx3("B1_DESC")[1] ) } /*bSetValue*/ )
+
+_oStruWS6:AddTrigger( 	'WS6_CODIGO' /*cIdField*/ ,;
+					 	'WS6_CAMPO'	/*cTargetIdField*/ ,;  
+					 	{ || .T. } /*bPre*/ ,;
+					 	{ || Padr( Posicione("WS5",1,xFilial("WS5") + FwFldGet('WS6_CODIGO'),'WS5_CAMPO'), TamSx3("WS6_CAMPO")[1] ) } /*bSetValue*/ )
+
+_oStruAY5:AddTrigger( 	'AY5_CODIGO' /*cIdField*/ ,;
+					 	'AY5_DESCRI'/*cTargetIdField*/ ,;  
+					 	{ || .T. } /*bPre*/ ,;
+					 	{ || Padr( Posicione("AY3",1,xFilial("AY3") + FwFldGet('AY5_CODIGO'),'AY3_DESCRI'), TamSx3("AY5_DESCRI")[1] ) } /*bSetValue*/ )
+
+_oStruAY5:AddTrigger( 	'AY5_SEQ' /*cIdField*/ ,;
+					 	'AY5_VALOR'	/*cTargetIdField*/ ,;  
+					 	{ || .T. } /*bPre*/ ,;
+					 	{ || Padr( Posicione("AY4",1,xFilial("AY4") + FwFldGet('AY5_CODIGO') + FwFldGet('AY5_SEQ'),'AY4_VALOR'), TamSx3("AY5_VALOR")[1] ) } /*bSetValue*/ )
 
 //-------+
 // Model |
@@ -140,15 +147,11 @@ Return _oModel
 
 /************************************************************************************/
 /*/{Protheus.doc} ViewDef
-
-@description Cria interface com o usuario
-
-@author Bernard M. Margarido
-
-@since 10/08/2017
-@version undefined
-
-@type function
+	@description Cria interface com o usuario
+	@author Bernard M. Margarido
+	@since 10/08/2017
+	@version undefined
+	@type function
 /*/
 /************************************************************************************/
 Static Function ViewDef()
@@ -354,15 +357,11 @@ Return .T.
 
 /************************************************************************************/
 /*/{Protheus.doc} EcLoj014Fld
-
-@description Rotina desativa pastas SXA
-
-@author Bernard M. Margarido
-
-@since 10/08/2017
-@version undefined
-
-@type function
+	@description Rotina desativa pastas SXA
+	@author Bernard M. Margarido
+	@since 10/08/2017
+	@version undefined
+	@type function
 /*/
 /************************************************************************************/
 Static Function EcLoj014Fld(_oView)

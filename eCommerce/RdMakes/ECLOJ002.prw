@@ -6,14 +6,12 @@
 Static _nTCodCat    := TamSx3("AY0_CODIGO")[1]
 
 /*********************************************************************************/
-/*/{Protheus.doc} ECLOJ002
-
-@description Estrutura das Categorias
-
-@author Bernard M. Margarido    
-@since 23/04/2019
-@version 1.0
-@type function
+/*/{Proheus.doc} ECLOJ002
+    @description Estrutura das Categorias
+    @author Bernard M. Margarido    
+    @since 23/04/2019
+    @version 1.0
+    @type function
 /*/
 /*********************************************************************************/
 User Function ECLOJ002()

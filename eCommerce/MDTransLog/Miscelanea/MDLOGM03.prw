@@ -7,8 +7,6 @@
 
 #DEFINE CRLF CHR(13) + CHR(10)
 
-Static _nTCnpj := TamSx3("A1_CGC")[1]
-
 /***********************************************************************************/
 /*/{Protheus.doc} MDLOGM03
     @description Envia lista de postagem DLog
@@ -190,7 +188,7 @@ While (_cAlias)->( !Eof() )
 			_oNota := aTail(_oLista[#"listaOperacoes"])
 			_oNota[#"nroNotaFiscal"]											:= Val((_cAlias)->ZZC_NOTA)
             _oNota[#"serieNotaFiscal"]											:= Val((_cAlias)->ZZC_SERIE)
-            _oNota[#"dtEmissaoNotaFiscal"]										:= FWTimeStamp(3,sTod((_cAlias)->F2_DAUTNFE),Time())
+            _oNota[#"dtEmissaoNotaFiscal"]										:= IIF(Empty((_cAlias)->F2_DAUTNFE), FWTimeStamp(3,Date(),Time()), FWTimeStamp(3,sTod((_cAlias)->F2_DAUTNFE),Time()))
 			_oNota[#"chaveNotaFiscal"]											:= RTrim((_cAlias)->F2_CHVNFE)
 			_oNota[#"nroCarga"]													:= Nil 
 			_oNota[#"nroPedido"]												:= RTrim((_cAlias)->ZZC_NUMSC5)

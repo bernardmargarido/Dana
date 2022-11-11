@@ -19,7 +19,9 @@ Local cDoc		:= ParamIxb[2]
 Local cSerie	:= ParamIxb[3]
 Local cCodFor	:= ParamIxb[4]
 Local cLoja		:= ParamIxb[5]
-Local cTpNota	:= ParamIxb[6]
+//Local cTpNota	:= ParamIxb[6]
+
+Local _lEstClas := SF1->F1_XESTCLA
 
 If nOpcX == 2 .Or. nOpcA <> 1 
 	RestArea(aArea)
@@ -43,7 +45,7 @@ If SF1->F1_TIPO $ "N/D/B"
 	RecLock("SF1",.F.)
 		SF1->F1_XDTALT	:= dDataBase 
 		SF1->F1_XHRALT 	:= Time()
-		SF1->F1_XENVWMS	:= "1"
+		SF1->F1_XENVWMS	:= IIF(_lEstClas,SF1->F1_XENVWMS,"1")
 	SF1->( MsUnLock() )	
 EndIf
 
