@@ -319,6 +319,7 @@ _cQuery += "	A1.A1_PESSOA, " + CRLF
 _cQuery += "	A1.A1_CGC, " + CRLF
 _cQuery += "	A1.A1_INSCR, " + CRLF
 _cQuery += "	A1.A1_EMAIL, " + CRLF
+_cQuery += "	A1.A1_NOME, " + CRLF
 _cQuery += "	WSA.WSA_NOMDES, " + CRLF
 _cQuery += "	WSA.WSA_ENDENT, " + CRLF
 _cQuery += "	WSA.WSA_ENDNUM, " + CRLF

@@ -3740,16 +3740,12 @@ Return nValor
 
 /*******************************************************************************/
 /*/{Protheus.doc} AEcoI11IP
-
-@description Retorna ID do serviço de Postagem
-
-@author Bernard M. Margarido
-@since 09/02/2017
-@version undefined
-
-@param cIdTran	, characters	, ID da Transportadora
-
-@type function
+	@description Retorna ID do serviço de Postagem
+	@author Bernard M. Margarido
+	@since 09/02/2017
+	@version undefined
+	@param cIdTran	, characters	, ID da Transportadora
+	@type function
 /*/
 /*******************************************************************************/
 Static Function AEcoI11IP(cIdTran,cCodAfili,cCodTransp,cIdPost,_cIdServ)
@@ -3764,14 +3760,11 @@ Return .T.
 
 /***************************************************************/
 /*/{Protheus.doc} AEcoI11TR
-
-@description Valida se Transportadora Propria
-
-@author Bernard M. Margarido
-@since 08/03/2017
-@version undefined
-
-@type function
+	@description Valida se Transportadora Propria
+	@author Bernard M. Margarido
+	@since 08/03/2017
+	@version undefined
+	@type function
 /*/
 /***************************************************************/
 Static Function AEcoI11TR(cIdTran,cCodTransp,_cIdServ)
@@ -3780,8 +3773,6 @@ Local cAlias	:= GetNextAlias()
 Local cQuery 	:= ""
 Local cIdPost	:= ""
 
-
-
 cQuery := " SELECT " + CRLF  
 cQuery += "		COD_TRANSP, " + CRLF  
 cQuery += "		ZZ0_IDSER " + CRLF  
@@ -3789,13 +3780,15 @@ cQuery += " FROM " + CRLF
 cQuery += " ( " + CRLF  
 cQuery += "		SELECT " + CRLF  
 cQuery += "			ZZ7.ZZ7_TRANSP COD_TRANSP, " + CRLF
-cQuery += "			'' ZZ0_IDSER " + CRLF
+cQuery += "			COALESCE(ZZ0.ZZ0_IDSER,'') ZZ0_IDSER " + CRLF
 cQuery += "		FROM " + CRLF
 cQuery += "			" + RetSqlName("ZZ7") + " ZZ7 " + CRLF  
+cQuery += "			LEFT JOIN " + RetSqlName("ZZ0") + " ZZ0 ON ZZ0.ZZ0_FILIAL = '" + xFilial("ZZ0") + "' AND ZZ0.ZZ0_CODECO = ZZ7.ZZ7_TRANSP AND ZZ0.D_E_L_E_T_ = '' " + CRLF 
 cQuery += "		WHERE " + CRLF 
 cQuery += "			ZZ7.ZZ7_FILIAL = '" + xFilial("ZZ7") + "' AND " + CRLF 
 cQuery += "			UPPER(ZZ7.ZZ7_IDECOM) = '" + Upper(cIdTran) + "' AND " + CRLF
 cQuery += "			ZZ7.D_E_L_E_T_ = '' "  + CRLF  
+/*
 cQuery += "		UNION ALL " + CRLF  
 cQuery += "		SELECT " + CRLF  
 cQuery += "			A4.A4_COD COD_TRANSP, " + CRLF
@@ -3807,6 +3800,7 @@ cQuery += "		WHERE " + CRLF
 cQuery += "			A4.A4_FILIAL = '" + xFilial("SA4") + "' AND " + CRLF 
 cQuery += "			UPPER(A4.A4_ECSERVI) = '" + Upper(cIdTran) + "' AND " + CRLF
 cQuery += "			A4.D_E_L_E_T_ = '' " + CRLF
+*/
 cQuery += " ) TRANSP " 
 
 dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)

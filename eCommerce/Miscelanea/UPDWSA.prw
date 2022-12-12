@@ -20,7 +20,7 @@ _cQuery += " WHERE "
 _cQuery += "	WSA.WSA_FILIAL = '06' AND "
 _cQuery += "	WSA.D_E_L_E_T_ = '' "
 */
-
+/*
 _cQuery := " UPDATE XTA010 SET XTA_STATUS = '2'"
 _cQuery += " FROM " 
 _cQuery += "    XTA010 XTA "
@@ -28,6 +28,16 @@ _cQuery += "	INNER JOIN SE1010 E1 ON E1.E1_FILORIG = XTA.XTA_FILIAL AND E1.E1_XT
 _cQuery += " WHERE "
 _cQuery += "	XTA.XTA_FILIAL = '06' AND "
 _cQuery += "	XTA.D_E_L_E_T_ = '' "
+*/
+
+_cQuery := " UPDATE SE1010 SET E1_NUMLIQ = '000007', E1_XSERIE = 'YYY' "
+_cQuery += " FROM "
+_cQuery += "	SE5010 E5 (NOLOCK) "
+_cQuery += "	LEFT JOIN SE1010 E1 (NOLOCK) ON E1.E1_NUM = E5.E5_NUMERO AND E1.E1_PREFIXO = E5.E5_PREFIXO AND E1.E1_PARCELA = E5.E5_PARCELA AND E1.D_E_L_E_T_ = '' "
+_cQuery += " WHERE "
+_cQuery += "	E5_PREFIXO = 'ECO' AND "
+_cQuery += "	E5_DOCUMEN = '000007' AND " 
+_cQuery += "	E5.D_E_L_E_T_ = '' "
 
 TCSqlExec(_cQuery)
 

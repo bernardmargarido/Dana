@@ -263,6 +263,7 @@ Local cPassword := GetMv("MV_RELAPSW")
 Local cFrom		:= GetMv("MV_RELACNT")
 
 Local cMail		:= GetNewPar("DN_MAILWMS","bernard.modesto@alfaerp.com.br;bernard.margarido@gmail.com")
+Local cMailC 	:= GetNewPar("DN_MAILNEC","bernard.modesto@alfaerp.com.br;bernard.margarido@gmail.com")
 Local cTitulo	:= IIF(_lError,"Dana - Divergencia recebimento.","Dana - Confirmação de recebimento.")
 Local cHtml		:= ""
 
@@ -436,7 +437,7 @@ EndIf
 // se conseguiu atenticar para enviar o e-mail                  |
 //--------------------------------------------------------------+
 If lOk
-	SEND MAIL FROM cFrom TO cMail SUBJECT cTitulo BODY cHtml RESULT lEnviado 
+	SEND MAIL FROM cFrom TO IIF(_lError,cMail,cMailC) SUBJECT cTitulo BODY cHtml RESULT lEnviado 
 Else
 	Conout("Erro ao Conectar ! ")
 Endif			

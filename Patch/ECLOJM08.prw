@@ -104,13 +104,11 @@ Local _cAlias   := ""
 
 Local _oJSon    := JsonObject():New()
 
-Private _cType  := ""
-
 _cTracking      := ""
 
 _cQuery := " SELECT " + CRLF
 _cQuery += "	ZZC_NUMECO, " + CRLF
-_cQuery += "	CAST(CAST(ZZC_JSON AS BINARY(2048)) AS VARCHAR(2048)) JSON_ZZC " + CRLF
+_cQuery += "	CAST(CAST(ZZC_JSON AS BINARY(1024)) AS VARCHAR(1024)) JSON_ZZC " + CRLF
 _cQuery += " FROM " + CRLF
 _cQuery += "	" + RetSqlName("ZZC") + " " + CRLF
 _cQuery += " WHERE " + CRLF
@@ -122,11 +120,9 @@ _cAlias := MPSysOpenQuery(_cQuery)
 
 If !Empty((_cAlias)->JSON_ZZC)
     _oJSon:fromJson((_cAlias)->JSON_ZZC)
-    //_oJSon 	:= xFromJson(RTrim((_cAlias)->JSON_DLOG))
     If ValType(_oJSon) <> "U"
-        _cType := '_oJSon["linkRastreamento"]'
 		If ValType(_oJSon["linkRastreamento"]) <> "U"
-            _cTracking  := RTrim(_oJSon["linkRastreamento"])            
+            _cTracking  := RTrim(_oJSon[#"linkRastreamento"])
         EndIf 
     EndIf 
     FreeObj(_oJSon)

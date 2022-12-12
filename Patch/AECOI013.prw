@@ -273,7 +273,7 @@ Private _cType	:= ""
 _cQuery := " SELECT " + CRLF
 _cQuery	+= "	ZZC.R_E_C_N_O_ RECNOZZC, " + CRLF
 _cQuery	+= "	ZZC.ZZC_STATUS STATUS, " + CRLF
-_cQuery	+= "	CAST(CAST( ZZC.ZZC_JSON AS BINARY(2048)) AS VARCHAR(2048)) JSON_DLOG " + CRLF
+_cQuery	+= "	CAST(CAST( ZZC.ZZC_JSON AS BINARY(1024)) AS VARCHAR(1024)) JSON_DLOG " + CRLF
 _cQuery	+= " FROM " + CRLF
 _cQuery	+= "	" + RetSqlName("ZZC") + " ZZC " + CRLF 
 _cQuery	+= " WHERE " + CRLF
@@ -287,7 +287,6 @@ If (_cAlias)->STATUS == "2" .And. !Empty((_cAlias)->JSON_DLOG)
 	//_oJSonUrl 	:= xFromJson(RTrim((_cAlias)->JSON_DLOG))
 	_oJSonUrl:fromJson(RTrim((_cAlias)->JSON_DLOG))
 	If ValType(_oJSonUrl) <> "U"
-		_cType := '_oJSonUrl["linkRastreamento"]'
 		If ValType(_oJSonUrl["linkRastreamento"]) <> "U"
 			cUrlTrack	:= _oJSonUrl["linkRastreamento"]
 			cTracking	:= SubStr(cUrlTrack,Rat("/",cUrlTrack) + 1)
