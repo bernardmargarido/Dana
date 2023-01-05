@@ -45,6 +45,8 @@ WSMETHOD GET WSRECEIVE CNPJ_CPF,CODIGO,LOJA,DATAHORA,PERPAGE,PAGE WSSERVICE CLIE
 Local aArea			:= GetArea()
 Local aRet			:= {.F.,""}
 
+Local _lRet 		:= .T.
+
 Local cCNPJ			:= IIF(Empty(::CNPJ_CPF),"",::CNPJ_CPF)
 Local cCodigo		:= IIF(Empty(::CODIGO),"",::CODIGO)
 Local cLoja			:= IIF(Empty(::LOJA),"",::LOJA)
@@ -52,63 +54,50 @@ Local cDataHora		:= IIF(Empty(::DATAHORA),"1900-01-01T00:00",::DATAHORA)
 Local cTamPage		:= ::PERPAGE
 Local cPage			:= ::PAGE
 
-//Local _nX			:= 0
-
-//Local _aGrpCom		:= FWAllGrpCompany()
-
 Private cArqLog		:= ""
 
 Private _lSA1Comp 	:= ( FWModeAccess("SA1",3) == "C" )
 Private _cFilWMS	:= FormatIn(GetNewPar("DN_FILWMS","05,06"),",")
 Private _lGrvJson	:= GetNewPar("DN_GRVJSON",.T.)
 
-//For _nX := 1 To Len(_aGrpCom)
+//------------------------------+
+// Inicializa Log de Integracao |
+//------------------------------+
+MakeDir(cDirRaiz)
+cArqLog := cDirRaiz + "CLIENTES" + cEmpAnt + cFilAnt + ".LOG"
+ConOut("")	
+LogExec(Replicate("-",80))
+LogExec("INICIA ENVIO DOS CLIENTES WMS - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
 
-//	RPCSetType(3)  
-//	RPCSetEnv(_aGrpCom[_nX], IIF(_aGrpCom[_nX] == "01","05","01"), Nil, Nil, "FRT")
+//--------------------+
+// Seta o contenttype |
+//--------------------+
+::SetContentType("application/json") 
 
-	//------------------------------+
-	// Inicializa Log de Integracao |
-	//------------------------------+
-	MakeDir(cDirRaiz)
-	cArqLog := cDirRaiz + "CLIENTES" + cEmpAnt + cFilAnt + ".LOG"
-	ConOut("")	
-	LogExec(Replicate("-",80))
-	LogExec("INICIA ENVIO DOS CLIENTES WMS - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
+//------------------+
+// Retorna clientes |
+//------------------+
+aRet := DnaApi01A(cCNPJ,cCodigo,cLoja,cDataHora,cTamPage,cPage) 
 
-	//--------------------+
-	// Seta o contenttype |
-	//--------------------+
-	::SetContentType("application/json") 
+//----------------+
+// Retorno da API |
+//----------------+
+If aRet[1]
+	::SetResponse(aRet[2])
+	_lRet := .T.
+	//HTTPSetStatus(200,"OK")
+Else
+	//::SetResponse(aRet[2])
+	SetRestFault(400,aRet[2],.T.)
+	_lRet := .F.
+EndIf	
 
-	//---------------------+
-	// Gera novo orçamento |
-	//---------------------+
-	aRet := DnaApi01A(cCNPJ,cCodigo,cLoja,cDataHora,cTamPage,cPage) 
+LogExec("FINALIZA ENVIO DOS CLIENTES WMS - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
+LogExec(Replicate("-",80))
+ConOut("")
 
-	//----------------+
-	// Retorno da API |
-	//----------------+
-	If aRet[1]
-		::SetResponse(aRet[2])
-		HTTPSetStatus(200,"OK")
-	Else
-		::SetResponse(aRet[2])
-		SetRestFault(400,aRet[2],.T.)
-	EndIf	
-
-	LogExec("FINALIZA ENVIO DOS CLIENTES WMS - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
-	LogExec(Replicate("-",80))
-	ConOut("")
-
-	//-------------------+
-	// Finaliza Ambiente |
-	//-------------------+
-	RpcClearEnv()
-
-//Next _nX 
 RestArea(aArea)
-Return .T.
+Return _lRet
 
 /************************************************************************************/
 /*/{Protheus.doc} DnaApi01A
@@ -123,7 +112,7 @@ Static Function DnaApi01A(cCNPJ,cCodigo,cLoja,cDataHora,cTamPage,cPage)
 Local aArea		:= GetArea()
 Local aRet		:= {.F.,""}
 
-Local cAlias	:= GetNextAlias()	
+Local cAlias	:= "" //GetNextAlias()	
 Local cRest		:= ""
 
 Local oJson		:= Nil
@@ -135,7 +124,7 @@ Private nTotQry	:= 0
 Default cTamPage:= "50" 
 Default cPage	:= "1" 
 
-If !DnaApiQry(cAlias,cCNPJ,cCodigo,cLoja,cDataHora,cTamPage,cPage)
+If !DnaApiQry(@cAlias,cCNPJ,cCodigo,cLoja,cDataHora,cTamPage,cPage)
 	
 	oJson			:= Array(#)
 	oJson[#"error"]	:= {}
@@ -312,7 +301,8 @@ cQuery += "	) CLIENTES " + CRLF
 cQuery += "	WHERE RNUM > " + cTamPage + " * (" + cPage + " - 1) " 
 cQuery += "	ORDER BY FILIAL,CODIGO "
 
-dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
+//dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
+cAlias := MPSysOpenQuery(cQuery)
 
 If (cAlias)->( Eof() )
 	LogExec("NAO EXISTEM DADOS PARA SEREM ENVIADOS.")
@@ -333,7 +323,7 @@ Return .T.
 /*************************************************************************************/
 Static Function DnaQryTot(cCNPJ,cCodigo,cLoja,cDataHora,cTamPage,cPage)
 Local cQuery 	:= ""
-Local cAlias	:= GetNextAlias()
+Local cAlias	:= "" //GetNextAlias()
 
 Local cData		:= StrTran(SubStr(cDataHora,1,10),"-","")
 Local cHora		:= SubStr(cDataHora,At("T",cDataHora) + 1)
@@ -375,7 +365,8 @@ EndIf
 cQuery += "		A1.A1_MSBLQL IN(' ','2') AND " + CRLF
 cQuery += "		A1.D_E_L_E_T_ = '' " + CRLF
 
-dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
+//dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
+cAlias := MPSysOpenQuery(cQuery)
 
 If (cAlias)->( Eof() )
 	LogExec("NAO EXISTEM DADOS PARA SEREM ENVIADOS.")

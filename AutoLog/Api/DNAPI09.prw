@@ -43,6 +43,7 @@ WSMETHOD POST WSSERVICE TRANSFERENCIA
 Local aArea			:= GetArea()
 
 Local _cFilAux		:= cFilAnt
+Local _cFilTRF		:= ""
 
 Local oJson			:= Nil
 Local oTransf		:= Nil
@@ -100,7 +101,10 @@ oJson 	:= xFromJson(cBody)
 //------------------------+
 // Posiciona Filial atual |
 //------------------------+
-cFilAnt	:= RTrim(oJson[#"filial"])
+_cFilTRF	:= RTrim(oJson[#"filial"])
+If cFilAnt <> _cFilTRF
+	cFilAnt := _cFilNF
+EndIf 
 
 //-------------------------------------+
 // Array Produtos a serem transferidos |
@@ -130,7 +134,9 @@ HTTPSetStatus(200,"OK")
 //-------------------------+
 // Restaura a filial atual |
 //-------------------------+
-cFilAnt := _cFilAux
+If cFilAnt <> _cFilAux
+	cFilAnt := _cFilAux
+EndIf 
 
 LogExec("FINALIZA TRANSFERENCIA DOS PRODUTOS  - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
 LogExec(Replicate("-",80))

@@ -314,7 +314,7 @@ Static Function DnaApi10A(cFilNF,cNota,cSerie,cDataHora,cTamPage,cPage)
 Local aArea		:= GetArea()
 Local aRet		:= {.F.,""}
 
-Local cAlias	:= GetNextAlias()	
+Local cAlias	:= "" //GetNextAlias()	
 Local cRest		:= ""
 Local cPedVen 	:= ""
 Local cCodCli	:= ""
@@ -332,7 +332,7 @@ Private nTotQry	:= 0
 Default cTamPage:= "50" 
 Default cPage	:= "1" 
 
-If !DnaApiQry(cAlias,cFilNF,cNota,cSerie,cDataHora,cTamPage,cPage)
+If !DnaApiQry(@cAlias,cFilNF,cNota,cSerie,cDataHora,cTamPage,cPage)
 	
 	oJson			:= Array(#)
 	oJson[#"error"]	:= {}
@@ -510,7 +510,11 @@ Local _oItPed	:= Nil
 //------------------------+
 // Posiciona Filial atual | 
 //------------------------+
-cFilAnt := RTrim(_oPedido[#"filial"])
+_cFilNF 	:= RTrim(_oPedido[#"filial"])
+
+If cFilAnt <> _cFilNF
+	cFilAnt := _cFilNF
+EndIf 
 
 //---------------+
 // Dados da Nota |
@@ -675,7 +679,9 @@ EndIf
 //-------------------------+
 // Restaura a filial atual |
 //-------------------------+ 
-cFilAnt := _cFilAux
+If cFilAnt <> _cFilAux
+	cFilAnt := _cFilAux
+EndIf 
 
 RestArea(aArea)
 Return .T.
@@ -701,7 +707,11 @@ Local _cLoja	:= PadR(_oPedido[#"loja"],nTLoja)
 //------------------------+
 // Posiciona filial atual | 
 //------------------------+
-cFilAnt := RTrim(_oPedido[#"filial"])
+_cFilNF := RTrim(_oPedido[#"filial"])
+
+If cFilAnt <> _cFilNF
+	cFilAnt := _cFilNF
+EndIf 
 
 dbSelectArea("SF2")
 SF2->( dbSetOrder(1) )
@@ -735,7 +745,9 @@ aAdd(aMsgErro,{cFilAnt,_cNota + _cSerie,.T.,"NOTA BAIXADO COM SUCESSO."})
 //-------------------------+
 // Restaura a filial atual |
 //-------------------------+
-cFilAnt := _cFilAux
+If cFilAnt <> _cFilAux
+	cFilAnt := _cFilAux
+EndIf 
 
 RestArea(_aArea)
 Return .T.
@@ -835,7 +847,8 @@ cQuery += "	) PEDIDO  " + CRLF
 cQuery += "	WHERE RNUM > " + cTamPage + " * (" + cPage + " - 1) " + CRLF 
 cQuery += "	ORDER BY FILIAL,NOTA,SERIE"
 
-dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
+//dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
+cAlias := MPSysOpenQuery(cQuery)
 
 If (cAlias)->( Eof() )
 	LogExec("NAO EXISTEM DADOS PARA SEREM ENVIADOS.")
@@ -856,7 +869,7 @@ Return .T.
 /*************************************************************************************/
 Static Function DnaQryTot(cFilNF,cNota,cSerie,cDataHora,cTamPage,cPage)
 Local cQuery 	:= ""
-Local cAlias	:= GetNextAlias()
+Local cAlias	:= "" //GetNextAlias()
 
 Local cData		:= StrTran(SubStr(cDataHora,1,10),"-","")
 Local cHora		:= SubStr(cDataHora,At("T",cDataHora) + 1)
@@ -896,7 +909,8 @@ EndIf
 
 cQuery += "				F2.D_E_L_E_T_ = ''  " + CRLF
 
-dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
+//dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
+cAlias := MPSysOpenQuery(cQuery)
 
 If (cAlias)->( Eof() )
 	LogExec("NAO EXISTEM DADOS PARA SEREM ENVIADOS.")

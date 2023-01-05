@@ -310,8 +310,8 @@ Static Function DnaApi07A(cPedido,cDataHora,cTamPage,cPage)
 Local aArea		:= GetArea()
 Local aRet		:= {.F.,""}
 
-Local cAlias	:= GetNextAlias()
-Local cFilAux	:= ""	
+Local cAlias	:= "" //GetNextAlias()
+Local cFilAux	:= cFilAnt	
 Local cFilAut	:= ""
 Local cRest		:= ""
 Local cPedVen 	:= ""
@@ -336,7 +336,7 @@ Private nTotQry	:= 0
 Default cTamPage:= "200" 
 Default cPage	:= "1" 
 
-If !DnaApiQry(cAlias,cPedido,cDataHora,cTamPage,cPage)
+If !DnaApiQry(@cAlias,cPedido,cDataHora,cTamPage,cPage)
 	
 	oJson			:= Array(#)
 	oJson[#"error"]	:= {}
@@ -439,7 +439,6 @@ While (cAlias)->( !Eof() )
 	// Posiciona filial atual |
 	//------------------------+
 	If cFilAnt <> cFilAut
-		cFilAux	:= cFilAnt
 		cFilAnt := cFilAut
 	EndIf
 
@@ -569,7 +568,9 @@ Local _cFilAux	:= cFilAnt
 //------------------+
 // Posiciona filial |
 //------------------+
-cFilAnt := cFilAut
+If cFilAnt <> cFilAut
+	cFilAnt := cFilAut
+EndIf 
 
 //--------------------------+
 // Posiciona item do pedido |
@@ -587,7 +588,9 @@ EndIf
 //-----------------+
 // Restaura Filial | 
 //-----------------+
-cFilAnt	:= _cFilAux
+If cFilAnt <> _cFilAux
+	cFilAnt := _cFilAux
+EndIf 
 
 RestArea(_aArea)
 Return Nil
@@ -610,7 +613,9 @@ Local _nTotal	:= 0
 //------------------------+
 // Posiciona filial atual |
 //------------------------+
-cFilAnt	:= cFilAut
+If cFilAnt <> cFilAut
+	cFilAnt := cFilAut
+EndIf 
 
 dbSelectArea("SC6")
 SC6->( dbSetOrder(1) )
@@ -634,7 +639,9 @@ EndIf
 //-----------------------+
 // Restaura filial atual | 
 //-----------------------+
-cFilAnt := _cFilAux
+If cFilAnt <> _cFilAux
+	cFilAnt := _cFilAux
+EndIf 
 
 RestArea(_aArea)
 Return _nTotal
@@ -657,6 +664,7 @@ Local _cLoja	:= ""
 Local _cCodProd	:= ""
 Local _cItem	:= ""
 Local _cLote	:= ""
+Local _cFilNF	:= ""
 Local _cFilAux	:= cFilAnt
 	
 Local _nQtdConf	:= 0
@@ -672,7 +680,10 @@ Local _oItPed	:= Nil
 //------------------------+
 // Posiciona Filial atual | 
 //------------------------+
-cFilAnt := RTrim(_oPedido[#"filial"])
+_cFilNF 	:= RTrim(_oPedido[#"filial"])
+If cFilAnt <> _cFilNF
+	cFilAnt := _cFilNF
+EndIf 
 
 //---------------+
 // Dados da Nota |
@@ -862,7 +873,9 @@ EndIf
 //-------------------------+
 // Restaura a filial atual |
 //-------------------------+ 
-cFilAnt := _cFilAux
+If cFilAnt <> _cFilAux
+	cFilAnt := _cFilAux
+EndIf 
 
 RestArea(aArea)
 Return .T.
@@ -931,6 +944,7 @@ Return Nil
 Static Function DnaApi07C(_oPedido)
 Local _aArea		:= GetArea()
 
+Local _cFilNF		:= ""
 Local _cFilAux		:= cFilAnt
 Local _cPedido		:= PadR(_oPedido[#"pedido"],nTPed)
 Local _cCodCli		:= PadR(_oPedido[#"codigo_cliente"],nTCodCli)
@@ -940,7 +954,10 @@ Local _cSeqLib		:= RTrim(_oPedido[#"revisao"])
 //------------------------+
 // Posiciona filial atual | 
 //------------------------+
-cFilAnt := RTrim(_oPedido[#"filial"])
+_cFilNF := RTrim(_oPedido[#"filial"])
+If cFilAnt <> _cFilNF
+	cFilAnt := _cFilNF
+EndIf 
 
 //------------------+
 // Posiciona Pedido | 
@@ -971,8 +988,10 @@ If SC5->C5_XENVWMS == "9"
 
 	//-------------------------+
 	// Restaura a filial atual |
-	//-------------------------+
-	cFilAnt := _cFilAux
+	//-------------------------+ 
+	If cFilAnt <> _cFilAux
+		cFilAnt := _cFilAux
+	EndIf 
 
 	aAdd(aMsgErro,{cFilAnt,_cPedido,.T.,"PEDIDO BAIXADO COM SUCESSO."})
 
@@ -990,8 +1009,10 @@ If SC5->C5_XENVWMS == "3"
 
 	//-------------------------+
 	// Restaura a filial atual |
-	//-------------------------+
-	cFilAnt := _cFilAux
+	//-------------------------+ 
+	If cFilAnt <> _cFilAux
+		cFilAnt := _cFilAux
+	EndIf 
 
 	aAdd(aMsgErro,{cFilAnt,_cPedido,.F.,"PEDIDO JÁ SEPARADO."})
 	RestArea(_aArea)
@@ -1052,8 +1073,10 @@ aAdd(aMsgErro,{cFilAnt,_cPedido,.T.,"PEDIDO BAIXADO COM SUCESSO."})
 
 //-------------------------+
 // Restaura a filial atual |
-//-------------------------+
-cFilAnt := _cFilAux
+//-------------------------+ 
+If cFilAnt <> _cFilAux
+	cFilAnt := _cFilAux
+EndIf 
 
 RestArea(_aArea)
 Return .T.
@@ -1267,7 +1290,8 @@ cQuery += "	ORDER BY FILIAL,PEDIDO "
 
 MemoWrite("/views/DNAPI007.txt",cQuery)
 
-dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
+//dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
+cAlias := MPSysOpenQuery(cQuery)
 
 If (cAlias)->( Eof() )
 	LogExec("NAO EXISTEM DADOS PARA SEREM ENVIADOS.")
@@ -1288,7 +1312,7 @@ Return .T.
 /*************************************************************************************/
 Static Function DnaQryTot(cPedido,cDataHora,cTamPage,cPage)
 Local cQuery 	:= ""
-Local cAlias	:= GetNextAlias()
+Local cAlias	:= "" //GetNextAlias()
 
 Local cData		:= StrTran(SubStr(cDataHora,1,10),"-","")
 Local cHora		:= SubStr(cDataHora,At("T",cDataHora) + 1)
@@ -1370,7 +1394,8 @@ cQuery += "			TOTAL_PV = TOTAL_LIB " + CRLF
 cQuery += " 	GROUP BY PEDIDO,TOTAL_PV,TOTAL_LIB " + CRLF
 cQuery += "	) TOTAL_PEDIDOS "
 
-dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
+//dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
+cAlias := MPSysOpenQuery(cQuery)
 
 If (cAlias)->( Eof() )
 	LogExec("NAO EXISTEM DADOS PARA SEREM ENVIADOS.")

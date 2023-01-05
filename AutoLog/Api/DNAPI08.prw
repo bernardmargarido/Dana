@@ -210,7 +210,7 @@ Static Function DnaApi08A(cNota,cSerie,cDataHora,cTamPage,cPage)
 Local aArea		:= GetArea()
 Local aRet		:= {.F.,""}
 
-Local cAlias	:= GetNextAlias()	
+Local cAlias	:= "" //GetNextAlias()	
 Local cRest		:= ""
 Local _cNota 	:= ""
 Local _cSerie 	:= ""
@@ -227,7 +227,7 @@ Private nTotQry	:= 0
 Default cTamPage:= "200" 
 Default cPage	:= "1" 
 
-If !DnaApiQry(cAlias,cNota,cSerie,cDataHora,cTamPage,cPage)
+If !DnaApiQry(@cAlias,cNota,cSerie,cDataHora,cTamPage,cPage)
 	
 	oJson			:= Array(#)
 	oJson[#"error"]	:= {}
@@ -337,7 +337,9 @@ Local _cSerie	:= PadR(_oNota[#"serie"],_nTSerie)
 //------------------------+
 // Posiciona filial atual | 
 //------------------------+
-cFilAnt := _cFilNF
+If cFilAnt <> _cFilNF
+	cFilAnt := _cFilNF
+EndIf 
 
 //------------------+
 // Posiciona Pedido | 
@@ -373,7 +375,9 @@ aAdd(aMsgErro,{cFilAnt,RTrim(_cNota) + RTrim(_cSerie),.T.,"NOTA " + RTrim(_cNota
 //-------------------------+
 // Restaura a filial atual |
 //-------------------------+
-cFilAnt := _cFilAux
+If cFilAnt <> _cFilAux
+	cFilAnt := _cFilAux
+EndIf 
 
 RestArea(_aArea)
 Return .T.
@@ -484,7 +488,8 @@ cQuery += "	) PEDIDO  " + CRLF
 cQuery += "	WHERE RNUM > " + cTamPage + " * (" + cPage + " - 1) " + CRLF 
 cQuery += "	ORDER BY FILIAL,NOTA,SERIE "
 
-dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
+//dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
+cAlias := MPSysOpenQuery(cQuery)
 
 If (cAlias)->( Eof() )
 	LogExec("NAO EXISTEM DADOS PARA SEREM ENVIADOS.")
@@ -505,7 +510,7 @@ Return .T.
 /*************************************************************************************/
 Static Function DnaQryTot(cNota,cSerie,cDataHora,cTamPage,cPage)
 Local cQuery 	:= ""
-Local cAlias	:= GetNextAlias()
+Local cAlias	:= "" //GetNextAlias()
 
 Local cData		:= StrTran(SubStr(cDataHora,1,10),"-","")
 Local cHora		:= SubStr(cDataHora,At("T",cDataHora) + 1)
@@ -553,7 +558,8 @@ cQuery += "			F2.D_E_L_E_T_ = '' " + CRLF
 cQuery += "		GROUP BY F2.F2_FILIAL,F2.F2_DOC,F2.F2_SERIE " + CRLF
 cQuery += ") NOTAS "
 
-dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
+//dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
+cAlias := MPSysOpenQuery(cQuery)
 
 If (cAlias)->( Eof() )
 	LogExec("NAO EXISTEM DADOS PARA SEREM ENVIADOS.")

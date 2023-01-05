@@ -305,7 +305,7 @@ Static Function DnaApi06A(cNota,cSerie,cDataHora,cTamPage,cPage)
 Local aArea		:= GetArea()
 Local aRet		:= {.F.,""}
 
-Local cAlias	:= GetNextAlias()	
+Local cAlias	:= "" //GetNextAlias()	
 Local cRest		:= ""
 Local cDoc 		:= ""
 Local cSerieNf	:= ""
@@ -315,7 +315,7 @@ Local cCnpj		:= ""
 Local cCodTransp:= ""
 Local cTpDoc	:= ""
 Local dDtaEmiss	:= ""
-Local cFilAux	:= ""
+Local cFilAux	:= cFilAnt
 
 Local _nX		:= 0
 Local _nPProd	:= 0
@@ -332,7 +332,7 @@ Private nTotQry	:= 0
 Default cTamPage:= "200" 
 Default cPage	:= "1" 
 
-If !DnaApiQry(cAlias,cNota,cSerie,cDataHora,cTamPage,cPage)
+If !DnaApiQry(@cAlias,cNota,cSerie,cDataHora,cTamPage,cPage)
 	
 	oJson			:= Array(#)
 	oJson[#"error"]	:= {}
@@ -390,6 +390,13 @@ While (cAlias)->( !Eof() )
 	dDtaEmiss	:= dToc(sTod((cAlias)->EMISSAO))
 	cTpDoc		:= (cAlias)->TIPODOC
 
+	//------------------------+
+	// Posiciona filial atual |
+	//------------------------+
+	If cFilAnt <> cFilAtu
+		cFilAnt := cFilAtu
+	EndIf
+
 	//-----------------------------+
 	// Cria cabeçalho da nota JSON |
 	//-----------------------------+
@@ -403,14 +410,6 @@ While (cAlias)->( !Eof() )
 	oNFE[#"data_emissao"]		:= dDtaEmiss
 	oNFE[#"tipo_documento"]		:= cTpDoc
 	
-	//------------------------+
-	// Posiciona filial atual |
-	//------------------------+
-	If cFilAnt <> cFilAtu
-		cFilAux	:= cFilAnt
-		cFilAnt := cFilAtu
-	EndIf
-
 	LogExec("<< NFENTRADA >> - ENVIANDO NOTA " + RTrim(cDoc) + " SERIE " + RTrim(cSerieNf) )
 
 	If SD1->( dbSeek(xFilial("SD1") + cDoc + cSerieNf + cCodForn + cLoja) )
@@ -550,7 +549,9 @@ Local _oItNFE	:= Nil
 // Posiciona filial atual |
 //------------------------+
 _cFilAtu	:= RTrim(_oPreNFE[#"filial"])
-cFilAnt		:= _cFilAtu
+If cFilAnt <> _cFilAtu
+	cFilAnt := _cFilAtu
+EndIf 
  
 //---------------+
 // Dados da Nota |
@@ -698,7 +699,9 @@ EndIf
 //-------------------------+
 // Restaura a filial atual | 
 //-------------------------+
-cFilAnt := _cFilAux
+If cFilAnt <> _cFilAux
+	cFilAnt := _cFilAux
+EndIf 
 
 RestArea(aArea)
 Return .T.
@@ -725,7 +728,9 @@ Local _cLojafor	:= PadR(_oPreNFE[#"loja"],nTLoja)
 //------------------------+
 // Posiciona filial atual | 
 //------------------------+
-cFilAnt := _cFilAtu
+If cFilAnt <> _cFilAtu
+	cFilAnt := _cFilAtu
+EndIf 
 
 //-------------------------------+
 // Posiciona Pre Nota de Entrada |
@@ -770,7 +775,9 @@ aAdd(aMsgErro,{cFilAnt,_cNota,_cSerie,.T.,"BAIXADA COM SUCESSO."})
 //-------------------------+
 // Restaura a filial atual |
 //-------------------------+
-cFilAnt := _cFilAux
+If cFilAnt <> _cFilAux
+	cFilAnt := _cFilAux
+EndIf 
 
 RestArea(_aArea)
 Return .T.
@@ -909,7 +916,8 @@ cQuery += "	WHERE RNUM > " + cTamPage + " * (" + cPage + " - 1) "
 
 MemoWrite("/views/DNAPI006.txt",cQuery)
 
-dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
+//dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
+cAlias := MPSysOpenQuery(cQuery)
 
 If (cAlias)->( Eof() )
 	LogExec("NAO EXISTEM DADOS PARA SEREM ENVIADOS.")
@@ -930,7 +938,7 @@ Return .T.
 /*************************************************************************************/
 Static Function DnaQryTot(cNota,cSerie,cDataHora,cTamPage,cPage)
 Local cQuery 	:= ""
-Local cAlias	:= GetNextAlias()
+Local cAlias	:= ""//GetNextAlias()
 
 Local cData		:= StrTran(SubStr(cDataHora,1,10),"-","")
 Local cHora		:= SubStr(cDataHora,At("T",cDataHora) + 1)
@@ -982,7 +990,8 @@ cQuery += "		F1.D_E_L_E_T_ = '' " + CRLF
 cQuery += "	GROUP BY F1.F1_FILIAL,F1.F1_DOC,F1.F1_SERIE,F1.F1_FORNECE,F1.F1_LOJA " + CRLF
 cQuery += ") NFENTRADA " + CRLF
 
-dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
+//dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
+cAlias := MPSysOpenQuery(cQuery)
 
 If (cAlias)->( Eof() )
 	LogExec("NAO EXISTEM DADOS PARA SEREM ENVIADOS.")
