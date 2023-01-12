@@ -17,25 +17,29 @@ Static cDirImp	:= "/ecommerce/"
 	@author Bernard M. Margarido
 	@since 13/02/2017
 	@version undefined
-	@param cOrderId		, characters, OrderID eCommerce
+	@param cNumOrc		, characters, OrderID eCommerce
 	@type function
 /*/
 /************************************************************************************/
-User function AECOI013(cOrderId)
-Local aArea		:= GetArea()
-Local aRet		:= {.T.,"",""}
+User function AECOI013(cNumOrc)
+Local aArea			:= GetArea()
+Local aRet			:= {.T.,"",""}
 
-Local _lBloqueio:= GetNewPar("EC_BLSMSG",.F.)
-Local _lRet 	:= .T.
+Local _lBloqueio	:= GetNewPar("EC_BLSMSG",.F.)
+Local _lRet 		:= .T.
 
-Private cThread	:= Alltrim(Str(ThreadId()))
-Private cStaLog	:= "0"
-Private cArqLog	:= ""	
+Private cThread		:= Alltrim(Str(ThreadId()))
+Private cStaLog		:= "0"
+Private cArqLog		:= ""	
 
-Private nQtdInt	:= 0
+Private nQtdInt		:= 0
+Private _nTDoc 		:= TamSx3("F2_DOC")[1]
+Private _nTSerie	:= TamSx3("F2_SERIE")[1]
+Private _nTCodCli	:= TamSx3("F2_CLIENTE")[1]
+Private _nTLojCli	:= TamSx3("F2_LOJA")[1]
 
-Private cHrIni	:= Time()
-Private dDtaInt	:= Date()
+Private cHrIni		:= Time()
+Private dDtaInt		:= Date()
 
 Private aMsgErro:= {}
 
@@ -64,9 +68,9 @@ LogExec("INICIA ENVIO DE INVOICE COM A VTEX - DATA/HORA: "+DTOC(DATE())+" AS "+T
 // Inicia processo de envio das categorias |
 //-----------------------------------------+
 If lJob
-	_lRet := AECOINT13(cOrderId)
+	_lRet := AECOINT13(cNumOrc)
 Else
-	Processa({|| _lRet := AECOINT13(cOrderId) },"Aguarde...","Enviando invoice.")
+	Processa({|| _lRet := AECOINT13(cNumOrc) },"Aguarde...","Enviando invoice.")
 EndIf
 
 LogExec("FINALIZA ENVIO DE INVOICE COM A VTEX - DATA/HORA: "+DTOC(DATE())+" AS "+TIME())
@@ -96,11 +100,12 @@ Return _lRet
 	@since     		02/02/2016
 /*/
 /**************************************************************************************************/
-Static Function AECOINT13(cOrderId)
+Static Function AECOINT13(cNumOrc)
 Local aArea		:= GetArea()
 Local aRet		:= {.F.,"",""}
 
 Local _cCodDLog := GetNewPar("DN_CODDLOG")
+Local cOrderID 	:= ""
 Local cChaveNfe := ""
 Local cTracking := ""
 Local cUrlTrack := ""
@@ -113,11 +118,14 @@ Local cVlrFat	:= ""
 Local cUrl		:= ""
 Local cAppKey	:= ""
 Local cAppToken	:= ""
+Local cCfop 	:= ""
 Local dDtaEmiss	:= ""
+Local _cXmlNF	:= ""
 
 Local nIdSku	:= 0
 Local _nVlrTotal:= 0
-Local _nTOrderId:= TamSx3("WSA_NUMECO")[1]
+Local _nVolume	:= 0
+Local _nTOrc	:= TamSx3("WSA_NUM")[1]
 
 Local _oJson	:= Nil
 Local _oItens	:= Nil
@@ -126,15 +134,19 @@ Local _oItens	:= Nil
 // Posiciona Orçamento |
 //---------------------+
 dbSelectArea("WSA")
-WSA->( dbSetOrder(2) )
-WSA->( dbSeek(xFilial("WSA") + PadR(cOrderId,_nTOrderId)) )
+WSA->( dbSetOrder(1) )
+If !WSA->( dbSeek(xFilial("WSA") + PadR(cNumOrc,_nTOrc)) )
+	RestArea(aArea)
+	Return .F.
+EndIf 
 
 //----------------------------------+
 // Consulta Data de Emissao da Nota |
 //----------------------------------+
-aEcoI13DtaE(WSA->WSA_DOC,WSA->WSA_SERIE,WSA->WSA_CLIENT,WSA->WSA_LOJA,@cChaveNfe,@dDtaEmiss,@_nVlrTotal)
+aEcoI13DtaE(WSA->WSA_DOC,WSA->WSA_SERIE,WSA->WSA_CLIENT,WSA->WSA_LOJA,@cChaveNfe,@_cXmlNF,@dDtaEmiss,@_nVlrTotal,@cCfop,@_nVolume)
 
-cTracking 	:= Alltrim(WSA->WSA_TRACKI)
+cOrderID	:= RTrim(WSA->WSA_NUMECO)
+cTracking 	:= Rtrim(WSA->WSA_TRACKI)
 cNumTransp	:= WSA->WSA_TRANSP
 
 //------------------+
@@ -160,6 +172,7 @@ EndIf
 _oJson[#"courier"]			:= cNumTransp
 _oJson[#"trackingNumber"]	:= cTracking
 _oJson[#"trackingUrl"]		:= cUrlTrack
+_oJson[#"embeddedInvoice"]	:= StrTran(_cXmlNF,'"',"'")
 
 //-------------------------+
 // Posiciona Itens da Nota |
@@ -199,6 +212,8 @@ cVlrFat	:= cValToChar(RetPrcUni(_nVlrTotal))
 //------------------------+
 // Data e Valor da Fatura |
 //------------------------+
+_oJson[#"cfop"]			:= cCfop
+_oJson[#"volumes"]		:= _nVolume
 _oJson[#"issuanceDate"]	:= cDtaFat
 _oJson[#"invoiceValue"]	:= cVlrFat
 
@@ -223,10 +238,11 @@ Else
 	cAppKey			:= GetNewPar("EC_APPKEY")
 	cAppToken		:= GetNewPar("EC_APPTOKE")
 EndIf 
+
 //---------------+
 // Envia Invoice |
 //---------------+ 
-aRet := AEcoI13Inv(WSA->WSA_DOC,WSA->WSA_SERIE,cOrderId,cRest,cUrl,cAppKey,cAppToken)
+aRet := AEcoI13Inv(WSA->WSA_DOC,WSA->WSA_SERIE,cOrderID,cRest,cUrl,cAppKey,cAppToken)
 
 RestArea(aArea)
 Return aRet[1]
@@ -239,16 +255,34 @@ Return aRet[1]
 	@type function
 /*/
 /************************************************************************************/
-Static Function aEcoI13DtaE(cDoc,cSerie,cCliente,cLoja,cChaveNfe,dDtaEmiss,_nVlrTotal)
+Static Function aEcoI13DtaE(cDoc,cSerie,cCliente,cLoja,cChaveNfe,_cXmlNF,dDtaEmiss,_nVlrTotal,cCfop,_nVolume)
 Local aArea		:= GetArea()
+
 
 dbSelectArea("SF2")
 SF2->( dbSetOrder(1) )
-If SF2->( dbSeek(xFilial("SF2") + Padr(cDoc,TamSx3("F2_DOC")[1]) + Padr(cSerie,TamSx3("F2_SERIE")[1]) + PadR(cCliente,TamSx3("F2_CLIENTE")[1]) + PadR(cLoja,TamSx3("F2_LOJA")[1])) )
-	cChaveNfe := SF2->F2_CHVNFE
-	dDtaEmiss := SF2->F2_EMISSAO
-	_nVlrTotal:= SF2->F2_VALBRUT	
+If !SF2->( dbSeek(xFilial("SF2") + Padr(cDoc,_nTDoc) + Padr(cSerie,_nTSerie) + PadR(cCliente,_nTCodCli) + PadR(cLoja,_nTLojCli)) )
+	RestArea(aArea)
+	Return .F.
 EndIf	 
+
+dbSelectArea("SD2")
+SD2->( dbSetOrder(3))
+If !SD2->( dbSeek(xFilial("SF2") + Padr(cDoc,_nTDoc) + Padr(cSerie,_nTSerie) + PadR(cCliente,_nTCodCli) + PadR(cLoja,_nTLojCli)) )
+	RestArea(aArea)
+	Return .F.
+EndIf	 
+
+//---------------+
+// Dados da nota |
+//---------------+
+cChaveNfe := SF2->F2_CHVNFE
+dDtaEmiss := SF2->F2_EMISSAO
+_nVlrTotal:= SF2->F2_VALBRUT	
+_nVolume  := SF2->F2_VOLUME1
+cCfop	  := SD2->D2_CF
+
+_cXmlNF   := AEcoI13CC(Padr(cDoc,_nTDoc),Padr(cSerie,_nTSerie))
 
 RestArea(aArea)
 Return .T.
@@ -308,7 +342,7 @@ Return Nil
 	@type function
 /*/
 /********************************************************************/
-Static Function AEcoI13Inv(cDocNum,cSerie,cOrderId,cRest,cUrl,cAppKey,cAppToken)
+Static Function AEcoI13Inv(cDocNum,cSerie,cOrderID,cRest,cUrl,cAppKey,cAppToken)
 Local aRet			:= {.T.,"",""}
 
 //Local cUrl		:= GetNewPar("EC_URLREST")
@@ -326,7 +360,7 @@ aAdd(aHeadOut,"Content-Type: application/json" )
 aAdd(aHeadOut,"X-VTEX-API-AppKey:" + cAppKey )
 aAdd(aHeadOut,"X-VTEX-API-AppToken:" + cAppToken ) 
                      
-cRetPost := HttpPost(cUrl + "/api/oms/pvt/orders/" + Alltrim(cOrderId) + "/invoice","",cRest,nTimeOut,aHeadOut,@cXmlHead) 
+cRetPost := HttpPost(cUrl + "/api/oms/pvt/orders/" + Alltrim(cOrderID) + "/invoice","",cRest,nTimeOut,aHeadOut,@cXmlHead) 
 
 If HTTPGetStatus() == 200 
 	If FWJsonDeserialize(cRetPost,@oXmlRet)
@@ -412,6 +446,142 @@ Local nValor	:= 0
 	nValor		:= NoRound(nVlrUnit,2) * 100
 Return nValor
 
+/**************************************************************************************************/
+/*/{Protheus.doc} AEcoI13CC
+	@description Consulta XML da Nota Fiscal 
+	@type  Static Function
+	@author Bernard M Margarido
+	@since 24/08/2022
+	@version version
+/*/
+/**************************************************************************************************/
+Static Function AEcoI13CC(_cDoc,_cSerie)
+Local _cStatic	:= "S"+"t"+"a"+"t"+"i"+"c"+"C"+"a"+"l"+"l"
+Local _cURL     := PadR(GetNewPar("MV_SPEDURL","http://"),250)  
+Local _cIdEnt 	:= ""
+Local _cXML 	:= ""
+Local _cCnpjDIni:= "              "
+Local _cCnpjDFim:= "99999999999999"
+Local cVerNfe	:= ""
+Local cVerCte	:= ""
+Local cNotaIni 	:= ""
+Local cNFes 	:= ""
+Local cChvNFe  	:= ""
+Local cModelo 	:= ""
+Local cPrefixo	:= ""
+Local cCab1		:= ""
+Local cRodap	:= ""
+Local _cCNPJDEST:= Space(14) 
+
+Local _nX		:= 0
+
+Local _dDtaIni	:= DaySub(Date(),15)
+Local _dDtaFim	:= Date()
+
+Private oWS 		:= Nil 
+Private oRetorno	:= Nil 
+Private oXmlExp		:= Nil 
+Private oXml		:= Nil 
+
+Private _cType	:= ''
+
+_cIdEnt	:= Eval( {|| &(_cStatic + "(" + "SPEDNFE, GetIdEnt" + ")") }) 
+_cDocIni:= _cSerie + _cDoc
+_cDocFim:= _cSerie + _cDoc
+
+oWS:= WSNFeSBRA():New()
+oWS:cUSERTOKEN        := "TOTVS"
+oWS:cID_ENT           := _cIdEnt
+oWS:_URL              := RTrim(_cURL)+"/NFeSBRA.apw"   
+oWS:cIdInicial        := _cDocIni
+oWS:cIdFinal          := _cDocFim
+oWS:dDataDe           := _dDtaIni
+oWS:dDataAte          := _dDtaFim
+oWS:cCNPJDESTInicial  := _cCnpjDIni
+oWS:cCNPJDESTFinal    := _cCnpjDFim
+oWS:nDiasparaExclusao := 0
+
+If oWS:RetornaFx()
+	oRetorno 	:= oWS:oWsRetornaFxResult
+
+
+	For _nX := 1 To Len(oRetorno:OWSNOTAS:oWsNfeS3)
+
+		oXml     	:= oRetorno:oWsNotas:oWsNfeS3[_nX]
+		oXmlExp 	:= XmlParser(oRetorno:oWsNotas:oWsNfeS3[_nX]:oWsNfe:cXml,"","","")
+		_cXML		:= ""
+
+		//--------------------------------------+
+		// Valida se pessoa e fisica ou juridica|
+		//--------------------------------------+
+		If ValAtrib('oXmlExp:_NFE:_INFNFE:_DEST:_CNPJ:TEXT') <> "U" 
+			_cCNPJDEST := AllTrim(oXmlExp:_Nfe:_InfNfe:_Dest:_Cnpj:Text)
+		ElseIF ValAtrib('oXmlExp:_NFE:_INFNFE:_DEST:_CPF:TEXT') <> "U"
+			_cCNPJDEST := AllTrim(oXmlExp:_Nfe:_InfNfe:_Dest:_Cpf:Text)				
+		Else
+			_cCNPJDEST := ""
+		EndIf
+
+		cVerNfe := IIF(ValAtrib('oXmlExp:_NFE:_INFNFE:_VERSAO:TEXT') <> "U", oXmlExp:_NFE:_INFNFE:_VERSAO:TEXT, '')                                 
+		cVerCte := IIF(ValAtrib('oXmlExp:_CTE:_INFCTE:_VERSAO:TEXT') <> "U", oXmlExp:_CTE:_INFCTE:_VERSAO:TEXT, '')
+		cVerMDfe:= IIF(ValAtrib('oXmlExp:_MDFE:_INFMDFE:_VERSAO:TEXT') <> "U", oXmlExp:_MDFE:_INFMDFE:_VERSAO:TEXT, '')
+
+		If !Empty(oXml:oWSNFe:cProtocolo)
+					
+			cNotaIni 	:= oXml:cID	 		
+			cNFes 		:= cNFes+cNotaIni+CRLF
+			cChvNFe  	:= NfeIdSPED(oXml:oWSNFe:cXML,"Id")	 			
+			cModelo 	:= cChvNFe
+			cModelo 	:= StrTran(cModelo,"NFe","")
+			cModelo 	:= StrTran(cModelo,"CTe","")
+			cModelo	 	:= StrTran(cModelo,"MDFe","")
+			cModelo 	:= SubStr(cModelo,21,02)
+						
+			Do Case
+				Case cModelo == "57"
+					cPrefixo := "CTe"
+				Case cModelo == "65"
+					cPrefixo := "NFCe"
+				Case cModelo == "58"
+					cPrefixo := "MDFe"
+				OtherWise
+					If '<cStat>302</cStat>' $ oXml:oWSNFe:cxmlPROT								
+						cPrefixo := "den"								
+					Else
+						cPrefixo := "NFe"
+					EndIf	
+			EndCase	 				
+			
+			cCab1 := '<?xml version="1.0" encoding="UTF-8"?>'
+			If cModelo == "57"
+				cCab1  += '<cteProc xmlns="http://www.portalfiscal.inf.br/cte" versao="' + cVerCte + '">'
+				cRodap := '</cteProc>'
+			Else
+				Do Case
+					Case cVerNfe <= "1.07"
+						cCab1 += '<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.portalfiscal.inf.br/nfe procNFe_v1.00.xsd" versao="1.00">'
+					Case cVerNfe >= "2.00" .And. "cancNFe" $ oXml:oWSNFe:cXML
+						cCab1 += '<procCancNFe xmlns="http://www.portalfiscal.inf.br/nfe" versao="' + cVerNfe + '">'
+					OtherWise
+						cCab1 += '<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="' + cVerNfe + '">'
+				EndCase
+				cRodap := '</nfeProc>'
+			EndIf
+
+			_cXML := AllTrim(cCab1) + AllTrim(oXml:oWSNFe:cXML) + AllTrim(oXml:oWSNFe:cXMLPROT) + AllTrim(cRodap)
+			//_cXML := AllTrim(oXml:oWSNFe:cXML) + AllTrim(oXml:oWSNFe:cXMLPROT)
+
+		EndIf
+	Next _nX
+EndIf 
+
+FreeObj(oWS)
+FreeObj(oRetorno)
+FreeObj(oXmlExp)
+FreeObj(oXml)
+
+Return _cXML 
+
 /*********************************************************************************/
 /*/{Protheus.doc} LogExec
 	@description Grava Log do processo 
@@ -425,3 +595,6 @@ Static Function LogExec(cMsg)
 	CONOUT(cMsg)
 	LjWriteLog(cArqLog,cMsg)
 Return .T.
+
+static Function ValAtrib(atributo)
+Return (type(atributo) )

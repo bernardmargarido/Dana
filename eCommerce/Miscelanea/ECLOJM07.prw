@@ -123,7 +123,7 @@ While (_cAlias)->( !Eof() )
 
     CoNout("<< ECLOJM07 >> - ENVIANDO PEDIDO ECOMMERCE " + RTrim(WSA->WSA_NUMECO) )
     
-    If U_AECOI013(WSA->WSA_NUMECO)
+    If U_AECOI013(WSA->WSA_NUM)
         WS1->( dbSeek(xFilial("WS1") + "006") )
         
         RecLock("WSA",.F.)

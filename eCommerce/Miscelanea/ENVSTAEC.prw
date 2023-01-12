@@ -101,7 +101,7 @@ While (_cAlias)->( !Eof() )
     _oSay:cCaption := "Enviando invoice orcamento " + (_cAlias)->WSA_NUMECO
     ProcessMessages()
 
-    U_AECOI013((_cAlias)->WSA_NUMECO)
+    U_AECOI013((_cAlias)->WSA_NUM)
 
     (_cAlias)->( dbSkip() )
 

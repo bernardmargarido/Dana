@@ -61,6 +61,8 @@ Local cDataHora		:= IIF(Empty(::DATAHORA),"1900-01-01T00:00",::DATAHORA)
 Local cTamPage		:= ::PERPAGE
 Local cPage			:= ::PAGE
 
+Local _lRet 		:= .T.
+
 Private cArqLog		:= ""
 Private _cFilWMS	:= FormatIn(GetNewPar("DN_FILWMS","05,06"),",")
 
@@ -92,9 +94,10 @@ aRet := DnaApi06A(cNota,cSerie,cDataHora,cTamPage,cPage)
 If aRet[1]
 	::SetResponse(aRet[2])
 	HTTPSetStatus(200,"OK")
+	_lRet := .T.
 Else
-	::SetResponse(aRet[2])
 	SetRestFault(400,aRet[2],.T.)
+	_lRet := .F.
 EndIf	
 
 LogExec("FINALIZA ENVIO DA PRE NOTA DE ENTRADA AO WMS - DATA/HORA: " + dToc( Date() )+ " AS " + Time())
@@ -102,7 +105,7 @@ LogExec(Replicate("-",80))
 ConOut("")
 
 RestArea(aArea)
-Return .T.
+Return _lRet
 
 /************************************************************************************/
 /*/{Protheus.doc} POST
@@ -334,21 +337,9 @@ Default cPage	:= "1"
 
 If !DnaApiQry(@cAlias,cNota,cSerie,cDataHora,cTamPage,cPage)
 	
-	oJson			:= Array(#)
-	oJson[#"error"]	:= {}
-	
-	aAdd(oJson[#"error"],Array(#))
-	oNFE := aTail(oJson[#"error"])
-	oNFE[#"msg"] := "Nao existem dados para serem retornados."
-	
-	//---------------------------+
-	// Transforma Objeto em JSON |
-	//---------------------------+
-	cRest := xToJson(oJson)	
-	
-	aRet[1] := .F.
-	aRet[2] := EncodeUtf8(cRest)
-		
+	aRet[1] := .F. 
+	aRet[2] := "Não existem dados a serem enviados"
+			
 	RestArea(aArea)
 	Return aRet
 EndIf

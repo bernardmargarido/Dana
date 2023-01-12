@@ -143,7 +143,7 @@ While (_cAlias)->( !Eof() )
     //---------------+
     // Envia Invoice |
     //---------------+
-    U_AECOI013(WSA->WSA_NUMECO)
+    U_AECOI013(WSA->WSA_NUM)
     
     //------------------+
     // Gera PDF da nota |
