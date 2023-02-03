@@ -10,7 +10,7 @@
             "request": "launch",
             "name": "Depuração do idioma TOTVS",
             "program": "${command:AskForProgramName}",
-            "cwb": "${workspaceFolder}",
+            "cwb": "${workspaceFolder}/Dana/",
             "smartclientBin": "D:/Totvs/Remotes/Dana/smartclient_teste/smartclient.exe",
             //"smartclientBin": "D:/Totvs/Remotes/Dana/smartclient_producao/smartclient.exe",
             "isMultiSession": true,

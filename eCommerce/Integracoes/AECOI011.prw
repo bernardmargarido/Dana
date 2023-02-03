@@ -223,6 +223,7 @@ Local cAppKey		:= ""
 Local cAppToken		:= ""
 Local cXmlHead 	 	:= ""
 Local cUrlParms		:= ""     
+Local cOrderBy		:= ""
 
 Local nTimeOut		:= 240
 Local nList			:= 0
@@ -243,10 +244,11 @@ aAdd(aHeadOut,"X-VTEX-API-AppKey:" + cAppKey )
 aAdd(aHeadOut,"X-VTEX-API-AppToken:" + cAppToken ) 
 
 cUrlParms := "ready-for-handling"
+cOrderBy  := "orderBy=creationDate,asc"
 //cUrlParms := "payment-pending"
 //cUrlParms := "canceled,invoiced" //handling,payment-pending,
 
-cHtmlPage := HttpGet(cUrl + "/api/oms/pvt/orders?f_status=" + cUrlParms , /*cUrlParms*/, nTimeOut, aHeadOut, @cXmlHead)
+cHtmlPage := HttpGet(cUrl + "/api/oms/pvt/orders?f_status=" + cUrlParms + "&" + cOrderBy , /*cUrlParms*/, nTimeOut, aHeadOut, @cXmlHead)
 
 If !_lJob
 	ProcRegua(-1)
