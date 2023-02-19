@@ -293,6 +293,14 @@ For _nX := 1 To Len(_aArquivo)
         // Renomeia arquivo |
         //------------------+    
         _cArqBkp := StrTran(_aArquivo[_nX,1] , ".TXT", ".LIDO" )
+
+        //----------------------------+
+        // Deleta arquivo caso exista |
+        //----------------------------+
+        If File(_cDirRaiz + _cDirDown + "/" + _cArqBkp)
+            FErase(_cDirRaiz + _cDirDown + "/" + _cArqBkp)
+        EndIf 
+        
 		FRename(_cDirRaiz + _cDirDown + "/" + _aArquivo[_nX,1] , _cDirRaiz + _cDirDown + "/" + _cArqBkp)
 
     EndIf

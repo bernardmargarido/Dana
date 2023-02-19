@@ -21,6 +21,7 @@ Static nTamCat	:= TamSx3("AY1_CODIGO")[1]
 /*/
 /**************************************************************************************************/
 User Function AECOI001()
+Local _nX				:= 0
 
 Private cThread			:= Alltrim(Str(ThreadId()))
 Private cStaLog			:= "0"
@@ -32,6 +33,7 @@ Private cHrIni			:= Time()
 Private dDtaInt			:= Date()
 
 Private aMsgErro		:= {}
+Private _aRecno			:= {}
 
 Private _lMultLj		:= GetNewPar("EC_MULTLOJ",.T.)
 
@@ -73,6 +75,17 @@ If Len(aMsgErro) > 0
 	cStaLog := "1"
 	u_AEcoMail(cCodInt,cDescInt,aMsgErro)
 EndIf
+
+If Len(_aRecno) > 0 
+	For _nX := 1 To Len(_aRecno)
+		AY0->( dbGoTo(_aRecno[_nX]) )
+		RecLock("AY0",.F.)
+			AY0->AY0_ENVECO := "2"
+			AY0->AY0_XDTEXP	:= dTos( Date() )
+			AY0->AY0_XHREXP	:= Time()
+		AY0->( MsUnLock() )
+	Next _nX 
+EndIf 
 
 //----------------------------------+
 // Grava Log inicio das Integrações |
@@ -338,12 +351,8 @@ If oWsCateg:CategoryInsertUpdate(oWsCateg:oWsCategory)
 		_oDanaEcom:nID		:= oWsCateg:oWsCategoryInsertUpdateResult:nId
 		_oDanaEcom:GravaID()
 
-		RecLock("AY0",.F.)
-			AY0->AY0_ENVECO := "2"
-			AY0->AY0_XDTEXP	:= dTos( Date() )
-			AY0->AY0_XHREXP	:= Time()
-		AY0->( MsUnLock() )
-
+		aAdd(_aRecno,nRecnoAy0)
+		
 		LogExec("CATEGORIA " + cCodCat + " - " + cDescCat + " . ENVIADA COM SUCESSO." )	
 	Else
 		LogExec("ERRO AO ENVIAR A CATEGORIA " + cCodCat + " - " + cDescCat + " . " )

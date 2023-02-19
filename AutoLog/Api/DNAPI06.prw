@@ -655,6 +655,7 @@ If _lContinua
 	//---------------------------------------------------+
 	// Estorna pre nota envia e-mail com as divergencias | 
 	//---------------------------------------------------+
+	/*
 	If Len(_aDiverg) > 0
 
 		DnaApi06P(_cNota,_cSerie,_cCodFor,_cLojafor,_aDiverg,.T.)
@@ -669,7 +670,7 @@ If _lContinua
 	// Libera classificação da Nota |
 	//------------------------------+	 
 	Else
-	
+	*/
 		RecLock("SF1",.F.)
 			SF1->F1_XENVWMS := "3"
 			SF1->F1_XDTALT	:= Date()
@@ -684,7 +685,7 @@ If _lContinua
 		LogExec(_cNota + " " + _cSerie + "CONFERENCIA REALIZADA COM SUCESSO.")
 		aAdd(aMsgErro,{cFilAnt,_cNota,_cSerie,.T.,"CONFERENCIA REALIZADA COM SUCESSO."})
 
-	EndIf
+	//EndIf
 EndIf
 
 //-------------------------+
