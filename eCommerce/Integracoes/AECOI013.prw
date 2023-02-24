@@ -222,6 +222,10 @@ _oJson[#"invoiceValue"]	:= cVlrFat
 //---------------------------+
 cRest := xToJson(_oJson)
 
+//--------------------+
+// Salva JSON enviado |
+//--------------------+
+
 //----------------+
 // Valida ID loja |
 //----------------+

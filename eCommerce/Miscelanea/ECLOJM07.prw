@@ -26,7 +26,7 @@ CoNout("<< ECLOJM07 >> - INICIO " + dTos( Date() ) + " - " + Time() )
 //--------------------------+
 // Cria arquivo de semaforo |
 //--------------------------+
-If LockByName("ECLOJM07", .F., .F.)
+//If LockByName("ECLOJM07", .F., .F.)
    
     //-----------------------+
     // Abre empresa / filial | 
@@ -59,9 +59,9 @@ If LockByName("ECLOJM07", .F., .F.)
     //----------------------------+
     // Exclui arquivo de semaforo |
     //----------------------------+
-    UnLockByName("ECLOJM07",.F.,.F.)
+    //UnLockByName("ECLOJM07",.F.,.F.)
 
-EndIf 
+//EndIf 
 
 CoNout("<< ECLOJM07 >> - FIM " + dTos( Date() ) + " - " + Time() )
 
