@@ -1058,9 +1058,12 @@ _oVTex:cDocument  	:= cCnpj
 _oVTex:cURLVtex  	:= RTrim(_cUrl)
 _oVTex:cAppKey  	:= RTrim(_cAppKey)
 _oVTex:cAppToken  	:= RTrim(_cAppToken)
+_cEMailEc			:= ""
 If _oVTex:Clientes()
-	_oJSon := xFromJson(_oVTex:cJson)
-	_cEMailEc := _oJSon[#"email"]
+	If ValType(_oVTex:cJson) <> "U"
+		_oJSon := xFromJson(_oVTex:cJson)
+		_cEMailEc := _oJSon[#"email"]
+	EndIf 
 Else 
 	_cEMailEc := ""
 EndIf

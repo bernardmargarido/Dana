@@ -169,6 +169,11 @@ _oJson[#"invoiceNumber"]:= RTrim(WSA->WSA_DOC) + "-" + RTrim(WSA->WSA_SERIE)
 If !Empty(cChaveNfe)
 	_oJson[#"invoiceKey"]	:= cChaveNfe
 EndIf
+
+If Empty(cTracking) .And. At('Shopee',WSA->WSA_NUMECO) > 0 
+	cTracking := RTrim(WSA->WSA_DOC) + RTrim(WSA->WSA_SERIE)
+EndIf 
+
 _oJson[#"courier"]			:= cNumTransp
 _oJson[#"trackingNumber"]	:= cTracking
 _oJson[#"trackingUrl"]		:= cUrlTrack
@@ -189,7 +194,7 @@ While WSB->( !Eof() .And. xFilial("WSB") + WSA->WSA_NUM == WSB->WSB_FILIAL + WSB
 	//------------------------------------------+
 	// Posiciona Porduto para pegar codigo Vtex |
 	//------------------------------------------+
-	aEcoI013Sku(WSB->WSB_PRODUT,@nIdSku)
+	aEcoI013Sku(WSA->WSA_IDLOJA,WSB->WSB_PRODUT,@nIdSku)
 	
 	cQuant := Alltrim(Str(Int(WSB->WSB_QUANT)))
 	cPrcVen:= cValToChar(RetPrcUni(WSB->WSB_VRUNIT))
@@ -360,6 +365,11 @@ Local cXmlHead 	 	:= ""
 Local cRetPost  	:= ""
 Local oXmlRet   	:= Nil 
 
+MakeDir("\ecommerce\")
+MakeDir("\ecommerce\arquivos\")
+MakeDir("\ecommerce\arquivos\invoice")
+MemoWrite("ecommerce\arquivos\invoice\jsoninvoice_" + RTrim(cDocNum) + "_" + RTrim(cSerie) + ".json",cRest)
+
 aAdd(aHeadOut,"Content-Type: application/json" )
 aAdd(aHeadOut,"X-VTEX-API-AppKey:" + cAppKey )
 aAdd(aHeadOut,"X-VTEX-API-AppToken:" + cAppToken ) 
@@ -408,24 +418,46 @@ Return aRet
 	@type function
 /*/
 /*******************************************************************************/
-Static Function aEcoI013Sku(cCodProd,nIdSku)
+Static Function aEcoI013Sku(_cIdLoja,cCodProd,nIdSku)
 Local aArea		:= GetArea()
 Local cQuery 	:= ""
 Local cAlias	:= GetNextAlias()
 
-cQuery := "	SELECT " + CRLF
-cQuery += "		IDSKU " + CRLF
-cQuery += "	FROM " + CRLF
-cQuery += "	( " + CRLF
-cQuery += "		SELECT " + CRLF
-cQuery += "			B5.B5_XIDSKU IDSKU " + CRLF
-cQuery += "		FROM " + CRLF
-cQuery += "		" + RetSqlName("SB5") + " B5 " + CRLF
-cQuery += "		WHERE " + CRLF
-cQuery += "			B5.B5_FILIAL = '" + xFilial("SB5") + "' AND " + CRLF 
-cQuery += "			B5.B5_COD = '" + cCodProd + "' AND  " + CRLF
-cQuery += "			B5.D_E_L_E_T_ = '' " + CRLF 
-cQuery += "	)SKU "
+Default _cIdLoja := ""
+
+If Empty(_cIdLoja )
+
+	cQuery := "	SELECT " + CRLF
+	cQuery += "		IDSKU " + CRLF
+	cQuery += "	FROM " + CRLF
+	cQuery += "	( " + CRLF
+	cQuery += "		SELECT " + CRLF
+	cQuery += "			B5.B5_XIDSKU IDSKU " + CRLF
+	cQuery += "		FROM " + CRLF
+	cQuery += "			" + RetSqlName("SB5") + " B5 " + CRLF
+	cQuery += "		WHERE " + CRLF
+	cQuery += "			B5.B5_FILIAL = '" + xFilial("SB5") + "' AND " + CRLF 
+	cQuery += "			B5.B5_COD = '" + cCodProd + "' AND  " + CRLF
+	cQuery += "			B5.D_E_L_E_T_ = '' " + CRLF 
+	cQuery += "	)SKU "
+
+Else 
+	cQuery := " SELECT " + CRLF
+	cQuery += "		IDSKU " + CRLF
+	cQuery += " FROM " + CRLF
+	cQuery += " ( " + CRLF
+	cQuery += "		SELECT " + CRLF
+	cQuery += "			XTD.XTD_IDECOM IDSKU " + CRLF
+	cQuery += "		FROM " + CRLF
+	cQuery += "			" + RetSqlName("XTD") + " XTD " + CRLF
+	cQuery += "		WHERE " + CRLF
+	cQuery += "			XTD.XTD_FILIAL = '" + xFilial("XTD") + "' AND  " + CRLF
+	cQuery += "			XTD.XTD_CODIGO = '" + _cIdLoja + "' AND " + CRLF
+	cQuery += "			XTD.XTD_ALIAS = 'SB5' AND " + CRLF
+	cQuery += "			XTD.XTD_CODERP = '" + cCodProd + "' AND " + CRLF
+	cQuery += "			XTD.D_E_L_E_T_ = ''  " + CRLF
+	cQuery += " )SKU
+EndIf 
 
 dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)
 

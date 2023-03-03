@@ -7,14 +7,11 @@
 
 /************************************************************************/
 /*/{Protheus.doc} SIGM004
-
-@description Envio de PLP para SIGEP 
-
-@author Bernard M. Margarido
-@since 09/02/2017
-@version undefined
-
-@type function
+	@description Envio de PLP para SIGEP 
+	@author Bernard M. Margarido
+	@since 09/02/2017
+	@version undefined
+	@type function
 /*/
 /************************************************************************/
 User Function SIGM004(cNumDoc,cSerie,cOrderId,aFaixaEtq,cXmlPlp)
@@ -42,14 +39,11 @@ Return _lRet
 
 /************************************************************************************/
 /*/{Protheus.doc} SigM04A
-
-@description Realiza o envio de postagem SIGEP 
-
-@author Bernard M. Margarido
-@since 07/02/2017
-@version undefined
-
-@type function
+	@description Realiza o envio de postagem SIGEP 
+	@author Bernard M. Margarido
+	@since 07/02/2017
+	@version undefined
+	@type function
 /*/
 /************************************************************************************/
 Static Function SigM04A()
