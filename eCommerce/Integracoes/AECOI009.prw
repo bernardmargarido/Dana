@@ -171,7 +171,7 @@ Local oPrice	:= Nil
 // Valida se existem preços a serem enviadas |
 //-------------------------------------------+
 If !AEcoQry(cAlias,@nToReg,_cLojaID)
-	aAdd(aMsgErro,{"009","NAO EXISTEM REGISTROS PARA SEREM ENVIADOS."})  
+	LogExec("009 - NAO EXISTEM REGISTROS PARA SEREM ENVIADOS.")  
 	RestArea(aArea)
 	Return .T.
 EndIf

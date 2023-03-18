@@ -22,46 +22,54 @@ Default _cFilInt    := "06"
 // Mensagem console |
 //------------------+
 CoNout("<< ECLOJM07 >> - INICIO " + dTos( Date() ) + " - " + Time() )
+   
+//-----------------------+
+// Abre empresa / filial | 
+//-----------------------+
+If _lJob
+    RpcSetType(3)
+    RpcSetEnv(_cEmpInt, _cFilInt,,,'FAT')
+EndIf
 
 //--------------------------+
 // Cria arquivo de semaforo |
 //--------------------------+
-//If LockByName("ECLOJM07", .F., .F.)
-   
-    //-----------------------+
-    // Abre empresa / filial | 
-    //-----------------------+
-    If _lJob
-        RpcSetType(3)
-        RpcSetEnv(_cEmpInt, _cFilInt,,,'LOJ')
-    EndIf
-
-    //-----------------------+
-    // Integração de Pedidos |
-    //-----------------------+
-    CoNout("<< ECLOJM07 >> - INICIO ENVIO INVOICE ECOMMERCE " + dTos( Date() ) + " - " + Time() )
-
-    If _lJob
-        EcLojM07A()
-    Else
-        FwMsgRun(,{|_oSay| EcLojM07A(_oSay)},"Aguarde...","Enviando Invoices")
-    EndIf
-
-    CoNout("<< ECLOJM07 >> - FIM  ENVIO INVOICE ECOMMERCE " + dTos( Date() ) + " - " + Time() )
-
-    //------------------------+
-    // Fecha empresa / filial |
-    //------------------------+
+If !LockByName("ECLOJM07", .T., .T.)
+    CoNout("<< ECLOJM07 >> - ROTINA EM USO AGUARDE A FINALIZACAO DO PROCESSO - DATA " + dToc(Date()) + " HORA " + Time() )
+    CoNout("<< ECLOJM07 >> - FIM ENVIO INVOICE ECOMMERCE - DATA " + dToc(Date()) + " HORA " + Time() )
+    CoNout(Replicate("-",80))
+    CoNout("")
     If _lJob
         RpcClearEnv()
-    EndIf    
+    Endif 
+    Return Nil 
+EndIf 
+    
+//-----------------------+
+// Integração de Pedidos |
+//-----------------------+
+CoNout("<< ECLOJM07 >> - INICIO ENVIO INVOICE ECOMMERCE " + dTos( Date() ) + " - " + Time() )
 
-    //----------------------------+
-    // Exclui arquivo de semaforo |
-    //----------------------------+
-    //UnLockByName("ECLOJM07",.F.,.F.)
+If _lJob
+    EcLojM07A()
+Else
+    FwMsgRun(,{|_oSay| EcLojM07A(_oSay)},"Aguarde...","Enviando Invoices")
+EndIf
 
-//EndIf 
+CoNout("<< ECLOJM07 >> - FIM ENVIO INVOICE ECOMMERCE " + dTos( Date() ) + " - " + Time() )
+
+//----------------------------+
+// Exclui arquivo de semaforo |
+//----------------------------+
+UnLockByName("ECLOJM07", .T., .T.)
+
+//------------------------+
+// Fecha empresa / filial |
+//------------------------+
+If _lJob
+    RpcClearEnv()
+EndIf    
+
 
 CoNout("<< ECLOJM07 >> - FIM " + dTos( Date() ) + " - " + Time() )
 

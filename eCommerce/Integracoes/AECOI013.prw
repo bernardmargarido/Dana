@@ -62,7 +62,7 @@ MakeDir(cDirImp)
 cArqLog := cDirImp + "INVOICE" + cEmpAnt + cFilAnt + ".LOG"
 ConOut("")	
 LogExec(Replicate("-",80))
-LogExec("INICIA ENVIO DE INVOICE COM A VTEX - DATA/HORA: "+DTOC(DATE())+" AS "+TIME())
+LogExec("<< AECOI013 >> - INICIA ENVIO DE INVOICE COM A VTEX - DATA/HORA: "+DTOC(DATE())+" AS "+TIME())
 
 //-----------------------------------------+
 // Inicia processo de envio das categorias |
@@ -73,7 +73,7 @@ Else
 	Processa({|| _lRet := AECOINT13(cNumOrc) },"Aguarde...","Enviando invoice.")
 EndIf
 
-LogExec("FINALIZA ENVIO DE INVOICE COM A VTEX - DATA/HORA: "+DTOC(DATE())+" AS "+TIME())
+LogExec("<< AECOI013 >> - FINALIZA ENVIO DE INVOICE COM A VTEX - DATA/HORA: "+DTOC(DATE())+" AS "+TIME())
 LogExec(Replicate("-",80))
 ConOut("")
 
@@ -136,6 +136,7 @@ Local _oItens	:= Nil
 dbSelectArea("WSA")
 WSA->( dbSetOrder(1) )
 If !WSA->( dbSeek(xFilial("WSA") + PadR(cNumOrc,_nTOrc)) )
+	LogExec("<< AECOI013 >> - ORCAMENTO " + cNumOrc + " NAO LOCALIZADO." )
 	RestArea(aArea)
 	Return .F.
 EndIf 
@@ -383,14 +384,14 @@ If HTTPGetStatus() == 200
 			aRet[2] := cDocNum + cSerie
 			aRet[3] := "INVOICE" + cDocNum + cSerie + "ENVIADA COM SUCESSO "
 			
-			LogExec("INVOICE" + cDocNum + cSerie + "ENVIADA COM SUCESSO " )
+			LogExec("<< AECOI013 >> - INVOICE" + cDocNum + cSerie + "ENVIADA COM SUCESSO " )
 		EndIf
 	Else
 		aRet[1] := .T.
 		aRet[2] := cDocNum + cSerie
 		aRet[3] := "INVOICE" + cDocNum + cSerie + "ENVIADA COM SUCESSO "
 		
-		LogExec("INVOICE" + cDocNum + cSerie + "ENVIADA COM SUCESSO " + CRLF + cRetPost )
+		LogExec("<< AECOI013 >> - INVOICE" + cDocNum + cSerie + "ENVIADA COM SUCESSO " + CRLF + cRetPost )
 	EndIf		
 	
 Else 
@@ -402,7 +403,7 @@ Else
 			
 			aAdd(aMsgErro,{aRet[2],aRet[3]})
 			
-			LogExec("ERRO AO ENVIAR INVOICE " + cDocNum + " / " + cSerie) 
+			LogExec("<< AECOI013 >> - ERRO AO ENVIAR INVOICE " + cDocNum + " / " + cSerie) 
 		EndIf	
 	EndIf	
 EndIf
@@ -492,27 +493,27 @@ Return nValor
 /*/
 /**************************************************************************************************/
 Static Function AEcoI13CC(_cDoc,_cSerie)
-Local _cStatic	:= "S"+"t"+"a"+"t"+"i"+"c"+"C"+"a"+"l"+"l"
-Local _cURL     := PadR(GetNewPar("MV_SPEDURL","http://"),250)  
-Local _cIdEnt 	:= ""
-Local _cXML 	:= ""
-Local _cCnpjDIni:= "              "
-Local _cCnpjDFim:= "99999999999999"
-Local cVerNfe	:= ""
-Local cVerCte	:= ""
-Local cNotaIni 	:= ""
-Local cNFes 	:= ""
-Local cChvNFe  	:= ""
-Local cModelo 	:= ""
-Local cPrefixo	:= ""
-Local cCab1		:= ""
-Local cRodap	:= ""
-Local _cCNPJDEST:= Space(14) 
+Local _cStatic		:= "S"+"t"+"a"+"t"+"i"+"c"+"C"+"a"+"l"+"l"
+Local _cURL     	:= PadR(GetNewPar("MV_SPEDURL","http://"),250)  
+Local _cIdEnt 		:= ""
+Local _cXML 		:= ""
+Local _cCnpjDIni	:= "              "
+Local _cCnpjDFim	:= "99999999999999"
+Local cVerNfe		:= ""
+Local cVerCte		:= ""
+Local cNotaIni 		:= ""
+Local cNFes 		:= ""
+Local cChvNFe  		:= ""
+Local cModelo 		:= ""
+Local cPrefixo		:= ""
+Local cCab1			:= ""
+Local cRodap		:= ""
+Local _cCNPJDEST	:= Space(14) 
 
-Local _nX		:= 0
+Local _nX			:= 0
 
-Local _dDtaIni	:= DaySub(Date(),15)
-Local _dDtaFim	:= Date()
+Local _dDtaIni		:= DaySub(Date(),15)
+Local _dDtaFim		:= Date()
 
 Private oWS 		:= Nil 
 Private oRetorno	:= Nil 
