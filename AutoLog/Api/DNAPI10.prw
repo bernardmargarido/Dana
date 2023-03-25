@@ -542,8 +542,8 @@ EndIf
 // Valida se nota jç foi conferido | 
 //---------------------------------+
 If SF2->F2_XENVWMS == "3"
-	LogExec("NOTA " + _cNota + " SERIE " + _cSerie + " Jç SEPARADO.")
-	aAdd(aMsgErro,{cFilAnt,_cNota+_cSerie,.F.,"Jç SEPARADO."})
+	LogExec("NOTA " + _cNota + " SERIE " + _cSerie + " JA SEPARADO.")
+	aAdd(aMsgErro,{cFilAnt,_cNota+_cSerie,.F.,"JA SEPARADO."})
 	RestArea(aArea)
 	Return .T.
 EndIf
@@ -606,20 +606,21 @@ If _lContinua
 	//-------------------------------------+
 	// Esorna liberação do pedido de venda | 
 	//-------------------------------------+
+	/*
 	If Len(_aDiverg) > 0
 	
 		DnaApi10P(_cNota, _cSerie,_cCodCli,_cLoja,_aDiverg)
 		//----------------------+	
 		// Log processo da nota |
 		//----------------------+
-		LogExec(_cNota + _cSerie + "DIVERGENCIA SEPARAçãO.")
-		aAdd(aMsgErro,{cFilAnt,_cNota + _cSerie,.F.,"DIVERGENCIA SEPARAçãO."})
+		LogExec(_cNota + _cSerie + "DIVERGENCIA SEPARACAO.")
+		aAdd(aMsgErro,{cFilAnt,_cNota + _cSerie,.F.,"DIVERGENCIA SEPARACAO."})
 		
 	//------------------------------+	
 	// Libera faturamento do pedido |
 	//------------------------------+	 
 	Else
-	
+	*/
 		RecLock("SF2",.F.)
 			SF2->F2_XENVWMS := "3"
 			SF2->F2_XDTALT	:= Date()
@@ -666,14 +667,35 @@ If _lContinua
 				WSA->( MsUnLock() )
 			EndIf
 
+			//-------------------------------------+
+			// Cria fila de transmissão automatica |
+			//-------------------------------------+
+			dbSelectArea("XTE")
+			XTE->( dbSetOrder(1) )
+			If XTE->( dbSeek(xFilial("XTE") + SF2->F2_DOC + SF2->F2_SERIE ) )
+				If XTE->XTE_STATUS $ "1/4"
+					RecLock("XTE",.F.)
+						XTE->XTE_STATUS := "1"
+					XTE->( MsUnLock() )
+				EndIf 
+			Else 
+				RecLock("XTE", .T.)
+					XTE->XTE_FILIAL := xFilial("XTE")
+					XTE->XTE_DOC	:= SF2->F2_DOC
+					XTE->XTE_SERIE 	:= SF2->F2_SERIE
+					XTE->XTE_DATA  	:= ""
+					XTE->XTE_STATUS	:= "1"
+				XTE->( MsUnLock() )
+			EndIf 
 		EndIf
+
 		//----------------------+	
 		// Log processo da nota |
 		//----------------------+
 		LogExec(_cPedido + "CONFERENCIA REALIZADA COM SUCESSO.")
 		aAdd(aMsgErro,{cFilAnt,_cNota + _cSerie,.T.,"CONFERENCIA REALIZADA COM SUCESSO."})
 
-	EndIf
+	//EndIf
 EndIf
 
 //-------------------------+

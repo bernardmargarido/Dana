@@ -85,9 +85,11 @@ Return .T.
 /*/
 /*********************************************************************************/
 Static Function EcLojM07A(_oSay)
-Local _aArea    := GetArea()
+Local _aArea        := GetArea()
 
-Local _cAlias   := ""
+Local _cAlias       := ""
+
+Local _lCancelado   := .F.
 
 Default _oSay   := Nil 
 
@@ -132,7 +134,7 @@ While (_cAlias)->( !Eof() )
         
         RecLock("WSA",.F.)
             WSA->WSA_CODSTA	:= WS1->WS1_CODIGO
-		    WSA->WSA_DESTAT	:= WS1->WS1_DESCRI
+            WSA->WSA_DESTAT	:= WS1->WS1_DESCRI
             WSA->WSA_ENVLOG := "5"
         WSA->( MsUnLock() )
 
@@ -148,8 +150,23 @@ While (_cAlias)->( !Eof() )
         u_AEcoStaLog("006",WSA->WSA_NUMECO,WSA->WSA_NUM,dDataBase,Time())
 
         CoNout("<< ECLOJM07 >> - PEDIDO ECOMMERCE " + RTrim(WSA->WSA_NUMECO) + "ENVIADO COM SUCESSO." )
-    EndIf
+    Else 
 
+        CoNout("<< ECLOJM07 >> - VALIDA SE PEDIDO ECOMMERCE " + RTrim(WSA->WSA_NUMECO) + "ESTA CANCELADO." )
+
+        EcLojM07C(WSA->WSA_IDLOJA,WSA->WSA_NUMECO,@_lCancelado)
+
+        If _lCancelado
+            WS1->( dbSeek(xFilial("WS1") + "008") )
+                
+            RecLock("WSA",.F.)
+                WSA->WSA_CODSTA	:= WS1->WS1_CODIGO
+                WSA->WSA_DESTAT	:= WS1->WS1_DESCRI
+                WSA->WSA_ENVLOG := "C"
+            WSA->( MsUnLock() )
+        EndIf 
+    EndIf
+    
     (_cAlias)->( dbSkip() )
 EndDo
 
@@ -196,3 +213,59 @@ If (_cAlias)->( Eof() )
 EndIf
 
 Return .T.
+
+/****************************************************************************************/
+/*/{Protheus.doc} EcLojM07C
+    @description Consulta status do pedido 
+    @type  Static Function
+    @author Bernard M Margarido
+    @since 24/03/2023
+    @version version
+    @param param_name, param_type, param_descr
+/*/
+/****************************************************************************************/
+Static Function EcLojM07C(_cIdLoja,_cOrderID,_lCancelado)
+Local _aHeadOut     := {}
+
+Local _cUrl         := ""
+Local _cAppKey      := ""
+Local _cAppToken    := ""
+Local _cJSon        := ""
+
+Local _nTimeOut     := 600 
+
+Local _oJSon        := Nil 
+Local _oFwRest      := Nil 
+
+//----------------+
+// Posiciona loja |
+//----------------+
+dbSelectArea("XTC")
+XTC->( dbSetOrder(1) )
+If XTC->( dbSeek(xFilial("XTC") + _cIdLoja) )
+    _cUrl       := RTrim(XTC->XTC_URL2)
+    _cAppKey    := RTrim(XTC->XTC_APPKEY)
+    _cAppToken  := RTrim(XTC->XTC_APPTOK)
+EndIf 
+
+_lCancelado := .F.
+_cUrl		:= RTrim(IIF(Empty(_cUrl), GetNewPar("EC_URLREST"), _cUrl))
+_cAppKey	:= RTrim(IIF(Empty(_cAppKey), GetNewPar("EC_APPKEY"), _cAppKey))
+_cAppToken	:= RTrim(IIF(Empty(_cAppToken), GetNewPar("EC_APPTOKE"), _cAppToken))
+
+aAdd(_aHeadOut,"Content-Type: application/json" )
+aAdd(_aHeadOut,"X-VTEX-API-AppKey:" + _cAppKey )
+aAdd(_aHeadOut,"X-VTEX-API-AppToken:" + _cAppToken ) 
+
+_oFwRest := FWRest():New(_cUrl)
+_oFwRest:nTimeOut := _nTimeOut
+_oFwRest:SetPath("/api/oms/pvt/orders/" + RTrim(_cOrderID))
+If _oFwRest:Get(_aHeadOut)
+    _cJSon := DecodeUtf8(_oFwRest:GetResult())
+    _oJSon := JSonObject():New()
+    _oJSon:fromJson(_cJSon)
+    _lCancelado := IIF(_oJSon['status'] == 'canceled', .T., .F.)
+EndIf 
+
+FreeObj(_oFwRest)
+Return Nil 

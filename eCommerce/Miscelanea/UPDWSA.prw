@@ -63,7 +63,7 @@ TCSqlExec("UPDATE WSA010 SET WSA_SERPOS = '124849' , WSA_TRANSP='E00002' WHERE W
 TCSqlExec("UPDATE WSA010 SET WSA_SERPOS = '124884' , WSA_TRANSP='E00001' WHERE WSA_NUMECO ='1069370840135-01'") 
 TCSqlExec("UPDATE WSA010 SET WSA_SERPOS = '124849' , WSA_TRANSP='E00002' WHERE WSA_NUMECO ='1070322082414-01'") 
 */
-
+/*
 TCSqlExec("UPDATE WSA010 SET WSA_ENVLOG = 'X' WHERE WSA_NUMECO = 'BLW-BelezanaWeb-8628-114625973'")
 TCSqlExec("UPDATE WSA010 SET WSA_ENVLOG = 'X' WHERE WSA_NUMECO = 'BLW-BelezanaWeb-8628-114735756'")
 TCSqlExec("UPDATE WSA010 SET WSA_ENVLOG = 'X' WHERE WSA_NUMECO = 'BLW-BelezanaWeb-8628-114735756'")
@@ -193,5 +193,40 @@ TCSqlExec("UPDATE WSA010 SET WSA_ENVLOG = 'X' WHERE WSA_NUMECO = '1313840575582-
 TCSqlExec("UPDATE WSA010 SET WSA_ENVLOG = 'X' WHERE WSA_NUMECO = '1313840575582-01'")
 TCSqlExec("UPDATE WSA010 SET WSA_ENVLOG = 'X' WHERE WSA_NUMECO = '1313840575582-01'")
 TCSqlExec("UPDATE WSA010 SET WSA_ENVLOG = 'X' WHERE WSA_NUMECO = '1313840575582-01'")
+*/
+
+CLRF    := CHR(13) + CHR(10)
+_cAlias := ""
+_cQuery := ""
+_cQuery := " SELECT " + CLRF
+_cQuery += "	F2_FILIAL, " + CLRF
+_cQuery += "	F2_DOC, " + CLRF
+_cQuery += "	F2_SERIE " + CLRF
+_cQuery += " FROM " + CLRF
+_cQuery += "	" + RetSqlName("SF2") + "  " + CLRF
+_cQuery += " WHERE " + CLRF
+_cQuery += "	F2_FILIAL = '" + xFilial("SF2") + "' AND " + CLRF
+_cQuery += "	F2_SERIE = '50' AND " + CLRF
+_cQuery += "	F2_FIMP = '' AND " + CLRF
+_cQuery += "	F2_CHVNFE = '' AND "  + CLRF
+_cQuery += "	D_E_L_E_T_ = '' "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+dbSeletcArea("XTE")
+XTE->( dbSetOrder(1) )
+
+While (_cAlias)->( !Eof() )
+    If !XTE->( dbSeek(xFilial("XTE") + (_cAlias)->F2_DOC + (_cAlias)->F2_SERIE))
+        RecLock("XTE", .T.)
+            XTE->XTE_FILIAL := xFilial("XTE")
+            XTE->XTE_DOC	:= (_cAlias)->F2_DOC
+            XTE->XTE_SERIE 	:= (_cAlias)->F2_SERIE
+            XTE->XTE_DATA  	:= ""
+            XTE->XTE_STATUS	:= "1"
+        XTE->( MsUnLock() )
+    EndIf
+    (_cAlias)->( dbSkip() ) 
+EndDo 
 
 Return .T.
