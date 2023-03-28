@@ -2,6 +2,8 @@
 #INCLUDE "FWPRINTSETUP.CH"
 #INCLUDE "RPTDEF.CH"
 
+#DEFINE CRLF CHR(13) + CHR(10)
+
 /************************************************************************************/
 /*/{Protheus.doc} ECLOJM10
     @description Realiza a impressçao da Danfe reduzida 
@@ -145,6 +147,7 @@ If _nTpDanfe == 1
     EcLojM10C(_cDoc,_cSerie)
 
     EcLojM10E(_cDoc,_cSerie,_cCodImp,_nTpImp)
+
 //------------------------+
 // Imprime danfe reduzida |
 //------------------------+
@@ -502,11 +505,27 @@ _aDest[4]   := AllTrim(SA1->A1_EST)
 // Tipo de impressão |
 //-------------------+
 
+//---------+
+// Termica |
+//---------+
+If _nTpImp == 1
+    
+    dbSelectArea("CB5")
+    CB5->( dbSetOrder(1) )
+    If !CB5->(DbSeek( xFilial("CB5") + PadR(_cCodImp, _nTCodImp) )) .Or. !CB5SetImp(_cCodImp)
+        MsgStop("Local de impressão não encontrado, Informe um local de impressão cadastrado. Acesse a rotina 'Locais de Impressão'.","Dana Avisos!")
+        RestArea(_aArea)
+        Return .F.
+    EndIf
+
+    _cStatic    := "S"+"t"+"a"+"t"+"i"+"c"+"C"+"a"+"l"+"l"
+    Eval( {|| &(_cStatic + "(" + "DanfeEtiqueta, impZebra, _aNfe, _aEmit, _aDest" + ")") })
+    MSCBCLOSEPRINTER()
+
 //-----+
 // PDF |
 //-----+
-If _nTpImp == 2
-
+ElseIf _nTpImp == 2
     //--------------------------------+
     // Cria diretorio caso nao exista |
     //--------------------------------+
@@ -561,24 +580,7 @@ If _nTpImp == 2
         FErase(_oPrinter:cFilePrint)
     EndIf    
     */
-    
 
-//---------+
-// Termica |
-//---------+
-ElseIf _nTpImp == 1
-
-    dbSelectArea("CB5")
-    CB5->( dbSetOrder(1) )
-    If !CB5->(DbSeek( xFilial("CB5") + PadR(_cCodImp, _nTCodImp) )) .Or. !CB5SetImp(_cCodImp)
-        MsgStop("Local de impressão não encontrado, Informe um local de impressão cadastrado. Acesse a rotina 'Locais de Impressão'.","Dana Avisos!")
-        RestArea(_aArea)
-        Return .F.
-    EndIf
-
-    _cStatic    := "S"+"t"+"a"+"t"+"i"+"c"+"C"+"a"+"l"+"l"
-    Eval( {|| &(_cStatic + "(" + "DanfeEtiqueta, impZebra, _aNfe, _aEmit, _aDest" + ")") })
-    MSCBCLOSEPRINTER()
 EndIf 
 
 RestArea(_aArea)
@@ -594,7 +596,199 @@ Return Nil
 /*/
 /*************************************************************************************/
 Static Function EcLojM10E(_cDoc,_cSerie,_cCodImp,_nTpImp)
+Local _cAlias       := ""
+Local _cPlpID	    := ""
+Local _cPedido	    := ""
+Local _cCodEtq	    := ""
+Local _cDest	    := ""
+Local _cEndDest	    := ""
+Local _cBairro	    := ""
+Local _cMunicipio	:= ""
+Local _cCep		    := ""
+Local _cUF		    := ""
+Local _cObs		    := ""
+Local _cCodServ	    := ""
+Local _cDescSer	    := ""
+Local _cTelDest	    := ""
+Local _cDTMatrix	:= ""
+Local _nValor		:= ""
+
+Local _nVolume	    := 0
+Local _nPeso		:= 0
+
+//-----------------------------------+
+// Valida se nota pertence ao SIGEP  |
+//-----------------------------------+
+If !EcLojM10EA(_cDoc,_cSerie,@_cAlias)
+    Return Nil 
+EndIf 
+
+//---------------------------+
+// Valdia status da etiqueta |
+//---------------------------+
+If (_cAlias)->ZZ4_STATUS == "01"
+    MsgStop("PLP " + RTrim((_cAlias)->ZZ4_PLPID) + " não integrada no SIGEP. Favor enviar a PLP e reimprimir a etiqueta!","Dana Avisos!")
+    Return .F.
+ElseIf (_cAlias)->ZZ4_STATUS == "03"
+    MsgStop("PLP " + RTrim((_cAlias)->ZZ4_PLPID) + " com erro no SIGEP. Favor falar com o responsavel!","Dana Avisos!")
+    Return .F.
+EndIf 
+
+//------------------+	
+// Imprime etiqueta |
+//------------------+
+_cPlpID		:= (_cAlias)->ZZ4_PLPID
+_cPedido	:= (_cAlias)->ZZ4_NUMSC5
+_cCodEtq	:= (_cAlias)->ZZ4_CODETQ	
+_cDest		:= (_cAlias)->WSA_NOMDES
+_cEndDest	:= (_cAlias)->WSA_ENDENT
+_cBairro	:= (_cAlias)->WSA_BAIRRE
+_cMunicipio	:= (_cAlias)->WSA_MUNE
+_cCep		:= (_cAlias)->WSA_CEPE
+_cUF		:= (_cAlias)->WSA_ESTE
+_cObs		:= (_cAlias)->WSA_COMPLE
+_cCodServ	:= (_cAlias)->ZZ0_CODSER
+_cDescSer	:= (_cAlias)->ZZ0_DESCRI
+_cTelDest	:= (_cAlias)->WSA_TEL01
+_cDTMatrix	:= ""
+_nValor		:= (_cAlias)->WSA_VLRTOT
+_nVolume	:= _nX
+_nPeso		:= IIF((_cAlias)->C5_PBRUTO > 0, (_cAlias)->C5_PBRUTO * 1000, 100) 
+
+//---------+
+// Termica |
+//---------+
+If _nTpImp == 1
+    EcLojM10EB( _cPlpID,_cDoc,_cSerie,_cPedido,_cCodEtq,_cDest,;
+                _cEndDest,_cBairro,_cMunicipio,_cCep,_cUF,_cObs,;
+                _cCodServ,_cDescSer,_cTelDest,_cDTMatrix,_nValor,;
+                _nVolume,_nPeso)
+//-----+
+// PDF |
+//-----+
+ElseIf _nTpImp == 2
+    EcLojM10EC(_cPlpID,_cDoc,_cSerie,_cPedido,_cCodEtq,_cDest,;
+                _cEndDest,_cBairro,_cMunicipio,_cCep,_cUF,_cObs,;
+                _cCodServ,_cDescSer,_cTelDest,_cDTMatrix,_nValor,;
+                _nVolume,_nPeso)
+EndIf 
+
+Return Nil 
+
+/*************************************************************************************/
+/*/{Protheus.doc} EcLojM10EA
+    @description Realiza a consulta da nota na PLP
+    @type  Static Function
+    @author Bernard M Margarido
+    @since 27/03/2023
+    @version version
+/*/
+/*************************************************************************************/
+Static Function EcLojM10EA(_cDoc,_cSerie,_cAlias)
+Local _cQuery := ""
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	ZZ4.ZZ4_PLPID, " + CRLF
+_cQuery += "	ZZ4.ZZ4_NOTA, " + CRLF
+_cQuery += "	ZZ4.ZZ4_SERIE, " + CRLF 
+_cQuery += "	ZZ4.ZZ4_NUMSC5, " + CRLF
+_cQuery += "	ZZ4.ZZ4_CODETQ, " + CRLF
+_cQuery += "	ZZ4.ZZ4_STATUS, " + CRLF
+_cQuery += "	WSA_NOMDES, " + CRLF
+_cQuery += "	WSA_ENDENT, " + CRLF
+_cQuery += "	WSA_BAIRRE, " + CRLF
+_cQuery += "	WSA_MUNE, " + CRLF
+_cQuery += "	WSA_CEPE, " + CRLF 
+_cQuery += "	WSA_ESTE, " + CRLF
+_cQuery += "	WSA_COMPLE, " + CRLF
+_cQuery += "	WSA_TEL01, " + CRLF
+_cQuery += "	WSA_VLRTOT, " + CRLF
+_cQuery += "	ZZ0_CODSER, " + CRLF
+_cQuery += "	ZZ0_DESCRI, " + CRLF
+_cQuery += "	C5_PBRUTO " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += "	" + RetSqlName("ZZ4") + " ZZ4 (NOLOCK) " + CRLF
+_cQuery += "	INNER JOIN " + RetSqlName("ZZ0") + " ZZ0 (NOLOCK) ON ZZ0.ZZ0_FILIAL = ZZ4.ZZ4_FILIAL AND ZZ0.ZZ0_IDSER = ZZ4.ZZ4_CODSPO AND ZZ0.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "	INNER JOIN " + RetSqlName("WSA") + " WSA (NOLOCK) ON WSA.WSA_FILIAL = ZZ4.ZZ4_FILIAL AND WSA.WSA_NUMECO = ZZ4.ZZ4_NUMECO AND WSA.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "	INNER JOIN " + RetSqlName("SC5") + " SC5 (NOLOCK) ON SC5.C5_FILIAL = ZZ4.ZZ4_FILIAL AND SC5.C5_NUM = ZZ4.ZZ4_NUMSC5 AND SC5.D_E_L_E_T_ = '' " + CRLF
+_cQuery += " WHERE " + CRLF
+_cQuery += "	ZZ4.ZZ4_FILIAL = '" + xFilial("ZZ4") + "' AND " + CRLF
+_cQuery += "	ZZ4.ZZ4_NOTA = '" + _cDoc + "' AND " + CRLF
+_cQuery += "	ZZ4.ZZ4_SERIE = '" + _cSerie + "' AND " + CRLF
+_cQuery += "	ZZ4.D_E_L_E_T_ = '' "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+If (_cAlias)->( Eof() ) .Or. Empty((_cAlias)->ZZ4_PLPID)
+    (_cAlias)->( dbCloseArea() )    
+    Return .F. 
+EndIf 
+
+Return .T. 
+
+/*************************************************************************************/
+/*/{Protheus.doc} EcLojM10EB
+    @description Realiza a impressão da etiqueta termica 
+    @type  Static Function
+    @author Bernard M Margarido
+    @since 27/03/2023
+    @version version
+/*/
+/*************************************************************************************/
+Static Function EcLojM10EB( _cPlpID,_cDoc,_cSerie,_cPedido,_cCodEtq,_cDest,;
+                _cEndDest,_cBairro,_cMunicipio,_cCep,_cUF,_cObs,;
+                _cCodServ,_cDescSer,_cTelDest,_cDTMatrix,_nValor,;
+                _nVolume,_nPeso)
     
+Return Nil 
+
+/*************************************************************************************/
+/*/{Protheus.doc} EcLojM10EC
+    @description Imprime PDF etiqueta 
+    @type  Static Function
+    @author Bernard M Margarido
+    @since 27/03/2023
+    @version version
+/*/
+/*************************************************************************************/
+Static Function  EcLojM10EC(_cPlpID,_cDoc,_cSerie,_cPedido,_cCodEtq,_cDest,;
+                            _cEndDest,_cBairro,_cMunicipio,_cCep,_cUF,_cObs,;
+                            _cCodServ,_cDescSer,_cTelDest,_cDTMatrix,_nValor,;
+                            _nVolume,_nPeso)
+
+Local _oPrint := Nil 
+
+//------------------+
+// Instancia classe | 
+//------------------+
+_oPrint	:=	FWMSPrinter():New(_cFile, IMP_PDF, _lAdjustToLegacy, _cDirExp, _lDisableSetup, , , , .T., , .F., )
+
+//---------------------+
+// Configura Relatorio |
+//---------------------+
+//_oPrint:cPathPdf 			:= _cDirRaiz
+_oPrint:setResolution(78)
+_oPrint:SetPortrait()
+_oPrint:setPaperSize(TAM_A4)
+_oPrint:SetMargin(10,10,10,10)
+
+If _oSetup:GetProperty(PD_PRINTTYPE) == IMP_PDF
+    _oPrint:nDevice := IMP_PDF
+    _oPrint:cPathPDF := IIF( Empty(_oSetup:aOptions[PD_VALUETYPE]), _cDirRaiz , _oSetup:aOptions[PD_VALUETYPE] )
+ElseIf _oSetup:GetProperty(PD_PRINTTYPE) == IMP_SPOOL
+    _oPrint:nDevice := IMP_SPOOL
+    fwWriteProfString(GetPrinterSession(),"DEFAULT", _oSetup:aOptions[PD_VALUETYPE], .T.)
+    _oPrint:cPrinter := _oSetup:aOptions[PD_VALUETYPE]
+EndIf 
+
+_cStatic    := "S"+"t"+"a"+"t"+"i"+"c"+"C"+"a"+"l"+"l"
+Eval( {|| &(_cStatic + "(" + "SIGR001, SigR01Etq, _oPrint,_cPlpID,_cDoc,_cSerie,_cPedido,_cTelDest,_cCodEtq,_cDest,_cEndDest,_cBairro,_cMunicipio,_cCep,_cUF,_cObs,_cCodServ,_cDescSer,_cDTMatrix,_nValor,_nVolume,_nPeso" + ")") })
+
+//-----------------+
+// Exibe relatorio |
+//-----------------+
+_oPrint:Preview()
+
 Return Nil 
 
 /*************************************************************************************/

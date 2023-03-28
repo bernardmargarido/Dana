@@ -150,10 +150,60 @@ Return _oView
 /*/
 /************************************************************************************/
 User Function ECLOJ20A()
-Local _cCodEtq  := Space(6)
+Local _cCodEtq      := Space(6)
+Local _cTitulo      := "Dana - Expedição e-Commerce"
+Local _cTextSay     := '<h1 style="color:rgb(11, 155, 191); font-size: 36 "> Etiqueta: </h1>'
+Local _nLinIni      := 0
+Local _nColIni      := 0
+Local _nLinFin      := 0
+Local _nColFin      := 0
 
-Local _oSay     := Nil 
+Local _aCoors   	:= FWGetDialogSize( oMainWnd )
 
+Local _bValdGet     := {|| IIF(!Empty(_cCodEtq),(FwMsgRun(,{|_oSay| U_EcLojM10(_oSay,_cCodEtq)},"Aguarde...","Gerando Etiquetas."),_cCodEtq := Space(6),_oTGetEtq:SetFocus()),(.T.))}
+
+Local _oSize    	:= FWDefSize():New(.T.)
+Local _oFont32      := TFont():New('Arial',,-62,.T.)
+Local _oSayEtq      := Nil 
+Local _oTGroup      := Nil 
+Local _oPanel       := Nil 
+Local _oDlg         := Nil 
+
+Private _oTGetEtq   := Nil 
+
+//-------------------------------------------------------+
+// Inicializa as coordenadas de tela conforme resolução  |
+//-------------------------------------------------------+
+_oSize:AddObject( "DLG", 100, 100, .T., .T.)
+_oSize:SetWindowSize(_aCoors)
+_oSize:lProp         := .T.
+_oSize:lLateral 	 := .T.
+_oSize:aWindSize     := {0,5,492,906}
+_oSize:Process()
+
+_oDlg := MsDialog():New(_oSize:aWindSize[1], _oSize:aWindSize[2], _oSize:aWindSize[3], _oSize:aWindSize[4], _cTitulo,,,,DS_MODALFRAME,,,,,.T.)
+
+    _nLinIni := _oSize:GetDimension("DLG","LININI")
+	_nColIni := _oSize:GetDimension("DLG","COLINI")
+	_nLinFin := _oSize:GetDimension("DLG","LINEND")
+	_nColFin := _oSize:GetDimension("DLG","COLEND")
+
+
+    _oPanel := TPanel():New(001,001, , _oDlg,, .T.,,,, 200, 100, .F.)
+    _oPanel:Align := CONTROL_ALIGN_ALLCLIENT
+
+    _oTGroup    := TGroup():New(_nColIni,_nColIni,_nLinFin - 230 ,_nColFin - 500,'Etiqueta',_oPanel,,,.T.)
+
+    _oSayEtq    := TSay():New(_nLinIni + 15, _nColIni + 146 , {|| _cTextSay }, _oPanel,,,,,,.T.,,,100,060,,,,,,.T.)
+
+    _oTGetEtq	:= TGet():New( _nLinIni + 30, _nColIni + 146	, {|u| IIF(PCount() > 0, _cCodEtq := u, _cCodEtq	)} 	, _oPanel, 160, 060,"@!",_bValdGet,,,_oFont32,,,.T.,,,,,,,.F.,,,"_cCodEtq",,,,.T.,,,"",2)
+	_oTGetEtq:SetFocus()
+
+    _oBtnSair  	:= TButton():New( _nLinFin - 228, _nColIni , "Sair", _oDlg,{|| _oDlg:End() } ,_nColFin - 510,30,,,.F.,.T.,.F.,,.F.,,,.F. )
+    
+_oDlg:Activate(,,,.T.,,,)  
+
+/*
 While !Empty( _cCodEtq := FwInputBox("Informa o codigo da etiqueta ?", _cCodEtq) )
 
     If !Empty(_cCodEtq)
@@ -161,6 +211,7 @@ While !Empty( _cCodEtq := FwInputBox("Informa o codigo da etiqueta ?", _cCodEtq)
     EndIf 
 
 EndDo 
+*/
 Return Nil 
 
 /************************************************************************************/
