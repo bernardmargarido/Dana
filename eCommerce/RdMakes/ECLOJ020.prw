@@ -2,6 +2,9 @@
 #INCLUDE "PROTHEUS.CH"
 #INCLUDE "FWMVCDEF.CH"
 
+Static _cCSSBtn :=  "QPushButton { background-color: #f44336; color: white; font-size:24px; font-style:bold  } " + ;
+                    "QPushButton:focus { background-color: #f59794; border-style: solid; border-width: 8px  } "
+                    
 /******************************************************************************/
 /*/{Protheus.doc} ECLOJ020
     @description Monitor impressao de notas fiscais eCommerce
@@ -199,19 +202,11 @@ _oDlg := MsDialog():New(_oSize:aWindSize[1], _oSize:aWindSize[2], _oSize:aWindSi
     _oTGetEtq	:= TGet():New( _nLinIni + 30, _nColIni + 146	, {|u| IIF(PCount() > 0, _cCodEtq := u, _cCodEtq	)} 	, _oPanel, 160, 060,"@!",_bValdGet,,,_oFont32,,,.T.,,,,,,,.F.,,,"_cCodEtq",,,,.T.,,,"",2)
 	_oTGetEtq:SetFocus()
 
-    _oBtnSair  	:= TButton():New( _nLinFin - 228, _nColIni , "Sair", _oDlg,{|| _oDlg:End() } ,_nColFin - 510,30,,,.F.,.T.,.F.,,.F.,,,.F. )
-    
+    _oBtnSair  	:= TButton():New( _nLinFin - 228, _nColIni , "Sair", _oDlg,{|| _oDlg:End() } ,_nColFin - 504,30,,,.F.,.T.,.F.,,.F.,,,.F. )
+    _oBtnSair:SetCss(_cCSSBtn)
+
 _oDlg:Activate(,,,.T.,,,)  
 
-/*
-While !Empty( _cCodEtq := FwInputBox("Informa o codigo da etiqueta ?", _cCodEtq) )
-
-    If !Empty(_cCodEtq)
-        FwMsgRun(,{|_oSay| U_EcLojM10(_oSay,_cCodEtq)},"Aguarde...","Gerando Etiquetas.")
-    EndIf 
-
-EndDo 
-*/
 Return Nil 
 
 /************************************************************************************/

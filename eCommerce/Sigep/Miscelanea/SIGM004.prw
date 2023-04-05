@@ -62,14 +62,14 @@ Local _aFaixaEtq:= {}
 
 Local _lRet		:= .T.
 
-Local  _oSigWeb	:= SigepWeb():New
+Local _oSigWeb	:= SigepWeb():New()
 
 //----------------+
 // Consulta PLP's |
 //----------------+
 If !SigM04Qry(_cAlias,@_nToReg)
 
-	If _lJob
+	If !_lJob
 		MsgStop("Não existem dados para serem enviados.","Aviso")
 	EndIf
 	
@@ -132,12 +132,12 @@ While (_cAlias)->( !Eof() )
 							(_cAlias)->ZZ0_CODSER					,;	// 02. Codigo Etiqueta
 							(_cAlias)->C5_PBRUTO					,;	// 03. Peso Bruto 
 							(_cAlias)->WSA_NOMDES					,;	// 04. Destinatario
-							(_cAlias)->U5_DDD						,;	// 05. DDD
-							(_cAlias)->U5_FONE						,;	// 06. Telefone
-							(_cAlias)->U5_CELULAR					,;	// 07. Celular
+							(_cAlias)->DDD							,;	// 05. DDD
+							(_cAlias)->TELEFONE						,;	// 06. Telefone
+							(_cAlias)->CELULAR						,;	// 07. Celular
 							(_cAlias)->WSA_ENDENT					,;	// 08. Endereço de Entrega
 							(_cAlias)->WSA_COMPLE					,;	// 09. Complemento 
-							(_cAlias)->U5_CPF						,;	// 10. CPF / CNPJ Destinatario
+							(_cAlias)->CPF							,;	// 10. CPF / CNPJ Destinatario
 							(_cAlias)->WSA_BAIRRE					,;	// 11. Bairro de Entrega
 							(_cAlias)->WSA_MUNE						,;	// 12. Municipio de Entrega
 							(_cAlias)->WSA_ESTE						,;	// 13. Estado de Entrega
@@ -283,10 +283,10 @@ _cQuery += "	WSA.WSA_COMPLE, " + CRLF
 _cQuery += "	WSA.WSA_DOC, " + CRLF
 _cQuery += "	WSA.WSA_SERIE, " + CRLF
 _cQuery += "	WSA.WSA_VLRTOT,	" + CRLF
-_cQuery += "	SU5.U5_DDD, " + CRLF
-_cQuery += "	SU5.U5_FONE, " + CRLF
-_cQuery += "	SU5.U5_CELULAR, " + CRLF
-_cQuery += "	SU5.U5_CPF, " + CRLF
+_cQuery += "	CASE WHEN SU5.U5_DDD <> '' THEN SU5.U5_DDD ELSE SA1.A1_DDD END DDD, " + CRLF
+_cQuery += "	CASE WHEN SU5.U5_FONE <> '' THEN SU5.U5_FONE ELSE SA1.A1_TEL END TELEFONE, " + CRLF
+_cQuery += "	CASE WHEN SU5.U5_CELULAR <> '' THEN SU5.U5_CELULAR ELSE '' END CELULAR,  " + CRLF
+_cQuery += "	CASE WHEN SU5.U5_CPF <> '' THEN SU5.U5_CPF ELSE SA1.A1_CGC END CPF, " + CRLF
 _cQuery += "	SC5.C5_VOLUME1, " + CRLF
 _cQuery += "	SC5.C5_PBRUTO, " + CRLF
 _cQuery += "	ZZ2.R_E_C_N_O_ RECNOZZ2 " + CRLF
@@ -297,12 +297,13 @@ _cQuery += "	INNER JOIN " + RetSqlName("WSA") + " WSA ON WSA.WSA_FILIAL = ZZ4.ZZ
 _cQuery += "	INNER JOIN " + RetSqlName("SC5") + " SC5 ON SC5.C5_FILIAL = WSA.WSA_FILIAL AND SC5.C5_NUM = WSA.WSA_NUMSC5 AND SC5.D_E_L_E_T_ = '' " + CRLF
 _cQuery += "	INNER JOIN " + RetSqlName("ZZ0") + " ZZ0 ON ZZ0.ZZ0_FILIAL = ZZ2.ZZ2_FILIAL AND ZZ0.ZZ0_IDSER = ZZ4.ZZ4_CODSPO AND ZZ0.D_E_L_E_T_ = '' " + CRLF
 _cQuery += "	INNER JOIN " + RetSqlName("ZZ1") + " ZZ1 ON ZZ1.ZZ1_FILIAL = ZZ2.ZZ2_FILIAL AND ZZ1.ZZ1_IDSER = ZZ0.ZZ0_IDSER AND ZZ1.ZZ1_NOTA = ZZ4.ZZ4_NOTA AND ZZ1.ZZ1_SERIE = ZZ4.ZZ4_SERIE AND ZZ1.ZZ1_CODETQ + ZZ1.ZZ1_DVETQ + ZZ1.ZZ1_SIGLA = ZZ4.ZZ4_CODETQ AND ZZ1.D_E_L_E_T_ = '' " + CRLF
-_cQuery += "	INNER JOIN " + RetSqlName("SU5") + " SU5 ON SU5.U5_FILIAL = '  ' AND SU5.U5_XIDEND = WSA.WSA_IDENDE AND WSA.WSA_CEPE = SU5.U5_CEP AND SU5.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "	INNER JOIN " + RetSqlName("SA1") + " SA1 ON SA1.A1_FILIAL = '" + xFilial("SA1") + "' AND SA1.A1_COD = WSA.WSA_CLIENT AND SA1.A1_LOJA = WSA.WSA_LOJA AND SA1.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "	LEFT JOIN " + RetSqlName("SU5") + " SU5 ON SU5.U5_FILIAL = '" + xFilial("SU5") + "' AND SU5.U5_XIDEND = WSA.WSA_IDENDE AND WSA.WSA_CEPE = SU5.U5_CEP AND SU5.D_E_L_E_T_ = '' " + CRLF
 _cQuery += " WHERE " + CRLF
 _cQuery += "	ZZ2.ZZ2_FILIAL = '" + xFilial("ZZ2") + "' AND " + CRLF
 _cQuery += "	ZZ2.ZZ2_STATUS IN('01','03') AND " + CRLF
 _cQuery += "	ZZ2.D_E_L_E_T_= '' " + CRLF
-_cQuery += " GROUP BY ZZ2.ZZ2_CODIGO, ZZ4.ZZ4_CODETQ, ZZ0.ZZ0_CODSER, ZZ1.ZZ1_CODETQ, ZZ1.ZZ1_SIGLA, WSA.WSA_NOMDES, WSA.WSA_ENDENT, WSA.WSA_BAIRRE, WSA.WSA_MUNE, WSA.WSA_CEPE, WSA.WSA_ESTE, WSA.WSA_COMPLE, WSA.WSA_DOC, WSA.WSA_SERIE, WSA.WSA_VLRTOT, SU5.U5_DDD, SU5.U5_FONE, SU5.U5_CELULAR, SU5.U5_CPF, SC5.C5_VOLUME1, SC5.C5_PBRUTO, ZZ2.R_E_C_N_O_ " + CRLF
+_cQuery += " GROUP BY ZZ2.ZZ2_CODIGO, ZZ4.ZZ4_CODETQ, ZZ0.ZZ0_CODSER, ZZ1.ZZ1_CODETQ, ZZ1.ZZ1_SIGLA, WSA.WSA_NOMDES, WSA.WSA_ENDENT, WSA.WSA_BAIRRE, WSA.WSA_MUNE, WSA.WSA_CEPE, WSA.WSA_ESTE, WSA.WSA_COMPLE, WSA.WSA_DOC, WSA.WSA_SERIE, WSA.WSA_VLRTOT, SU5.U5_DDD, SU5.U5_FONE, SU5.U5_CELULAR, SU5.U5_CPF, SA1.A1_DDD, SA1.A1_TEL, SA1.A1_CGC, SC5.C5_VOLUME1, SC5.C5_PBRUTO, ZZ2.R_E_C_N_O_ " + CRLF
 _cQuery += " ORDER BY ZZ2.ZZ2_CODIGO  "
 
 dbUseArea(.T.,"TOPCONN",TcGenQry(,,_cQuery),_cAlias,.T.,.T.)

@@ -921,7 +921,7 @@ _cXmlRem += TagXml("uf_remetente",SM0->M0_ESTCOB)
 _cXmlRem += TagXml("telefone_remetente",RTrim(u_EcFormat(SM0->M0_TEL,"A1_TEL",.T.,"C")),.T.)
 _cXmlRem += TagXml("fax_remetente")
 _cXmlRem += TagXml("email_remetente")
-_cXmlRem += TagXml("cpf_cnpj_remetene",RTrim(SM0->M0_CGC),.T.)
+_cXmlRem += TagXml("cpf_cnpj_remetente",RTrim(SM0->M0_CGC),.T.)
 _cXmlRem += '</remetente>'
 
 _cXmlRem += TagXml("forma_pagamento")

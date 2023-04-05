@@ -1,6 +1,9 @@
 #INCLUDE "TOTVS.CH"
-#INCLUDE "FWPRINTSETUP.CH"
 #INCLUDE "RPTDEF.CH"
+#INCLUDE "PROTHEUS.CH"
+#INCLUDE "FILEIO.CH"
+#INCLUDE "FWPRINTSETUP.CH"
+#INCLUDE "PARMTYPE.CH"
 
 #DEFINE CRLF CHR(13) + CHR(10)
 
@@ -16,12 +19,15 @@
 User Function ECLOJM10(_oSay,_cCodEtq)
 Local _aArea    := GetArea() 
 
-Local _cDoc     := ""
-Local _cSerie   := ""
-Local _cCodImp  := ""
+Local _cDoc         := ""
+Local _cSerie       := ""
+Local _cCodImp      := ""
 
-Local _nTpDanfe := 0 
-Local _nTpImp   := 0 
+Local _nTpDanfe     := 0 
+Local _nTpImp       := 0 
+
+Private __prtSrv    := GetImpWindows( .T. )  
+Private __prtCli    := GetImpWindows( .F. )  
 
 //-------------------+
 // Parametros padrão |
@@ -45,9 +51,9 @@ EndIf
 //------------------------+
 // Imprime Danfe reduzida | 
 //------------------------+
-_oSay:cCaption  := "Imprimindo danfe nota " + _cDoc + " serie " + _cSerie + " ."
+_oSay:cCaption  := "Validando danfe nota " + _cDoc + " serie " + _cSerie + " ."
 ProcessMessages()
-EcLojM10B(_cDoc,_cSerie,_nTpDanfe,_nTpImp,_cCodImp)
+EcLojM10B(_cDoc,_cSerie,_nTpDanfe,_nTpImp,_cCodImp,_oSay)
 
 
 RestArea(_aArea)
@@ -121,12 +127,13 @@ Return _lRet
     @version version
 /*/
 /************************************************************************************/
-Static Function EcLojM10B(_cDoc,_cSerie,_nTpDanfe,_nTpImp,_cCodImp)
+Static Function EcLojM10B(_cDoc,_cSerie,_nTpDanfe,_nTpImp,_cCodImp,_oSay)
 Private _oSetup := Nil 
 
 //-----+
 // PDF |
 //-----+
+/*
 If _nTpImp == 2 
     _oSetup := FWPrintSetup():New(PD_ISTOTVSPRINTER + PD_DISABLEORIENTATION + PD_DISABLEPAPERSIZE + PD_DISABLEPREVIEW + PD_DISABLEMARGIN,"DANFE SIMPLIFICADA")
     _oSetup:SetPropert(PD_PRINTTYPE , 2) //Spool
@@ -134,27 +141,33 @@ If _nTpImp == 2
     _oSetup:SetPropert(PD_DESTINATION , 1)
     _oSetup:SetPropert(PD_MARGIN , {0,0,0,0})
     _oSetup:SetPropert(PD_PAPERSIZE , 2)
-    if !_oSetup:Activate() == PD_OK
+    If !_oSetup:Activate() == PD_OK
         RestArea(_aArea)
         Return .F.
-    endif
+    Endif
 EndIf 
+*/
 
 //----------------------+
 // Imprime danfe padrao |
 //----------------------+
 If _nTpDanfe == 1
-    EcLojM10C(_cDoc,_cSerie)
 
-    EcLojM10E(_cDoc,_cSerie,_cCodImp,_nTpImp)
+    EcLojM10C(_cDoc,_cSerie,_oSay)
 
 //------------------------+
 // Imprime danfe reduzida |
 //------------------------+
 ElseIf _nTpDanfe == 2
-    EcLojM10D(_cDoc,_cSerie,_cCodImp,_nTpImp)
-    EcLojM10E(_cDoc,_cSerie,_cCodImp,_nTpImp)
+    
+    EcLojM10D(_cDoc,_cSerie,_cCodImp,_nTpImp,_oSay)
+
 EndIf 
+
+//----------+
+// Etiqueta |
+//----------+
+EcLojM10E(_cDoc,_cSerie,_cCodImp,_nTpImp,_oSay)
 
 FreeObj(_oSetup)
 
@@ -169,21 +182,19 @@ Return Nil
     @version version
 /*/
 /***********************************************************************************/
-Static Function EcLojM10C(_cDoc,_cSerie)
+Static Function EcLojM10C(_cDoc,_cSerie,_oSay)
 Local _aArea		:= GetArea()
 
 Local _cArqDanfe	:= "DANFE_" + RTrim(_cDoc) + "_" + RTrim(_cSerie)
 Local _cDirInPdf	:= "\expedicao\danfe"
+Local _cDirlocal    := GetTempPath()
+Local _cIdent   	:= ""
 
 Local _lEnd     	:= .F.
 Local _lExistNFe	:= .F.
 
-Local _cIdent   	:= ""
-Local _cDir         := ""
-
 Local _nTNota  		:= TamSX3('F2_DOC')[1]
 Local _nTSerie 		:= TamSX3('F2_SERIE')[1]
-Local _nX           := 0 
 
 Local oDanfe   		:= Nil
     
@@ -195,6 +206,9 @@ Private nConsTex
 Private nColAux
 
 Private oRetNF
+
+_oSay:cCaption  := "Imprimindo danfe padrao nota " + _cDoc + " serie " + _cSerie + " ."
+ProcessMessages()
 
 //--------------------------------+
 // Cria diretorio caso nao exista |
@@ -220,24 +234,7 @@ EndIf
 //--------------------------------------------------------------------------+
 If SubStr(_cDirInPdf, Len(_cDirInPdf), 1) != "\"
     _cDirInPdf += "\"
-EndIf         
-
-_cBarra := "\"
-If IsSrvUnix()
-	_cBarra := "/"
 EndIf 
-
-_cDir := SuperGetMV('MV_RELT',,"\SPOOL\")
-If !Empty(_cDir) .and. !ExistDir(_cDir)
-    _aDir := StrTokArr(_cDir, _cBarra)
-    _cDir := ""
-    For _nX := 1 to Len(_aDir)
-        _cDir += _aDir[nX] + _cBarra
-        If !ExistDir(_cDir)
-            MakeDir(_cDir)
-        EndIf 
-    Next _nX
-EndIf
 
 //------------------------------+ 
 // Define as perguntas da DANFE |
@@ -262,7 +259,7 @@ EndIf
 //--------------+
 // Cria a Danfe |
 //--------------+
-oDanfe := FWMSPrinter():New(_cArqDanfe, IMP_PDF, .F., _cDir, .T., , , , .T., , .F., )
+oDanfe := FWMSPrinter():New(_cArqDanfe, IMP_PDF, .F., _cDirInPdf, .T., , , , .T., , .F., )
 
 //-----------------------+     
 // Propriedades da DANFE |
@@ -271,26 +268,26 @@ oDanfe:SetResolution(78)
 oDanfe:SetLandscape()
 oDanfe:SetPaperSize(DMPAPER_A4)
 oDanfe:SetMargin(60, 60, 60, 60)
-
+oDanfe:nDevice      := IMP_PDF
+oDanfe:cPathPDF     := _cDirlocal
+oDanfe:lServer  	:= .T. 
+oDanfe:lInJob  		:= .T.
+oDanfe:lViewPDF 	:= .F.
+/*
 If _oSetup:GetProperty(PD_PRINTTYPE) == IMP_PDF
-    oDanfe:nDevice := IMP_PDF
-    oDanfe:cPathPDF := IIF( Empty(_oSetup:aOptions[PD_VALUETYPE]), _cDir , _oSetup:aOptions[PD_VALUETYPE] )
+    oDanfe:nDevice  := IMP_PDF
+    oDanfe:cPathPDF := _cDirInPdf
+    oDanfe:cPathPDF := IIF( Empty(_oSetup:aOptions[PD_VALUETYPE]), _cDirInPdf , _oSetup:aOptions[PD_VALUETYPE] )
 ElseIf _oSetup:GetProperty(PD_PRINTTYPE) == IMP_SPOOL
-    oDanfe:nDevice := IMP_SPOOL
+   oDanfe:nDevice := IMP_SPOOL
     fwWriteProfString(GetPrinterSession(),"DEFAULT", _oSetup:aOptions[PD_VALUETYPE], .T.)
     oDanfe:cPrinter := _oSetup:aOptions[PD_VALUETYPE]
 EndIf 
-
+*/
 //--------------------------+     
 // Força a impressão em PDF |
 //--------------------------+
-oDanfe:lServer  	:= _oSetup:GetProperty(PD_DESTINATION) == AMB_SERVER 
-oDanfe:lInJob  		:= .T.
-//oDanfe:nDevice		:= IMP_PDF
-//oDanfe:cPathPDF 	:= _cDirInPdf
-//oDanfe:lInJob  		:= .T.
-//oDanfe:lServer  	:= .T.
-//oDanfe:lViewPDF 	:= .F.
+//_oSetup:GetProperty(PD_DESTINATION) == AMB_SERVER 
 
 //--------------------------------------------------------------+     
 // Variáveis obrigatórias da DANFE (pode colocar outras abaixo) |
@@ -307,23 +304,24 @@ nColAux   := 0
 //-----------------------------------------+  
 _cStatic    := "S"+"t"+"a"+"t"+"i"+"c"+"C"+"a"+"l"+"l"
 Eval( {|| &(_cStatic + "(" + "DANFEIII, DANFEProc, @oDanfe,@_lEnd,_cIdent,,,@_lExistNFe, .F." + ")") })  
-//U_DANFEProc(@oDanfe,@_lEnd,_cIdent,,,@_lExistNFe)
 
 If _lExistNFe
+
     oDanfe:Preview() 
-    /*
+    //oDanfe:Print() 
 	//-------------------------------+
 	// Emula uso do TotvsPrinter.exe |
 	//-------------------------------+
-	If File(oDanfe:cFilePrint)
-        If Type("_oPrint:nHandle") <> "U"
+    //.Or. File(oDanfe:cPathPDF + oDanfe:cFileName)
+	If File(oDanfe:cFilePrint) 
+        If Type("oDanfe:nHandle") <> "U"
             FClose(oDanfe:nHandle)
         EndIf
         File2Printer(oDanfe:cFilePrint, "PDF" )
         Sleep(20000)
         FErase(oDanfe:cFilePrint)
     EndIf
-    */
+
 EndIf
 
 FreeObj(oDanfe)
@@ -341,7 +339,7 @@ Return Nil
     @version version
 /*/
 /*************************************************************************************/
-Static Function EcLojM10D(_cDoc,_cSerie,_cCodImp,_nTpImp)
+Static Function EcLojM10D(_cDoc,_cSerie,_cCodImp,_nTpImp,_oSay)
 Local _aArea        := GetArea()
 Local _aEmit        := {}
 Local _aNotas       := {}
@@ -352,6 +350,7 @@ Local _aDest        := {}
 Local _cURL         := PadR(GetNewPar("MV_SPEDURL","http://"),250)
 Local _cArqDanfe    := "DANFE_ETIQUETA_" + RTrim(_cDoc) + "_" + RTrim(_cSerie) + "_" + Dtos(MSDate()) + StrTran(Time(),":","")
 Local _cDirInPdf	:= "\expedicao\danfe"
+Local _cDirlocal    := GetTempPath()
 Local _cIdent       := ""
 Local _cAviso       := ""
 Local _cErro        := ""
@@ -374,9 +373,12 @@ Local _nTCodImp     := TamSx3("CB5_CODIGO")[1]
 Local _lMvLogo      := IIF(GetNewPar("MV_LOGOD", "N" ) == "S", .T., .F.   )
 
 Local _oRetNF       := Nil 
-Local _oPrinter     := Nil 
+Local _oPrint       := Nil 
 Local _oFontTit     := Nil
 Local _oFontInf     := Nil 
+
+_oSay:cCaption  := "Imprimindo danfe reduzida nota " + _cDoc + " serie " + _cSerie + " ."
+ProcessMessages()
 
 //----------------------------+
 // Retorna o IDENT da empresa |
@@ -532,6 +534,13 @@ ElseIf _nTpImp == 2
     MakeDir("\expedicao\")
     MakeDir("\expedicao\danfe")
 
+    //--------------------------------------------------------------------------+
+    // Se o último caracter da pasta não for barra, será barra para integridade |
+    //--------------------------------------------------------------------------+
+    If SubStr(_cDirInPdf, Len(_cDirInPdf), 1) != "\"
+        _cDirInPdf += "\"
+    EndIf     
+
     _oFontTit       := TFont():New( "Arial", , -8, .T.)
     _oFontTit:Bold  := .T.
     _oFontInf       := TFont():New( "Arial", , -8, .T.)
@@ -539,47 +548,48 @@ ElseIf _nTpImp == 2
     _nLinha         := 0
     _nColuna        := 0
 
-    //_oPrinter := FWMSPrinter():New("DANFE_ETIQUETA_" + RTrim(_cDoc) + "_" + RTrim(_cSerie) + "_" + Dtos(MSDate()) + StrTran(Time(),":",""),,.F.,_cDirInPdf,.T.,,,,,.F.)
-    _oPrinter := FWMSPrinter():New(_cArqDanfe, IMP_PDF,.F.,_cDirInPdf,.T.,,,,.T.,,.F.,)
-
-    _oPrinter:SetLandscape()
-    _oPrinter:SetPaperSize(9)
-    _oPrinter:SetCopies(Val(_oSetup:cQtdCopia))
-
+    _oPrint := FWMSPrinter():New(_cArqDanfe, IMP_PDF, .F., _cDirInPdf, .T.,,,,.T.,,.F.)
+    _oPrint:SetLandscape()
+    _oPrint:SetPaperSize(DMPAPER_A4)
+    //_oPrint:lInJob  	:= .T.
+    //_oPrint:lServer  	:= .T.
+    //_oPrint:lViewPDF 	:= .F.
+    //_oPrint:nDevice     := IMP_PDF
+    _oPrint:cPathPDF    := _cDirlocal
+    //_oPrint:SetCopies(Val(_oSetup:cQtdCopia))
+    /*
     If _oSetup:GetProperty(PD_PRINTTYPE) == IMP_PDF
-        _oPrinter:nDevice := IMP_PDF
-        _oPrinter:cPathPDF := IIF( Empty(_oSetup:aOptions[PD_VALUETYPE]), _cDirInPdf , _oSetup:aOptions[PD_VALUETYPE] )
+        _oPrint:nDevice   := IMP_PDF
+        _oPrint:cPathPDF  := _cDirInPdf
+        _oPrint:cPathPDF := IIF( Empty(_oSetup:aOptions[PD_VALUETYPE]), _cDirInPdf , _oSetup:aOptions[PD_VALUETYPE] )
     ElseIf _oSetup:GetProperty(PD_PRINTTYPE) == IMP_SPOOL
-        _oPrinter:nDevice := IMP_SPOOL
+        _oPrint:nDevice := IMP_SPOOL
         fwWriteProfString(GetPrinterSession(),"DEFAULT", _oSetup:aOptions[PD_VALUETYPE], .T.)
-        _oPrinter:cPrinter := _oSetup:aOptions[PD_VALUETYPE]
+        _oPrint:cPrinter := _oSetup:aOptions[PD_VALUETYPE]
     EndIf 
+    */
 
-    //_oPrinter:lInJob  		    := .T.
-    //_oPrinter:lServer  	        := .T.
-    //_oPrinter:lViewPDF 	        := .T.
-    //_oPrinter:StartPage() 		
-                    
     _cStatic    := "S"+"t"+"a"+"t"+"i"+"c"+"C"+"a"+"l"+"l"
-    Eval( {|| &(_cStatic + "(" + "DanfeEtiqueta, DanfeSimp, _oPrinter, _nLinha, _nColuna, _oFontTit, _oFontInf, _aEmit, _aNfe, _aDest" + ")") })
+    Eval( {|| &(_cStatic + "(" + "DanfeEtiqueta, DanfeSimp, @_oPrint, _nLinha, _nColuna, _oFontTit, _oFontInf, _aEmit, _aNfe, _aDest" + ")") })
     
-    _oPrinter:EndPage()
-
-    _oPrinter:Print()
+    _oPrint:EndPage()
+    _oPrint:Preview()
 
     //-------------------------------+
 	// Emula uso do TotvsPrinter.exe |
 	//-------------------------------+
-    /*
-	If File(_oPrinter:cFilePrint)
+    //.Or. File(_oPrint:cPathPDF + StrTran(_oPrint:cFileName,".rel",".pdf") ) 
+	If File(_oPrint:cFilePrint) 
+        //_oPrint:Print()
         If Type("_oPrint:nHandle") <> "U"
-            FClose(_oPrinter:nHandle)
+            FClose(_oPrint:nHandle)
         EndIf
-        File2Printer(_oPrinter:cFilePrint, "PDF" )
+        File2Printer(_oPrint:cFilePrint, "PDF" )
         Sleep(20000)
-        FErase(_oPrinter:cFilePrint)
+        FErase(_oPrint:cFilePrint)
     EndIf    
-    */
+
+    FreeObj(_oPrint)
 
 EndIf 
 
@@ -595,7 +605,7 @@ Return Nil
     @version version
 /*/
 /*************************************************************************************/
-Static Function EcLojM10E(_cDoc,_cSerie,_cCodImp,_nTpImp)
+Static Function EcLojM10E(_cDoc,_cSerie,_cCodImp,_nTpImp,_oSay)
 Local _cAlias       := ""
 Local _cPlpID	    := ""
 Local _cPedido	    := ""
@@ -634,9 +644,13 @@ ElseIf (_cAlias)->ZZ4_STATUS == "03"
     Return .F.
 EndIf 
 
+_oSay:cCaption  := "Imprimindo etiqueta nota " + _cDoc + " serie " + _cSerie + " ."
+ProcessMessages()
+
 //------------------+	
 // Imprime etiqueta |
 //------------------+
+
 _cPlpID		:= (_cAlias)->ZZ4_PLPID
 _cPedido	:= (_cAlias)->ZZ4_NUMSC5
 _cCodEtq	:= (_cAlias)->ZZ4_CODETQ	
@@ -652,7 +666,7 @@ _cDescSer	:= (_cAlias)->ZZ0_DESCRI
 _cTelDest	:= (_cAlias)->WSA_TEL01
 _cDTMatrix	:= ""
 _nValor		:= (_cAlias)->WSA_VLRTOT
-_nVolume	:= _nX
+_nVolume	:= (_cAlias)->F2_VOLUME1
 _nPeso		:= IIF((_cAlias)->C5_PBRUTO > 0, (_cAlias)->C5_PBRUTO * 1000, 100) 
 
 //---------+
@@ -662,12 +676,12 @@ If _nTpImp == 1
     EcLojM10EB( _cPlpID,_cDoc,_cSerie,_cPedido,_cCodEtq,_cDest,;
                 _cEndDest,_cBairro,_cMunicipio,_cCep,_cUF,_cObs,;
                 _cCodServ,_cDescSer,_cTelDest,_cDTMatrix,_nValor,;
-                _nVolume,_nPeso)
+                _nVolume,_nPeso,_cCodImp)
 //-----+
 // PDF |
 //-----+
 ElseIf _nTpImp == 2
-    EcLojM10EC(_cPlpID,_cDoc,_cSerie,_cPedido,_cCodEtq,_cDest,;
+    EcLojM10EC( _cPlpID,_cDoc,_cSerie,_cPedido,_cCodEtq,_cDest,;
                 _cEndDest,_cBairro,_cMunicipio,_cCep,_cUF,_cObs,;
                 _cCodServ,_cDescSer,_cTelDest,_cDTMatrix,_nValor,;
                 _nVolume,_nPeso)
@@ -705,12 +719,14 @@ _cQuery += "	WSA_TEL01, " + CRLF
 _cQuery += "	WSA_VLRTOT, " + CRLF
 _cQuery += "	ZZ0_CODSER, " + CRLF
 _cQuery += "	ZZ0_DESCRI, " + CRLF
-_cQuery += "	C5_PBRUTO " + CRLF
+_cQuery += "	C5_PBRUTO, " + CRLF
+_cQuery += "	SF2.F2_VOLUME1 " + CRLF
 _cQuery += " FROM " + CRLF
 _cQuery += "	" + RetSqlName("ZZ4") + " ZZ4 (NOLOCK) " + CRLF
 _cQuery += "	INNER JOIN " + RetSqlName("ZZ0") + " ZZ0 (NOLOCK) ON ZZ0.ZZ0_FILIAL = ZZ4.ZZ4_FILIAL AND ZZ0.ZZ0_IDSER = ZZ4.ZZ4_CODSPO AND ZZ0.D_E_L_E_T_ = '' " + CRLF
 _cQuery += "	INNER JOIN " + RetSqlName("WSA") + " WSA (NOLOCK) ON WSA.WSA_FILIAL = ZZ4.ZZ4_FILIAL AND WSA.WSA_NUMECO = ZZ4.ZZ4_NUMECO AND WSA.D_E_L_E_T_ = '' " + CRLF
 _cQuery += "	INNER JOIN " + RetSqlName("SC5") + " SC5 (NOLOCK) ON SC5.C5_FILIAL = ZZ4.ZZ4_FILIAL AND SC5.C5_NUM = ZZ4.ZZ4_NUMSC5 AND SC5.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "	INNER JOIN " + RetSqlName("SF2") + " SF2 (NOLOCK) ON SF2.F2_FILIAL = ZZ4.ZZ4_FILIAL AND SF2.F2_DOC = ZZ4.ZZ4_NOTA AND SF2.F2_SERIE = ZZ4.ZZ4_SERIE AND SF2.D_E_L_E_T_ = '' " + CRLF
 _cQuery += " WHERE " + CRLF
 _cQuery += "	ZZ4.ZZ4_FILIAL = '" + xFilial("ZZ4") + "' AND " + CRLF
 _cQuery += "	ZZ4.ZZ4_NOTA = '" + _cDoc + "' AND " + CRLF
@@ -736,10 +752,72 @@ Return .T.
 /*/
 /*************************************************************************************/
 Static Function EcLojM10EB( _cPlpID,_cDoc,_cSerie,_cPedido,_cCodEtq,_cDest,;
-                _cEndDest,_cBairro,_cMunicipio,_cCep,_cUF,_cObs,;
-                _cCodServ,_cDescSer,_cTelDest,_cDTMatrix,_nValor,;
-                _nVolume,_nPeso)
+                            _cEndDest,_cBairro,_cMunicipio,_cCep,_cUF,_cObs,;
+                            _cCodServ,_cDescSer,_cTelDest,_cDTMatrix,_nValor,;
+                            _nVolume,_nPeso,_cCodImp)
+
+Local _cEtq         := ""
+Local _cTotEtq      := ""
+
+Local _nX           := 0 
+Local _nTCodImp     := TamSx3("CB5_CODIGO")[1]
+
+For _nX := 1 To _nVolume
+
+    _cEtq       := ""
+    _cStatic    := "S"+"t"+"a"+"t"+"i"+"c"+"C"+"a"+"l"+"l"
+    Eval( {|| &(_cStatic + "(" + "SIGR003, SigR03Etq, _cPlpID,_cDoc,_cSerie,_cPedido,_cTelDest,_cCodEtq,_cDest,_cEndDest,_cBairro,_cMunicipio,_cCep,_cUF,_cObs,_cCodServ,_cDescSer,_cDTMatrix,_nValor,_nX,_nPeso,@_cEtq" + ")") })
+
+    If !Empty(_cEtq)
+        _cTotEtq += _cEtq 
+    EndIf
+
+Next _nX 
+
+//---------------------------------+
+// Realiza a impressão de etiqueta |
+//---------------------------------+
+If !Empty(_cTotEtq)
+
+    dbSelectArea("CB5")
+    CB5->( dbSetOrder(1) )
+    If !CB5->(DbSeek( xFilial("CB5") + PadR(_cCodImp, _nTCodImp) )) .Or. !CB5SetImp(_cCodImp)
+        MsgStop("Local de impressão não encontrado, Informe um local de impressão cadastrado. Acesse a rotina 'Locais de Impressão'.","Dana Avisos!")
+        RestArea(_aArea)
+        Return .F.
+    EndIf
     
+    //------------------------+
+    // Inicializa a impressão |
+    //------------------------+
+    MSCBBegin(1,6,150)
+
+    //---------------------------+
+    // Envia imagem de impressao |
+    //---------------------------+
+    MSCBWrite(_cTotEtq)
+            
+    //---------------------------------+
+    // Finaliza a Imagem da Impressora |
+    //---------------------------------+
+    MscbEnd()
+
+    //--------------------------------------+
+    // Encerra comunicação com a impressora |
+    //--------------------------------------+
+    MSCBClosePrinter()
+
+EndIf
+
+/*
+SigR03Etq(	_cPlpID,_cDoc,_cSerie,_cPedido,_cTelDest,;
+            _cCodEtq,_cDest,_cEndDest,_cBairro,_cMunicipio,;
+            _cCep,_cUF,_cObs,_cCodServ,_cDescSer,_cDTMatrix,;
+            _nValor,_nVolume,_nPeso,@_cEtq)
+*/
+
+
+
 Return Nil 
 
 /*************************************************************************************/
@@ -756,38 +834,83 @@ Static Function  EcLojM10EC(_cPlpID,_cDoc,_cSerie,_cPedido,_cCodEtq,_cDest,;
                             _cCodServ,_cDescSer,_cTelDest,_cDTMatrix,_nValor,;
                             _nVolume,_nPeso)
 
-Local _oPrint := Nil 
+Local _cFile            := "ETQ_" + RTrim(_cPlpID) + "_"  + RTrim(_cDoc) + "_" + RTrim(_cSerie)
+Local _cStatic          := "S"+"t"+"a"+"t"+"i"+"c"+"C"+"a"+"l"+"l"
+Local _cDirInPdf		:= "\expedicao\etiqueta"
+Local _cDirlocal        := GetTempPath()
+
+Local _nX               := 0 
+
+Local _oPrint           := Nil 
+
+Local _lAdjustToLegacy	:= .F.
+Local _lDisableSetup	:= .T.
+
+//--------------------------------+
+// Cria diretorio caso nao exista |
+//--------------------------------+
+MakeDir("\expedicao\")
+MakeDir("\expedicao\etiqueta")
+
+//--------------------------------------------------------------------------+
+// Se o último caracter da pasta não for barra, será barra para integridade |
+//--------------------------------------------------------------------------+
+If SubStr(_cDirInPdf, Len(_cDirInPdf), 1) != "\"
+    _cDirInPdf += "\"
+EndIf         
 
 //------------------+
 // Instancia classe | 
 //------------------+
-_oPrint	:=	FWMSPrinter():New(_cFile, IMP_PDF, _lAdjustToLegacy, _cDirExp, _lDisableSetup, , , , .T., , .F., )
+_oPrint	:=	FWMSPrinter():New(_cFile, IMP_PDF, _lAdjustToLegacy, _cDirInPdf, _lDisableSetup, , , , .T., , .F.)
 
 //---------------------+
 // Configura Relatorio |
 //---------------------+
-//_oPrint:cPathPdf 			:= _cDirRaiz
 _oPrint:setResolution(78)
 _oPrint:SetPortrait()
-_oPrint:setPaperSize(TAM_A4)
+_oPrint:setPaperSize(DMPAPER_A4)
 _oPrint:SetMargin(10,10,10,10)
+//_oPrint:lInJob  	:= .T.
+//_oPrint:lServer  	:= .T.
+//_oPrint:lViewPDF 	:= .F.
+//_oPrint:nDevice     := IMP_PDF
+_oPrint:cPathPDF    := _cDirlocal
 
+/*
 If _oSetup:GetProperty(PD_PRINTTYPE) == IMP_PDF
     _oPrint:nDevice := IMP_PDF
-    _oPrint:cPathPDF := IIF( Empty(_oSetup:aOptions[PD_VALUETYPE]), _cDirRaiz , _oSetup:aOptions[PD_VALUETYPE] )
+    _oPrint:cPathPDF:= _cDirInPdf
+    _oPrint:cPathPDF := IIF( Empty(_oSetup:aOptions[PD_VALUETYPE]), _cDir , _oSetup:aOptions[PD_VALUETYPE] )
 ElseIf _oSetup:GetProperty(PD_PRINTTYPE) == IMP_SPOOL
     _oPrint:nDevice := IMP_SPOOL
     fwWriteProfString(GetPrinterSession(),"DEFAULT", _oSetup:aOptions[PD_VALUETYPE], .T.)
     _oPrint:cPrinter := _oSetup:aOptions[PD_VALUETYPE]
 EndIf 
+*/
 
-_cStatic    := "S"+"t"+"a"+"t"+"i"+"c"+"C"+"a"+"l"+"l"
-Eval( {|| &(_cStatic + "(" + "SIGR001, SigR01Etq, _oPrint,_cPlpID,_cDoc,_cSerie,_cPedido,_cTelDest,_cCodEtq,_cDest,_cEndDest,_cBairro,_cMunicipio,_cCep,_cUF,_cObs,_cCodServ,_cDescSer,_cDTMatrix,_nValor,_nVolume,_nPeso" + ")") })
+For _nX := 1 To _nVolume
+    
+    Eval( {|| &(_cStatic + "(" + "SIGR001, SigR01Etq, @_oPrint,_cPlpID,_cDoc,_cSerie,_cPedido,_cTelDest,_cCodEtq,_cDest,_cEndDest,_cBairro,_cMunicipio,_cCep,_cUF,_cObs,_cCodServ,_cDescSer,_cDTMatrix,_nValor,_nX,_nPeso" + ")") })
 
-//-----------------+
-// Exibe relatorio |
-//-----------------+
+Next _nX 
+
+//-------------------------------+
+// Emula uso do TotvsPrinter.exe |
+//-------------------------------+
 _oPrint:Preview()
+
+// .Or. File(_oPrint:cPathPDF + StrTran(_oPrint:cFileName,".rel",".pdf") )
+If File(_oPrint:cFilePrint) 
+    If Type("_oPrint:nHandle") <> "U"
+        FClose(_oPrint:nHandle)
+    EndIf
+    File2Printer(_oPrint:cFilePrint, "PDF" )
+    Sleep(20000)
+    FErase(_oPrint:cFilePrint)
+EndIf    
+
+FreeObj(_oPrint)
 
 Return Nil 
 

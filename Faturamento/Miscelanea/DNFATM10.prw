@@ -55,7 +55,7 @@ If SL1->( dbseek(xFilial('SL1') + _cSerie + _cNumDoc) )
         While SL2->( !Eof() .And. xFilial("SL2") + SL1->L1_NUM  == SL2->L2_FILIAL + SL2->L2_NUM)
             If RTrim(SL2->L2_PRODUTO) $ _cCodBrinde
                 If RTrim(SL2->L2_PRODUTO) == "BD0001"
-                    cMensCli += "Nota Fiscal emitida nos termos do § 2º do art. 456 do RICMS - Nota Fiscal emitida na entrada nº009152 e 009154, de22/06/2022"
+                    cMensCli += "Nota Fiscal emitida nos termos do § 2º do art. 456 do RICMS - Nota Fiscal emitida na entrada nº009152 e 009154, de 22/06/2022"
                 ElseIf RTrim(SL2->L2_PRODUTO) == "BD0002"
                     cMensCli += "Nota Fiscal emitida nos termos do § 2º do art. 456 do RICMS - Nota Fiscal emitida na entrada nº 009153 de 22/06/2022"
                 ElseIf RTrim(SL2->L2_PRODUTO) == "BD0003"
