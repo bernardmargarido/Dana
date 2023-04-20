@@ -20,6 +20,9 @@ Local cNotaES	:= ""
 Local cTpNota	:= ""
 //Local _cFilWMS	:= GetNewPar("DN_FILWMS","05,06")
 Local _cFilMSL  := GetNewPar("DN_FILMSL","07")
+Local cEstGNRE	:= GetNewPar("MV_XUFGNRE")
+Local cEstSF2	:= GetNewPar("MV_XUFGNRE")
+
 
 Local aDest 	:= aParam[4]
 Local aNota 	:= aParam[5]
@@ -35,6 +38,7 @@ Local aEspVol   := aParam[14]
 Local aNfVinc	:= aParam[15]
 Local aDetPag	:= aParam[16]
 Local aRetSefaz	:= {}
+Local dDtVGNRE	:= DATE() + 2
 
 //Local dNovaData := ""
 //Local nMes		:= Month(Date()) + 1 
@@ -75,6 +79,9 @@ If cNotaES == '1'
 	//------------------------+
 	// Faturamento e-Commerce |
 	//------------------------+
+	If ValType(cMensCli) == "U"
+		cMensCli := ""
+	EndIf
 	U_DnFatM10(aNota[02],aNota[01],@aDetPag,@cMensCli)
 
 EndIf
@@ -82,21 +89,46 @@ EndIf
 /*---------------------------\
 | Manutenção Vencimento GNRE.|
 \---------------------------*/
+cEstSF2	:= ""
 dbSelectArea("SF2")
 SF2->(dbSetOrder(1))
 If SF2->(dbSeek(xFilial("SF2") + aNota[02] + aNota[01]))
 	If !Empty(SF2->F2_NFICMST)
+		cEstSF2	:= Alltrim(SF2->F2_EST)
 		dbSelectArea("SE2")
 		SE2->(dbSetOrder(1))//E2_FILIAL+E2_PREFIXO+E2_NUM+E2_PARCELA+E2_TIPO+E2_FORNECE+E2_LOJA
 		If SE2->(dbSeek(xFilial("SE2") + Alltrim(SF2->F2_NFICMST)))
-			RecLock("SE2",.F.)
-			//SE2->E2_VENCTO 	:= DataValida(Date()+1,.T.)
-			SE2->E2_VENCREA := Date()	//dNovaData	//DataValida(Date(),.T.)
-			SE2->E2_NATUREZ	:= "ICMS"
-			SE2->(MsUnLock())
+			If cEstGNRE	$cEstSF2
+				RecLock("SE2",.F.)
+				//SE2->E2_VENCREA := DataValida(dDtVGNRE,.T.)
+				SE2->E2_NATUREZ	:= "ICMS"
+				SE2->(MsUnLock())
+			Else
+				RecLock("SE2",.F.)
+				//SE2->E2_VENCREA := Date()	//dNovaData	//DataValida(Date(),.T.)
+				SE2->E2_NATUREZ	:= "ICMS"
+				SE2->(MsUnLock())						
+			Endif
 		Endif
 	Endif
 Endif
+/*
+dbSelectArea("SF2")
+SF2->(dbSetOrder(1))
+If SF2->(dbSeek(xFilial("SF2") + aNota[02] + aNota[01]))
+	If !Empty(SF2->F2_NFICMST)
+		If cEstGNRE	$SF2->F2_EST
+			dbSelectArea("SF6")
+			SF6->(dbSetOrder(1))//F6_FILIAL+F6_EST+F6_NUMERO
+			If SF6->(dbSeek(SF2->F2_FILIAL + SF2->F2_EST + Alltrim(SF2->F2_NFICMST)))
+				RecLock("SF6",.F.)
+				SF6->E2_DTVENC := DataValida(dDtVGNRE,.T.)
+				SF6->(MsUnLock())
+			Endif
+		Endif
+	Endif
+Endif
+*/
 
 /*---------------------------\
 | Manutenção Vencimento FECP.|
@@ -112,7 +144,7 @@ If SF2->(dbSeek(xFilial("SF2") + aNota[02] + aNota[01]))
 			//If Altrim(SE2->E2_PREFIXO) 
 			RecLock("SE2",.F.)
 			//SE2->E2_VENCTO 	:= DataValida(Date()+1,.T.)
-			SE2->E2_VENCREA := Date() //dNovaData	//DataValida(Date(),.T.)
+			//SE2->E2_VENCREA := Date() //dNovaData	//DataValida(Date(),.T.)
 			SE2->E2_NATUREZ	:= "ICMS"
 			SE2->(MsUnLock())
 		Endif
@@ -132,7 +164,7 @@ If SF2->(dbSeek(xFilial("SF2") + aNota[02] + aNota[01]))
 			//If Altrim(SE2->E2_PREFIXO) 
 			RecLock("SE2",.F.)
 			//SE2->E2_VENCTO 	:= DataValida(Date()+1,.T.)
-			SE2->E2_VENCREA := Date()  //dNovaData	//DataValida(Date(),.T.)
+			//SE2->E2_VENCREA := Date()  //dNovaData	//DataValida(Date(),.T.)
 			SE2->E2_NATUREZ	:= "ICMS"
 			SE2->(MsUnLock())
 		Endif

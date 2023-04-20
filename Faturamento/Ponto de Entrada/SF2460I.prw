@@ -33,6 +33,8 @@ Private cTESTrade	:= ""
 Private cTESBonif	:= ""
 Private cCFOPVen	:= Alltrim(GetMv("MV_XCFOPVE"))
 Private nPerCom		:= 0
+Private dDtServ		:= Date()
+Private dDtVGNRE	:= Date() + 1
 
 aAreacps	:= GetArea()
 aAreaSE1	:= SE1->(GetArea())
@@ -55,13 +57,14 @@ ENDIF
 
 DbSelectArea("SF2")
 Reclock("SF2",.F.)
+/*
 	If SF2->F2_PLIQUI > 1
 		SF2->F2_PLIQUI:= ROUND(SF2->F2_PLIQUI,0)
 		SF2->F2_PBRUTO:= ROUND(SF2->F2_PLIQUI*1.05,0)
 	Else
 		SF2->F2_PBRUTO:= SF2->F2_PLIQUI*1.05
 	Endif
-	
+*/
 	SF2->F2_VEND1	:= _VEND
 	SF2->F2_XXCONVU	:= cConvUN
 
@@ -102,19 +105,21 @@ If SF2->F2_TIPO <> 'D' .Or. SF2->F2_TIPO <> 'B'
 	EndIf
 	
 	dNovaData := DataValida(  "01/" + Alltrim(Str(nMes)) + "/" + Alltrim(Str(nAno))  ,.T.)
-	
-	
+
 	//Manutenção título GNRE
 	If !Empty(cICMSF2)
 		DbSelectArea("SE2")
 		SE2->(dbSetOrder(1))//E2_FILIAL+E2_PREFIXO+E2_NUM+E2_PARCELA+E2_TIPO+E2_FORNECE+E2_LOJA
 		If SE2->(dbSeek(xFilial("SE2") + Alltrim(cICMSF2)))
 			RecLock("SE2",.F.)
-			SE2->E2_VENCORI	:= dNovaData	// DataValida(Date(),.T.)
-			SE2->E2_VENCTO 	:= dNovaData	// DataValida(Date(),.T.)
-			SE2->E2_VENCREA := dNovaData	// DataValida(Date(),.T.)
+			//SE2->E2_VENCORI	:= dNovaData	// DataValida(Date(),.T.)
+			//SE2->E2_VENCTO 	:= dNovaData	// DataValida(Date(),.T.)
+			//SE2->E2_VENCREA := dNovaData	// DataValida(Date(),.T.)
 			SE2->E2_NATUREZ	:= "PROV"
 			SE2->E2_HIST	:= "Nota:" + Alltrim(cDocSF2) + " - Serie:" + Alltrim(cSerSF2)
+			SE2->E2_XCATNFE	:= "GNR"
+			SE2->E2_XDTSERV	:= dDtServ
+			SE2->E2_VENCREA	:= DataValida(dDtVGNRE,.T.)
 			SE2->(MsUnLock())
 		Endif
 	Endif
@@ -125,11 +130,14 @@ If SF2->F2_TIPO <> 'D' .Or. SF2->F2_TIPO <> 'B'
 		SE2->(dbSetOrder(1))//E2_FILIAL+E2_PREFIXO+E2_NUM+E2_PARCELA+E2_TIPO+E2_FORNECE+E2_LOJA
 		If SE2->(dbSeek(xFilial("SE2") + Alltrim(cFECSF2)))
 			RecLock("SE2",.F.)
-			SE2->E2_VENCORI	:= dNovaData	// DataValida(Date(),.T.)
-			SE2->E2_VENCTO 	:= dNovaData	// DataValida(Date(),.T.)
-			SE2->E2_VENCREA := dNovaData	// DataValida(Date(),.T.)
+			//SE2->E2_VENCORI	:= dNovaData	// DataValida(Date(),.T.)
+			//SE2->E2_VENCTO 	:= dNovaData	// DataValida(Date(),.T.)
+			//SE2->E2_VENCREA := dNovaData	// DataValida(Date(),.T.)
 			SE2->E2_NATUREZ	:= "PROV"
 			SE2->E2_HIST	:= "Nota:" + Alltrim(cDocSF2) + " - Serie:" + Alltrim(cSerSF2)
+			SE2->E2_XCATNFE	:= "GNR"
+			SE2->E2_XDTSERV	:= dDtServ
+			SE2->E2_VENCREA	:= DataValida(dDtVGNRE,.T.)
 			SE2->(MsUnLock())
 		Endif
 	Endif
@@ -140,15 +148,28 @@ If SF2->F2_TIPO <> 'D' .Or. SF2->F2_TIPO <> 'B'
 		SE2->(dbSetOrder(1))//E2_FILIAL+E2_PREFIXO+E2_NUM+E2_PARCELA+E2_TIPO+E2_FORNECE+E2_LOJA
 		If SE2->(dbSeek(xFilial("SE2") + Alltrim(cDIFSF2)))
 			RecLock("SE2",.F.)
-			SE2->E2_VENCORI	:= dNovaData	// DataValida(Date(),.T.)
-			SE2->E2_VENCTO 	:= dNovaData	// DataValida(Date(),.T.)
-			SE2->E2_VENCREA := dNovaData	// DataValida(Date(),.T.)
+			//SE2->E2_VENCORI	:= dNovaData	// DataValida(Date(),.T.)
+			//SE2->E2_VENCTO 	:= dNovaData	// DataValida(Date(),.T.)
+			//SE2->E2_VENCREA := dNovaData	// DataValida(Date(),.T.)
 			SE2->E2_NATUREZ	:= "PROV"
 			SE2->E2_HIST	:= "Nota:" + Alltrim(cDocSF2) + " - Serie:" + Alltrim(cSerSF2)
+			SE2->E2_XCATNFE	:= "GNR"
+			SE2->E2_XDTSERV	:= dDtServ
+			SE2->E2_VENCREA	:= DataValida(dDtVGNRE,.T.)
 			SE2->(MsUnLock())
 		Endif
 	Endif
 
+	//Alteração Vencimento GNRE SF6
+	If !Empty(cICMSF2) .Or. !Empty(cFECSF2) .Or. !Empty(cDIFSF2)
+		dbSelectArea("SF6")
+		SF6->(dbSetOrder(1))//F6_FILIAL+F6_EST+F6_NUMERO
+		If SF6->(dbSeek(SF2->F2_FILIAL + SF2->F2_EST + Alltrim(SF2->F2_NFICMST)))
+			RecLock("SF6",.F.)
+			SF6->F6_DTVENC := DataValida(dDtVGNRE,.T.)
+			SF6->(MsUnLock())
+		Endif
+	Endif
 
 Endif
 
@@ -197,6 +218,15 @@ If Dbseek(cFilSF2 + cDocSF2 + cSerSF2 + cForSF2 + cLojSF2)
 				SD2->D2_XVLCOMI	:= (SD2->D2_TOTAL * nPerCom) / 100
 				SD2->(Msunlock())
 			Endif
+
+			//Ajusta arredondamento B6_PRUNIT
+			DbSelectArea("SB6")
+			DbSetOrder(3)//B6_FILIAL+B6_IDENT+B6_PRODUTO+B6_PODER3
+			If Dbseek(SD2->(D2_FILIAL+D2_IDENTB6+D2_COD))
+				Reclock("SB6",.F.)
+				SB6->B6_PRUNIT	:= Round(SD2->D2_PRCVEN,2) + 0.01//Arredondamento para não dar problema no retorno da NFE
+				SB6->(MsUnlock())
+			Endif
 		Endif		
 	SD2->(DbSkip())
 	EndDo
@@ -226,6 +256,7 @@ If lCat .And. !Empty(cCodCat)
 			While !SE2->(Eof()) .And. SE2->(E2_FILORIG+E2_FORNECE+E2_LOJA+E2_PREFIXO+E2_NUM) == cFilSF2 + cForSF2 + cLojSF2 + cSerSF2 + cDocSF2
 				RecLock("SE2", .F.)
 				SE2->E2_XCATNFE	:= cCodcat
+				SE2->E2_XDTSERV	:= dDtServ
 				SE2->(MsUnLock())
 				SE2->(DbSkip())
 			EndDo
@@ -323,7 +354,7 @@ cTable += "</tr>"
 cTable += "</table>"
 cTable += '<br/>'    
 cTable += '</BODY>'
-cTable += '<img border="0" src="http://187.94.58.102:1346/emp01/wfpc/Logo_Dana.jpg"></td>
+cTable += '<img border="0" src="http://181.41.175.59:1866/emp01/wfpc/Logo_Dana.jpg"></td>
 cTable += '<br><br><br><p align="left"><span lang="pt-br"><font face="Arial" size="1">DANA COSMÉTICOS</font></span></p>'
 cTable += '</html>'
 cTable += '</html>'
@@ -404,7 +435,7 @@ If Alltrim(cTipSF2) == "N" .And. Alltrim(cAgenda) == "1"
 	cTable += "</table>"
 	cTable += '<br/>'
 	cTable += '</BODY>'
-	cTable += '<img border="0" src="http://187.94.58.102:1346/emp01/wfpc/Logo_Dana.jpg"></td>
+	cTable += '<img border="0" src="http://181.41.175.59:1866/emp01/wfpc/Logo_Dana.jpg"></td>
 	cTable += '<br><br><br><p align="left"><span lang="pt-br"><font face="Arial" size="1">DANA COSMÉTICOS</font></span></p>'
 	cTable += '</html>'
 	cTable += '</html>'

@@ -24,6 +24,11 @@ Private _oBrowse    := Nil
 SetKey( VK_F12, { || Pergunte("ECLOJ12",.T.) } )
 Pergunte("ECLOJ12",.F.)
 
+//--------------------------------------+
+// Cria botão de atalho para parametros |
+//--------------------------------------+
+SetKey( VK_F11, { ||  U_ECLOJ20A() } )
+
 //------------------------------------+
 // Instanciamento da Classe FWMBrowse |
 //------------------------------------+
@@ -153,7 +158,7 @@ Return _oView
 /*/
 /************************************************************************************/
 User Function ECLOJ20A()
-Local _cCodEtq      := Space(6)
+Local _cCodEtq      := Space(7)
 Local _cTitulo      := "Dana - Expedição e-Commerce"
 Local _cTextSay     := '<h1 style="color:rgb(11, 155, 191); font-size: 36 "> Etiqueta: </h1>'
 Local _nLinIni      := 0
@@ -163,7 +168,7 @@ Local _nColFin      := 0
 
 Local _aCoors   	:= FWGetDialogSize( oMainWnd )
 
-Local _bValdGet     := {|| IIF(!Empty(_cCodEtq),(FwMsgRun(,{|_oSay| U_EcLojM10(_oSay,_cCodEtq)},"Aguarde...","Gerando Etiquetas."),_cCodEtq := Space(6),_oTGetEtq:SetFocus()),(.T.))}
+Local _bValdGet     := {|| IIF(!Empty(_cCodEtq),(FwMsgRun(,{|_oSay| U_EcLojM10(_oSay,RTrim(_cCodEtq))},"Aguarde...","Gerando Etiquetas."),_cCodEtq := Space(7),_oTGetEtq:SetFocus()),(.T.))}
 
 Local _oSize    	:= FWDefSize():New(.T.)
 Local _oFont32      := TFont():New('Arial',,-62,.T.)

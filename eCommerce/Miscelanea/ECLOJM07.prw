@@ -13,7 +13,7 @@
 User Function ECLOJM07(_cEmpInt,_cFilInt)
 Local _aArea        := GetArea()
 
-Private _lJob       := IIF(!Empty(_cEmpInt) .And. !Empty(_cFilInt), .T., .F.)
+Private _lJob       := .T. //IIF(!Empty(_cEmpInt) .And. !Empty(_cFilInt), .T., .F.)
 
 Default _cEmpInt    := "01"
 Default _cFilInt    := "06"
@@ -22,7 +22,8 @@ Default _cFilInt    := "06"
 // Mensagem console |
 //------------------+
 CoNout("<< ECLOJM07 >> - INICIO " + dTos( Date() ) + " - " + Time() )
-   
+
+/*   
 //-----------------------+
 // Abre empresa / filial | 
 //-----------------------+
@@ -69,7 +70,9 @@ UnLockByName("ECLOJM07", .T., .T.)
 If _lJob
     RpcClearEnv()
 EndIf    
+*/
 
+EcLojM07A()
 
 CoNout("<< ECLOJM07 >> - FIM " + dTos( Date() ) + " - " + Time() )
 

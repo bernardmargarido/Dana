@@ -56,7 +56,7 @@ RestArea(_aArea)
 Return Nil
 
 /******************************************************************************************/
-/*/{Protheus.doc} nomeStaticFunction
+/*/{Protheus.doc} EcLojM05A
     @description Valida pedidos e-Commerce a serem faturados 
     @type  Static Function
     @author Bernard M. Margarido

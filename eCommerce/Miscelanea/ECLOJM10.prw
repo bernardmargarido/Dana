@@ -48,6 +48,14 @@ If !EcLojM10A(_cCodEtq,@_cDoc,@_cSerie)
     Return .F.
 EndIf 
 
+_oSay:cCaption  := "Validando se nota pertence PLP."
+ProcessMessages()
+If !EcLojM10G(_cCodEtq,@_cDoc,@_cSerie)
+    MsgStop("Nota " + _cCodEtq + " aguardando autorização do SIGEP.","Dana Avisos!")
+    RestArea(_aArea)
+    Return .F.
+EndIf 
+
 //------------------------+
 // Imprime Danfe reduzida | 
 //------------------------+
@@ -55,6 +63,16 @@ _oSay:cCaption  := "Validando danfe nota " + _cDoc + " serie " + _cSerie + " ."
 ProcessMessages()
 EcLojM10B(_cDoc,_cSerie,_nTpDanfe,_nTpImp,_cCodImp,_oSay)
 
+//--------------------------------+
+// Atualiza contador de etiquetas |
+//--------------------------------+
+dbSelectArea("XTE")
+XTE->( dbSetOrder(1) )
+If XTE->( dbSeek(xFilial("XTE") + _cDoc + _cSerie))
+    RecLock("XTE",.F.)
+        XTE->XTE_COUNTE := XTE->XTE_COUNTE + 1
+    XTE->( MsUnlock() )
+EndIf 
 
 RestArea(_aArea)
 Return Nil 
@@ -104,7 +122,7 @@ _cQuery += "	F2.D_E_L_E_T_ = '' "
 
 _cAlias := MPSysOpenQuery(_cQuery)
 
-If Empty((_cAlias)->WSA_NUMECO) .And. Emtpy((_cAlias)->C5_XNUMECO)
+If Empty((_cAlias)->WSA_NUMECO) .And. Empty((_cAlias)->C5_XNUMECO)
     _lRet := .F.
 EndIf 
 
@@ -129,24 +147,6 @@ Return _lRet
 /************************************************************************************/
 Static Function EcLojM10B(_cDoc,_cSerie,_nTpDanfe,_nTpImp,_cCodImp,_oSay)
 Private _oSetup := Nil 
-
-//-----+
-// PDF |
-//-----+
-/*
-If _nTpImp == 2 
-    _oSetup := FWPrintSetup():New(PD_ISTOTVSPRINTER + PD_DISABLEORIENTATION + PD_DISABLEPAPERSIZE + PD_DISABLEPREVIEW + PD_DISABLEMARGIN,"DANFE SIMPLIFICADA")
-    _oSetup:SetPropert(PD_PRINTTYPE , 2) //Spool
-    _oSetup:SetPropert(PD_ORIENTATION , 2)
-    _oSetup:SetPropert(PD_DESTINATION , 1)
-    _oSetup:SetPropert(PD_MARGIN , {0,0,0,0})
-    _oSetup:SetPropert(PD_PAPERSIZE , 2)
-    If !_oSetup:Activate() == PD_OK
-        RestArea(_aArea)
-        Return .F.
-    Endif
-EndIf 
-*/
 
 //----------------------+
 // Imprime danfe padrao |
@@ -273,21 +273,6 @@ oDanfe:cPathPDF     := _cDirlocal
 oDanfe:lServer  	:= .T. 
 oDanfe:lInJob  		:= .T.
 oDanfe:lViewPDF 	:= .F.
-/*
-If _oSetup:GetProperty(PD_PRINTTYPE) == IMP_PDF
-    oDanfe:nDevice  := IMP_PDF
-    oDanfe:cPathPDF := _cDirInPdf
-    oDanfe:cPathPDF := IIF( Empty(_oSetup:aOptions[PD_VALUETYPE]), _cDirInPdf , _oSetup:aOptions[PD_VALUETYPE] )
-ElseIf _oSetup:GetProperty(PD_PRINTTYPE) == IMP_SPOOL
-   oDanfe:nDevice := IMP_SPOOL
-    fwWriteProfString(GetPrinterSession(),"DEFAULT", _oSetup:aOptions[PD_VALUETYPE], .T.)
-    oDanfe:cPrinter := _oSetup:aOptions[PD_VALUETYPE]
-EndIf 
-*/
-//--------------------------+     
-// Força a impressão em PDF |
-//--------------------------+
-//_oSetup:GetProperty(PD_DESTINATION) == AMB_SERVER 
 
 //--------------------------------------------------------------+     
 // Variáveis obrigatórias da DANFE (pode colocar outras abaixo) |
@@ -308,11 +293,7 @@ Eval( {|| &(_cStatic + "(" + "DANFEIII, DANFEProc, @oDanfe,@_lEnd,_cIdent,,,@_lE
 If _lExistNFe
 
     oDanfe:Preview() 
-    //oDanfe:Print() 
-	//-------------------------------+
-	// Emula uso do TotvsPrinter.exe |
-	//-------------------------------+
-    //.Or. File(oDanfe:cPathPDF + oDanfe:cFileName)
+
 	If File(oDanfe:cFilePrint) 
         If Type("oDanfe:nHandle") <> "U"
             FClose(oDanfe:nHandle)
@@ -551,23 +532,7 @@ ElseIf _nTpImp == 2
     _oPrint := FWMSPrinter():New(_cArqDanfe, IMP_PDF, .F., _cDirInPdf, .T.,,,,.T.,,.F.)
     _oPrint:SetLandscape()
     _oPrint:SetPaperSize(DMPAPER_A4)
-    //_oPrint:lInJob  	:= .T.
-    //_oPrint:lServer  	:= .T.
-    //_oPrint:lViewPDF 	:= .F.
-    //_oPrint:nDevice     := IMP_PDF
     _oPrint:cPathPDF    := _cDirlocal
-    //_oPrint:SetCopies(Val(_oSetup:cQtdCopia))
-    /*
-    If _oSetup:GetProperty(PD_PRINTTYPE) == IMP_PDF
-        _oPrint:nDevice   := IMP_PDF
-        _oPrint:cPathPDF  := _cDirInPdf
-        _oPrint:cPathPDF := IIF( Empty(_oSetup:aOptions[PD_VALUETYPE]), _cDirInPdf , _oSetup:aOptions[PD_VALUETYPE] )
-    ElseIf _oSetup:GetProperty(PD_PRINTTYPE) == IMP_SPOOL
-        _oPrint:nDevice := IMP_SPOOL
-        fwWriteProfString(GetPrinterSession(),"DEFAULT", _oSetup:aOptions[PD_VALUETYPE], .T.)
-        _oPrint:cPrinter := _oSetup:aOptions[PD_VALUETYPE]
-    EndIf 
-    */
 
     _cStatic    := "S"+"t"+"a"+"t"+"i"+"c"+"C"+"a"+"l"+"l"
     Eval( {|| &(_cStatic + "(" + "DanfeEtiqueta, DanfeSimp, @_oPrint, _nLinha, _nColuna, _oFontTit, _oFontInf, _aEmit, _aNfe, _aDest" + ")") })
@@ -578,9 +543,9 @@ ElseIf _nTpImp == 2
     //-------------------------------+
 	// Emula uso do TotvsPrinter.exe |
 	//-------------------------------+
-    //.Or. File(_oPrint:cPathPDF + StrTran(_oPrint:cFileName,".rel",".pdf") ) 
+
 	If File(_oPrint:cFilePrint) 
-        //_oPrint:Print()
+
         If Type("_oPrint:nHandle") <> "U"
             FClose(_oPrint:nHandle)
         EndIf
@@ -809,15 +774,6 @@ If !Empty(_cTotEtq)
 
 EndIf
 
-/*
-SigR03Etq(	_cPlpID,_cDoc,_cSerie,_cPedido,_cTelDest,;
-            _cCodEtq,_cDest,_cEndDest,_cBairro,_cMunicipio,;
-            _cCep,_cUF,_cObs,_cCodServ,_cDescSer,_cDTMatrix,;
-            _nValor,_nVolume,_nPeso,@_cEtq)
-*/
-
-
-
 Return Nil 
 
 /*************************************************************************************/
@@ -871,23 +827,7 @@ _oPrint:setResolution(78)
 _oPrint:SetPortrait()
 _oPrint:setPaperSize(DMPAPER_A4)
 _oPrint:SetMargin(10,10,10,10)
-//_oPrint:lInJob  	:= .T.
-//_oPrint:lServer  	:= .T.
-//_oPrint:lViewPDF 	:= .F.
-//_oPrint:nDevice     := IMP_PDF
 _oPrint:cPathPDF    := _cDirlocal
-
-/*
-If _oSetup:GetProperty(PD_PRINTTYPE) == IMP_PDF
-    _oPrint:nDevice := IMP_PDF
-    _oPrint:cPathPDF:= _cDirInPdf
-    _oPrint:cPathPDF := IIF( Empty(_oSetup:aOptions[PD_VALUETYPE]), _cDir , _oSetup:aOptions[PD_VALUETYPE] )
-ElseIf _oSetup:GetProperty(PD_PRINTTYPE) == IMP_SPOOL
-    _oPrint:nDevice := IMP_SPOOL
-    fwWriteProfString(GetPrinterSession(),"DEFAULT", _oSetup:aOptions[PD_VALUETYPE], .T.)
-    _oPrint:cPrinter := _oSetup:aOptions[PD_VALUETYPE]
-EndIf 
-*/
 
 For _nX := 1 To _nVolume
     
@@ -900,7 +840,6 @@ Next _nX
 //-------------------------------+
 _oPrint:Preview()
 
-// .Or. File(_oPrint:cPathPDF + StrTran(_oPrint:cFileName,".rel",".pdf") )
 If File(_oPrint:cFilePrint) 
     If Type("_oPrint:nHandle") <> "U"
         FClose(_oPrint:nHandle)
@@ -913,6 +852,54 @@ EndIf
 FreeObj(_oPrint)
 
 Return Nil 
+
+/*************************************************************************************/
+/*/{Protheus.doc} EcLojM10G
+    @description Valida se nota pertence a PLP e se a mesma foi gerada
+    @type  Static Function
+    @author Bernard M Margarido
+    @since 12/04/2023
+    @version version
+/*/
+/*************************************************************************************/
+Static Function EcLojM10G(_cCodEtq,_cDoc,_cSerie)
+Local _aArea    := GetArea()
+
+Local _cAlias   := ""
+Local _cQuery   := ""
+
+Local _lRet     := .T.
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	WSA.WSA_DOC, " + CRLF
+_cQuery += "	WSA.WSA_SERIE, " + CRLF
+_cQuery += "	WSA.WSA_NUMECO, " + CRLF
+_cQuery += "	COALESCE(ZZ4.ZZ4_PLPID,'') ZZ4_PLPID, " + CRLF
+_cQuery += "	COALESCE(ZZ4.ZZ4_STATUS,'') ZZ4_STATUS " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += "	" + RetSqlName("WSA") + " WSA (NOLOCK) " + CRLF
+_cQuery += "	LEFT JOIN " + RetSqlName("ZZ4") + " ZZ4 (NOLOCK) ON ZZ4.ZZ4_FILIAL = WSA.WSA_FILIAL AND ZZ4.ZZ4_NUMECO = WSA.WSA_NUMECO AND ZZ4.D_E_L_E_T_ = '' " + CRLF
+_cQuery += " WHERE " + CRLF
+_cQuery += "	WSA.WSA_FILIAL = '" + xFilial("WSA") + "' AND " + CRLF
+_cQuery += "	WSA.WSA_DOC = '" + _cCodEtq + "' AND " + CRLF
+_cQuery += "	WSA.WSA_SERIE = '50' AND " + CRLF
+_cQuery += "	WSA.WSA_SERPOS <> '' AND " + CRLF
+_cQuery += "	WSA.D_E_L_E_T_ = '' "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+If (_cAlias)->( !Eof() )
+    If !Empty((_cAlias)->WSA_DOC)
+        If Empty((_cAlias)->ZZ4_STATUS)
+            _lRet     := .F.
+        ElseIf (_cAlias)->ZZ4_STATUS == "01"
+            _lRet     := .F.
+        EndIf 
+    EndIf 
+EndIf 
+
+RestArea(_aArea)
+Return _lRet 
 
 /*************************************************************************************/
 /*/{Protheus.doc} GetIdEnt
