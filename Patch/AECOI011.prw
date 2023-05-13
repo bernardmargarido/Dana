@@ -1282,8 +1282,6 @@ Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt,_cLojaID)
 		cIdPost		:= ""
 	ElseIf At("Shopee",oRestPv:marketplaceOrderId) > 0 
 		AEcoI11IP("15b6ccb",cCodAfili,@cCodTransp,@cIdPost,@_cIdServ)
-	ElseIf cCodAfili == "CRF"
-		AEcoI11IP("11fcd86",cCodAfili,@cCodTransp,@cIdPost,@_cIdServ)	
 	ElseIf ValType(oRestPv:ShippingData:LogisticsInfo[1]:DeliveryIds[1]:CourierId) <> "U"
 		AEcoI11IP(oRestPv:ShippingData:LogisticsInfo[1]:DeliveryIds[1]:CourierId,cCodAfili,@cCodTransp,@cIdPost,@_cIdServ)
 	ElseIf ValType(oRestPv:ShippingData:LogisticsInfo[1]:DeliveryIds[1]:courierName) ==  "vtex:fob_1"

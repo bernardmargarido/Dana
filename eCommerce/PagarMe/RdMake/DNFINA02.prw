@@ -73,6 +73,9 @@ Local _dDtaIni      := mv_par01 //DaySub(mv_par01,1)
 Local _dDtaFim      := mv_par02
 Local _dDtaEmiss    := ""
 Local _dDtaPgto     := ""
+Local _cStaPay      := ""
+Local _cRecID       := ""
+Local _cJSonPay     := ""
 
 Local _lGrava       := .F.
 Local _lBaixado     := .F.
@@ -122,7 +125,9 @@ While _dDtaIni <= _dDtaFim
     //--------------------------+
     While _lRecebivel
 
-        _oPagarMe:dDtaPayment   := dToc(_dDtaIni)
+        //_oPagarMe:dDtaPayment   := dToc(_dDtaIni)
+        _oPagarMe:dDTPayIni     := dToc(_dDtaIni)
+        _oPagarMe:dDTPayFim     := dToc(DaySum(_dDtaIni,1))   
         _oPagarMe:nPage         := _nPage
         If _oPagarMe:Recebivel()
 
@@ -137,6 +142,9 @@ While _dDtaIni <= _dDtaFim
                     _cTID       := cValToChar(_oJSon[_nX][#"transaction_id"])
                     _cParcela   := IIF(_oJSon[_nX][#"installment"] == Nil,"A",LJParcela(_oJSon[_nX][#"installment"], _c1DUP ))
                     _cType      := _oJSon[_nX][#"type"]
+                    _cStaPay    := _oJSon[_nX][#"status"]
+                    _cRecID     := _oJSon[_nX][#"recipient_id"]
+                    _cJSonPay   := xToJson(_oJSon[_nX])
                     _nValor     := _oJSon[_nX][#"amount"] / 100   
                     _nDesc      := (_oJSon[_nX][#"amount"] / 100) - ( _oJSon[_nX][#"fee"] / 100 )
                     _nTaxa      := _oJSon[_nX][#"fee"] / 100
@@ -163,7 +171,20 @@ While _dDtaIni <= _dDtaFim
                             XTA->XTA_VLRREB     := IIF(_nValor < 0, _nValor * -1, 0)
                             XTA->XTA_STATUS     := IIf(_lBaixado,"2","1")
                             XTA->XTA_TYPE       := _cType
+                            XTA->XTA_STAPAY     := _cStaPay
+                            XTA->XTA_RECID      := _cRecID 
+                            XTA->XTA_JSON       := _cJSonPay  
                         XTA->( MsUnLock() )
+                    Else 
+                        //----------------------------------------+
+                        // Gravação itens do pagamento e-Commerce |
+                        //----------------------------------------+
+                        RecLock("XTA",.F.)
+                            XTA->XTA_STAPAY     := _cStaPay
+                            XTA->XTA_RECID      := _cRecID 
+                            XTA->XTA_JSON       := _cJSonPay  
+                        XTA->( MsUnLock() ) 
+                        
                     EndIf
                     
                     //----------------+

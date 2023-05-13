@@ -271,7 +271,8 @@ If ::oFwRest:Post(::aHeadOut)
                     _oResp[#"idSolicitacaoInterno"] := _cIdInterno
                     _oResp[#"idSolicitacaoGerada"]  := _cIdGerada
                     _oResp[#"listaVolumes"]         := _oVolumes
-                    _oResp[#"linkRastreamento"]     := "https://mdtranslog.uxsolutions.com.br/TrackingFilter/MQA5ADQAMwA4ADYANQA=/P/" + Rtrim(ZZC->ZZC_NUMSC5)
+                    _oResp[#"linkRastreamento"]     := "https://mdtranslog.uxsolutions.com.br/TrackingFilter/MQA5ADQAMwA4ADYANQA=/P/" + Rtrim(ZZC->ZZC_NUMECO)
+                    //"https://mdtranslog.uxsolutions.com.br/TrackingFilter/MQA5ADQAMwA4ADYANQA=/P/" + Rtrim(ZZC->ZZC_NUMSC5)
                     _cMemoRest  := EncodeUTF8(xToJson(_oResp))
                     _lStatus    := .T.
 

@@ -21,6 +21,7 @@ Class PagarMe
     Data cStatus        As String 
     Data cTipo          As String 
     Data cTID           As String 
+    Data cId            As String
     Data cRecepientID   As String 
     Data cJSon          As String 
     Data cRetJSon       As String
@@ -32,6 +33,8 @@ Class PagarMe
 	Data _cKeyPath		As String
 
     Data dDtaPayment    As Date 
+    Data dDTPayIni      As Date 
+    Data dDTPayFim      As Date 
 
     Data nPage          As Integer
     Data _nSSL2		    As Integer 
@@ -72,6 +75,7 @@ Method New() Class PagarMe
     ::cStatus       := ""
     ::cTipo         := ""
     ::cTID          := ""
+    ::cId           := ""
     ::cRecepientID  := ""
     ::cJSon         := ""
     ::cRetJSon      := ""
@@ -84,6 +88,8 @@ Method New() Class PagarMe
     ::nPage         := 1
 
     ::dDtaPayment   := "" 
+    ::dDTPayIni     := "" 
+    ::dDTPayFim     := "" 
 
     ::_nSSL2		:= 0
 	::_nSSL3		:= 0
@@ -227,12 +233,22 @@ aAdd(::aHeadOut,"Content-Type: application/json" )
 //----------------------+
 // Metodo a ser enviado | 
 //----------------------+
+/*
 If !Empty(::dDtaPayment)
     _cParam := "payment_date=" + ::dDtaPayment
     _cParam += "&page=" + cValToChar(::nPage)
 EndIf
-
 ::oFwRest:SetPath("/1/payables?" + _cParam)
+*/
+
+If Empty(Self:cId)
+    _cParam := "created_at=>=" + ::dDTPayIni
+    _cParam += "&created_at=<=" + ::dDTPayFim
+    _cParam += "&page=" + cValToChar(::nPage)
+    ::oFwRest:SetPath("/1/payables?" + _cParam)
+Else 
+    ::oFwRest:SetPath("/1/payables/" + RTrim(::cId))
+EndIf 
 
 If ::oFwRest:Get(::aHeadOut)
     ::cRetJSon	:= DecodeUtf8(::oFwRest:GetResult())

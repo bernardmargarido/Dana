@@ -191,7 +191,7 @@ While (_cAlias)->( !Eof() )
             _oNota[#"dtEmissaoNotaFiscal"]										:= IIF(Empty((_cAlias)->F2_DAUTNFE), FWTimeStamp(3,Date(),Time()), FWTimeStamp(3,sTod((_cAlias)->F2_DAUTNFE),Time()))
 			_oNota[#"chaveNotaFiscal"]											:= RTrim((_cAlias)->F2_CHVNFE)
 			_oNota[#"nroCarga"]													:= Nil 
-			_oNota[#"nroPedido"]												:= RTrim((_cAlias)->ZZC_NUMSC5)
+			_oNota[#"nroPedido"]												:= RTrim((_cAlias)->ZZC_NUMECO) //RTrim((_cAlias)->ZZC_NUMSC5)
 			_oNota[#"nroEntrega"]												:= Nil 
 			_oNota[#"qtdeVolumes"]												:= (_cAlias)->F2_VOLUME1
 			_oNota[#"qtdeItens"]												:= (_cAlias)->TOTAL_ITENS
@@ -217,7 +217,7 @@ While (_cAlias)->( !Eof() )
 				// Lista Volume |
 				//--------------+
 				_oVolumeNF[#"idVolume"]			:= Nil 
-				_oVolumeNF[#"nroEtiqueta"]		:= RTrim((_cAlias)->ZZC_NUMSC5)
+				_oVolumeNF[#"nroEtiqueta"]		:= RTrim((_cAlias)->ZZC_NUMECO) //RTrim((_cAlias)->ZZC_NUMSC5)
 				_oVolumeNF[#"codigoBarras"]		:= RTrim((_cAlias)->ZZC_NOTA) + RTrim((_cAlias)->ZZC_SERIE)
 				_oVolumeNF[#"pesoVolume"]		:= _nPesBruto
 				_oVolumeNF[#"cubagemVolume"]	:= Nil
@@ -249,7 +249,7 @@ While (_cAlias)->( !Eof() )
 					// Lista Itens |
 					//-------------+
 					_oItensNF[#"idItem"]			:= Nil 
-					_oItensNF[#"nroEtiqueta"]		:= RTrim((_cAlias)->ZZC_NUMSC5)
+					_oItensNF[#"nroEtiqueta"]		:= RTrim((_cAlias)->ZZC_NUMECO) //RTrim((_cAlias)->ZZC_NUMSC5)
 					_oItensNF[#"codigoItem"]		:= SD2->D2_COD
 					_oItensNF[#"descricaoItem"]		:= RTrim(SB5->B5_XNOMPRD)
 					_oItensNF[#"tipoItem"]			:= "UN"
