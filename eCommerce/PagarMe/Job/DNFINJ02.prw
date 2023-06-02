@@ -29,9 +29,9 @@ If _lJob
 EndIf 
 
 If _lJob
-    DNFINJ02A()
+    DNFINJ02A(_lJob)
 Else
-    FWMsgRun(,{|| DNFINJ02A()},"Aguarde....","Integrando pagamentos PagarMe.")
+    FWMsgRun(,{|| DNFINJ02A(_lJob)},"Aguarde....","Integrando pagamentos PagarMe.")
 EndIf 
 
 //------------------------------------------+
@@ -53,7 +53,7 @@ Return .T.
     @version version
 /*/
 /*********************************************************************************/
-Static Function DNFINJ02A()
+Static Function DNFINJ02A(_lJob)
 Local _c1DUP        := SuperGetMv("MV_1DUP")
 Local _cStatus      := ""
 Local _cID          := ""
@@ -83,7 +83,7 @@ Local _oJSon        := Nil
 //-----------------------------------------+
 // Consulta pagamentos a serem consultados |
 //-----------------------------------------+
-If !DNFINJ02B(@_cAlias)
+If !DNFINJ02B(@_cAlias,_lJob)
     Return .F.
 EndIf 
 
@@ -165,7 +165,7 @@ Return Nil
     @since 30/07/2021
 /*/
 /****************************************************************************************************/
-Static Function DNFINJ02B(_cAlias)
+Static Function DNFINJ02B(_cAlias,_lJob)
 Local _cQuery   := ""
 
 Local _dDtaPgi := dToS(DaySub(Date(),1))
@@ -180,7 +180,9 @@ _cQuery += "	XTA.XTA_FILIAL = '" + xFilial("XTA") + "' AND " + CRLF
 _cQuery += "	XTA.XTA_STATUS = '1' AND " + CRLF
 _cQuery += "	XTA.XTA_VALOR > 0 AND " + CRLF
 _cQuery += "    XTA.XTA_STAPAY <> 'paid' AND " + CRLF
-_cQuery += "    XTA.XTA_DTPGTO BETWEEN '" + _dDtaPgi + "' AND '" + _dDtaPgf + "' AND " + CRLF
+If _lJob
+    _cQuery += "    XTA.XTA_DTPGTO BETWEEN '" + _dDtaPgi + "' AND '" + _dDtaPgf + "' AND " + CRLF
+Endif 
 _cQuery += "    XTA.D_E_L_E_T_ = ''	" + CRLF
 
 _cAlias := MPSysOpenQuery(_cQuery)
