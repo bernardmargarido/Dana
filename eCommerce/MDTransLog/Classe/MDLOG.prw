@@ -240,7 +240,8 @@ aAdd(::aHeadOut,"Authorization:Bearer " + RTrim(::cPassDlog))
 ::oFwRest:nTimeOut := 600
 
 ::oFwRest:SetPath("/Api/Solicitacoes/RegistrarNovaSolicitacao")
-::oFwRest:SetPostParams(EncodeUtf8(::cJSon))
+//::oFwRest:SetPostParams(EncodeUTF8(Self:cJSon))
+::oFwRest:SetPostParams(Self:cJSon)
 
 //-----------------+
 // Envia categoria |
