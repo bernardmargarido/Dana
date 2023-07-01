@@ -13,8 +13,8 @@
 User Function LJTESPED()
 Local _cTesI    := GetNewPar("EC_TESECO","604")
 Local _cTesE    := GetNewPar("EC_TESECOE","602")
-Local _cTesIB   := GetNewPar("EC_TESECOB","6B2")
-Local _cTesEB   := GetNewPar("EC_TESECEB","6B4")
+Local _cTesIB   := GetNewPar("EC_TESECOB","6B4")
+Local _cTesEB   := GetNewPar("EC_TESECEB","6B2")
 
 Local _cTesB    := GetNewPar("EC_TESECOB","550")
 

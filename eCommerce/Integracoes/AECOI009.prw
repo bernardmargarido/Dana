@@ -102,6 +102,7 @@ Return Nil
 Static Function AECOMULT09()
 Local _aArea		:= GetArea()
 
+Local _cFilAux 		:= cFilAnt 
 //-----------------+
 // Lojas eCommerce |
 //-----------------+
@@ -126,11 +127,24 @@ While XTC->( !Eof() )
 	//----------------------+
 	If XTC->XTC_STATUS == "1"
 
+		//----------------------------+
+		// Posiciona a filial correta | 
+		//----------------------------+
+		If XTC->XTC_FILIAL <> cFilAnt 
+			cFilAnt := XTC->XTC_FILIAL
+		EndIf  
+
 		//--------------------------------+
 		// Envia as categorias multi loja |
 		//--------------------------------+
 		AECOINT09M(XTC->XTC_CODIGO,XTC->XTC_URL,XTC->XTC_URL3,XTC->XTC_APPKEY,XTC->XTC_APPTOK)
 
+		//----------------------------+
+		// Restaura a filial corrente |
+		//----------------------------+
+		If _cFilAux <> cFilAnt
+			cFilAnt := _cFilAux
+		EndIf 
 	EndIf
 	
 	XTC->( dbSkip() )
@@ -256,6 +270,7 @@ Local cCodSku	:= ""
 Local cDescPrd	:= "" 
 Local cDtaDe	:= ""
 Local cDtaAte	:= ""
+Local cIdTabela	:= ""
 Local cAlias	:= GetNextAlias()
 
 Local nIdSku 	:= 0
@@ -303,6 +318,7 @@ While (cAlias)->( !Eof() )
 	nIdLoja		:= (cAlias)->IDLOJA
 	cCodSku		:= (cAlias)->CODSKU
 	cDescPrd	:= (cAlias)->DESCSKU 
+	cIdTabela	:= (cAlias)->IDTABELA 
 	cDtaDe		:= FWTimeStamp(3,Date())
 	cDtaAte		:= FWTimeStamp(3,YearSum(Date(),10))
 			
@@ -318,7 +334,7 @@ While (cAlias)->( !Eof() )
 	oJson[#"fixedPrices"]	:= {}
 	aAdd(oJson[#"fixedPrices"],Array(#))
 	oPrice					:= aTail(oJson[#"fixedPrices"])    
-	oPrice[#"tradePolicyId"]:= "1"
+	oPrice[#"tradePolicyId"]:= IIF(Empty(cIdTabela),"1",cIdTabela)
 	oPrice[#"value"]		:= nPrcPor
 	oPrice[#"listPrice"]	:= nPrcCheio
 	oPrice[#"minQuantity"]	:= 1
@@ -473,6 +489,7 @@ cQuery += "		IDSKU , " + CRLF
 cQuery += "		DESCSKU, " + CRLF 
 cQuery += "		PRCDE , " + CRLF 
 cQuery += "		IDLOJA, " + CRLF 
+cQuery += "		IDTABELA, " + CRLF 
 cQuery += "		DATADE, " + CRLF
 cQuery += "		HORADE, " + CRLF
 cQuery += "		PRCPOR, " + CRLF 
@@ -493,6 +510,7 @@ EndIf
 cQuery += "			B1.B1_DESC DESCSKU, " + CRLF
 cQuery += "			B1.B1_PRV1 PRCDE , " + CRLF 
 cQuery += "			B5.B5_XIDLOJA IDLOJA, " + CRLF 
+cQuery += "			DA0.DA0_XIDVET IDTABELA, " + CRLF
 cQuery += "			DA0.DA0_DATDE DATADE, " + CRLF
 cQuery += "			DA0.DA0_HORADE HORADE, " + CRLF
 cQuery += "			DA1.DA1_PRCVEN PRCPOR, " + CRLF 
@@ -501,7 +519,7 @@ cQuery += "			DA1.DA1_ITEM ITEM , " + CRLF
 cQuery += "			DA1.R_E_C_N_O_ RECNODA1 " + CRLF 
 cQuery += "		FROM " + CRLF 
 cQuery += "			" + RetSqlName("DA1") + " DA1 " + CRLF 
-cQuery += "			INNER JOIN " + RetSqlName("DA0") + " DA0 ON DA0.DA0_FILIAL = '" + xFilial("DA0") + "' AND DA0.DA0_CODTAB = DA1.DA1_CODTAB AND DA0.D_E_L_E_T_ = '' " + CRLF 
+cQuery += "			INNER JOIN " + RetSqlName("DA0") + " DA0 ON DA0.DA0_FILIAL = '" + xFilial("DA0") + "' AND DA0.DA0_CODTAB = DA1.DA1_CODTAB AND DA1.DA0_XSTATU = '1' AND DA0.D_E_L_E_T_ = '' " + CRLF 
 
 If Empty(_cLojaID)
 	cQuery += "			INNER JOIN " + RetSqlName("SB5") + " B5 ON B5.B5_FILIAL = '" + xFilial("SB5") + "' AND B5.B5_COD = DA1.DA1_CODPRO AND B5.B5_XENVECO = '2' AND B5.B5_XENVSKU = '2' AND B5.B5_XUSAECO = 'S' AND B5.D_E_L_E_T_ = '' " + CRLF 
@@ -513,7 +531,9 @@ EndIf
 cQuery += "			INNER JOIN " + RetSqlName("SB1") + " B1 ON B1.B1_FILIAL = '" + xFilial("SB1") + "' AND B1.B1_COD = DA1.DA1_CODPRO AND B1.B1_MSBLQL <> '1' AND B1.D_E_L_E_T_ = '' " + CRLF 
 cQuery += "		WHERE " + CRLF 
 cQuery += "			DA1.DA1_FILIAL = '" + xFilial("DA1") + "' AND " + CRLF 
-cQuery += "			DA1.DA1_CODTAB = '" + cCodTab + "' AND " + CRLF
+If Empty(_cLojaID)
+	cQuery += "			DA1.DA1_CODTAB = '" + cCodTab + "' AND " + CRLF
+EndIf 
 cQuery += "			DA1.DA1_ENVECO = '1' AND " + CRLF  
 cQuery += "			DA1.D_E_L_E_T_ = '' " + CRLF 
 cQuery += "	) PRECO " + CRLF

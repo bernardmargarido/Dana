@@ -89,6 +89,8 @@ Return Nil
 Static Function AECOMULT02(_lEnd)
 Local _aArea		:= GetArea()
 
+Local _cFilAux 		:= cFilAnt 
+
 //-----------------+
 // Lojas eCommerce |
 //-----------------+
@@ -104,10 +106,25 @@ While XTC->( !Eof() )
 	// Somente lojas ativas |
 	//----------------------+
 	If XTC->XTC_STATUS == "1"
-		//--------------------------------+
-		// Envia as categorias multi loja |
-		//--------------------------------+
+
+		//----------------------------+
+		// Posiciona a filial correta | 
+		//----------------------------+
+		If XTC->XTC_FILIAL <> cFilAnt 
+			cFilAnt := XTC->XTC_FILIAL
+		EndIf  
+
+		//----------------------------+
+		// Envia as marcas multi loja |
+		//----------------------------+
 		AECOINT02M(XTC->XTC_CODIGO,XTC->XTC_URL,XTC->XTC_URL2,XTC->XTC_APPKEY,XTC->XTC_APPTOK)
+
+		//----------------------------+
+		// Restaura a filial corrente |
+		//----------------------------+
+		If _cFilAux <> cFilAnt
+			cFilAnt := _cFilAux
+		EndIf 
 
 	EndIf
 	

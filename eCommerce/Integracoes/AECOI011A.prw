@@ -76,17 +76,10 @@ Return aRet
 
 /*********************************************************************************************************/
 /*/{Protheus.doc} AEcoI011A
-
-@description	Envia a baixa do pedido ecommerce
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		10/02/2016
-
-@param			cOrderId	, Numero OrderId e-Commerce
-@param			cNumOrc		, Numero do Orçamento Protheus
-
-@return			aRet 		- Array aRet[1] - Logico aRet[2] - Codigo Erro	aRet[3] - Descricao do Erro  
+	@description	Envia a baixa do pedido ecommerce
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
 /*/			
 /*********************************************************************************************************/
 User Function AEcoBxPv(cOrderId,cNumOrc)

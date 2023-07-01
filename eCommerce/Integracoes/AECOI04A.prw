@@ -72,12 +72,10 @@ Return Nil
 
 /**************************************************************************************************/
 /*/{Protheus.doc} AECOINT4A
-
-@description	Rotina consulta e envia Produtos para a pataforma e-Commerce
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		10/02/2016
+	@description	Rotina consulta e envia Produtos para a pataforma e-Commerce
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
 /*/
 /**************************************************************************************************/
 Static Function AECOINT4A()
@@ -142,34 +140,11 @@ Return .T.
 						
 /**************************************************************************************************/
 /*/{Protheus.doc} AEcoEnv
-
-@description	Rotina envia dados do produto para a plataforma e-commerce
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		02/02/2016
-
-@param cCodPai		, characters, descricao
-@param cNomePrd		, characters, descricao
-@param cTitPrd		, characters, descricao
-@param cSubTitPrd	, characters, descricao
-@param cDescPrd		, characters, descricao
-@param cCarcacPrd	, characters, descricao
-@param cKeyword		, characters, descricao
-@param cStatus		, characters, descricao
-@param cTpProd		, characters, descricao
-@param cIdLoja		, characters, descricao
-@param nCat01		, numeric	, descricao
-@param nCat02		, numeric	, descricao
-@param nCat03		, numeric	, descricao
-@param nCat04		, numeric	, descricao
-@param nCat05		, numeric	, descricao
-@param nFabric		, numeric	, descricao
-@param nIdProd		, numeric	, descricao
-@param nRecnoB5		, numeric	, descricao
-@param nRecnoWs5	, numeric	, descricao
-
-@type function
+	@description	Rotina envia dados do produto para a plataforma e-commerce
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		02/02/2016
+	@type function
 /*/
 /**************************************************************************************************/
 Static Function AEcoEnv(cCodSku,cNomePrd,nIdSku,cTamanho)
@@ -232,19 +207,11 @@ RestArea(aArea)
 Return .T.
 
 /**************************************************************************************************/
-
 /*/{Protheus.doc} AECOQRY
-
-@description 	Rotina consulta os produtos a serem enviados para a pataforma e-Commerce
-
-@author			Bernard M.Margarido
-@version   		1.00
-@since     		10/02/2016
-
-@param			cAlias 		, Nome Arquivo Temporario
-@param			nToReg		, Grava total de registros encontrados
-
-@return			lRet - Variavel Logica
+	@description 	Rotina consulta os produtos a serem enviados para a pataforma e-Commerce
+	@author			Bernard M.Margarido
+	@version   		1.00
+	@since     		10/02/2016
 /*/			
 /**************************************************************************************************/
 Static Function AEcoQry(cAlias,nToReg)
@@ -318,18 +285,12 @@ Return .T.
 
 /*********************************************************************************/
 /*/{Protheus.doc} LogExec
-
-@description Grava Log do processo 
-
-@author SYMM Consultoria
-@since 26/01/2017
-@version undefined
-
-@param cMsg, characters, descricao
-
-@type function
+	@description Grava Log do processo 
+	@author SYMM Consultoria
+	@since 26/01/2017
+	@version undefined
+	@type function
 /*/
-
 /*********************************************************************************/
 Static Function LogExec(cMsg)
 	CONOUT(cMsg)

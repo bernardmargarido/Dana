@@ -156,6 +156,8 @@ Return .T.
 Static Function AECOMULT11()
 Local _aArea		:= GetArea()
 
+Local _cFilAux 		:= cFilAnt 
+
 //-----------------+
 // Lojas eCommerce |
 //-----------------+
@@ -181,10 +183,17 @@ While XTC->( !Eof() )
 	aOrderId := {}			
 	If XTC->XTC_STATUS == "1"
 
-		//--------------------------------+
-		// Envia as categorias multi loja |
-		//--------------------------------+
-		AECOINT11(XTC->XTC_CODIGO,XTC->XTC_URL2,XTC->XTC_APPKEY,XTC->XTC_APPTOK)
+		//----------------------------+
+		// Posiciona a filial correta | 
+		//----------------------------+
+		If XTC->XTC_FILIAL <> cFilAnt 
+			cFilAnt := XTC->XTC_FILIAL
+		EndIf 
+
+		//---------------------------+
+		// integra pedidos multiloja |
+		//---------------------------+
+		AECOINT11(XTC->XTC_CODIGO,XTC->XTC_URL2,XTC->XTC_APPKEY,XTC->XTC_APPTOK,XTC->XTC_NAME)
 
 		//-------------------------------+
 		// Inicia gravação / atualização |
@@ -196,6 +205,13 @@ While XTC->( !Eof() )
 				Processa({|| AEcoI11PvC(XTC->XTC_CODIGO,XTC->XTC_URL2,XTC->XTC_APPKEY,XTC->XTC_APPTOK) },"Aguarde...","Gravando/Atualizando Novos Pedidos.")
 			EndIf	
 		EndIf
+
+		//----------------------------+
+		// Restaura a filial corrente |
+		//----------------------------+
+		If _cFilAux <> cFilAnt
+			cFilAnt := _cFilAux
+		EndIf 
 
 	EndIf
 	
@@ -214,7 +230,7 @@ Return .T.
 	@since     		10/02/2016
 /*/
 /**************************************************************************************************/
-Static Function AECOINT11(_cLojaID,_cUrl,_cAppKey,_cAppToken)
+Static Function AECOINT11(_cLojaID,_cUrl,_cAppKey,_cAppToken,_cHostName)
 Local aArea			:= GetArea()
 Local aHeadOut  	:= {}
 
@@ -224,6 +240,7 @@ Local cAppToken		:= ""
 Local cXmlHead 	 	:= ""
 Local cUrlParms		:= ""     
 Local cOrderBy		:= ""
+Local cHostName		:= ""
 
 Local nTimeOut		:= 240
 Local nList			:= 0
@@ -243,12 +260,11 @@ aAdd(aHeadOut,"Content-Type: application/json" )
 aAdd(aHeadOut,"X-VTEX-API-AppKey:" + cAppKey )
 aAdd(aHeadOut,"X-VTEX-API-AppToken:" + cAppToken ) 
 
-cUrlParms := "ready-for-handling"
+cUrlParms := "f_status=ready-for-handling"
+cHostName := "f_hostname=" + Lower(RTrim(_cHostName))
 cOrderBy  := "orderBy=creationDate,asc"
-//cUrlParms := "payment-pending"
-//cUrlParms := "canceled,invoiced" //handling,payment-pending,
 
-cHtmlPage := HttpGet(cUrl + "/api/oms/pvt/orders?f_status=" + cUrlParms + "&" + cOrderBy , /*cUrlParms*/, nTimeOut, aHeadOut, @cXmlHead)
+cHtmlPage := HttpGet(cUrl + "/api/oms/pvt/orders?" + cUrlParms + "&" + cHostName + "&" + cOrderBy , /*cUrlParms*/, nTimeOut, aHeadOut, @cXmlHead)
 
 If !_lJob
 	ProcRegua(-1)

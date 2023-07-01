@@ -61,11 +61,11 @@ Else
 	Processa({|| AECOINT04() },"Aguarde...","Consultando Sku.")
 EndIf 
 
-//Processa({|| U_AECOI04A()},"Aguarde...","Enviando Especificacoes Sku.")
-
 LogExec("FINALIZA INTEGRACAO DE SKU COM A VTEX - DATA/HORA: "+DTOC(DATE())+" AS "+TIME())
 LogExec(Replicate("-",80))
 ConOut("")
+
+//Processa({|| U_AECOI04A()},"Aguarde...","Enviando Especificacoes Sku.")
 
 //----------------------------------+
 // Envia e-Mail com o Logs de Erros |
@@ -94,6 +94,8 @@ Return Nil
 Static Function AECOMULT04(_lEnd)
 Local _aArea		:= GetArea()
 
+Local _cFilAux 		:= cFilAnt 
+
 //-----------------+
 // Lojas eCommerce |
 //-----------------+
@@ -110,10 +112,24 @@ While XTC->( !Eof() )
 	//----------------------+
 	If XTC->XTC_STATUS == "1"
 
-		//--------------------------------+
-		// Envia as categorias multi loja |
-		//--------------------------------+
+		//----------------------------+
+		// Posiciona a filial correta | 
+		//----------------------------+
+		If XTC->XTC_FILIAL <> cFilAnt 
+			cFilAnt := XTC->XTC_FILIAL
+		EndIf 
+
+		//---------------------------+
+		// Envia os SKU's multi loja |
+		//---------------------------+
 		AECOINT04M(XTC->XTC_CODIGO,XTC->XTC_URL,XTC->XTC_URL2,XTC->XTC_APPKEY,XTC->XTC_APPTOK)
+
+		//----------------------------+
+		// Restaura a filial corrente |
+		//----------------------------+
+		If _cFilAux <> cFilAnt
+			cFilAnt := _cFilAux
+		EndIf
 
 	EndIf
 	
