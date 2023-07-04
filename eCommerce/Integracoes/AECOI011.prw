@@ -796,6 +796,7 @@ If Len(aCliente) > 0
 		If Rtrim(cCodMun) == RTrim(_cCMunDef)
 			u_AEcMailC(cCodInt,cDescInt,cCnpj,cNomeCli)
 		EndIf
+		
 		//--------------------+
 		// Desloqueia Cliente |
 		//--------------------+

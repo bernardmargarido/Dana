@@ -83,7 +83,8 @@ Local _cParam   := ""
 
 Local _aHeadOut := {}
 
-Local _oFwRest  := FWRest():New(Self:cUrl)
+Local _oFwRest  := Nil 
+Local _oJSon    := Nil 
 
 //---------------+
 // Retorna Token |
@@ -97,6 +98,11 @@ aAdd(_aHeadOut,"Content-Type: application/json")
 aAdd(_aHeadOut,"X-VTEX-API-AppKey: " + Self:cAppKey)
 aAdd(_aHeadOut,"X-VTEX-API-AppToken: " + Self:cAppToken)
 
+//----------+
+// EndPoint |
+//----------+
+_oFwRest  := FWRest():New(Self:cUrl)
+
 //---------+
 // Timeout |
 //---------+
@@ -106,17 +112,86 @@ _oFwRest:nTimeOut := 600
 // Método a ser chamado | 
 //----------------------+
 If Self:cMetodo == "GET"
-    _cParam := "_where=document="+self:cId+"_fields=_all"
+    _cParam := "_where=document="+ RTrim(self:cId) + "&_fields=_all"
     _oFwRest:SetPath("/api/dataentities/CL/search?" + _cParam)
 
     If _oFwRest:Get(_aHeadOut)
         Self:cJSonRet	:= DecodeUtf8(_oFwRest:GetResult())
         _lRet           := .T.
     Else
-        Self:cError     := "Não foi possivel conectar API VTEX!"
+        Self:cJSonRet	:= DecodeUtf8(_oFwRest:GetResult())
+        _oJSon          := JSonObject():New()
+        _oJSon:FromJson(Self:cJSonRet)
+        Self:cError     := _oJSon['Message']
+        _lRet           := .F.
+    EndIf 
+ElseIf Self:cMetodo == "PUT"
+
+EndIf 
+
+FreeObj(_oFwRest)
+FreeObj(_oJSon)
+Return _lRet 
+
+/*********************************************************************************************/
+/*/{Protheus.doc} Customer
+    @description Metodo - Retorna dados dos clientes
+    @author Bernard M Margarido
+    @since 30/06/2023
+    @version version
+/*/
+/*********************************************************************************************/
+Method Address() Class MasterData
+Local _lRet     := .T.
+
+Local _cParam   := ""
+
+Local _aHeadOut := {}
+
+Local _oFwRest  := Nil 
+Local _oJSon    := Nil 
+
+//---------------+
+// Retorna Token |
+//---------------+
+Self:Token()
+
+//--------------+
+// Header Token |
+//--------------+
+aAdd(_aHeadOut,"Content-Type: application/json")
+aAdd(_aHeadOut,"X-VTEX-API-AppKey: " + Self:cAppKey)
+aAdd(_aHeadOut,"X-VTEX-API-AppToken: " + Self:cAppToken)
+
+//----------+
+// EndPoint |
+//----------+
+_oFwRest  := FWRest():New(Self:cUrl)
+
+//---------+
+// Timeout |
+//---------+
+_oFwRest:nTimeOut := 600
+
+//----------------------+
+// Método a ser chamado | 
+//----------------------+
+If Self:cMetodo == "GET"
+    _cParam := "_where=userId="+ RTrim(self:cId) + "&_fields=_all"
+    _oFwRest:SetPath("/api/dataentities/AD/search?" + _cParam)
+
+    If _oFwRest:Get(_aHeadOut)
+        Self:cJSonRet	:= DecodeUtf8(_oFwRest:GetResult())
+        _lRet           := .T.
+    Else
+        Self:cJSonRet	:= DecodeUtf8(_oFwRest:GetResult())
+        _oJSon          := JSonObject():New()
+        _oJSon:FromJson(Self:cJSonRet)
+        Self:cError     := _oJSon['Message']
         _lRet           := .F.
     EndIf 
 EndIf 
 
 FreeObj(_oFwRest)
+FreeObj(_oJSon)
 Return _lRet 
