@@ -261,10 +261,11 @@ aAdd(aHeadOut,"X-VTEX-API-AppKey:" + cAppKey )
 aAdd(aHeadOut,"X-VTEX-API-AppToken:" + cAppToken ) 
 
 cUrlParms := "f_status=ready-for-handling"
-cHostName := "f_hostname=" + Lower(RTrim(_cHostName))
+//cHostName := "f_hostname=" + Lower(RTrim(_cHostName))
 cOrderBy  := "orderBy=creationDate,asc"
 
-cHtmlPage := HttpGet(cUrl + "/api/oms/pvt/orders?" + cUrlParms + "&" + cHostName + "&" + cOrderBy , /*cUrlParms*/, nTimeOut, aHeadOut, @cXmlHead)
+cHtmlPage := HttpGet(cUrl + "/api/oms/pvt/orders?" + cUrlParms + "&" + cOrderBy , /*cUrlParms*/, nTimeOut, aHeadOut, @cXmlHead)
+//cHtmlPage := HttpGet(cUrl + "/api/oms/pvt/orders?" + cUrlParms + "&" + cHostName + "&" + cOrderBy , /*cUrlParms*/, nTimeOut, aHeadOut, @cXmlHead)
 
 If !_lJob
 	ProcRegua(-1)
@@ -1552,7 +1553,7 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDesconto,nP
 					nPerDItem := RetPrcUni(oItems[nPrd]:PriceTags[1]:Value * -1)
 				ElseIf nVlrDesc < 0
 					nVlrDesc := RetPrcUni(oItems[nPrd]:PriceTags[1]:Value * -1)
-					nVlrTotIt:= nQtdItem * nValor		
+					nVlrTotIt:= nQtdItem * nVlrFinal		
 					nPerDItem:= Round(( nVlrDesc / nVlrTotIt ) * 100,2)
 				EndIf	
 

@@ -492,6 +492,7 @@ Else
 	cQuery += "		FROM " + CRLF
 	cQuery += "			" + RetSqlName("XTD") + " XTD " + CRLF 
 	cQuery += "		WHERE " + CRLF
+	cQuery += "			XTD.XTD_FILIAL = '" + xFilial("XTD") + "' AND " + CRLF
 	cQuery += "			XTD.XTD_CODIGO = '" + _cLojaID + "' AND " + CRLF
 	cQuery += "			XTD.XTD_ALIAS = 'AY0' AND " + CRLF
 	cQuery += "			XTD.XTD_CODERP = AY1.AY1_SUBCAT AND " + CRLF

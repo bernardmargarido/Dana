@@ -500,6 +500,7 @@ Else
 	cQuery += "		FROM " + CRLF
 	cQuery += "			" + RetSqlName("XTD") + " XTD " + CRLF 
 	cQuery += "		WHERE " + CRLF
+	cQuery += "			XTD.XTD_FILIAL = '" + xFilial("XTD") + "' AND " + CRLF
 	cQuery += "			XTD.XTD_CODIGO = '" + _cLojaID + "' AND " + CRLF
 	cQuery += "			XTD.XTD_ALIAS = 'AY2' AND " + CRLF
 	cQuery += "			XTD.XTD_CODERP = AY2.AY2_CODIGO AND " + CRLF

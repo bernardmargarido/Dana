@@ -88,9 +88,14 @@ ElseIf (clEspuma == '1') .And. AllTrim(clEstCli) == 'PR'
 	clEstSZH := clEstCli
 EndIf
 
-If ((clAl25 == '1') .Or. AllTrim(clEstCli) == 'AP') .And. !(clGrpPrd $'108/115')   //If ((clAl25 == '1') .Or. AllTrim(clEstCli) == 'AP') .And. clGrpPrd <> '108'
+If (clAl25 == '1')
+	If AllTrim(clEstCli) <> "PA"
+		clEstSZH := Posicione('SZH',5,xFilial('SZH')+AllTrim(clEstCli),'ZH_EST')
+	Endif
+Elseif AllTrim(clEstCli) == 'AP' .And. !(clGrpPrd $'108/115')
 	clEstSZH := Posicione('SZH',5,xFilial('SZH')+AllTrim(clEstCli),'ZH_EST')
 EndIf
+
 
 clEstSZH := If ((clTpFat == '3') .And. (clTalco == '1') .And. (clEstCli $ clNatSt),clEstCli,clEstSZH) // Ajuste para SP
 
@@ -123,6 +128,7 @@ If  clCodZfm == '2' .And. clEstCli == 'PR' .And. clAl25 == '1'   //Ajuste CodNat
 	ll25Qry	 := .T.
 	clEstSZH := 'PR'
 EndIf
+
 clEstSZH := IIf (clTpFat == '3' .And. clTalco == '2' .And. clIcmRet == '1' .And. clCodZfm == '1','AP',clEstSZH) //Ajuste ZT
 clEstSZH := IIf ((clTpFat == '2') .And. (clCodZfm == '1') .And. (clArmz == '30'),'',clEstSZH )  //Ajuste para BZ com aliq especial
 clEstSZH := IIf ((clTpFat == '1') .And. (clCodZfm == '1') .And. (clTalco == '2'),'',clEstSZH )  //Ajuste para Itens com aliq especial PV ZFM
@@ -133,7 +139,6 @@ clTalco  := IIf (clTalco == '1' .And. clTpFat == '5' .And. clTpCli == 'R' .And. 
 clIcmRet := IIf (clEstCli == 'PR' .And. clTpFat == '6' .And. clEspuma == '1','1',clIcmRet)  // Ajute Aliq 25 PR Trade
 clTpFat  := IIf (clEstCli == 'PR' .And. clTpFat == '6' .And. clEspuma == '1','4',clTpFat)   // Força ajuste no Trade Aliq 25 PR
 clTpFat  := IIf (clEstCli $ clNatSu .And. clTpFat == '5' .And. clTalco == '1' .And. clCodZfm == '2' .And. cNatCab == 'BT' ,'2',clTpFat) //Tratamento BV com IPI
-
 
 clQry2 := " SELECT F7_GRTRIB GRP_TRIB "
 clQry2 += " ,F7_EST UF "
@@ -157,7 +162,7 @@ If (Empty(AllTrim((cAlias2)->GRP_CLI)) .Or. (cAlias2)->GRP_CLI == clGrpCli) .And
 	EndIf
 EndIf
 
-If  (AllTrim(clEstCli) == clNatSt) .And. (clRetAlq == '25' .Or. clAl25 == '1') .And. !(clGrpPrd $'108/115')  // Aliq 25%  ST   //If  (AllTrim(clEstCli) == clNatSt) .And. (clRetAlq == '25' .Or. clAl25 == '1') .And. clGrpPrd <> '108'  // Aliq 25%  ST
+If  (AllTrim(clEstCli) == clNatSt) .And. (clRetAlq == '25' .Or. clAl25 == '1') .And. !(clGrpPrd $'108/115')  // Aliq 25%  ST
 	clIcmRet := '2'
 	ll25Qry  := .T.
 EndIf
@@ -174,21 +179,20 @@ clQry += " WHERE ZH_TIPOFAT = '" + clTpFat + "'"
 clQry += " AND ZH_CIPI = '" + clIpi + "'"
 clQry += " AND ZH_CICMRET = '" + clIcmRet + "'"
 clQry += " AND ZH_ZFM = '" + clCodZfm + "'"
-If (clTalco == '1' .And. clTpFat <> '5') .Or. ((clCodZfm == '1') .And. (clTpFat <> '2' .And. clTpFat <> '6'))   // (clTpFat <> '5') Tratamento para Trade BZ/ZB
+If (clTalco == '1' .And. clTpFat <> '5') .Or. ((clCodZfm == '1') .And. (clTpFat <> '2' .And. clTpFat <> '6'))   //Tratamento para Trade BZ/ZB
 	clQry += " AND ZH_TALCO = '" + clTalco + "'"
 EndIf
 If ll25Qry .And. (clCodZfm == '2') /*.And. (clTpFat != '5')*/ .And. Empty(AllTrim(clRetAlq))  //Não usar Alq Esp na ZFM
 	clQry += " AND ZH_ALQES = '" + clAl25 + "'"
 	clRetAlq := '25'
 EndIf
+If clBaseR == "N" .And. clTalco == '1' .And. !clEstCli $"SP/AP" .And. clIcmRet == "1" .And. (clTpFat <> '2' .And. clEstCli <>"RJ")
+	clQry += " AND ZH_BSREDU = '2' "
+Endif
 clQry += " AND ZH_EST = '" + clEstSZH  + "'"
 clQry += " AND D_E_L_E_T_ <> '*'"
 clQry += " AND ZH_FILIAL = " + xFilial('SZH')
-/*
-If cNatCab $clNatTra
-	clQry += " AND ZH_CODNAT IN( " + cNatTra +" ) "
-Endif
-*/
+
 DbUseArea(.T., "TOPCONN", TCGenQry(,,clQry),cAlias,.T.,.T.)
 MemoWrite("D:\Dana\SchNatNota.Sql",clQry)
 
@@ -198,9 +202,22 @@ ElseIf (clBaseR == 'N' .Or. Empty(Alltrim(clBaseR))) .And. (clEstCli $ clNatSt .
 	clRetAlq := ' '
 Endif
 
-clRet := (cAlias)->ZH_CODNAT + clRetAlq
+If (clBaseR == 'N' .Or. Empty(Alltrim(clBaseR))) .And. (clEstCli $ clNatSt .Or.  clEstCli $ clNatSu)  .And. (cAlias)->ZH_CODNAT $ 'SU|SV|SY|VE|BO|BT|ZB'
+	While !(cAlias)->(EOF())
+		If (cAlias)->ZH_CODNAT == cNatCab
+			clRet	:= cNatCab
+		Endif
+		(cAlias)->(DbSkip())
+	EndDo
+Else
+	clRet := (cAlias)->ZH_CODNAT + clRetAlq
+Endif
 
-If Alltrim(xFilial("SZH")) == "06"
+If Alltrim(xFilial("SZH")) $"06/07"
+	clRet	:= cNatCab
+Endif
+
+If Substr(clRet,1,2) == "  " .And. Alltrim(clEstCli) == "MT" .And. Alltrim(clRet) $"25"//Tratamento Brilhantina MT
 	clRet	:= cNatCab
 Endif
 

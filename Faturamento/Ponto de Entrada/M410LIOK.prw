@@ -59,7 +59,7 @@ If (Altera .or. Inclui) .And. M->C5_TIPO == "N" .And. xFilial("SC5") =="06"//Tra
 	If aScan(_aTbDif06,{|x| RTrim(x) == RTrim(_cPro)}) > 0
 		lTbDif06	:= .T.
 	EndIf
-	
+
 	/*
 	For nX1 := 1 To Len(cTbDif06)
 	If !Substr(cTbDif06,nX1,1) == '/' .And. (nX1 <> Len(cTbDif06))
@@ -203,7 +203,8 @@ Else
 								Endif
 							Elseif TRBSZH->ZH_TIPOFAT == "2"//Bonificação
 								If cTipCli == "R"//Revendedor
-									If nMargSF7 <> 0 .And. cRegEsp <> "1" //Com ST
+									//If nMargSF7 <> 0 .And. cRegEsp <> "1" //Com ST
+									If cRegEsp <> "1"
 										aCols[n, _nPosNat]	:= TRBSZH->ZH_CODNAT
 										aCols[n, _nPosTES]	:= TRBSZH->ZH_TES//cValToChar(TRBSZH->ZH_FSPCSTB)//Com ST Bonificação
 									Else
@@ -244,7 +245,7 @@ Else
 										aCols[n, _nPosTES]	:= cValToChar(TRBSZH->ZH_ZFCOMST)//Zona Base reduzida
 									Elseif cCliSuf <> "S" .And. Empty(cNumSuf)
 										aCols[n, _nPosNat]	:= TRBSZH->ZH_CODNAT
-										aCols[n, _nPosTES]	:= cValToChar(TRBSZH->ZH_TES18)//Fora de SP sem ST
+										aCols[n, _nPosTES]	:= TRBSZH->ZH_TES18//Fora de SP sem ST
 									Elseif cCliSuf <> "S" .And. !Empty(cNumSuf)//Tem Num. Suframa, sem direito a desconto
 										aCols[n, _nPosNat]	:= TRBSZH->ZH_CODNAT
 										aCols[n, _nPosTES]	:= cValToChar(TRBSZH->ZH_FSPSST)
@@ -284,7 +285,7 @@ Else
 										aCols[n, _nPosTES]	:= cValToChar(TRBSZH->ZH_ZFCOSTB)//Zona Franca com Base Reduzida Bonificação.
 									Elseif cCliSuf <> "S" .And. Empty(cNumSuf)
 										aCols[n, _nPosNat]	:= TRBSZH->ZH_CODNAT
-										aCols[n, _nPosTES]	:= cValToChar(TRBSZH->ZH_TES18)//Fora de SP sem ST
+										aCols[n, _nPosTES]	:= TRBSZH->ZH_TES18//Fora de SP sem ST
 									Elseif cCliSuf <> "S" .And. !Empty(cNumSuf)//Tem Num. Suframa, sem direito a desconto
 										aCols[n, _nPosNat]	:= TRBSZH->ZH_CODNAT
 										aCols[n, _nPosTES]	:= cValToChar(TRBSZH->ZH_FSPSSTB)//Fora de SP sem ST Bonificação
@@ -313,6 +314,21 @@ Endif
 If Select("TRBSZH") > 0
 	TRBSZH->(DbCloseArea())
 Endif
+
+/*---------------------\
+| Tratameno Monofásico |
+\---------------------*/
+/*
+cTESMono	:= ""
+cMonoSB1		:= Posicione("SB1",1,xFilial("SB1")+_cPro,"B1_XMNFASI")
+If cMonoSB1 == "1"
+	cTESMono := Posicione('SF4',1,xFilial('SF4')+aCols[n, _nPosTES],'F4_TESMONO')
+Endif
+
+If !Empty(cTESMono)
+	aCols[n, _nPosTES]	:= cTESMono
+Endif
+*/
 
 /*-----------------------------\
 | Executa validações no campo. |

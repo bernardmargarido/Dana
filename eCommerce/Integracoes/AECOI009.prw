@@ -216,6 +216,7 @@ While (cAlias)->( !Eof() )
 	nIdLoja		:= (cAlias)->IDLOJA
 	cCodSku		:= (cAlias)->CODSKU
 	cDescPrd	:= (cAlias)->DESCSKU 
+	cIdTabela	:= (cAlias)->IDTABELA 
 	cDtaDe		:= FWTimeStamp(3,Date())
 	cDtaAte		:= FWTimeStamp(3,YearSum(Date(),10))
 			
@@ -223,7 +224,14 @@ While (cAlias)->( !Eof() )
 	// Monta String API Rest |
 	//-----------------------+
 	oJson					:= {}        
-	oJson					:= Array(#)
+	//oJson					:= Array(#)
+	aAdd(oJson,Array(#))
+	oPrice					:= aTail(oJson)  
+	oPrice[#"listPrice"]	:= nPrcCheio
+	oPrice[#"value"]		:= nPrcPor
+	oPrice[#"minQuantity"]	:= 1
+	
+	/*
 	oJson[#"listPrice"]		:= nPrcCheio
 	oJson[#"costPrice"]		:= nPrcCheio
 	oJson[#"markup"]		:= 0      
@@ -231,17 +239,18 @@ While (cAlias)->( !Eof() )
 	oJson[#"fixedPrices"]	:= {}
 	aAdd(oJson[#"fixedPrices"],Array(#))
 	oPrice					:= aTail(oJson[#"fixedPrices"])    
-	oPrice[#"tradePolicyId"]:= "1"
+	oPrice[#"tradePolicyId"]:= IIF(Empty(cIdTabela),"1",RTrim(cIdTabela))
 	oPrice[#"value"]		:= nPrcPor
 	oPrice[#"listPrice"]	:= nPrcCheio
 	oPrice[#"minQuantity"]	:= 1
-		
+	*/
+
 	LogExec("ENVIANDO PRECO PRODUTO " + Alltrim((cAlias)->CODSKU) + " - " + Alltrim((cAlias)->DESCSKU) )
 				 
 	//---------------------------------------+
 	// Rotina realiza o envio para a Rakuten |
 	//---------------------------------------+
-	AEcoEnv(oJson,nIdSku,cCodSku,cDescPrd,(cAlias)->RECNODA1,_cLojaID,_cUrl_3,_cAppKey,_cAppToken)
+	AEcoEnv(oJson,nIdSku,cCodSku,cDescPrd,(cAlias)->RECNODA1,_cLojaID,_cUrl_3,_cAppKey,_cAppToken,cIdTabela)
 				
 	(cAlias)->( dbSkip() )
 				
@@ -326,6 +335,15 @@ While (cAlias)->( !Eof() )
 	// Monta String API Rest |
 	//-----------------------+
 	oJson					:= {}        
+	//oJson					:= Array(#)
+	aAdd(oJson,Array(#))
+	oPrice					:= aTail(oJson)  
+	oPrice[#"listPrice"]	:= nPrcCheio
+	oPrice[#"value"]		:= nPrcPor
+	oPrice[#"minQuantity"]	:= 1
+
+	/*
+	oJson					:= {}        
 	oJson					:= Array(#)
 	oJson[#"listPrice"]		:= nPrcCheio
 	oJson[#"costPrice"]		:= nPrcCheio
@@ -338,13 +356,13 @@ While (cAlias)->( !Eof() )
 	oPrice[#"value"]		:= nPrcPor
 	oPrice[#"listPrice"]	:= nPrcCheio
 	oPrice[#"minQuantity"]	:= 1
-		
+	*/
 	LogExec("ENVIANDO PRECO PRODUTO " + Alltrim((cAlias)->CODSKU) + " - " + Alltrim((cAlias)->DESCSKU) )
 				 
 	//---------------------------------------+
 	// Rotina realiza o envio para a Rakuten |
 	//---------------------------------------+
-	AEcoEnv(oJson,nIdSku,cCodSku,cDescPrd,(cAlias)->RECNODA1)
+	AEcoEnv(oJson,nIdSku,cCodSku,cDescPrd,(cAlias)->RECNODA1,Nil,Nil,Nil,Nil,_cIdTabela)
 				
 	(cAlias)->( dbSkip() )
 				
@@ -366,7 +384,7 @@ Return .T.
 	@since     		02/02/2016
 /*/							
 /**************************************************************************************************/
-Static Function AEcoEnv(oJson,nIdSku,cCodSku,cDescPrd,nRecnoDa1,_cLojaID,_cUrl,_cAppKey,_cAppToken)
+Static Function AEcoEnv(oJson,nIdSku,cCodSku,cDescPrd,nRecnoDa1,_cLojaID,_cUrl,_cAppKey,_cAppToken,_cIdTabela)
 Local aArea			:= GetArea()
 Local aHeadOut  	:= {}
 
@@ -383,6 +401,7 @@ Default _cLojaID	:= ""
 Default _cUrl		:= ""
 Default _cAppKey	:= ""
 Default _cAppToken	:= ""
+Default _cIdTabela	:= ""
 
 cUrl				:= RTrim(IIF(Empty(_cUrl), GetNewPar("EC_URLRES2"), _cUrl) )
 cAppKey				:= RTrim(IIF(Empty(_cAppKey), GetNewPar("EC_APPKEY"), _cAppKey))
@@ -410,33 +429,64 @@ _oRest:nTimeOut := nTimeOut
 //----------------------+
 // Metodo a ser enviado | 
 //----------------------+
-_oRest:SetPath("/pricing/prices/"+ RTrim(CValToChar(nIdSku)))
+If Empty(_cIdTabela)
+	_oRest:SetPath("/pricing/prices/"+ RTrim(CValToChar(nIdSku)))
+	//--------------------+
+	// Utiliza metodo PUT |
+	//--------------------+
+	If _oRest:Put(aHeadOut,cRest)
 
- //--------------------+
- // Utiliza metodo PUT |
- //--------------------+
-If _oRest:Put(aHeadOut,cRest)
+		//--------------------+
+		// Posiciona Registro |
+		//--------------------+
+		DA1->( dbGoTo( nRecnoDa1) )
+
+		RecLock("DA1",.F.)
+			DA1->DA1_ENVECO	:= "2" 
+			DA1->DA1_XDTEXP	:= dTos( Date() )
+			DA1->DA1_XHREXP	:= Time()	
+		DA1->( MsUnLock() )
+
+		LogExec("PRECO(S) ENVIADO COM SUCESSO. " )
+		
+	Else
+		//---------------------------------------+
+		// Cria array com os erros de integracao |
+		//---------------------------------------+
+		aAdd(aMsgErro,{cCodSku,"ERRO AO ENVIAR A PRECO "  + _oRest:GetLastError()})
+		LogExec("ERRO AO ENVIAR A PRECO " + _oRest:GetLastError() )	
+	EndIf 
+Else 
+	_oRest:SetPath("/pricing/prices/" + RTrim(CValToChar(nIdSku)) + "/fixed/" + RTrim(_cIdTabela) )
+
+	_oRest:SetPostParams(cRest)
 
 	//--------------------+
-	// Posiciona Registro |
+	// Utiliza metodo PUT |
 	//--------------------+
-	DA1->( dbGoTo( nRecnoDa1) )
+	If _oRest:Post(aHeadOut)
 
-	RecLock("DA1",.F.)
-		DA1->DA1_ENVECO	:= "2" 
-		DA1->DA1_XDTEXP	:= dTos( Date() )
-		DA1->DA1_XHREXP	:= Time()	
-	DA1->( MsUnLock() )
+		//--------------------+
+		// Posiciona Registro |
+		//--------------------+
+		DA1->( dbGoTo( nRecnoDa1) )
 
-	LogExec("PRECO(S) ENVIADO COM SUCESSO. " )
-	
-Else
-	//---------------------------------------+
-	// Cria array com os erros de integracao |
-	//---------------------------------------+
-	aAdd(aMsgErro,{cCodSku,"ERRO AO ENVIAR A PRECO "  + _oRest:GetLastError()})
-	LogExec("ERRO AO ENVIAR A PRECO " + _oRest:GetLastError() )	
-EndIf 
+		RecLock("DA1",.F.)
+			DA1->DA1_ENVECO	:= "2" 
+			DA1->DA1_XDTEXP	:= dTos( Date() )
+			DA1->DA1_XHREXP	:= Time()	
+		DA1->( MsUnLock() )
+
+		LogExec("PRECO(S) ENVIADO COM SUCESSO. " )
+		
+	Else
+		//---------------------------------------+
+		// Cria array com os erros de integracao |
+		//---------------------------------------+
+		aAdd(aMsgErro,{cCodSku,"ERRO AO ENVIAR A PRECO "  + _oRest:GetLastError()})
+		LogExec("ERRO AO ENVIAR A PRECO " + _oRest:GetLastError() )	
+	EndIf 
+EndIf  
 
 RestArea(aArea)
 Return .T.
@@ -519,7 +569,7 @@ cQuery += "			DA1.DA1_ITEM ITEM , " + CRLF
 cQuery += "			DA1.R_E_C_N_O_ RECNODA1 " + CRLF 
 cQuery += "		FROM " + CRLF 
 cQuery += "			" + RetSqlName("DA1") + " DA1 " + CRLF 
-cQuery += "			INNER JOIN " + RetSqlName("DA0") + " DA0 ON DA0.DA0_FILIAL = '" + xFilial("DA0") + "' AND DA0.DA0_CODTAB = DA1.DA1_CODTAB AND DA1.DA0_XSTATU = '1' AND DA0.D_E_L_E_T_ = '' " + CRLF 
+cQuery += "			INNER JOIN " + RetSqlName("DA0") + " DA0 ON DA0.DA0_FILIAL = '" + xFilial("DA0") + "' AND DA0.DA0_CODTAB = DA1.DA1_CODTAB AND DA0.DA0_XSTATU = '1' AND DA0.D_E_L_E_T_ = '' " + CRLF 
 
 If Empty(_cLojaID)
 	cQuery += "			INNER JOIN " + RetSqlName("SB5") + " B5 ON B5.B5_FILIAL = '" + xFilial("SB5") + "' AND B5.B5_COD = DA1.DA1_CODPRO AND B5.B5_XENVECO = '2' AND B5.B5_XENVSKU = '2' AND B5.B5_XUSAECO = 'S' AND B5.D_E_L_E_T_ = '' " + CRLF 

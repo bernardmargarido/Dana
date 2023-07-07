@@ -832,13 +832,15 @@ Static Function RetMunCC2(cEstado,cMunicipio)
 		MUN->( dbCloseArea() )
 	EndIf
 
-	cQuery := "SELECT CC2_CODMUN,CC2_MUN  "
-	cQuery += "FROM "
-	cQuery += RetSqlName("CC2") + " " 
-	cQuery += "WHERE "
-	cQuery += "CC2_EST = '" + cEstado + "' AND "
-	cQuery += "CC2_MUN = '" + cMunicipio + "' AND "
-	cQuery += "D_E_L_E_T_ = '' "
+	cQuery := " SELECT " + CRLF
+	cQuery += "		CC2_CODMUN, " + CRLF
+	cQuery += "		CC2_MUN " + CRLF
+	cQuery += "	FROM " + CRLF
+	cQuery += "		" + RetSqlName("CC2") + " " + CRLF
+	cQuery += " WHERE " + CRLF
+	cQuery += "		CC2_EST = '" + cEstado + "' AND " + CRLF
+	cQuery += "		CC2_MUN = '" + cMunicipio + "' AND " + CRLF
+	cQuery += "		D_E_L_E_T_ = '' "
 
 	cQuery := ChangeQuery(cQuery)
 	dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),"MUN",.T.,.T.) 

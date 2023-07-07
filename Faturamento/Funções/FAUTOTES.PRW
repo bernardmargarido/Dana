@@ -43,7 +43,7 @@ If Empty(clTes)
 	clTes	:= "750"
 Endif
 
-If Alltrim(xFilial('SZH')) == "06"
+If Alltrim(xFilial('SZH')) $"06/07"
 	clTes	:= "501"
 Endif
 
