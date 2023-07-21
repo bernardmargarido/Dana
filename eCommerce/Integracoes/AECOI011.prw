@@ -1553,7 +1553,7 @@ Static Function AEcoGrvIt(cOrderId,cNumOrc,cCliente,cLoja,cVendedor,nDesconto,nP
 					nPerDItem := RetPrcUni(oItems[nPrd]:PriceTags[1]:Value * -1)
 				ElseIf nVlrDesc < 0
 					nVlrDesc := RetPrcUni(oItems[nPrd]:PriceTags[1]:Value * -1)
-					nVlrTotIt:= nQtdItem * nVlrFinal		
+					nVlrTotIt:= nQtdItem * nValor		
 					nPerDItem:= Round(( nVlrDesc / nVlrTotIt ) * 100,2)
 				EndIf	
 
