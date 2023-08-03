@@ -112,7 +112,13 @@ _oFwRest:nTimeOut := 600
 // Método a ser chamado | 
 //----------------------+
 If Self:cMetodo == "GET"
-    _cParam := "_where=document="+ RTrim(self:cId) + "&_fields=_all"
+    
+    If Len(self:cId) <= 14
+        _cParam := "_where=document="+ RTrim(self:cId) + "&_fields=_all"
+    Else 
+        _cParam := "_where=id="+ RTrim(self:cId) + "&_fields=_all"
+    EndIf 
+
     _oFwRest:SetPath("/api/dataentities/CL/search?" + _cParam)
 
     If _oFwRest:Get(_aHeadOut)

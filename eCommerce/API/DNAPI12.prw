@@ -107,9 +107,9 @@ EndIf
 _lCorporate     := _oImpostos['clientProfileData']['isCorporate']
 
 If _lCorporate
-    _cCgc       := _oImpostos['clientProfileData']['corporateDocument']
+    _cCgc       := u_ECFORMAT(_oImpostos['clientProfileData']['corporateDocument'],"A1_CGC",.T.)
 Else 
-    _cCgc       := _oImpostos['clientProfileData']['document']
+    _cCgc       := u_ECFORMAT(_oImpostos['clientProfileData']['document'],"A1_CGC",.T.)
 EndIf 
 
 //--------------------------+

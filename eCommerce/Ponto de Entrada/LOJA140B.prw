@@ -1,4 +1,5 @@
-#INCLUDE "PROTHEUS.CH"
+//#INCLUDE "PROTHEUS.CH"
+//#INCLUDE "TOTVS.CH"
 
 /***************************************************************************************/
 /*/{Protheus.doc} nomeFunction
@@ -10,14 +11,14 @@
 /***************************************************************************************/
 User Function LOJA140B()
 
-If Empty(SL1->L1_XNUMECO)
-    RestArea(_aArea)
-    Return .T.
-EndIF
+    If Empty(SL1->L1_XNUMECO)
+        RestArea(_aArea)
+        Return .T.
+    EndIF
 
-//------------------------------------+
-// Atualiza dados do orçamento origem |
-//------------------------------------+
-U_EcLoj140()
+    //------------------------------------+
+    // Atualiza dados do orçamento origem |
+    //------------------------------------+
+    U_EcLoj140()
 
 Return .T.

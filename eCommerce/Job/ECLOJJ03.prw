@@ -287,7 +287,6 @@ Local _cBairroE	        := ""
 Local _cMunE		    := ""
 Local _cCepE		    := ""
 Local _cEstE		    := "" 
-Local _cEMailEc	        := ""
 Local _cAtivo           := "S"
 Local _cTpCli           := "5"
 Local _cTpFret          := "F"
@@ -307,6 +306,7 @@ Local _nOpcA            := 0
 Local _nTCGC            := TamSx3("A1_CGC")[1]
 Local _nTCodCli         := TamSx3("A1_COD")[1]
 Local _nTTel            := TamSx3("A1_TEL")[1]
+Local _nTContato		:= TamSx3("A1_CONTATO")[1]
 
 Local _oCliente         := _oDadosCL[1]
 Local _oEndereco        := _oDadosAD
@@ -319,11 +319,11 @@ Private lAutoErrNoFile 	:= .T.
 // Cnpj/Cpf do cliente |
 //---------------------+    
 If _oCliente['isCorporate']
-	_cCnpj 	:= PadR(_oCliente['corporateDocument'],_nTCGC)
+	_cCnpj 	:= PadR(u_ECFORMAT(_oCliente['corporateDocument'],"A1_CGC",.T.),_nTCGC)
 	_cTpPess := "J"
 	_cTipoCli:= "R"
 Else
-	_cCnpj 	:= PadR(_oCliente['document'],_nTCGC) 
+	_cCnpj 	:= PadR(u_ECFORMAT(_oCliente['document'],"A1_CGC",.T.),_nTCGC) 
 	_cTpPess := "F"
 	_cTipoCli:= "F"	  
 EndIf	
@@ -360,7 +360,7 @@ EndIf
 If _oCliente['isCorporate']
 	_cNomeCli	:= IIF(_nOpcA == 3,	Alltrim(u_ECACENTO(_oCliente['corporateName'],.T.))	                                                    , SA1->A1_NOME 		) 
 	_cNReduz	:= IIF(_nOpcA == 3,	Alltrim(u_ECACENTO(_oCliente['tradeName'],.T.))		                                                    , SA1->A1_NREDUZ	)
-	_cContato	:= IIF(_nOpcA == 3,	u_ECACENTO(_oCliente['firstName'],.T.) + " " + u_ECACENTO(_oCliente['lastName'],.T.)	                , SA1->A1_CONTATO	)	
+	_cContato	:= IIF(_nOpcA == 3,	PadR(u_ECACENTO(_oCliente['firstName'],.T.) + " " + u_ECACENTO(_oCliente['lastName'],.T.),_nTContato)   , SA1->A1_CONTATO	)	
 	_cDdd01		:= IIF(_nOpcA == 3,	SubStr(_oCliente['businessPhone'],4,2)							                                        , SA1->A1_DDD		)
 	_cTel01		:= IIF(_nOpcA == 3,	StrTran(SubStr(_oCliente['businessPhone'],6,_nTTel)," ","")		                                        , SA1->A1_TEL		)
 	_cInscE		:= IIF(_nOpcA == 3,	IIF( Type("_oCliente['stateInscription']") <> "U", Upper(_oCliente['stateInscription']), "ISENTO")	    , SA1->A1_INSCR		)

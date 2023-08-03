@@ -23,11 +23,12 @@ WSRESTFUL CustomerB2B DESCRIPTION "Informa se existem clientes B2B VTEX."
 
     WSDATA documentId AS STRING OPTIONAL  
     
-    WSMETHOD GET CustomerB2B ;
+    WSMETHOD POST CustomerB2B ;
     DESCRIPTION "Informa se exisyem novos clientes B2B VTEX." ;
     WSSYNTAX "/CustomerB2B/{documentId}" ;
     PATH "/CustomerB2B/{documentId}";
     PRODUCES APPLICATION_JSON
+    
     
 ENDWSRESTFUL
 
@@ -39,7 +40,7 @@ ENDWSRESTFUL
     @since 30/06/2023
 /*/
 /**********************************************************************************************************/
-WSMETHOD GET CustomerB2B PATHPARAM documentId  WSSERVICE CustomerB2B
+WSMETHOD POST CustomerB2B PATHPARAM documentId  WSSERVICE CustomerB2B
 Local _aArea        := GetArea()
 
 Local _cDocumentID  := Self:documentId
@@ -51,10 +52,12 @@ Self:SetContentType("application/json")
 
 If !Empty(_cDocumentID)
 
-    _cDocumentID := StrTran(_cDocumentID,".","")
-    _cDocumentID := StrTran(_cDocumentID,"-","")
-    _cDocumentID := StrTran(_cDocumentID,"/","")
-
+    If Len(_cDocumentID) <= 14
+        _cDocumentID := StrTran(_cDocumentID,".","")
+        _cDocumentID := StrTran(_cDocumentID,"-","")
+        _cDocumentID := StrTran(_cDocumentID,"/","")
+    EndIf 
+    
     //--------------------------------------+
     // XTF - Posiciona fila de clientes B2B |
     //--------------------------------------+
