@@ -43,21 +43,44 @@ ENDWSRESTFUL
 WSMETHOD POST CustomerB2B PATHPARAM documentId  WSSERVICE CustomerB2B
 Local _aArea        := GetArea()
 
-Local _cDocumentID  := Self:documentId
-
+Local _cDocumentID  := IIF(ValType(Self:documentId) <> "U", Self:documentId, "")
+Local _cJSon        := IIF(ValType(Self:GetContent()) <> "U", Self:GetContent() , "")
 Local _lRet         := .T.
 Local _lGrava       := .T.
 
+Local _oJSon        := Nil 
+
 Self:SetContentType("application/json")
 
-If !Empty(_cDocumentID)
+CoNout('<< CustomerB2B - POST >> JSON ' + _cJSon )
+CoNout('<< CustomerB2B - POST >> PARAMS ' + _cDocumentID )
+
+If !Empty(_cJSon)
+
+    _oJSon          := JSonObject():New() 
+    _cDocumentID    := _oJSon['corporateDocument']
 
     If Len(_cDocumentID) <= 14
         _cDocumentID := StrTran(_cDocumentID,".","")
         _cDocumentID := StrTran(_cDocumentID,"-","")
         _cDocumentID := StrTran(_cDocumentID,"/","")
     EndIf 
-    
+
+    FreeObj( _oJSon )
+
+ElseIf !Empty(_cDocumentID)
+
+    If Len(_cDocumentID) <= 14
+        _cDocumentID := StrTran(_cDocumentID,".","")
+        _cDocumentID := StrTran(_cDocumentID,"-","")
+        _cDocumentID := StrTran(_cDocumentID,"/","")
+    EndIf 
+
+Else 
+    _lRet := .F.
+EndIf 
+
+If !Empty(_cDocumentID)
     //--------------------------------------+
     // XTF - Posiciona fila de clientes B2B |
     //--------------------------------------+
@@ -77,8 +100,6 @@ If !Empty(_cDocumentID)
         XTF->XTF_DATA   := ""
     XTF->( MsUnlock() )
 
-Else 
-    _lRet := .F.
 EndIf 
 
 Self:SetResponse( IIF(_lRet, "true", "false") )

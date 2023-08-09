@@ -23,7 +23,7 @@
 
 /**************************************************************************************************/
 /*/{Protheus.doc} ECLOJJ04
-    @description JOB - Integra novos clientes B2B 
+    @description JOB - Retorna pedidos ecommerce para a fila de faturamento
     @type  Function
     @author Bernard M Margarido
     @since 30/06/2023

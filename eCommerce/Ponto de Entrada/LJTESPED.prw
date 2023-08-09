@@ -18,8 +18,8 @@ Local _cTesEB   := GetNewPar("EC_TESECEB","6B2")
 
 Local _cTesB    := GetNewPar("EC_TESECOB","550")
 
-Local _cPosIni  := GetNewPar("Ec_POSIPII","33030010")
-Local _cPosFim  := GetNewPar("Ec_POSIPIF","33079000")
+Local _cPosIni  := GetNewPar("EC_POSIPII","33030010")
+Local _cPosFim  := GetNewPar("EC_POSIPIF","33079000")
 Local _cTes     := ""
 Local _cPosIpi  := ""
 Local _cExNcm   := ""
@@ -125,11 +125,13 @@ EndIf
 //----------------------------+
 // Valida se é produto brinde | 
 //----------------------------+
-dbSelectArea("SB5")
-SB5->( dbSetOrder(1) )
-If SB5->( dbSeek(xFilial("SB5") + _aSL2[_nLinha][_nPosProd][2]) ) .And. _lBrinde
-    If SB5->B5_XTPPROD == "2"
-        _cTes := _cTesB
+If _lBrinde
+    dbSelectArea("SB5")
+    SB5->( dbSetOrder(1) )
+    If SB5->( dbSeek(xFilial("SB5") + _aSL2[_nLinha][_nPosProd][2]) ) 
+        If SB5->B5_XTPPROD == "2"
+            _cTes := _cTesB
+        EndIf 
     EndIf 
 EndIf 
 
