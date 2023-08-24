@@ -19,6 +19,7 @@ Static cDirImp	:= "/ecommerce/"
 /*/
 /**************************************************************************************************/
 User Function AECOI002()
+Local _nX		:= 0 
 		
 Private cThread	:= Alltrim(Str(ThreadId()))
 Private cStaLog	:= "0"
@@ -29,6 +30,7 @@ Private nQtdInt	:= 0
 Private cHrIni	:= Time()
 Private dDtaInt	:= Date()
 
+Private _aRecno	:= {}
 Private aMsgErro:= {}
 
 Private _lMultLj		:= GetNewPar("EC_MULTLOJ",.T.)
@@ -61,6 +63,20 @@ EndIf
 LogExec("FINALIZA INTEGRACAO DE MARCAS COM A VTEX - DATA/HORA: "+DTOC(DATE())+" AS "+TIME())
 LogExec(Replicate("-",80))
 ConOut("")
+
+If Len(_aRecno) > 0 
+	dbSelectArea("AY2")
+	AY2->( dbSetOrder(1) )
+
+	For _nX := 1 To Len(_aRecno)
+		AY2->( dbGoTo(_aRecno[_nX]))
+		RecLock("AY2",.F.)
+			AY2->AY2_ENVECO  	:= "2"
+			AY2->AY2_XDTEXP	  	:= dTos( Date() )
+			AY2->AY2_XHREXP		:= Time()
+		AY2->( MsUnLock() )	
+	Next _nX 
+EndIf 
 
 //----------------------------------+
 // Envia e-Mail com o Logs de Erros |
@@ -222,7 +238,7 @@ Local _oDanaEcom 	:= Nil
 //--------------------+
 // Posiciona Registro |
 //--------------------+
-AY2->( dbGoTo(nRecnoAy2) )
+//AY2->( dbGoTo(nRecnoAy2) )
 
 //------------------+
 // Instancia Classe |
@@ -266,11 +282,7 @@ If oWsMarca:BrandInsertUpdate(oWsMarca:oWSbrand)
 		_oDanaEcom:nID		:= oWsMarca:oWSbrandInsertUpdateResult:nId
 		_oDanaEcom:GravaID()
 
-		RecLock("AY2",.F.)
-			AY2->AY2_ENVECO  	:= "2"
-			AY2->AY2_XDTEXP	  	:= dTos( Date() )
-			AY2->AY2_XHREXP		:= Time()
-		AY2->( MsUnLock() )	
+		aAdd(_aRecno,nRecnoAy2)
 
 	Else
 		LogExec("ERRO AO ENVIAR A MARCA " + cCodMarca + " - " + cDescMarca + " . " )

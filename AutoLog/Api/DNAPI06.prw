@@ -785,7 +785,7 @@ Return .T.
 /************************************************************************************/
 Static Function DnaApiQry(cAlias,cNota,cSerie,cDataHora,cTamPage,cPage)
 Local cQuery 	:= ""
-
+Local cTpProd 	:= FormatIn(GetMv("DN_TPPRDAL",,"PA/MR/SH"),"/")
 Local cData		:= StrTran(SubStr(cDataHora,1,10),"-","")
 Local cHora		:= SubStr(cDataHora,At("T",cDataHora) + 1)
 
@@ -838,7 +838,7 @@ cQuery += "				F1.R_E_C_N_O_ RECNOSF1 " + CRLF
 cQuery += "			FROM " + CRLF
 cQuery += "				" + RetSqlName("SF1") + " F1 " + CRLF
 cQuery += "				INNER JOIN " + RetSqlName("SD1") + " D1 ON D1.D1_FILIAL = F1.F1_FILIAL AND D1.D1_DOC = F1.F1_DOC AND D1.D1_SERIE = F1.F1_SERIE AND D1.D1_FORNECE = F1.F1_FORNECE AND D1.D1_LOJA = F1.F1_LOJA AND D1.D1_PEDIDO <> '' AND D1.D1_ITEMPC <> '' AND D1.D_E_L_E_T_ = '' " + CRLF
-cQuery += "				INNER JOIN " + RetSqlName("SB1") + " B1 ON B1.B1_FILIAL = D1.D1_FILIAL AND B1.B1_COD = D1.D1_COD AND B1.B1_TIPO IN('PA','MR') AND B1.D_E_L_E_T_ = '' " + CRLF
+cQuery += "				INNER JOIN " + RetSqlName("SB1") + " B1 ON B1.B1_FILIAL = D1.D1_FILIAL AND B1.B1_COD = D1.D1_COD AND B1.B1_TIPO IN " + cTpProd + " AND B1.D_E_L_E_T_ = '' " + CRLF
 //cQuery += "				INNER JOIN " + RetSqlName("SD1") + " D1 ON D1.D1_FILIAL = F1.F1_FILIAL AND D1.D1_DOC = F1.F1_DOC AND D1.D1_SERIE = F1.F1_SERIE AND D1.D1_FORNECE = F1.F1_FORNECE AND D1.D1_LOJA = F1.F1_LOJA AND D1.D_E_L_E_T_ = '' " + CRLF
 //cQuery += "				INNER JOIN " + RetSqlName("SF4") + " F4 ON F4.F4_FILIAL = SD1.D1_FILIAL AND F4.F4_CODIGO = D1.D1_TES AND F4.F4_ESTOQUE = 'S' AND F4.D_E_L_E_T_ = '' " + CRLF 
 cQuery += "				INNER JOIN " + RetSqlName("SA2") + " A2 ON A2.A2_FILIAL = F1.F1_FILIAL AND A2.A2_COD = F1.F1_FORNECE AND A2.A2_LOJA = F1.F1_LOJA AND A2.D_E_L_E_T_ = '' " + CRLF
@@ -879,7 +879,7 @@ cQuery += "				F1.R_E_C_N_O_ RECNOSF1 " + CRLF
 cQuery += "			FROM " + CRLF
 cQuery += "				" + RetSqlName("SF1") + " F1 " + CRLF
 cQuery += "				INNER JOIN " + RetSqlName("SD1") + " D1 ON D1.D1_FILIAL = F1.F1_FILIAL AND D1.D1_DOC = F1.F1_DOC AND D1.D1_SERIE = F1.F1_SERIE AND D1.D1_FORNECE = F1.F1_FORNECE AND D1.D1_LOJA = F1.F1_LOJA AND D1.D_E_L_E_T_ = '' " + CRLF
-cQuery += "				INNER JOIN " + RetSqlName("SB1") + " B1 ON B1.B1_FILIAL = D1.D1_FILIAL AND B1.B1_COD = D1.D1_COD AND B1.B1_TIPO IN('PA','MR') AND B1.D_E_L_E_T_ = '' " + CRLF
+cQuery += "				INNER JOIN " + RetSqlName("SB1") + " B1 ON B1.B1_FILIAL = D1.D1_FILIAL AND B1.B1_COD = D1.D1_COD AND B1.B1_TIPO IN " + cTpProd + " AND B1.D_E_L_E_T_ = '' " + CRLF
 //cQuery += "				INNER JOIN " + RetSqlName("SF4") + " F4 ON F4.F4_FILIAL = SD1.D1_FILIAL AND F4.F4_CODIGO = D1.D1_TES AND F4.F4_ESTOQUE = 'S' AND F4.D_E_L_E_T_ = '' " + CRLF 
 cQuery += "				INNER JOIN " + RetSqlName("SA1") + " A1 ON A1.A1_FILIAL = '" + xFilial("SA1") + "' AND A1.A1_COD = F1.F1_FORNECE AND A1.A1_LOJA = F1.F1_LOJA AND A1.D_E_L_E_T_ = '' " + CRLF
 cQuery += "			WHERE " + CRLF

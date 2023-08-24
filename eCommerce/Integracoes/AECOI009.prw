@@ -21,6 +21,7 @@ Static cDirImp	:= "/ecommerce/"
 /*/
 /**************************************************************************************************/
 User Function AECOI009()
+Local _nX			:= 0 
 Private cThread		:= Alltrim(Str(ThreadId()))
 Private cStaLog		:= "0"
 Private cArqLog		:= ""	
@@ -30,6 +31,7 @@ Private nQtdInt		:= 0
 Private cHrIni		:= Time()
 Private dDtaInt		:= Date()
 
+Private _aRecno 	:= {}
 Private aMsgErro	:= {}
 
 Private _lJob		:= IIF(Isincallstack("U_ECLOJM03"),.T.,.F.)
@@ -74,6 +76,19 @@ EndIf
 LogExec("FINALIZA INTEGRACAO DA ALTERACAO DE PRECO COM O ECOMMERCE - DATA/HORA: "+DTOC(DATE())+" AS "+TIME())
 LogExec(Replicate("-",80))
 ConOut("")
+
+If Len(_aRecno) > 0 
+	dbSelectArea("DA1")
+	DA1->( dbSetOrder(1) )
+	For _nX := 1 to Len(_aRecno)
+		DA1->( dbGoTo(_aRecno[_nX]))
+		RecLock("DA1",.F.)
+			DA1->DA1_ENVECO	:= "2" 
+			DA1->DA1_XDTEXP	:= dTos( Date() )
+			DA1->DA1_XHREXP	:= Time()	
+		DA1->( MsUnLock() )
+	Next _nX 
+EndIf 
 
 //----------------------------------+
 // Envia e-Mail com o Logs de Erros |
@@ -216,7 +231,7 @@ While (cAlias)->( !Eof() )
 	nIdLoja		:= (cAlias)->IDLOJA
 	cCodSku		:= (cAlias)->CODSKU
 	cDescPrd	:= (cAlias)->DESCSKU 
-	cIdTabela	:= (cAlias)->IDTABELA 
+	cIdTabela	:= '1' //(cAlias)->IDTABELA 
 	cDtaDe		:= FWTimeStamp(3,Date())
 	cDtaAte		:= FWTimeStamp(3,YearSum(Date(),10))
 			
@@ -435,20 +450,8 @@ If Empty(_cIdTabela)
 	// Utiliza metodo PUT |
 	//--------------------+
 	If _oRest:Put(aHeadOut,cRest)
-
-		//--------------------+
-		// Posiciona Registro |
-		//--------------------+
-		DA1->( dbGoTo( nRecnoDa1) )
-
-		RecLock("DA1",.F.)
-			DA1->DA1_ENVECO	:= "2" 
-			DA1->DA1_XDTEXP	:= dTos( Date() )
-			DA1->DA1_XHREXP	:= Time()	
-		DA1->( MsUnLock() )
-
+		aAdd(_aRecno,nRecnoDa1)		
 		LogExec("PRECO(S) ENVIADO COM SUCESSO. " )
-		
 	Else
 		//---------------------------------------+
 		// Cria array com os erros de integracao |
@@ -469,22 +472,17 @@ Else
 		//--------------------+
 		// Posiciona Registro |
 		//--------------------+
-		DA1->( dbGoTo( nRecnoDa1) )
-
-		RecLock("DA1",.F.)
-			DA1->DA1_ENVECO	:= "2" 
-			DA1->DA1_XDTEXP	:= dTos( Date() )
-			DA1->DA1_XHREXP	:= Time()	
-		DA1->( MsUnLock() )
-
+		aAdd(_aRecno,nRecnoDa1)
 		LogExec("PRECO(S) ENVIADO COM SUCESSO. " )
 		
 	Else
+		
 		//---------------------------------------+
 		// Cria array com os erros de integracao |
 		//---------------------------------------+
 		aAdd(aMsgErro,{cCodSku,"ERRO AO ENVIAR A PRECO "  + _oRest:GetLastError()})
 		LogExec("ERRO AO ENVIAR A PRECO " + _oRest:GetLastError() )	
+		
 	EndIf 
 EndIf  
 
@@ -539,7 +537,7 @@ cQuery += "		IDSKU , " + CRLF
 cQuery += "		DESCSKU, " + CRLF 
 cQuery += "		PRCDE , " + CRLF 
 cQuery += "		IDLOJA, " + CRLF 
-cQuery += "		IDTABELA, " + CRLF 
+//cQuery += "		IDTABELA, " + CRLF 
 cQuery += "		DATADE, " + CRLF
 cQuery += "		HORADE, " + CRLF
 cQuery += "		PRCPOR, " + CRLF 
@@ -560,7 +558,7 @@ EndIf
 cQuery += "			B1.B1_DESC DESCSKU, " + CRLF
 cQuery += "			B1.B1_PRV1 PRCDE , " + CRLF 
 cQuery += "			B5.B5_XIDLOJA IDLOJA, " + CRLF 
-cQuery += "			DA0.DA0_XIDVET IDTABELA, " + CRLF
+//cQuery += "			DA0.DA0_XIDVET IDTABELA, " + CRLF
 cQuery += "			DA0.DA0_DATDE DATADE, " + CRLF
 cQuery += "			DA0.DA0_HORADE HORADE, " + CRLF
 cQuery += "			DA1.DA1_PRCVEN PRCPOR, " + CRLF 
@@ -569,7 +567,8 @@ cQuery += "			DA1.DA1_ITEM ITEM , " + CRLF
 cQuery += "			DA1.R_E_C_N_O_ RECNODA1 " + CRLF 
 cQuery += "		FROM " + CRLF 
 cQuery += "			" + RetSqlName("DA1") + " DA1 " + CRLF 
-cQuery += "			INNER JOIN " + RetSqlName("DA0") + " DA0 ON DA0.DA0_FILIAL = '" + xFilial("DA0") + "' AND DA0.DA0_CODTAB = DA1.DA1_CODTAB AND DA0.DA0_XSTATU = '1' AND DA0.D_E_L_E_T_ = '' " + CRLF 
+//cQuery += "			INNER JOIN " + RetSqlName("DA0") + " DA0 ON DA0.DA0_FILIAL = '" + xFilial("DA0") + "' AND DA0.DA0_CODTAB = DA1.DA1_CODTAB AND DA0.DA0_XSTATU = '1' AND DA0.D_E_L_E_T_ = '' " + CRLF 
+cQuery += "			INNER JOIN " + RetSqlName("DA0") + " DA0 ON DA0.DA0_FILIAL = '" + xFilial("DA0") + "' AND DA0.DA0_CODTAB = DA1.DA1_CODTAB AND DA0.D_E_L_E_T_ = '' " + CRLF 
 
 If Empty(_cLojaID)
 	cQuery += "			INNER JOIN " + RetSqlName("SB5") + " B5 ON B5.B5_FILIAL = '" + xFilial("SB5") + "' AND B5.B5_COD = DA1.DA1_CODPRO AND B5.B5_XENVECO = '2' AND B5.B5_XENVSKU = '2' AND B5.B5_XUSAECO = 'S' AND B5.D_E_L_E_T_ = '' " + CRLF 

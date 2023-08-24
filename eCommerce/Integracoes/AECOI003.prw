@@ -19,6 +19,7 @@ Static cDirImp	:= "/ecommerce/"
 /*/
 /**************************************************************************************************/
 User Function AECOI003()
+Local _nX		:= 0
 
 Private cThread	:= Alltrim(Str(ThreadId()))
 Private cStaLog	:= "0"
@@ -29,6 +30,7 @@ Private nQtdInt	:= 0
 Private cHrIni	:= Time()
 Private dDtaInt	:= Date()
 
+Private _aRecno		:= {}
 Private aMsgErro	:= {}
 Private aPrdEnv		:= {}
 
@@ -68,6 +70,21 @@ ConOut("")
 // Envia especificações dos produtos |
 //-----------------------------------+
 U_AECOI03A()
+
+If Len(_aRecno) > 0 
+	dbSelectArea("SB5")
+	SB5->( dbSetOrder(1) )
+	For _nX := 1 To Len(_aRecno)
+		SB5->( dbGoTo(_aRecno[_nX]))
+		RecLock("SB5",.F.)
+			SB5->B5_XENVECO := "2"
+			SB5->B5_XENVSKU := "1"
+			SB5->B5_XENVCAT := "2"
+			SB5->B5_XDTEXP	:= dTos(Date())
+			SB5->B5_XHREXP	:= Time()
+		SB5->( MsunLock() )	
+	Next _nX
+EndIf 
 
 //----------------------------------+
 // Envia e-Mail com o Logs de Erros |
@@ -489,6 +506,8 @@ If oWsProd:ProductInsertUpdate(oWsProd:oWsProductVo)
 			// Atualiza produto |
 			//------------------+
 			SB5->( dbGoTo(nRecnoB5) )
+			aAdd(_aRecno,nRecnoB5)
+			/*
 			RecLock("SB5",.F.)
 				SB5->B5_XENVECO := "2"
 				SB5->B5_XENVSKU := "1"
@@ -496,7 +515,7 @@ If oWsProd:ProductInsertUpdate(oWsProd:oWsProductVo)
 				SB5->B5_XDTEXP	:= dTos(Date())
 				SB5->B5_XHREXP	:= Time()
 			SB5->( MsunLock() )	
-
+			*/
 			//--------------------------------------------------+
 			// Adiciona Array para envio dos campos especificos |
 			//--------------------------------------------------+
@@ -762,7 +781,7 @@ Else
 	cQuery += "				XTD.XTD_ALIAS = 'SB5' AND " + CRLF
 	cQuery += "				XTD.XTD_CODERP = B5.B5_COD AND " + CRLF
 	cQuery += "				XTD.D_E_L_E_T_ = '' " + CRLF
-	cQuery += "			) IDPROD,
+	cQuery += "			) IDPROD, " + CRLF
 EndIf 
 
 cQuery += "			B5.B5_XIDLOJA IDLOJA, " + CRLF

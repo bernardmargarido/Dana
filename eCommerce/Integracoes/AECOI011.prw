@@ -240,7 +240,7 @@ Local cAppToken		:= ""
 Local cXmlHead 	 	:= ""
 Local cUrlParms		:= ""     
 Local cOrderBy		:= ""
-Local cHostName		:= ""
+//Local cHostName		:= ""
 
 Local nTimeOut		:= 240
 Local nList			:= 0
@@ -4153,8 +4153,10 @@ Return Nil
 Static Function AEcoVldAga(_cIdEnd)
 Local _aArea 	:= GetArea()
 
-Local _cAlias	:= GetNextAlias()
+Local _cAlias	:= ""
 Local _cQuery	:= ""
+
+Local _nTID 	:= TamSx3("AGA_XIDEND")[1]
 
 Local _lRet		:= .T.
 
@@ -4164,14 +4166,12 @@ _cQuery	+= " FROM " + CRLF
 _cQuery	+= "	" + RetSqlName("AGA") + " AGA " + CRLF 
 _cQuery	+= " WHERE " + CRLF
 _cQuery	+= "	AGA.AGA_FILIAL = '" + xFilial("AGA") + "' AND " + CRLF 
-_cQuery	+= "	AGA.AGA_XIDEND = '" + _cIdEnd + "' AND " + CRLF
+_cQuery	+= "	AGA.AGA_XIDEND = '" + PadR(_cIdEnd,_nTID) + "' AND " + CRLF
 _cQuery	+= "	AGA.D_E_L_E_T_ = '' "
 
-dbUseArea(.T.,"TOPCONN",TcGenQry(,,_cQuery),_cAlias,.T.,.T.)
+_cAlias := MPSysOpenQuery(_cQuery)
 
-If !Empty((_cAlias)->AGA_CODIGO)
-	_lRet := .F.
-EndIf
+_lRet := IIF(Empty((_cAlias)->AGA_CODIGO), .T., .F.)
 
 (_cAlias)->( dbCloseArea() )
 

@@ -21,6 +21,7 @@ Static cDirImp	:= "/ecommerce/"
 /*/
 /**************************************************************************************************/
 User Function AECOI008()
+Local _nX 			:= 0 
 
 Private cThread		:= Alltrim(Str(ThreadId()))
 Private cStaLog		:= "0"
@@ -31,6 +32,7 @@ Private nQtdInt		:= 0
 Private cHrIni		:= Time()
 Private dDtaInt		:= Date()
 
+Private _aRecno 	:= {}
 Private aMsgErro	:= {}
 
 Private _lJob		:= IIF(Isincallstack("U_ECLOJM03"),.T.,.F.)
@@ -73,6 +75,17 @@ EndIf
 LogExec("FINALIZA INTEGRACAO DE ESTOQUE COM A VTEX - DATA/HORA: "+DTOC(DATE())+" AS "+TIME())
 LogExec(Replicate("-",80))
 ConOut("")
+
+If Len(_aRecno) > 0 
+	dbSelectArea("SB2")
+	SB2->( dbSetOrder(1) )
+	For _nX := 1 To Len(_aRecno)
+		SB2->( dbGoTo(_aRecno[_nX]))
+		RecLock("SB2",.F.)
+			SB2->B2_MSEXP := dTos(Date())
+		SB2->( MsUnLock() )	
+	Next _nX 
+EndIf 
 
 //----------------------------------+
 // Envia e-Mail com o Logs de Erros |
@@ -386,7 +399,7 @@ aAdd(aHeadOut,"X-VTEX-API-AppToken:" + cAppToken )
 //--------------------+
 // Posiciona registro |
 //--------------------+
-SB2->( dbGoTo(nRecnoSb2) )
+//SB2->( dbGoTo(nRecnoSb2) )
 
 //---------------------------+
 // Transforma Objeto em JSON |
@@ -417,9 +430,7 @@ oRestClient:SetPostParams(cRest)
  // Utiliza metodo PUT |
  //--------------------+
 If oRestClient:Post(aHeadOut)
-	RecLock("SB2",.F.)
-		SB2->B2_MSEXP := dTos(Date())
-	SB2->( MsUnLock() )	
+	aAdd(_aRecno,nRecnoSb2)
 	LogExec("ESTOQUE ENVIADO COM SUCESSO. ")
 Else
 	aAdd(aMsgErro,{SB2->B2_COD,"ERRO AO ENVIAR PRODUTO " + oRestClient:GetLastError()})

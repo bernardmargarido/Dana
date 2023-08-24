@@ -19,6 +19,7 @@ Static cDirImp	:= "/ecommerce/"
 /*/
 /**************************************************************************************************/
 User Function AECOI004()
+Local _nX 			:= 0
 
 Private cThread		:= Alltrim(Str(ThreadId()))
 Private cStaLog		:= "0"
@@ -29,6 +30,7 @@ Private nQtdInt		:= 0
 Private cHrIni		:= Time()
 Private dDtaInt		:= Date()
 
+Private _aRecno 	:= {}
 Private aMsgErro	:= {}
 
 Private lJob 		:= .F.
@@ -66,6 +68,18 @@ LogExec(Replicate("-",80))
 ConOut("")
 
 //Processa({|| U_AECOI04A()},"Aguarde...","Enviando Especificacoes Sku.")
+
+If Len(_aRecno) > 0 
+	dbSelectArea("SB5")
+	SB5->( dbSetOrder(1) )
+	For _nX := 1 To Len(_aRecno)
+		SB5->( dbGoTo(_aRecno[_nX]))
+		RecLock("SB5",.F.)
+			SB5->B5_XENVSKU := "2"
+			SB5->B5_XENVECO := "2"
+		SB5->( MsUnLock() )	
+	Next _nX
+EndIf 
 
 //----------------------------------+
 // Envia e-Mail com o Logs de Erros |
@@ -476,11 +490,7 @@ If oWsSku:StockKeepingUnitInsertUpdate(oWsSku:oWSstockKeepingUnitVO)
 			// Posiciona SKU |
 			//---------------+
 			If nRecnoSb5 > 0
-				SB5->( dbGoTo(nRecnoSb5) )
-				RecLock("SB5",.F.)
-					SB5->B5_XENVSKU := "2"
-					SB5->B5_XENVECO := "2"
-				SB5->( MsUnLock() )	
+				aAdd(_aRecno,nRecnoSb5)
 			EndIf
 
 			LogExec("PRODUTO SKU " + cCodSku + " - " + Alltrim(cNomeSku) + " . ENVIADA COM SUCESSO.")
