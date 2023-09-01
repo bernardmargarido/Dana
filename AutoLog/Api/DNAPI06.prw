@@ -318,6 +318,7 @@ Local cCnpj		:= ""
 Local cCodTransp:= ""
 Local cTpDoc	:= ""
 Local dDtaEmiss	:= ""
+Local cTpProd 	:= GetMv("DN_TPPRDAL",,"PA/MR/MH")
 Local cFilAux	:= cFilAnt
 
 Local _nX		:= 0
@@ -417,7 +418,7 @@ While (cAlias)->( !Eof() )
 				//-------------------------+
 				// Somente produto acabado |
 				//-------------------------+
-				If RTrim(SB1->B1_TIPO) $ 'PA/MR'
+				If RTrim(SB1->B1_TIPO) $ cTpProd
 					
 					If ( _nPProd := aScan(_aProdutos,{|x| RTrim(x[2]) == RTrim(SD1->D1_COD)}) ) > 0 
 						_aProdutos[_nPProd][3] += SD1->D1_QUANT
@@ -785,7 +786,7 @@ Return .T.
 /************************************************************************************/
 Static Function DnaApiQry(cAlias,cNota,cSerie,cDataHora,cTamPage,cPage)
 Local cQuery 	:= ""
-Local cTpProd 	:= FormatIn(GetMv("DN_TPPRDAL",,"PA/MR/SH"),"/")
+Local cTpProd 	:= FormatIn(GetMv("DN_TPPRDAL",,"PA/MR/MH"),"/")
 Local cData		:= StrTran(SubStr(cDataHora,1,10),"-","")
 Local cHora		:= SubStr(cDataHora,At("T",cDataHora) + 1)
 
