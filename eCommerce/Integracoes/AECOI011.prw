@@ -2619,6 +2619,10 @@ Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmi
 		
 		If oPayMent:Transactions[nTran]:IsActive
 			
+			If cCodAfili $ "DSP/DPC" .And. ValType(oPayMent:Transactions[nTran]:transactionId) == "U"
+				Loop
+			EndIf 
+
 			For nPay := 1 To Len(oPayMent:Transactions[nTran]:Payments)
 				
 				//If ValType(oPayMent:Transactions[nTran]:Payments[nPay]:id) <> "U"
@@ -2629,6 +2633,14 @@ Static Function AEcoGrvFin(oPayment,oRestPv,cNumOrc,cOrderId,cPedCodCli,cHoraEmi
 					//---------------------+
 					// Codigo da Operadora |
 					//---------------------+
+					cTipo 		:= ""
+					cFormPG 	:= ""
+					cSemNsu 	:= ""
+					cCodAuto	:= ""
+					cNsuId		:= ""
+					cTID		:= ""
+					cNumCart	:= ""
+
 					cOpera 		:= PadL(oPayMent:Transactions[nTran]:Payments[nPay]:PayMentSystem,nTamOper,"0")
 					nQtdParc	:= oPayMent:Transactions[nTran]:Payments[nPay]:InstallMents	
 					nVlrTotal	:= RetPrcUni(oPayMent:Transactions[nTran]:Payments[nPay]:Value)
