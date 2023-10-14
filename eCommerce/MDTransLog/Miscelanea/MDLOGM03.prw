@@ -162,16 +162,16 @@ While (_cAlias)->( !Eof() )
             _oLista[#"Remetente"][#"Endereco"][#"siglaEstado"]					:= SM0->M0_ESTCOB
             _oLista[#"Remetente"][#"Endereco"][#"idCidadeIBGE"]					:= SM0->M0_CODMUN
 			_oLista[#"Destinatario"]											:= Array(#)		
-			_oLista[#"Destinatario"][#"cpf"]									:= IIF( (_cAlias)->A1_PESSOA == "F", (_cAlias)->A1_CGC, Nil)
-            _oLista[#"Destinatario"][#"cnpj"]									:= IIF( (_cAlias)->A1_PESSOA == "F", Nil, (_cAlias)->A1_CGC)
+			_oLista[#"Destinatario"][#"cpf"]									:= IIF( (_cAlias)->A1_PESSOA == "F", RTrim((_cAlias)->A1_CGC), Nil)
+            _oLista[#"Destinatario"][#"cnpj"]									:= IIF( (_cAlias)->A1_PESSOA == "F", Nil, RTrim((_cAlias)->A1_CGC))
             _oLista[#"Destinatario"][#"inscricaoEstadual"]						:= IIF( (_cAlias)->A1_PESSOA == "F", Nil, RTrim((_cAlias)->A1_INSCR))
             _oLista[#"Destinatario"][#"nome"]									:= RTrim((_cAlias)->WSA_NOMDES)
-            _oLista[#"Destinatario"][#"razaoSocial"]							:= IIF( (_cAlias)->A1_PESSOA == "F", Nil, (_cAlias)->A1_NOME)
+            _oLista[#"Destinatario"][#"razaoSocial"]							:= IIF( (_cAlias)->A1_PESSOA == "F", Nil, RTrim((_cAlias)->A1_NOME))
             _oLista[#"Destinatario"][#"telefone"]								:= RTrim((_cAlias)->WSA_TEL01)
             _oLista[#"Destinatario"][#"email"]									:= RTrim((_cAlias)->A1_EMAIL)
             _oLista[#"Destinatario"][#"Endereco"]								:= Array(#)	
             _oLista[#"Destinatario"][#"Endereco"][#"cep"]						:= (_cAlias)->WSA_CEPE
-            _oLista[#"Destinatario"][#"Endereco"][#"logradouro"]				:= SubStr((_cAlias)->WSA_ENDENT, 1, At(",",(_cAlias)->WSA_ENDENT) - 1)
+            _oLista[#"Destinatario"][#"Endereco"][#"logradouro"]				:= RTrim(SubStr((_cAlias)->WSA_ENDENT, 1, At(",",(_cAlias)->WSA_ENDENT) - 1))
             _oLista[#"Destinatario"][#"Endereco"][#"numero"]					:= RTrim((_cAlias)->WSA_ENDNUM)
             _oLista[#"Destinatario"][#"Endereco"][#"complemento"]				:= RTrim((_cAlias)->WSA_COMPLE)
             _oLista[#"Destinatario"][#"Endereco"][#"pontoReferencia"]			:= RTrim((_cAlias)->WSA_REFEN)
@@ -250,7 +250,7 @@ While (_cAlias)->( !Eof() )
 					//-------------+
 					_oItensNF[#"idItem"]			:= Nil 
 					_oItensNF[#"nroEtiqueta"]		:= RTrim((_cAlias)->ZZC_NUMECO) //RTrim((_cAlias)->ZZC_NUMSC5)
-					_oItensNF[#"codigoItem"]		:= SD2->D2_COD
+					_oItensNF[#"codigoItem"]		:= RTrim(SD2->D2_COD)
 					_oItensNF[#"descricaoItem"]		:= RTrim(SB5->B5_XNOMPRD)
 					_oItensNF[#"tipoItem"]			:= "UN"
 					_oItensNF[#"qtde"]				:= SD2->D2_QUANT
