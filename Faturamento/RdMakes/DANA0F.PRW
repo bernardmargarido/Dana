@@ -20,6 +20,12 @@
 //읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸
 User Function DANA0F()
 _xret  := 0
+
+if M->A1_FATORPR > 1
+   Return(_xret)
+endif  
+
+/*
 If inclui          
    if M->A1_FATORPR > 1
       Return(_xret)
@@ -54,4 +60,5 @@ If altera
    _xret := M->A1_FATORPR
 Endif
 dbSelectArea("SA1")
+*/
 Return(_XRET)

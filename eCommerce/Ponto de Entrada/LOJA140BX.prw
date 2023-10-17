@@ -1,8 +1,7 @@
-//#INCLUDE "PROTHEUS.CH"
-//#INCLUDE "TOTVS.CH"
+#INCLUDE "TOTVS.CH"
 
 /***************************************************************************************/
-/*/{Protheus.doc} nomeFunction
+/*/{Protheus.doc} LOJA140B
     @description Ponto de Entrada - Após a exclusão do orçamento
     @type  Function
     @author Bernard M. Margarido
@@ -12,7 +11,6 @@
 User Function LOJA140B()
 
     If Empty(SL1->L1_XNUMECO)
-        RestArea(_aArea)
         Return .T.
     EndIF
 

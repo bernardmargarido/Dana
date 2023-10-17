@@ -13,6 +13,8 @@ Local lRet		:= .T.
 Local cUsuFis	:= GETMV("MV_XFISSA1")
 Local cCodUsu	:= RetCodUsr()
 
+Return .T.
+
 If !cCodUsu $cUsuFis
 	lRet	:= .F.
 Endif

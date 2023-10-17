@@ -452,6 +452,7 @@ Return aRet
 Static Function EcGrvCli(oDadosCli,oDadosEnd,_cLojaID,_cUrl,_cAppKey,_cAppToken,aEndRes,aEndCob,aEndEnt)
 Local aArea		:= GetArea()
 Local aRet		:= {.T.,"",""}
+Local _aErro	:= {}
 
 Local cCnpj		:= ""
 Local cCodCli	:= ""
@@ -481,17 +482,40 @@ Local cBairroE	:= ""
 Local cMunE		:= ""
 Local cCepE		:= ""
 Local cEstE		:= "" 
+Local _cEndCob	:= ""
+Local _cMunCob 	:= ""
+Local _cBairroC := ""
+Local _cEndEnt	:= ""
+Local _cMunEnt 	:= ""
+Local _cBairroE := ""
 Local _cEMailEc	:= ""
+Local _cEndFat	:= ""
+Local _cMunFat 	:= ""
+Local _cBairroF	:= ""
+Local _cLinha	:= ""
 Local _cCMunDef	:= GetNewPar("EC_CMUNDE","99999")
 
 Local aCliente  := {} 
 
+Local _nTEndC 	:= TamSx3("A1_ENDCOB")[1]
+Local _nTMunC 	:= TamSx3("A1_MUNCOB")[1]
+Local _nTBairC	:= TamSx3("A1_BAIRROC")[1] 
+Local _nTEndE 	:= TamSx3("A1_ENDENT")[1]
+Local _nTMunE 	:= TamSx3("A1_MUNE")[1]
+Local _nTBairE	:= TamSx3("A1_BAIRROE")[1]
+Local _nTEndF	:= TamSx3("A1_END")[1]
+Local _nTMunF	:= TamSx3("A1_MUN")[1]
+Local _nTBairF	:= TamSx3("A1_BAIRRO")[1]
+Local _nX 		:= 0
 Local nOpcA		:= 0
 
-Local lEcCliCpo	:= ExistBlock("ECADDCPO")
-Local _lAtvPut	:= .F.
+Local lEcCliCpo			:= ExistBlock("ECADDCPO")
+Local _lAtvPut			:= .F.
 
-Private lMsErroAuto := .F.
+Private lMsErroAuto 	:= .F.
+Private lMsHelpAuto 	:= .T.
+Private lAutoErrNoFile 	:= .T.
+Private l030Auto        := .T.
 
 //---------------------+
 // Cnpj/Cpf do cliente |
@@ -636,24 +660,36 @@ aAdd(aCliente ,	{"A1_PESSOA"	,	cTpPess									,	Nil	})
 aAdd(aCliente ,	{"A1_NOME"		,	cNomeCli								,	Nil	})
 aAdd(aCliente ,	{"A1_NREDUZ"	,	cNReduz									,	Nil	})
 
+_cEndFat	:= PadR(cEnd + ", " + cNumEnd,_nTEndF)
+_cMunFat 	:= PadR(cMun,_nTMunF)
+_cBairroF 	:= PadR(cBairro,_nTBairF)
+
 If nOpcA == 3
-	aAdd(aCliente ,	{"A1_END"		,	cEnd + ", " + cNumEnd					,	Nil	})
+	aAdd(aCliente ,	{"A1_END"		,	_cEndFat								,	Nil	})
 	aAdd(aCliente ,	{"A1_EST"		,	cEst									,	Nil	})
 	aAdd(aCliente ,	{"A1_COD_MUN"	,	cCodMun									,	Nil	})
-	aAdd(aCliente ,	{"A1_MUN"		,	cMun									,	Nil	})
-	aAdd(aCliente ,	{"A1_BAIRRO"	,	cBairro									,	Nil	})
+	aAdd(aCliente ,	{"A1_MUN"		,	_cMunFat								,	Nil	})
+	aAdd(aCliente ,	{"A1_BAIRRO"	,	_cBairroF								,	Nil	})
 	aAdd(aCliente ,	{"A1_CEP"		,	cCep									,	Nil	})
 EndIf	
 
-aAdd(aCliente ,	{"A1_ENDCOB"	,	cEndC + ", " + cNumEndC					,	Nil	})
+_cEndCob	:= PadR(cEndC + ", " + cNumEndC,_nTEndC)
+_cMunCob 	:= PadR(cMunC,_nTMunC)
+_cBairroC 	:= PadR(cBairroC,_nTBairC)
+
+_cEndEnt	:= PadR(cEndE + ", " + cNumEndE,_nTEndE)
+_cMunEnt 	:= PadR(cMunE,_nTMunE)
+_cBairroE 	:= PadR(cBairroE,_nTBairE)
+
+aAdd(aCliente ,	{"A1_ENDCOB"	,	_cEndCob								,	Nil	})
 aAdd(aCliente ,	{"A1_ESTCOB"	,	cEstC									,	Nil	})
-aAdd(aCliente ,	{"A1_MUNCOB"	,	cMunC									,	Nil	})
-aAdd(aCliente ,	{"A1_BAIRROC"	,	cBairroC								,	Nil	})
+aAdd(aCliente ,	{"A1_MUNCOB"	,	_cMunCob								,	Nil	})
+aAdd(aCliente ,	{"A1_BAIRROC"	,	_cBairroC								,	Nil	})
 aAdd(aCliente ,	{"A1_CEPCOB"	,	cCepC									,	Nil	})  
-aAdd(aCliente ,	{"A1_ENDENT"	,	cEndE + ", " + cNumEndE					,	Nil	})
+aAdd(aCliente ,	{"A1_ENDENT"	,	_cEndEnt								,	Nil	})
 aAdd(aCliente ,	{"A1_ESTE"		,	cEstE									,	Nil	})
-aAdd(aCliente ,	{"A1_MUNE"		,	cMunE									,	Nil	})
-aAdd(aCliente ,	{"A1_BAIRROE"	,	cBairroE								,	Nil	})
+aAdd(aCliente ,	{"A1_MUNE"		,	_cMunEnt								,	Nil	})
+aAdd(aCliente ,	{"A1_BAIRROE"	,	_cBairroE								,	Nil	})
 aAdd(aCliente ,	{"A1_CEPE"		,	cCepE									,	Nil	})
 aAdd(aCliente ,	{"A1_TIPO"		,	cTipoCli								,	Nil	})
 aAdd(aCliente ,	{"A1_DDD"		,	cDdd01									,	Nil	})
@@ -728,7 +764,21 @@ If Len(aCliente) > 0
 	//-------------------+
 	// ExecAuto Cliente. |
 	//-------------------+
-	MsExecAuto({|x,y| Mata030(x,y)}, aCliente, nOpcA)
+	//MsExecAuto({|x,y| Mata030(x,y)}, aCliente, nOpcA)
+
+	//--------------------------------------------+
+	// Realiza a gravação/atualização de clientes |
+	//--------------------------------------------+
+	dbSelectArea("SA1")
+	SA1->( dbGoTop() )
+	
+	If MA030IsMVC()
+		SetFunName('CRMA980')
+		MSExecAuto( { |x, y| CRMA980(x,y) },  aCliente, nOpcA )
+	Else
+		SetFunName('MATA030')
+		MsExecAuto({|x,y| Mata030(x,y)}, aCliente, nOpcA)
+	EndIf 
 	
 	LogExec("PROCESSANDO MANUTENCAO DO CLIENTE " + cCodCli + "-" + cLoja  )
 	
@@ -738,6 +788,37 @@ If Len(aCliente) > 0
 	If lMsErroAuto
 	
 		RollBackSx8()
+
+		_cLinha	 := ""	
+		cMsgErro := ""
+
+		_aErro	 := {}
+		_aErro 	 := GetAutoGrLog()
+
+		 For _nX := 1 To Len(_aErro)
+            _cLinha := _aErro[_nX]
+			_cLinha  := StrTran( _cLinha, Chr(13), " " )
+			_cLinha  := StrTran( _cLinha, Chr(10), " " )
+
+			If SubStr( _cLinha, 1, 4 ) == 'HELP'
+				cMsgErro += _cLinha + "|"
+			EndIf
+
+			If SubStr( _cLinha, 1, 6 ) == 'TABELA'
+				cMsgErro += _cLinha + "|"
+			EndIf
+
+			If SubStr( _cLinha, 1, 5 ) == 'AJUDA'
+				cMsgErro += _cLinha + " | "
+			EndIf
+
+			If At("< -- Invalido", _aErro[_nX] ) > 0
+				cMsgErro += _aErro[_nX]  + " | "
+			EndIf
+
+		Next nX
+
+		/*
 		MakeDir("\erros\")
 		cSA1Log := "SA1" + cCodCli + cLoja + DToS(dDataBase) + Left(Time(),2) + SubStr(Time(),4,2) + Right(Time(),2) + ".LOG"
 		MostraErro("\erros\",cSA1Log)
@@ -769,7 +850,8 @@ If Len(aCliente) > 0
 			EndDo
 			FT_FUSE()
 		EndIf  
-		
+		*/
+
 		//---------------------+
 		// Variavel de retorno |
 		//---------------------+
@@ -801,10 +883,16 @@ If Len(aCliente) > 0
 		//--------------------+
 		// Desloqueia Cliente |
 		//--------------------+
-		RecLock("SA1",.F.)
-			SA1->A1_MSBLQL := "2"
-		SA1->( MsUnLock() )
-		
+		dbSelectArea("SA1")
+		SA1->( dbSetOrder(1) )
+		If SA1->( dbSeek(xFilial("SA1") + cCodCli + cLoja ))
+			RecLock("SA1",.F.)
+				SA1->A1_MSBLQL	:= "2"
+				SA1->A1_XDTALT	:= dDatabase
+				SA1->A1_XHRALT	:= Time()
+			SA1->( MsUnLock() )
+		EndIf
+
 		//---------------------+
 		// Variavel de retorno |
 		//---------------------+
@@ -825,6 +913,8 @@ If Len(aCliente) > 0
 	If _lAtvPut
 		PutMv("MV_HISTTAB",.T.)
 	EndIf
+
+	MsUnLockAll()
 
 EndIf
 
@@ -2043,6 +2133,7 @@ Local _cClient		:= "ECOMM"
 Local cCodKit		:= "kit"
 Local cLocal		:= GetNewPar("EC_ARMVEND")
 
+Local _nTCodRes 	:= TamSx3("C0_DOCRES")[1]
 Local nQtdItem		:= 0
 Local _nSaldoSb2	:= 0
 Local nPrd			:= 0
@@ -2052,6 +2143,7 @@ Local dDtVldRserv	:= GetNewPar("EC_DTVLDRE","01/01/2049")
 Local _lGerou		:= .F.
 Local lGift			:= .F.
 Local lBrinde		:= .F.
+Local _lInclui		:= .F.
 
 LogExec("EFETUANDO A RESERVA DO PEDIDO " + cOrderId )
 
@@ -2132,9 +2224,14 @@ For nPrd := 1 To Len(oItems)
 		//--------------------------+
 		// Valida se existe reserva |
 		//--------------------------+
-		dbSelectArea("SC0")
-		SC0->( dbSetOrder(3) )
-		If !SC0->( dbSeek(xFilial("SC0") + cTipo + PadR(cPedCodCli,nTPedCli) + cProduto) )
+		_lInclui := .F.
+		If !SC0->( dbSeek(xFilial("SC0") + _cCodRes +  cProduto + cLocal) )
+			_lInclui := .T.
+		ElseIf nQtdItem <> SC0->C0_QUANT
+			_lInclui := .T.
+		EndIf 
+
+		If _lInclui
 
 			//----------------------------------------+	
 			// Valida se produto tem armzem de venda  |
@@ -2181,23 +2278,24 @@ For nPrd := 1 To Len(oItems)
 				//-----------------------+
 				// Posiciona Pre Empenho |
 				//-----------------------+
-				SC0->( dbSetOrder(3) )
-				SC0->( dbSeek(xFilial("SC0") + cTipo + PadR(cPedCodCli,nTPedCli) + cProduto))
-					
-				//---------------------------------------------+
-				// Validas e Reserva foi realizada com sucesso |
-				//---------------------------------------------+
-				If ( SC0->C0_PRODUTO == Padr(RTrim(cProduto),nTamProd) ) .And. ( cPedCodCli $ SC0->C0_OBS ) .And. ( SC0->C0_NUM == _cCodRes )
-					RecLock("SC0",.F.)
-						SC0->C0_QUANT  -= nQtdItem
-						SC0->C0_QTDPED += nQtdItem
-						SC0->C0_VALIDA := IIF(ValType(dDtVldRserv) == "C",cTod(dDtVldRserv),dDtVldRserv)
-					SC0->(MsUnLock())
+				SC0->( dbSetOrder(4) )
+				If SC0->( dbSeek(xFilial("SC0") + cTipo + PadR(cPedCodCli,_nTCodRes) ))
+					While SC0->( !Eof() .And. xFilial("SC0") + cTipo + PadR(cPedCodCli,_nTCodRes) == SC0->C0_FILIAL + SC0->C0_TIPO + SC0->C0_DOCRES )
+						//---------------------------------------------+
+						// Validas e Reserva foi realizada com sucesso |
+						//---------------------------------------------+
+						If ( RTrim(SC0->C0_PRODUTO) == RTrim(cProduto) ) .And. ( cPedCodCli $ SC0->C0_OBS ) .And. ( SC0->C0_NUM == _cCodRes )
+							RecLock("SC0",.F.)
+								SC0->C0_QUANT  -= nQtdItem
+								SC0->C0_QTDPED += nQtdItem
+								SC0->C0_VALIDA := IIF(ValType(dDtVldRserv) == "C",cTod(dDtVldRserv),dDtVldRserv)
+							SC0->(MsUnLock())
 
-					LogExec("RESERVA " + _cCodRes + " EFETUADA COM SUCESSO.")
-
+							LogExec("RESERVA " + _cCodRes + " EFETUADA COM SUCESSO.")
+						EndIf 
+						SC0->( dbSkip() )
+					EndDo 
 				Else
-					
 					//-----------------------------------+
 					// Desarma Transacao em caso de erro |
 					//-----------------------------------+
@@ -2249,9 +2347,11 @@ Local cTipo		:= "LJ"
 Local _cClient	:= "ECOMM"
 Local cLocal	:= GetNewPar("EC_ARMVEND")
 
+Local _nTCodRes 	:= TamSx3("C0_DOCRES")[1]
 Local nQtdItem	:= 0
 Local nX		:= 0
 
+Local _lInclui	:= .F.
 		
 LogExec("EFETUANDO A RESERVA DOS PRODUTOS KIT PEDIDO " + cOrderId)
 
@@ -2308,8 +2408,15 @@ For nX := 1 To Len(oItKit)
 	// Valida se existe reserva |
 	//--------------------------+
 	dbSelectArea("SC0")
-	SC0->( dbSetOrder(3) )
-	If !SC0->( dbSeek(xFilial("SC0") + cTipo + PadR(cPedCodCli,nTPedCli) + cProduto) )
+	SC0->( dbSetOrder(1) )
+	_lInclui := .F.
+	If !SC0->( dbSeek(xFilial("SC0") + _cCodRes +  cProduto + cLocal) )
+		_lInclui := .T.
+	ElseIf nQtdItem <> SC0->C0_QUANT
+		_lInclui := .T.
+	EndIf 
+
+	If _lInclui
 
 		//----------------------------------------+	
 		// Valida se produto tem armzem de venda  |
@@ -2356,21 +2463,23 @@ For nX := 1 To Len(oItKit)
 			//-----------------------+
 			// Posiciona Pre Empenho |
 			//-----------------------+
-			SC0->( dbSetOrder(3) )
-			SC0->( dbSeek(xFilial("SC0") + cTipo + PadR(cPedCodCli,nTPedCli) + cProduto))
-				
-			//---------------------------------------------+
-			// Validas e Reserva foi realizada com sucesso |
-			//---------------------------------------------+
-			If ( SC0->C0_PRODUTO == Padr(RTrim(cProduto),nTamProd) ) .And. ( cPedCodCli $ SC0->C0_OBS ) .And. ( SC0->C0_NUM == _cCodRes )
-				RecLock("SC0",.F.)
-					SC0->C0_QUANT  -= nQtdItem
-					SC0->C0_QTDPED += nQtdItem
-					SC0->C0_VALIDA := IIF(ValType(dDtVldRserv) == "C",cTod(dDtVldRserv),dDtVldRserv) 
-				SC0->(MsUnLock())
+			SC0->( dbSetOrder(4) )
+			If SC0->( dbSeek(xFilial("SC0") + cTipo + PadR(cPedCodCli,_nTCodRes) ))
+				While SC0->( !Eof() .And. xFilial("SC0") + cTipo + PadR(cPedCodCli,_nTCodRes) == SC0->C0_FILIAL + SC0->C0_TIPO + SC0->C0_DOCRES )
+						//---------------------------------------------+
+						// Validas e Reserva foi realizada com sucesso |
+						//---------------------------------------------+
+						If ( RTrim(SC0->C0_PRODUTO) == RTrim(cProduto) ) .And. ( cPedCodCli $ SC0->C0_OBS ) .And. ( SC0->C0_NUM == _cCodRes )
+							RecLock("SC0",.F.)
+								SC0->C0_QUANT  -= nQtdItem
+								SC0->C0_QTDPED += nQtdItem
+								SC0->C0_VALIDA := IIF(ValType(dDtVldRserv) == "C",cTod(dDtVldRserv),dDtVldRserv)
+							SC0->(MsUnLock())
 
-				LogExec("RESERVA " + _cCodRes + " EFETUADA COM SUCESSO.")
-
+							LogExec("RESERVA " + _cCodRes + " EFETUADA COM SUCESSO.")
+						EndIf 
+						SC0->( dbSkip() )
+					EndDo 
 			Else
 				LogExec("ERRO AO GERAR RESERVA " + _cCodRes )
 			EndIf

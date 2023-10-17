@@ -170,6 +170,92 @@ RestArea(_aArea)
 Return Nil
 
 /***************************************************************************************/
+/*/{Protheus.doc} ECLOJ10B
+	@description Realiza o envio do status inicio de manuseio
+	@type  Function
+	@author Bernard M Margarido
+	@since 16/10/2023
+	@version version
+	@param param_name, param_type, param_descr
+/*/
+/***************************************************************************************/
+User Function ECLOJ10B()
+Local _aArea 	:= GetArea() 
+
+Local _cStatic	:= "S"+"t"+"a"+"t"+"i"+"c"+"C"+"a"+"l"+"l"
+Local _cAlias	:= ""
+Local _cQuery	:= ""
+
+Local _lLiber	:= .F. 
+Local _lBlqEst	:= .F.
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	WSA.R_E_C_N_O_ RECNOWSA " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += "	WSA010 WSA " + CRLF 
+_cQuery += " WHERE " + CRLF
+_cQuery += "	WSA.WSA_FILIAL = '06' AND " + CRLF
+_cQuery += "	WSA.WSA_CODSTA = '002' AND " + CRLF
+_cQuery += "	WSA.WSA_NUMSC5 <> '' AND " + CRLF
+_cQuery += "	WSA.WSA_DOC = '' AND " + CRLF
+_cQuery += "	WSA.WSA_SERIE = '' AND " + CRLF
+_cQuery += "	NOT EXISTS( " + CRLF
+_cQuery += "		SELECT " + CRLF
+_cQuery += "			C9.C9_PEDIDO " + CRLF
+_cQuery += "		FROM " + CRLF
+_cQuery += "			SC9010 C9 " + CRLF
+_cQuery += "		WHERE " + CRLF
+_cQuery += "			C9.C9_FILIAL = WSA.WSA_FILIAL AND " + CRLF
+_cQuery += "			C9.C9_PEDIDO = WSA.WSA_NUMSC5 AND " + CRLF
+_cQuery += "			C9.D_E_L_E_T_ = '' " + CRLF
+_cQuery += "	) AND " + CRLF
+_cQuery += "	WSA.D_E_L_E_T_ = '' "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+dbSelectArea("SC5")
+SC5->( dbSetOrder(1) )
+
+While (_cAlias)->( !Eof() )
+	
+	WSA->( dbGoTo((_cAlias)->RECNOWSA) )
+
+	If SC5->( dbSeek(xFilial("SC5") + WSA->WSA_NUMSC5) )
+
+		//---------------+
+		// Libera pedido |
+		//---------------+
+		Eval( {|| &(_cStatic + "(" + "ECLOJ012, EcLoj012Lib,SC5->C5_NUM" + ")") }) 
+
+		//----------------------------------------------+ 
+		// Atualização de Status dos Pedidos e-Commerce |
+		//----------------------------------------------+ 
+		_lLiber	:= .F. 
+		_lBlqEst	:= .F.
+		U_VldLibPv(SC5->C5_NUM,@_lLiber,@_lBlqEst)
+
+		//---------------------------+
+		// Atualiza status do Pedido |
+		//---------------------------+
+		If _lLiber .And. _lBlqEst
+			U_GrvStaEc(SC5->C5_XNUMECO,'004')
+		ElseIf _lLiber .And. !_lBlqEst
+			U_GrvStaEc(SC5->C5_XNUMECO,'011')
+		ElseIf !_lLiber .And. !_lBlqEst    
+			U_GrvStaEc(SC5->C5_XNUMECO,'002')
+		EndIf
+
+	EndIf 
+
+	(_cAlias)->( dbSkip() )
+EndDo 
+
+(_cAlias)->( dbCloseArea() ) 
+
+RestArea(_aArea)
+Return Nil 
+
+/***************************************************************************************/
 /*/{Protheus.doc} EcLoj010Cpo
 	@description Cria campos exibição tela de gestão de pedidos
 	@type  Static Function
@@ -386,6 +472,7 @@ Local _bIbxPvEnv	:= {|| (U_IBFATM01(),U_IBFATM02())}
 aAdd(aRotFat, {"Libera Pedido"	,"U_ECLOJ101", 0, 4} )	// Libera Pedido
 aAdd(aRotFat, {"Prep. Documento","U_ECLOJ102", 0, 4} )	// Prepara Documento
 aAdd(aRotFat, {"Trans. Sefaz"	,"U_ECLOJ103", 0, 4} )	// Transmissão Sefaz
+aAdd(aRotFat, {"Inicia Manuseio","U_ECLOJ10B", 0, 6 })  // Faturamento
 
 //----------------------+
 // Troca / Cancelamento |
@@ -404,6 +491,7 @@ aAdd(aRotina, {"Pesquisa"   	, "AxPesqui"    , 0, 1 })  // Pesquisa
 aAdd(aRotina, {"Visualizar" 	, "U_ECLOJ10A"  , 0, 2 })  // Visualizar
 aAdd(aRotina, {"Faturamento"	, aRotFat		, 0, 4 })  // Faturamento
 aAdd(aRotina, {"Rastreio DLog"	, "U_DLOGA02"	, 0, 4 })  // Faturamento
+
 //aAdd(aRotina, {"Canc / Troca"   , aRotTro  		, 0, 4 })  // Cancelamento / Troca Devolução
 //aAdd(aRotina, {"Env. IBEX"   	, aRotIbx  		, 0, 4 })  // Envia Pedidos Ibex Logistica
 Return aRotina

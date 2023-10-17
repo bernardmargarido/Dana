@@ -1123,7 +1123,7 @@ Return .T.
 /*********************************************************************************/
 User Function EcLoj140()
 Local _aArea    := GetArea()
-Local _cCodSta	:= GetNewPar("EC_STACANC","008")
+Local _cCodSta	:= "002" //GetNewPar("EC_STACANC","008")
 
 //-----------------------------+
 // Posiciona pedido e-Commerce |

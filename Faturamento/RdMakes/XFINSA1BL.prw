@@ -1,7 +1,7 @@
 #Include "protheus.ch" 
 //--------------------------------------------------------------------
 /*/{Protheus.doc} XFINSA1BL
-Permite apenas usuários cadastrados no parâmetro "MV_XUSRSA1", 
+Permite apenas usuários cadastrados no parâmetro "MV_XFINSA1", 
 manipular os campos que estão com a função.
 @author TOTVS Protheus
 @since  21/11/2017
@@ -10,10 +10,12 @@ manipular os campos que estão com a função.
 User Function XFINSA1BL()
 
 Local lRet		:= .T.
-Local cUsuFin	:= GETMV("MV_XUSRSA1")
-Local cCodUsu	:= RetCodUsr()
+Local cUsuFin	:= GETMV("MV_XUSRSA1") //GETMV("MV_XFINSA1")
+Local cCodUsu	:= __cUserID //RetCodUsr()
 
-If !cCodUsu $ cUsuFin
+Return .T.
+
+If !cCodUsu $cUsuFin
 	lRet	:= .F.
 Endif
 

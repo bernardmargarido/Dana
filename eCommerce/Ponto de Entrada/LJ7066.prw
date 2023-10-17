@@ -28,10 +28,12 @@ EndIf
 // Mensagem console |
 //------------------+
 CoNout("<< LJ7066 >> - INICIO " + dTos( Date() ) + " - " + Time() )
+CoNout("<< LJ7066 >> -  NUMERO PEDIDO DE VENDA " + SC5->C5_NUM)
 
 //----------------------------------------------+ 
 // Atualização de Status dos Pedidos e-Commerce |
 //----------------------------------------------+ 
+Sleep(2000)
 U_VldLibPv(SC5->C5_NUM,@_lLiber,@_lBlqEst)
 
 //---------------------------+

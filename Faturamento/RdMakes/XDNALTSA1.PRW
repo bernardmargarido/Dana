@@ -13,12 +13,9 @@ Manutenção cadastro de clientes.
 User Function XDNALTSA1()
 
 Local lRet		:= .T.
-Local cUsuFin	:= GETMV("MV_XFINSA1")
+Local cUsuFin	:= ""
 Local cCodUsu	:= ""
 Local cNomUsr   := ""
-
-Local _lECommerce	:= IIF(Isincallstack("U_AECOI011"),.T.,.F.)
-Local _lMRP			:= IIF(Isincallstack("U_DNMRPA01") .Or. Isincallstack("U_DNMRPA02"),.T.,.F.)
 
 Private cConta	:= AllTrim(GetMv("MV_XMAIFIN"))
 Private cMsgCam := ""
@@ -26,11 +23,10 @@ Private cPulaLin:= Chr(13) + Chr(10)
 Private cDescAbt:= ""
 Private cLimCred:= ""
 
-If _lECommerce .Or. _lMRP
-	Return .T.
-EndIf
+Return .T.
 
-cCodUsu	:= RetCodUsr()
+cUsuFin	:= GETMV("MV_XFINSA1")
+cCodUsu	:= __cUserID  //RetCodUsr()
 cNomUsr := PswChave(RetCodUsr())
 
 If ALTERA 
@@ -118,7 +114,7 @@ If ALTERA
             cTable += "</table>"
             
             cTable+= '<td style="text-align: center; width: 15%;" height="53">
-            cTable+= '<img border="0" src="http://187.94.58.102:1346/emp01/wfpc/Logo_Dana.jpg"></td>
+            cTable+= '<img border="0" src="http://181.41.175.59:1866/emp01/wfpc/Logo_Dana.jpg"></td>
             cTable+= '<br><br><br><p align="left"><span lang="pt-br"><font face="Arial" size="3">'+cMsgCam+'</font></span></p>'
             cTable+= '<br><br><br><p align="left"><span lang="pt-br"><font face="Arial" size="1">Destinatários: '+cConta+'</font></span></p>'
             cTable+= '<br><br><br><p align="left"><span lang="pt-br"><font face="Arial" size="1">DANA COSMÉTICOS</font></span></p>'

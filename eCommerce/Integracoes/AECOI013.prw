@@ -457,7 +457,7 @@ Else
 	cQuery += "			XTD.XTD_ALIAS = 'SB5' AND " + CRLF
 	cQuery += "			XTD.XTD_CODERP = '" + cCodProd + "' AND " + CRLF
 	cQuery += "			XTD.D_E_L_E_T_ = ''  " + CRLF
-	cQuery += " )SKU
+	cQuery += " )SKU "
 EndIf 
 
 dbUseArea(.T.,"TOPCONN",TcGenQry(,,cQuery),cAlias,.T.,.T.)

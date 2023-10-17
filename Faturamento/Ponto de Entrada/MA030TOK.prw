@@ -21,12 +21,12 @@ User Function MA030TOK()
 Local lRet	 		:= .T.
 Local aAreaSA1		:= SA1->(GetArea())
 
-Local cCodSA1		:= ""
-Local cLojSA1		:= ""
-Local cNomSA1		:= ""
-Local cSubject		:= ""
-Local cTable		:= ""
-Local cMsg			:= ""
+//Local cCodSA1		:= ""
+//Local cLojSA1		:= ""
+//Local cNomSA1		:= ""
+//Local cSubject		:= ""
+//Local cTable		:= ""
+//Local cMsg			:= ""
 
 Local _lECommerce	:= IIF(Isincallstack("U_AECOI011"),.T.,.F.)
 Local _lMRP			:= IIF(Isincallstack("U_DNMRPA01") .Or. Isincallstack("U_DNMRPA02"),.T.,.F.)
@@ -39,6 +39,7 @@ If _lECommerce .Or. _lMRP
 	Return .T.
 EndIf
 
+/*
 If INCLUI
 	Msginfo("O cadastro de cliente será bloqueado, aguardando analise e liberação dos departamentos fiscal/financeiro!","MA030TOK")
 	
@@ -73,9 +74,11 @@ If INCLUI
 	cTable += "<td>Loja			</td>"
 	cTable += "<td>Nome			</td>"
 	cTable += "</tr>"
-	/*+---------------------------------+
-	| Itens do E-mail.				    |
-	+---------------------------------+*/
+	
+	//+---------------------------------+
+	//| Itens do E-mail.				  |
+	//+---------------------------------+
+
 	cTable += "<tr>"
 	cTable += "<td style='align:left'>" 	+cCodSA1					+"</td>"
 	cTable += "<td style='align:left'>" 	+cLojSA1					+"</td>"
@@ -111,9 +114,9 @@ If ALTERA
 				cLojSA1	:= SA1->A1_LOJA
 				cNomSA1	:= SA1->A1_NOME
 				
-				/*+---------------------------------+
-				| Cabeçalho E-mail				    |
-				+---------------------------------+*/
+				//---------------------------------+
+				// Cabeçalho E-mail				   |
+				//---------------------------------+
 				cTable := '<STYLE>'
 				cTable += 'BODY {FONT-FAMILY: Arial, Helvetica, sans-serif; FONT-SIZE: 10pt}'
 				cTable += 'DIV {FONT-FAMILY: Arial, Helvetica, sans-serif; FONT-SIZE: 10pt}'
@@ -138,9 +141,10 @@ If ALTERA
 				cTable += "<td>Loja			</td>"
 				cTable += "<td>Nome			</td>"
 				cTable += "</tr>"
-				/*+---------------------------------+
-				| Itens do E-mail.				    |
-				+---------------------------------+*/
+				
+				//---------------------------------
+				// Itens do E-mail.				   |
+				//---------------------------------
 				cTable += "<tr>"
 				cTable += "<td style='align:left'>" 	+cCodSA1					+"</td>"
 				cTable += "<td style='align:left'>" 	+cLojSA1					+"</td>"
@@ -165,7 +169,7 @@ If ALTERA
 		Endif
 	Endif
 EndIf
-
+*/
 //-----------------------------+
 // Atualiza dados da alteração |
 //-----------------------------+

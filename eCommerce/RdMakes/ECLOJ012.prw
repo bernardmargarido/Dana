@@ -185,17 +185,10 @@ If !WSB->( dbSeek(xFilial("WSB") + WSA->WSA_NUM) )
     Return Nil
 EndIf
 
-//--------------------+
-// Gera Numero DocPed |
-//--------------------+
-_cDocPed := GetSxeNum("SE1","E1_NUM")
-					
-dbSelectArea("SE1")
-SE1->( dbSetOrder(1) )
-While SE1->( dbSeek(xFilial("SE1") + _cSerCPF + _cDocPed) )
-    ConfirmSx8()
-    _cDocPed := GetSxeNum("SE1","E1_NUM","",1)
-EndDo	
+//----------------------+
+// Valida numero docped |
+//----------------------+
+EcLoj012D(_cSerCPF,@_cDocPed)
 
 //----------------------------------+
 // Numero do Orçamento no Siga Loja |
@@ -432,7 +425,7 @@ If Len(_aCabec) > 0 .And. Len(_aItems) > 0 .And. Len(_aParcela) > 0
         // Valida Reserva do Produto |
         //---------------------------+
         dbSelectArea("SC0")
-        SC0->( dbSetOrder(3) )
+        SC0->( dbSetOrder(4) )
         If SC0->( dbSeek(xFilial("SC0") + PadR(_cTipo,nTTipo) + PadR(WSA->WSA_NUMECL,nTNumCl)) )
             _cReserva := "S"
         EndIf
@@ -480,7 +473,7 @@ If Len(_aCabec) > 0 .And. Len(_aItems) > 0 .And. Len(_aParcela) > 0
 
                     SL2->L2_DOCPED	:= _cDocPed
                     SL2->L2_SERPED  := _cSerCPF
-
+                    SL2->L2_ENTREGA := "5"
                     If !Empty(_cReserva)
                         If SC0->( dbSeek(xFilial("SC0") + PadR(_cTipo,nTTipo) + PadR(WSA->WSA_NUMECL,nTNumCl) + SL2->L2_PRODUTO) )
                             SL2->L2_FILRES  := SC0->C0_FILIAL
@@ -748,7 +741,7 @@ Return _lRet
 /**************************************************************************/
 Static Function EcLoj012Qry(_cAlias)
 Local _cQuery   := ""
-Local _cCodSta  := GetNewPAr("EC_STAPROC","001/002/004/008")
+Local _cCodSta  := GetNewPar("EC_STAPROC","001/002/004")
 Local _lRet     := .T.
 
 //---------------------------+
@@ -860,7 +853,7 @@ If _lGerou
     //-----------------------+
     // Posiciona Pre Empenho |
     //-----------------------+
-    SC0->( dbSetOrder(3) )
+    SC0->( dbSetOrder(4) )
     SC0->( dbSeek(xFilial("SC0") + _cTipo + PadR(_cOrderCli,_nTPedCli) + _cCodProd))
         
     //---------------------------------------------+
@@ -894,6 +887,40 @@ EndIf
 
 RestArea(_aArea)
 Return _lRet
+
+/*********************************************************************************/
+/*/{Protheus.doc} EcLoj012D
+    @description Valida numero do DocPed
+    @type  Static Function
+    @author Bernard M Margarido
+    @since 16/10/2023
+    @version version
+/*/
+/*********************************************************************************/
+Static Function EcLoj012D(_cSerCPF,_cDocPed)
+Local _aArea := GetArea() 
+
+//--------------------+
+// Gera Numero DocPed |
+//--------------------+
+_cDocPed := GetSxeNum("SE1","E1_NUM")
+
+dbSelectArea("SE1")
+SE1->( dbSetOrder(1) )
+While SE1->( dbSeek(xFilial("SE1") + _cSerCPF + _cDocPed) )
+    ConfirmSx8()
+    _cDocPed := GetSxeNum("SE1","E1_NUM","",1)
+EndDo	
+
+dbSelectArea("SL1")
+SL1->( dbSetOrder(11) )
+While SL1->( dbSeek(xFilial("SL1") + _cSerCPF + _cDocPed) )
+    ConfirmSx8()
+    _cDocPed := GetSxeNum("SE1","E1_NUM","",1)
+EndDo	
+
+RestArea(_aArea)
+Return Nil 
 
 /*********************************************************************************/
 /*/{Protheus.doc} LogExec

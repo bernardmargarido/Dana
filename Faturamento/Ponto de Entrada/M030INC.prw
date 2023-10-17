@@ -18,12 +18,13 @@ Local cQuery    := ""
 Local cCanal    := ""
 Local aArea     := GetArea()
 
+/*
 If !PARAMIXB == 3 .AND. ALLTRIM(FUNNAME()) == "MATA030"
     cCanal  := M->A1_XTIPCLI
 
-    /*-----------------------\
-    | Verifica se gerou GU3. | 
-    \-----------------------*/
+    //-----------------------
+    // Verifica se gerou GU3.| 
+    //-----------------------
     If Select("TRBGU3") > 0
         TRBGU3->(DbCloseArea())
     Endif
@@ -54,7 +55,7 @@ If !PARAMIXB == 3 .AND. ALLTRIM(FUNNAME()) == "MATA030"
         Endif
     Endif
 EndIf
-
+*/
 //------------------------------------------------+
 // Chamada Ponto de Entrada Projetos Corporativos |
 //------------------------------------------------+
