@@ -196,6 +196,7 @@ TCSqlExec("UPDATE WSA010 SET WSA_ENVLOG = 'X' WHERE WSA_NUMECO = '1313840575582-
 */
 
 CLRF    := CHR(13) + CHR(10)
+/*
 _cAlias := ""
 _cQuery := ""
 _cQuery := " SELECT " + CLRF
@@ -228,5 +229,33 @@ While (_cAlias)->( !Eof() )
     EndIf
     (_cAlias)->( dbSkip() ) 
 EndDo 
+*/
+
+_cQuery := ""
+_cAlias := ""
+_cQuery := " SELECT " + CLRF
+_cQuery += "	WSA.R_E_C_N_O_ RECNOWSA " + CLRF
+_cQuery += " FROM " + CLRF
+_cQuery += "	WSA010 WSA " + CLRF
+_cQuery += "	INNER JOIN WSB010 WSB ON WSB.WSB_NUM = WSA.WSA_NUM AND WSB.WSB_PRODUT IN('305','311','617','642','681') AND WSB.D_E_L_E_T_ = '' " + CLRF
+_cQuery += " WHERE " + CLRF
+_cQuery += "	WSA.WSA_FILIAL = '06' AND " + CLRF 
+_cQuery += "	WSA.WSA_NUMSL1 = '' AND " + CLRF
+_cQuery += "	WSA.WSA_NUMSC5 = '' AND " + CLRF
+_cQuery += "	WSA.WSA_CODSTA ='002' AND " + CLRF
+_cQuery += "	WSA.D_E_L_E_T_ = '' " + CLRF
+_cQuery += " GROUP BY WSA.R_E_C_N_O_ "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+While (_cAlias)->( !Eof() )
+    WSA->( dbGoTo((_cAlias)->RECNOWSA) )
+    RecLock("WSA",.F.)
+        WSA->WSA_CODSTA := '999'
+    WSA->( MsUnLock() )
+    (_cAlias)->( dbSkip() )
+EndDo 
+
+(_cAlias)->( dbCloseArea() )
 
 Return .T.

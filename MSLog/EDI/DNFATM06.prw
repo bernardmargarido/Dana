@@ -310,7 +310,7 @@ _cQuery += "					D2.D2_SERIE = F2.F2_SERIE AND " + CRLF
 _cQuery += "					D2.D_E_L_E_T_ = '' " + CRLF
 _cQuery += "    ) ITENS_NOTA " + CRLF
 _cQuery += " WHERE " + CRLF
-_cQuery += "	F2.F2_FILIAL = '" + xFilial("SC5") + "' AND " + CRLF
+_cQuery += "	F2.F2_FILIAL = '" + xFilial("SF2") + "' AND " + CRLF
 _cQuery += "	F2.F2_XENVWMS = '1' AND " + CRLF
 _cQuery += "	F2.F2_TIPO IN('N','B') AND " + CRLF
 _cQuery += "	F2.D_E_L_E_T_ = '' " + CRLF

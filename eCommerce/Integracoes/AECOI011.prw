@@ -232,18 +232,17 @@ Return .T.
 /**************************************************************************************************/
 Static Function AECOINT11(_cLojaID,_cUrl,_cAppKey,_cAppToken,_cHostName)
 Local aArea			:= GetArea()
-Local aHeadOut  	:= {}
 
 Local cUrl			:= ""
 Local cAppKey		:= ""
 Local cAppToken		:= ""
-Local cXmlHead 	 	:= ""
-Local cUrlParms		:= ""     
-Local cOrderBy		:= ""
-//Local cHostName		:= ""
+Local cError		:= ""
 
-Local nTimeOut		:= 240
+//Local cHostName		:= ""
 Local nList			:= 0
+Local nTPages 		:= 0 
+Local nPage 		:= 1
+
 
 Local oRestRet   	:= Nil 
 
@@ -256,40 +255,42 @@ cUrl				:= RTrim(IIF(Empty(_cUrl), GetNewPar("EC_URLREST"), _cUrl))
 cAppKey				:= RTrim(IIF(Empty(_cAppKey), GetNewPar("EC_APPKEY"), _cAppKey))
 cAppToken			:= RTrim(IIF(Empty(_cAppToken), GetNewPar("EC_APPTOKE"), _cAppToken))
 
-aAdd(aHeadOut,"Content-Type: application/json" )
-aAdd(aHeadOut,"X-VTEX-API-AppKey:" + cAppKey )
-aAdd(aHeadOut,"X-VTEX-API-AppToken:" + cAppToken ) 
-
-cUrlParms := "f_status=ready-for-handling"
-//cHostName := "f_hostname=" + Lower(RTrim(_cHostName))
-cOrderBy  := "orderBy=creationDate,asc"
-
-cHtmlPage := HttpGet(cUrl + "/api/oms/pvt/orders?" + cUrlParms + "&" + cOrderBy , /*cUrlParms*/, nTimeOut, aHeadOut, @cXmlHead)
 //cHtmlPage := HttpGet(cUrl + "/api/oms/pvt/orders?" + cUrlParms + "&" + cHostName + "&" + cOrderBy , /*cUrlParms*/, nTimeOut, aHeadOut, @cXmlHead)
 
 If !_lJob
 	ProcRegua(-1)
-EndIf	
+EndIf
+
 //--------------------------+
 // Valida Status de retorno |
 //--------------------------+
-If HTTPGetStatus() == 200
+//If HTTPGetStatus() == 200
 
 	//------------------------------------+
 	// Realiza o Parse para a String Rest |
 	//------------------------------------+
-	If FWJsonDeserialize(cHtmlPage,@oRestRet)
-	
-		//---------------------------+
-		// Valida se retornou Objeto |
-		//---------------------------+
-		If ValType(oRestRet) == "O" 
-		
+//	If FWJsonDeserialize(cHtmlPage,@oRestRet)
+
+//---------------------+
+// Consulta dados VTEX |
+//---------------------+
+If AEcoI11X(cUrl,cAppKey,cAppToken,nPage,@cError,@oRestRet)
+	//---------------------------+
+	// Valida se retornou Objeto |
+	//---------------------------+
+	If ValType(oRestRet) == "O" 
+
+		nTPages := oRestRet:paging:pages
+
+		While nTPages >= nPage 
+
+			LogExec('INTEGRANDDO PEDIDOS PAGINA ' + cValToChar(nPage) + ' DE ' + cValToChar(nTPages) + ' .')
+
 			//---------------------------------------------+
 			// Valida se existe pedidos a serem integrados |
 			//---------------------------------------------+
 			If ValType(oRestRet:List) == "A" .And. Len(oRestRet:List) > 0
-			
+
 				For nList := 1 To Len(oRestRet:List)
 
 					If !_lJob
@@ -300,18 +301,25 @@ If HTTPGetStatus() == 200
 
 					aAdd(aOrderId,oRestRet:List[nList]:OrderId)
 				Next nList
+
 			Else
 				If !_lJob
 					Aviso('e-Commerce','Nao existem novos pedidos a serem integrados',{"Ok"})	
 				EndIf	
 				LogExec('NAO EXISTEM NOVOS PEDIDOS A SEREM INTEGRADOS')
 			EndIf
-		EndIf
-	Else
-		If !_lJob
-			Aviso('e-Commerce','Nao existem novos pedidos a serem integrados',{"Ok"})	
-		EndIf	
-		LogExec('NAO EXISTEM NOVOS PEDIDOS A SEREM INTEGRADOS')
+
+			nPage++
+			FreeObj(oRestRet)
+
+			If !AEcoI11X(cUrl,cAppKey,cAppToken,nPage,@cError,@oRestRet)
+				If !_lJob
+					Aviso('e-Commerce','Não foi possivel realizar a comunicação com o eCommerce.',{"Ok"})	
+				EndIf	
+				LogExec('ERRO DE COMUNICACAO COM O ECOMMERCE.')
+			EndIf 	
+
+		EndDo 
 	EndIf
 Else
 	If !_lJob
@@ -319,7 +327,14 @@ Else
 	EndIf	
 	LogExec('NAO EXISTEM NOVOS PEDIDOS A SEREM INTEGRADOS')
 EndIf
-
+/*
+Else
+	If !_lJob
+		Aviso('e-Commerce','Nao existem novos pedidos a serem integrados',{"Ok"})	
+	EndIf	
+	LogExec('NAO EXISTEM NOVOS PEDIDOS A SEREM INTEGRADOS')
+EndIf
+*/
 //aAdd(aOrderId,"1140012439983-01")
 
 RestArea(aArea)
@@ -506,6 +521,8 @@ Local _nTBairE	:= TamSx3("A1_BAIRROE")[1]
 Local _nTEndF	:= TamSx3("A1_END")[1]
 Local _nTMunF	:= TamSx3("A1_MUN")[1]
 Local _nTBairF	:= TamSx3("A1_BAIRRO")[1]
+Local _nTNome	:= TamSx3("A1_NOME")[1]
+Local _nTReduz	:= TamSx3("A1_NREDUZ")[1]
 Local _nX 		:= 0
 Local nOpcA		:= 0
 
@@ -563,6 +580,7 @@ If oDadosCli:IsCorporate
 	cTel01		:= IIF(nOpcA == 3,	StrTran(SubStr(oDadosCli:CorporatePhone,8,nTamTel)," ","")		, SA1->A1_TEL		)
 	cInscE		:= IIF(nOpcA == 3,	Upper(oDadosCli:StateInscription)								, SA1->A1_INSCR		)
 	cContrib	:= IIF(nOpcA == 3,	IIF(Alltrim(cInscE) == "ISENTO","2","1")						, SA1->A1_CONTRIB	)
+	cNomeCli	:= PadR(cNomeCli,_nTNome)
 Else	
 	
 	cNomeCli	:= IIF(nOpcA == 3,	Alltrim(u_ECACENTO(DecodeUtf8(oDadosCli:FirstName),.T.)) + " " + Alltrim(u_ECACENTO(DecodeUtf8(oDadosCli:LastName),.T.))	, SA1->A1_NOME 		)
@@ -570,8 +588,8 @@ Else
 	cDdd01		:= IIF(nOpcA == 3,	SubStr(oDadosCli:Phone,4,2)										, SA1->A1_DDD		)
 	cTel01		:= IIF(nOpcA == 3,	SubStr(oDadosCli:Phone,6,nTamTel) 								, SA1->A1_TEL		)
 	cContrib	:= IIF(nOpcA == 3,	"2"																, SA1->A1_CONTRIB	)
-	cNomeCli	:= Alltrim(cNomeCli)
-	cNReduz		:= Alltrim(cNReduz)
+	cNomeCli	:= PadR(cNomeCli,_nTNome)
+	cNReduz		:= PadR(cNReduz,_nTReduz)
 EndIf
 
 cEmail			:= IIF(nOpcA == 3,	Alltrim(oDadosCli:eMail)										, SA1->A1_EMAIL		)
@@ -2255,8 +2273,6 @@ For nPrd := 1 To Len(oItems)
 					Return aRet
 				EndIf	
 			RestArea(_aAreaSB2)
-
-			
 
 			//------------------------------+
 			// Inicia a gravação da reserva |
@@ -4297,6 +4313,62 @@ _lRet := IIF(Empty((_cAlias)->AGA_CODIGO), .T., .F.)
 (_cAlias)->( dbCloseArea() )
 
 RestArea(_aArea)
+Return _lRet 
+
+/*******************************************************************************************/
+/*/{Protheus.doc} AEcoI11X
+	@description Realiza a consulta dos pedidos VTEX
+	@type  Static Function
+	@author Bernard M Margarido
+	@since 18/10/2023
+	@version version
+/*/
+/*******************************************************************************************/
+Static Function AEcoI11X(cUrl,cAppKey,cAppToken,nPage,cError,oRestRet)
+Local aHeadOut  	:= {}
+
+//Local cXmlHead 	 	:= ""
+Local cJSonR		:= ""
+Local cUrlParms		:= ""     
+Local cOrderBy		:= ""
+Local cPerPage 		:= ""
+Local cPage 		:= ""
+Local cQryParam 	:= ""
+
+Local nTimeOut		:= 600
+
+Local _lRet 		:= .T.
+
+Local _oFwRest 		:= FwRest():New(cUrl)
+
+aAdd(aHeadOut,"Content-Type: application/json" )
+aAdd(aHeadOut,"X-VTEX-API-AppKey:" + cAppKey )
+aAdd(aHeadOut,"X-VTEX-API-AppToken:" + cAppToken ) 
+
+cUrlParms := "?f_status=ready-for-handling"
+//cHostName := "f_hostname=" + Lower(RTrim(_cHostName))
+cOrderBy  := "&orderBy=creationDate,asc"
+cPerPage  := "&per_page=100"
+cPage	  := "&page=" + cValToChar(nPage) + "	
+cQryParam := cUrlParms + cOrderBy + cPerPage + cPage
+//cHtmlPage := HttpGet(cUrl + "/api/oms/pvt/orders" + cQryParam  , /*cUrlParms*/, nTimeOut, aHeadOut, @cXmlHead)
+
+//---------+
+// Timeout |
+//---------+
+_oFwRest:nTimeOut := nTimeOut
+_oFwRest:SetPath("/api/oms/pvt/orders" + cQryParam)
+
+If _oFwRest:Get(aHeadOut)
+	cJSonR := DecodeUtf8(_oFwRest:GetResult())
+	If !FWJsonDeserialize(cJSonR,@oRestRet)
+		_lRet := .F.
+	EndIf 
+Else 
+	cError:= DecodeUtf8(_oFwRest:GetResult())
+	_lRet := .F.
+EndIF 
+
 Return _lRet 
 
 /*******************************************************************************************/
