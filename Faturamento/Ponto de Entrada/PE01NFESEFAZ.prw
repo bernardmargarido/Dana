@@ -23,6 +23,8 @@ Local _cFilMSL  := GetNewPar("DN_FILMSL","07")
 Local cEstGNRE	:= GetNewPar("MV_XUFGNRE")
 Local cEstSF2	:= GetNewPar("MV_XUFGNRE")
 
+Local cParSub 	:= GetMV("MV_SUBTRIB",,"")
+Local cMensAx 	:= ""
 
 Local aDest 	:= aParam[4]
 Local aNota 	:= aParam[5]
@@ -38,7 +40,7 @@ Local aEspVol   := aParam[14]
 Local aNfVinc	:= aParam[15]
 Local aDetPag	:= aParam[16]
 Local aRetSefaz	:= {}
-Local dDtVGNRE	:= DATE() + 2
+//Local dDtVGNRE	:= DATE() + 2
 
 //Local dNovaData := ""
 //Local nMes		:= Month(Date()) + 1 
@@ -51,6 +53,18 @@ cNotaES			:= aNota[04]
 cTpNota			:= aNota[05]
 
 //dNovaData := DataValida(  "01/" + Alltrim(Str(nMes)) + "/" + Alltrim(Str(nAno))  ,.T.)
+
+If cNotaES == '1' 
+	If SF2->F2_FILIAL == "06" .And. SF2->F2_EST $ cParSub .And. Alltrim(SF2->F2_TIPOCLI) == "F" .And. Alltrim(SF2->F2_SERIE) == "50"
+		cMensAx := "ICMS EC87/15 recolhimento mensal."
+		If !AllTrim(cMensAx) $ cMensCli
+			If Len(cMensCli) > 0 .And. SubStr(cMensCli, Len(cMensCli), 1) <> " "
+				cMensCli += " "
+			EndIf
+			cMensCli += AllTrim(cMensAx)
+		EndIf
+	Endif
+EndIf
 
 //---------------+
 // Nota de Saida |
@@ -122,7 +136,7 @@ If SF2->(dbSeek(xFilial("SF2") + aNota[02] + aNota[01]))
 			SF6->(dbSetOrder(1))//F6_FILIAL+F6_EST+F6_NUMERO
 			If SF6->(dbSeek(SF2->F2_FILIAL + SF2->F2_EST + Alltrim(SF2->F2_NFICMST)))
 				RecLock("SF6",.F.)
-				SF6->E2_DTVENC := DataValida(dDtVGNRE,.T.)
+				SF6->F6_DTVENC := DataValida(dDtVGNRE,.T.)
 				SF6->(MsUnLock())
 			Endif
 		Endif
@@ -170,7 +184,6 @@ If SF2->(dbSeek(xFilial("SF2") + aNota[02] + aNota[01]))
 		Endif
 	Endif
 Endif
-
 
 aAdd(aRetSefaz, aProd )
 aAdd(aRetSefaz, cMensCli)

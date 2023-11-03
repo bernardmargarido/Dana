@@ -34,7 +34,7 @@ If SL1->( dbseek(xFilial('SL1') + _cSerie + _cNumDoc) )
     SL4->( dbsetorder(1) )
     If _lCondCN .And. SL4->( dbseek(SL1->L1_FILIAL + SL1->L1_NUM) )
         While SL4->( !Eof() .And. xFilial("SL4") + SL1->L1_NUM == SL4->L4_FILIAL + SL4->L4_NUM )
-            If RTrim(SL4->L4_FORMA) == "PIX"
+            If RTrim(SL4->L4_FORMA) $ "PIX/MKT"
                 _cNewForma := "01"
                 Exit
             EndIf 

@@ -231,6 +231,7 @@ While (_cAlias)->( !Eof() )
 EndDo 
 */
 
+/*
 _cQuery := ""
 _cAlias := ""
 _cQuery := " SELECT " + CLRF
@@ -257,5 +258,142 @@ While (_cAlias)->( !Eof() )
 EndDo 
 
 (_cAlias)->( dbCloseArea() )
+*/
+/*
+_cQuery := ""
+_cAlias := ""
+
+_cQuery := " SELECT " + CLRF
+_cQuery += "	L1.R_E_C_N_O_ RECNOSL1 " + CLRF
+_cQuery += " FROM " + CLRF
+_cQuery += "	SL1010 L1 " + CLRF
+_cQuery += " WHERE " + CLRF
+_cQuery += "	L1.L1_FILIAL = '06' AND " + CLRF
+_cQuery += "	L1.L1_XNUMECL = '660285' AND " + CLRF
+_cQuery += "	L1.D_E_L_E_T_ = '' "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+//---------------------+
+// SL1 - Posiciona SL1 |
+//---------------------+
+dbSelectArea("SL1")
+SL1->( dbSetOrder(1) )
+
+//---------------------+
+// SL2 - Posiciona SL2 |
+//---------------------+
+dbSelectArea("SL2")
+SL2->( dbSetOrder(1) )
+
+//---------------------+
+// SL4 - Posiciona SL4 |
+//---------------------+
+dbSelectArea("SL4")
+SL4->( dbSetOrder(1) )
+
+While (_cAlias)->( !Eof() )
+    SL1->( dbGoTo((_cAlias)->RECNOSL1) )
+
+    If SL2->(dbSeek(xfilial("SL2") + SL1->L1_NUM))
+        While SL2->( !Eof() .And. xfilial("SL2") + SL1->L1_NUM == SL2->L2_FILIAl + SL2->L2_NUM)
+            RecLock("SL2",.F.)
+                SL2->( dbDelete() )
+            SL2->( MsUnLock() )
+            SL2->( dbSkip() )
+        EnDDo 
+    EndIf 
+
+    If SL4->(dbSeek(xFilial("SL4") + SL1->L1_NUM))
+        While SL4->( !Eof() .And. xfilial("SL4") + SL1->L1_NUM == SL4->L4_FILIAl + SL4->L4_NUM)
+            RecLock("SL4",.F.)
+                SL4->( dbDelete() )
+            SL4->( MsUnLock() )
+            SL4->( dbSkip() )
+        EnDDo 
+    EndIf 
+
+    RecLock("SL1",.F.)
+        SL1->( dbDelete() )
+    SL1->( MsUnLock() )
+
+    (_cAlias)->( dbSkip() )
+EndDo 
+
+(_cAlias)->( dbCloseArea() )
+*/
+
+_cQuery := ""
+_cAlias := ""
+/*
+_cQuery := " SELECT " + CLRF
+_cQuery += "	WSA.WSA_NUM, " + CLRF 
+_cQuery += "	WSA.WSA_NUMSC5, " + CLRF
+_cQuery += "	C5.C5_NUM, " + CLRF
+_cQuery += "	WSA.WSA_NUMSL1, " + CLRF
+_cQuery += "	C5.C5_ORCRES, " + CLRF
+_cQuery += "    L1.L1_ORCRES, " + CLRF
+_cQuery += "	L1.L1_DOC, " + CLRF
+_cQuery += "	L1.L1_SERIE, " + CLRF
+_cQuery += "	WSA.R_E_C_N_O_ RECNOWSA " + CLRF
+_cQuery += " FROM " + CLRF
+_cQuery += "	WSA010 WSA " + CLRF 
+_cQuery += "	INNER JOIN SC5010 C5 ON C5.C5_FILIAL = WSA.WSA_FILIAL AND C5.C5_NUM = WSA.WSA_NUMSC5 AND C5.C5_CLIENTE = WSA.WSA_CLIENT AND C5.C5_LOJACLI = WSA.WSA_LOJA AND C5.C5_ORCRES <> WSA.WSA_NUMSL1 AND C5.D_E_L_E_T_ = '' " + CLRF
+_cQuery += "    INNER JOIN SL1010 L1 ON L1.L1_FILIAL = C5.C5_FILIAL AND L1.L1_NUM = C5.C5_ORCRES AND L1.L1_CLIENTE = C5.C5_CLIENTE AND L1.L1_LOJA = C5.C5_LOJACLI AND L1.L1_DOC = '' AND L1.L1_SERIE = '' AND L1.D_E_L_E_T_ = '' " + CLRF
+_cQuery += " WHERE " + CLRF
+_cQuery += "	WSA.WSA_FILIAL = '06' AND " + CLRF
+_cQuery += "	WSA.WSA_NUMSL1 <> '' AND " + CLRF
+_cQuery += "	WSA.WSA_NUMSC5 <> '' AND " + CLRF
+_cQuery += "	WSA.WSA_CODSTA = '011' AND " + CLRF
+_cQuery += "	WSA.D_E_L_E_T_ = '' "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+While (_cAlias)->( !Eof() )
+    WSA->( dbGoTo((_cAlias)->RECNOWSA) )
+    RecLock("WSA",.F.)
+        WSA->WSA_NUMSL1 := (_cAlias)->L1_ORCRES
+    WSA->( MsUnLock() )
+    (_cAlias)->( dbSkip() )
+EndDo 
+
+(_cAlias)->( dbCloseArea() )
+*/
+
+_cQuery := " SELECT " + CLRF
+_cQuery += "	WSA.WSA_FILIAL, " + CLRF
+_cQuery += "	WSB.WSB_PRODUT, " + CLRF
+_cQuery += "	WSB.WSB_LOCAL, " + CLRF
+_cQuery += "	SUM(WSB.WSB_QUANT) SALDO_ECOMMERCE " + CLRF
+_cQuery += " FROM " + CLRF
+_cQuery += "	WSA010 WSA " + CLRF 
+_cQuery += "	INNER JOIN WSB010 WSB ON WSB.WSB_FILIAL = WSA.WSA_FILIAL AND WSB.WSB_NUM = WSA.WSA_NUM AND WSB.D_E_L_E_T_ = '' " + CLRF
+_cQuery += " WHERE " + CLRF
+_cQuery += "	WSA.WSA_FILIAL = '06' AND " + CLRF
+_cQuery += "	WSA.WSA_NUMSL1 = '' AND " + CLRF
+_cQuery += "	WSA.WSA_NUMSC5 = '' AND " + CLRF
+_cQuery += "	WSA.WSA_CODSTA  = '002' AND " + CLRF
+_cQuery += "	WSA.D_E_L_E_T_ = '' " + CLRF
+_cQuery += " GROUP BY WSA.WSA_FILIAL, WSB.WSB_PRODUT,WSB.WSB_LOCAL " + CLRF
+_cQuery += " ORDER BY WSA.WSA_FILIAL, WSB.WSB_PRODUT "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+dbSelectArea("SB2")
+SB2->( dbSetOrder(1) )
+
+While (_cAlias)->( !Eof() )
+    If SB2->(dbSeek(xFilial("SB2") + (_cAlias)->WSB_PRODUT + (_cAlias)->WSB_LOCAL))
+        _nReserva := SB2->B2_RESERVA
+        _nReserva := IIF( _nReserva - (_cAlias)->SALDO_ECOMMERCE < 0, 0,  _nReserva - (_cAlias)->SALDO_ECOMMERCE)
+        RecLock("SB2",.F.)
+            SB2->B2_RESERVA := _nReserva
+        SB2->( MsUnLock() )
+    EndIf 
+    (_cAlias)->( dbSkip() )
+EndDo 
+
+(_cAlias)->( dbCloseArea() )
+
 
 Return .T.

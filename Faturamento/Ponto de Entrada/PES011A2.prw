@@ -15,7 +15,7 @@ Local _aArea	:= GetArea()
 Local _nX		:= 0
 
 Local _cFilAux	:= cFilAnt
-Local _cFilPed	:= ""
+//Local _cFilPed	:= ""
 Local _cNumPed	:= ""
 Local _aItem	:= ""
 Local _xRet  	:= ""
@@ -39,9 +39,9 @@ If Rtrim(ParamIxb[1]) == "APOSPEDIDO"
 	//-----------------------+
 	// Graba dados variaies  |
 	//-----------------------+
-	_cFilPed	:= ParamIxb[2]
-	_cNumPed	:= ParamIxb[3]
-	cFilAnt 	:= _cFilPed
+	//_cFilPed	:= ParamIxb[2]
+	_cNumPed	:= ParamIxb[2]
+	//cFilAnt 	:= _cFilPed
 
 	CoNout('<< PES011A2 >> - APOSPEDIDO - INICIO FILIAL ' + cFilAnt + ' PEDIDO ' + _cNumPed + ' .')
 

@@ -1466,10 +1466,12 @@ Static Function AEcoGrvPv(cOrderId,oRestPv,aEndRes,aEndCob,aEndEnt,_cLojaID)
 	//------------------------------+					
 	// Efetua a gravação da Reserva |
 	//------------------------------+
+	/*
 	If aRet[1]
 		aRet := AEcoGrvRes(cOrderId,cPedCodCli,cNumOrc,cCodCli,cLojaCli,cVendedor,nDesconto,dDtaEmiss,oRestPv:Items,oRestPv:ShippingData,oRestPv)
 	EndIf
-
+	*/
+	
 	If!aRet[1]
 		RestArea(aArea)
 		Return aRet
@@ -3454,11 +3456,14 @@ Static Function AEcoUpdPv(cOrderId,cOrdPvCli,cNumOrc,cNumDoc,cNumSer,cNumPv,oRes
 	cLojaCli	:= sA1->A1_LOJA
 	cVendedor	:= ""
 	nDesconto	:= 0
+	/*
 	aRet := AEcoGrvRes(cOrderId,cOrdPvCli,cNumOrc,cCodCli,cLojaCli,cVendedor,nDesconto,dDtaEmiss,oRestPv:Items,oRestPv:ShippingData,oRestPv)
 	If !aRet[1]
 		RestArea(aArea)
 		Return aRet
 	EndIf
+	*/
+	
 	//---------------------+
 	// Posiciona Orçamento |
 	//---------------------+

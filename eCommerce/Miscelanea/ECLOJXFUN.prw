@@ -990,6 +990,9 @@ If WSA->( dbSeek(xFilial("WSA") + PadR(_cOrderId,_nTOrderId)) )
 	RecLock("WSA",.F.)
 		WSA->WSA_CODSTA		:= WS1->WS1_CODIGO
 		WSA->WSA_DESTAT		:= RTrim(WS1->WS1_DESCRI)
+		If Empty(WSA->WSA_ENVLOG)
+			WSA->WSA_ENVLOG 	:= "2"
+		EndIf 
 	WSA->( MsUnLock() )
 EndIf
 

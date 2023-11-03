@@ -79,7 +79,7 @@ If _lContinua
         //----------------------------------------+    
         // Libera pedidos com bloqueio de estoque |
         //----------------------------------------+
-        ElseIf WSA->WSA_CODSTA == "004" .And. !Empty(WSA->WSA_NUMSC5)
+        ElseIf WSA->WSA_CODSTA $ "002/004" .And. !Empty(WSA->WSA_NUMSC5)
             LogExec("==> INICIO LIBERACAO ORCAMENTO ECOMMERCE " + WSA->WSA_NUM + "DATA/HORA: " + dToc( Date() ) + " AS " + Time() )
                 Begin Transaction 
                     //------------------------+
@@ -262,7 +262,7 @@ While WSB->( !Eof() .And. xFilial("WSB") + WSA->WSA_NUM == WSB->WSB_FILIAL + WSB
     //---------------------------+
     // Valida reserva do produto | 
     //---------------------------+ 
-    EcLoj012Res(WSA->WSA_NUMECO,WSA->WSA_NUMECL,WSB->WSB_PRODUT,WSB->WSB_QUANT)
+    //EcLoj012Res(WSA->WSA_NUMECO,WSA->WSA_NUMECL,WSB->WSB_PRODUT,WSB->WSB_QUANT)
     
     
     aAdd(_aItems,_aItem)
@@ -451,9 +451,9 @@ If Len(_aCabec) > 0 .And. Len(_aItems) > 0 .And. Len(_aParcela) > 0
             SL1->L1_STATUS	:= "F"
             SL1->L1_TIPO    := "P"
             SL1->L1_INDPRES := "1"
-            If !Empty(_cReserva)
-                SL1->L1_RESERVA := _cReserva
-            EndIf
+            //If !Empty(_cReserva)
+            SL1->L1_RESERVA := _cReserva
+            //EndIf
 
         SL1->( MsUnLock() )
         
@@ -473,7 +473,7 @@ If Len(_aCabec) > 0 .And. Len(_aItems) > 0 .And. Len(_aParcela) > 0
 
                     SL2->L2_DOCPED	:= _cDocPed
                     SL2->L2_SERPED  := _cSerCPF
-                    SL2->L2_ENTREGA := "5"
+                    SL2->L2_ENTREGA := "3"
                     If !Empty(_cReserva)
                         If SC0->( dbSeek(xFilial("SC0") + PadR(_cTipo,nTTipo) + PadR(WSA->WSA_NUMECL,nTNumCl) + SL2->L2_PRODUTO) )
                             SL2->L2_FILRES  := SC0->C0_FILIAL
@@ -661,7 +661,7 @@ While SC6->( !Eof() .And. xFilial("SC6") + _cNumPv == SC6->C6_FILIAL + SC6->C6_N
 		//---------------------------+
 		Begin Transaction
 			SC6->C6_QTDLIB := IIF(SC6->C6_QTDLIB == 0,SC6->C6_QTDVEN,SC6->C6_QTDLIB) 
-
+            /*
             //--------------------------------+    
             // Valida se item já foi liberado | 
             //--------------------------------+    
@@ -698,12 +698,12 @@ While SC6->( !Eof() .And. xFilial("SC6") + _cNumPv == SC6->C6_FILIAL + SC6->C6_N
                 If !_lBloq
                     _lBloq  := IIF(!Empty(SC9->C9_BLEST) .Or. SC9->C9_BLEST <> "10", .T., .F.)
                 EndIf
-			Else						
+			Else*/						
                 //------------------------------------------------------------------------------+ 
 				// Liberação do Credito/estoque do pedido de venda mais informações ver fatxfun |
                 //------------------------------------------------------------------------------+ 
 				MaLibDoFat( SC6->(RecNo()),_nQtdLib,.T.,.T.,.F.,.F.,.F.,.F.)	
-			EndIf 											
+			//EndIf 											
 			
 		End Transaction
 	EndIf
@@ -717,7 +717,7 @@ EndDo
 //--------------------------------------------------------------------------+
 // Verifica se existe bloqueio de crédito ou estoque, se existir desbloqueia|
 //--------------------------------------------------------------------------+
-MaLiberOk( { SC6->C6_NUM } )
+MaLiberOk( { _cNumPv } )
 SC5->(dbSeek(xFilial("SC5") + _cNumPv) )
 If !lMsErroAuto .And. !_lBloq
 	_lRet   := .T.
