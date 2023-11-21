@@ -4366,6 +4366,9 @@ _oFwRest:SetPath("/api/oms/pvt/orders" + cQryParam)
 
 If _oFwRest:Get(aHeadOut)
 	cJSonR := DecodeUtf8(_oFwRest:GetResult())
+	If ValType(cJSonR) == "U"
+		cJSonR := _oFwRest:GetResult()
+	EndIf 
 	If !FWJsonDeserialize(cJSonR,@oRestRet)
 		_lRet := .F.
 	EndIf 
