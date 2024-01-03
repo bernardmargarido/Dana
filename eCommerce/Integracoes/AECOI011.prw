@@ -573,16 +573,15 @@ EndIf
 // Dados passados pela Vtex |
 //--------------------------+ 
 If oDadosCli:IsCorporate
-	cNomeCli	:= IIF(nOpcA == 3,	Alltrim(u_ECACENTO(DecodeUtf8(oDadosCli:CorporateName),.T.))	, SA1->A1_NOME 		) 
-	cNReduz		:= IIF(nOpcA == 3,	Alltrim(u_ECACENTO(DecodeUtf8(oDadosCli:TradeName),.T.))		, SA1->A1_NREDUZ	)
+	cNomeCli	:= IIF(nOpcA == 3,	Alltrim(u_ECACENTO(DecodeUtf8(oDadosCli:CorporateName),.T.))											, SA1->A1_NOME 		) 
+	cNReduz		:= IIF(nOpcA == 3,	Alltrim(u_ECACENTO(DecodeUtf8(oDadosCli:TradeName),.T.))												, SA1->A1_NREDUZ	)
 	cContato	:= IIF(nOpcA == 3,	u_ECACENTO(DecodeUtf8(oDadosCli:FirstName),.T.) + " " + u_ECACENTO(DecodeUtf8(oDadosCli:LastName),.T.)	, SA1->A1_CONTATO	)	
-	cDdd01		:= IIF(nOpcA == 3,	SubStr(oDadosCli:CorporatePhone,5,2)							, SA1->A1_DDD		)
-	cTel01		:= IIF(nOpcA == 3,	StrTran(SubStr(oDadosCli:CorporatePhone,8,nTamTel)," ","")		, SA1->A1_TEL		)
-	cInscE		:= IIF(nOpcA == 3,	Upper(oDadosCli:StateInscription)								, SA1->A1_INSCR		)
-	cContrib	:= IIF(nOpcA == 3,	IIF(Alltrim(cInscE) == "ISENTO","2","1")						, SA1->A1_CONTRIB	)
+	cDdd01		:= IIF(nOpcA == 3,	SubStr(oDadosCli:CorporatePhone,5,2)																	, SA1->A1_DDD		)
+	cTel01		:= IIF(nOpcA == 3,	StrTran(SubStr(oDadosCli:CorporatePhone,8,nTamTel)," ","")												, SA1->A1_TEL		)
+	cInscE		:= IIF(nOpcA == 3,	IIF(ValType(oDadosCli:StateInscription) <> "U",Upper(oDadosCli:StateInscription),"ISENTO")				, SA1->A1_INSCR		)
+	cContrib	:= IIF(nOpcA == 3,	IIF(Alltrim(cInscE) == "ISENTO","2","1")																, SA1->A1_CONTRIB	)
 	cNomeCli	:= PadR(cNomeCli,_nTNome)
 Else	
-	
 	cNomeCli	:= IIF(nOpcA == 3,	Alltrim(u_ECACENTO(DecodeUtf8(oDadosCli:FirstName),.T.)) + " " + Alltrim(u_ECACENTO(DecodeUtf8(oDadosCli:LastName),.T.))	, SA1->A1_NOME 		)
 	cNReduz		:= IIF(nOpcA == 3,	Alltrim(u_ECACENTO(DecodeUtf8(oDadosCli:FirstName),.T.)) + " " + Alltrim(u_ECACENTO(DecodeUtf8(oDadosCli:LastName),.T.))	, SA1->A1_NREDUZ	)
 	cDdd01		:= IIF(nOpcA == 3,	SubStr(oDadosCli:Phone,4,2)										, SA1->A1_DDD		)
