@@ -34,6 +34,12 @@ CoNout("<< LJ7066 >> -  NUMERO PEDIDO DE VENDA " + SC5->C5_NUM)
 // Atualização de Status dos Pedidos e-Commerce |
 //----------------------------------------------+ 
 Sleep(2000)
+
+//--------------------------------------------+
+// Valida se ocorreu duplicidade na liberação |
+//--------------------------------------------+
+//U_DuplLib(SC5->C5_NUM)
+
 U_VldLibPv(SC5->C5_NUM,@_lLiber,@_lBlqEst)
 
 //---------------------------+

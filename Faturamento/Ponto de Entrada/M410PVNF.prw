@@ -46,6 +46,21 @@ EndIf
 // Valida se e pedido e-Commerce |
 //-------------------------------+
 If SC5->( FieldPos("C5_XNUMECO") ) > 0 .And. !Empty(SC5->C5_XNUMECO)
+/*
+    dbSelectArea("SC9")
+    SC9->( dbSetOrder(1) )
+    If SC9->( dbSeek(xFilial("SC9") + _cPedido) )
+        While SC9->(!Eof() .And. xFilial("SC9") + _cPedido == SC9->C9_FILIAL + SC9->C9_PEDIDO)
+            If Empty(SC9->C9_NFISCAL) .And. Empty(SC9->C9_SERIENF)
+				//--------------------------+
+				// Estorna Liberação Pedido |
+				//--------------------------+
+				a460Estorna(.T.,.F.)
+			EndIf
+            SC9->( dbSkip() )
+        EndDo 
+    EndIf 
+*/
 	RestArea(_aArea)
 	Return .T.
 EndIf

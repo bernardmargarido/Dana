@@ -1,6 +1,8 @@
 #INCLUDE "PROTHEUS.CH"
 #INCLUDE "TBICONN.CH"
 
+#DEFINE CRLF CHR(13) + CHR(10)
+
 Static _nTCodCat    := TamSx3("AY0_CODIGO")[1]
 Static _nTOrderId	:= TamSx3("WSA_NUMECO")[1]
 
@@ -957,6 +959,228 @@ EndIf
 
 RestArea(_aArea)
 Return Nil
+
+/***********************************************************************************/
+/*/{Protheus.doc} DuplLib
+	@description Valida duplicidade na liberação dos pedidos eCommerce
+	@type  Function
+	@author Bernard M Margarido
+	@since 05/02/2024
+	@version version
+/*/
+/***********************************************************************************/
+User Function DuplLib(_cPedido)
+Local _aArea	:= GetArea()
+
+Local _cAlias 	:= ""
+Local _cQuery 	:= ""
+
+Local _lRet 	:= .T.
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	C9.C9_FILIAL, " + CRLF
+_cQuery += "	C9.C9_ITEM, " + CRLF
+_cQuery += "	C9.C9_PRODUTO " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += "	" + RetSqlName("SC9") + " C9 " + CRLF
+_cQuery += " WHERE " + CRLF 
+_cQuery += "	C9.C9_FILIAL = '" + xFilial("SC9") + "' AND " + CRLF
+_cQuery += "	C9.C9_PEDIDO = '" + _cPedido + "' AND " + CRLF
+_cQuery += "	C9.C9_NFISCAL = '' AND " + CRLF
+_cQuery += "	C9.C9_SERIENF = '' AND " + CRLF
+_cQuery += "	C9.D_E_L_E_T_ = '' " + CRLF
+_cQuery += " GROUP BY C9.C9_FILIAL,C9.C9_ITEM,C9.C9_PRODUTO HAVING COUNT(*) > 1 "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+If (_cAlias)->( !Eof() )
+
+	//-------------------+
+	// Estorna liberação |
+	//-------------------+
+	If DuplLibEs(_cPedido)
+		//-------------------------+
+		// Libera pedido novamente |
+		//-------------------------+
+		DuplLibLi(_cPedido)
+	EndIf 
+	
+EndIf 
+
+(_cAlias)->( dbCloseArea() )
+
+RestArea(_aArea)
+Return _lRet
+
+/***********************************************************************************/
+/*/{Protheus.doc} DuplLibEs
+	@description Realiza o estorno na liberação duplicada 
+	@type  Static Function
+	@author Bernard M Margarido
+	@since 05/02/2024
+	@version version
+/*/
+/***********************************************************************************/
+Static Function DuplLibEs(_cPedido)
+Local _lRet		:= .T.
+
+//---------------------------+
+// Posiciona itens liberados |
+//---------------------------+
+dbSelectArea("SC9")
+SC9->( dbSetOrder(1) )
+If SC9->( dbSeek(xFilial("SC9") + _cPedido) )
+	While SC9->( !Eof() .And. xFilial("SC9") + _cPedido == SC9->C9_FILIAL + SC9->C9_PEDIDO )
+		If Empty(SC9->C9_NFISCAL) .And. Empty(SC9->C9_SERIENF)
+			//--------------------------+
+			// Estorna Liberação Pedido |
+			//--------------------------+
+			a460Estorna(.T.,.F.)
+		EndIf
+		SC9->( dbSkip() )
+	EndDo
+EndIf 
+
+Return _lRet 
+
+/***********************************************************************************/
+/*/{Protheus.doc} DuplLibLi
+	@description Realiza a liberação do pedido
+	@type  Static Function
+	@author Bernard M Margarido
+	@since 05/02/2024
+	@version version
+/*/
+/***********************************************************************************/
+Static Function DuplLibLi(_cPedido)
+Local _aArea        := GetArea()
+
+Local _aCabec       := {}
+Local _aRegSC6      := {}
+
+Local _nVlrLiber    := 0
+Local _nValTot      := 0
+Local _nQtdLib      := 0
+Local _nLiberou     := 0
+
+Local _lCredito     := .F.
+Local _lEstoque	    := .F.
+Local _lLiber	    := .T.
+Local _lTransf      := .F.
+Local _lRet         := .T.
+
+Private lMsErroAuto := .F.
+
+aAdd(_aCabec, { "C5_FILIAL", xFilial("SC5") , Nil   })
+aAdd(_aCabec, { "C5_NUM"   , _cPedido       , Nil   })
+
+//------------------+
+// Seleciona pedido | 
+//------------------+
+dbSelectArea("SC5")
+SC5->( dbSetOrder(1) )
+
+//---------------+
+// Seleciona TES | 
+//---------------+
+dbSelectArea("SF4")
+SF4->( dbSetOrder(1) )
+
+//---------------------------+
+// Seleciona itens liberados | 
+//---------------------------+
+dbSelectArea("SC9")
+SC9->( dbSetOrder(1) )
+
+//------------------+
+// Posiciona pedido |
+//------------------+
+SC5->( dbSeek(xFilial("SC5") + _cPedido ) )
+
+//--------------------------------------+
+// Posiciona itens do pedido e-Commerce |
+//--------------------------------------+
+dbSelectArea("SC6")
+SC6->( dbSetOrder(1) )
+SC6->( dbSeek(xFilial("SC6") + _cPedido))
+While SC6->( !Eof() .And. xFilial("SC6") + _cPedido == SC6->C6_FILIAL + SC6->C6_NUM )
+
+    //--------------------------+
+    // Atualiza Total do pedido | 
+    //--------------------------+
+    _nValTot += SC6->C6_VALOR
+
+    //---------------+
+    // Posiciona TES | 
+    //---------------+
+    SF4->( MsSeek( xFilial("SF4") + SC6->C6_TES ) )
+    
+        _nQtdLib := IIF(SC6->C6_QTDLIB == 0, SC6->C6_QTDVEN, SC6->C6_QTDLIB)
+        
+        //---------------------------------+
+        // Recalcula a Quantidade Liberada |
+        //---------------------------------+
+        SC6->( RecLock("SC6",.F.) )
+        
+        //---------------------------+
+        // Libera por Item de Pedido |
+        //---------------------------+
+        Begin Transaction
+            SC6->C6_QTDLIB := IIF(SC6->C6_QTDLIB == 0, SC6->C6_QTDVEN, SC6->C6_QTDLIB) 
+
+            //--------------------------------+    
+            // Valida se item já foi liberado | 
+            //--------------------------------+    
+            If SC9->( dbSeek(xFilial("SC9") + SC6->C6_NUM + SC6->C6_ITEM))
+                //----------------------+        
+                // Salva valor liberado | 
+                //----------------------+    
+                _nVlrLiber := SC6->C6_VALOR
+
+                //-------------+
+                // Salva Recno | 
+                //-------------+
+                _aRegSC6    := {}
+                aAdd(_aRegSC6, SC6->(RecNo()))
+
+                //----------------------------------------------------------------------------+    
+                // Caso possuir o chamo a função de validação de cabecario do pedido de venda |
+                //----------------------------------------------------------------------------+
+                MaAvalSC5("SC5",3,.F.,.F.,,,,,,SC9->C9_PEDIDO,_aRegSC6,.T.,.F.,@_nVlrLiber)		
+                                            
+            Else						
+                //------------------------------------------------------------------------------+ 
+                // Liberação do Credito/estoque do pedido de venda mais informações ver fatxfun |
+                //------------------------------------------------------------------------------+ 
+                _nLiberou := MaLibDoFat(SC6->(RecNo()),_nQtdLib,@_lCredito,@_lEstoque,.T.,.T.,_lLiber,_lTransf)
+            EndIf 											
+            
+        End Transaction
+
+    	SC6->( MsUnLock() )
+
+    SC6->( dbSkip() )
+EndDo
+
+//--------------------------------------------------------------------------+
+// Verifica se existe bloqueio de crédito ou estoque, se existir desbloqueia|
+//--------------------------------------------------------------------------+
+MaLiberOk( { _cPedido } )
+SC5->(dbSeek(xFilial("SC5") + _cPedido) )
+If !lMsErroAuto
+	_lRet   := .T.
+Else
+	MostraErro("/erros/" + "SC5_LIB" + _cPedido )
+	_lRet   := .F.
+EndIf
+
+//-----------------------------------+
+// Ponto de entrada apos a liberação |
+//-----------------------------------+
+//U_M440STTS()
+
+RestArea(_aArea)
+Return _lRet 
 
 /***********************************************************************************/
 /*/{Protheus.doc} GrvStaEc

@@ -103,7 +103,16 @@ While (_cAlias)->( !Eof() )
     EndIf 
     
 	CoNout("<< ECLOJM05 >> - INICIA FATURAMENTO PEDIDO " + SC5->C5_NUM + " ID ECOMMERCE " + SC5->C5_XNUMECO + " DATA " + dToc(Date())  + " HORA " + Time() + " .")
-		EcLojM05B()
+
+		//---------------------------------+
+		// Valida se pedido está duplicado |
+		//---------------------------------+
+		If EcLojM05C()
+			//------------------+
+			// Gera nota fiscal |
+			//------------------+
+			EcLojM05B()
+		EndIf 
 	CoNout("<< ECLOJM05 >> - FINALIZA FATURAMENTO PEDIDO " + SC5->C5_NUM + " ID ECOMMERCE " + SC5->C5_XNUMECO + " DATA " + dToc(Date())  + " HORA " + Time() + " .")
     (_cAlias)->( dbSkip() )
 EndDo
@@ -132,6 +141,7 @@ Local _cNota        := ""
 Local _cSerie       := GetNewPar("EC_SERIENF")
 
 Local _nX           := 0
+//Local nPLib			:= 0
 Local _nTDoc        := TamSx3("F2_DOC")[1]
 Local _nTSerie      := TamSx3("F2_SERIE")[1]
 Local _nItemNf	    := a460NumIt(_cSerie)
@@ -199,7 +209,7 @@ SF4->( dbSetOrder(1) )
 //---------------------------+
 SC9->( dbSeek(xFilial("SC9") + SC5->C5_NUM) )
 While SC9->( !Eof() .And. xFilial("SC9") + SC5->C5_NUM == SC9->C9_FILIAL + SC9->C9_PEDIDO )
-
+	
 	//----------------------------------------+
 	// Valida se está com bloqueio de estoque | 
 	//----------------------------------------+
@@ -251,6 +261,7 @@ While SC9->( !Eof() .And. xFilial("SC9") + SC5->C5_NUM == SC9->C9_FILIAL + SC9->
 	//----------------------------------+
 	// Adiciona itens a serem faturados |
 	//----------------------------------+
+	//If (nPLib := aScan(aPvlNfs,{|x| x[1] + x[2] + x[6] + x[4] ==  SC9->C9_PEDIDO + SC9->C9_ITEM + SC9->C9_PRODUTO + SC9->C9_QTDLIB })) == 0
 	aAdd(aPvlNfs,{ 	SC9->C9_PEDIDO,;
 					SC9->C9_ITEM,;
 					SC9->C9_SEQUEN,;
@@ -265,7 +276,7 @@ While SC9->( !Eof() .And. xFilial("SC9") + SC5->C5_NUM == SC9->C9_FILIAL + SC9->
 					SB1->(RecNo()),;
 					SB2->(RecNo()),;
 					SF4->(RecNo())})
-
+	//EndIf 
 
 	SC9->( dbSkip() )
 EndDo
@@ -382,6 +393,42 @@ Else
 EndIf
 
 Return _lRet
+
+/******************************************************************************************/
+/*/{Protheus.doc} EcLojM05C
+	@description Realiza a validação de duplicidade antes do faturamento
+	@type  Static Function
+	@author Bernard M Margarido
+	@since 05/02/2024
+	@version version
+/*/
+/******************************************************************************************/
+Static Function EcLojM05C(_cPedido)
+Local _aArea	:= GetArea()
+
+Local _lLiber   := .T.
+Local _lBlqEst  := .T.
+Local _lRet 	:= .T.
+
+U_DuplLib(SC5->C5_NUM)
+		
+U_VldLibPv(SC5->C5_NUM,@_lLiber,@_lBlqEst)
+
+//---------------------------+
+// Atualiza status do Pedido |
+//---------------------------+
+If _lLiber .And. _lBlqEst
+	U_GrvStaEc(SC5->C5_XNUMECO,'004')
+	_lRet := .F.
+ElseIf _lLiber .And. !_lBlqEst
+	U_GrvStaEc(SC5->C5_XNUMECO,'011')
+ElseIf !_lLiber .And. !_lBlqEst    
+	U_GrvStaEc(SC5->C5_XNUMECO,'002')
+	_lRet := .F.
+EndIf
+
+RestArea(_aArea)
+Return _lRet 
 
 /******************************************************************************************/
 /*/{Protheus.doc} EcLojM05Qry
