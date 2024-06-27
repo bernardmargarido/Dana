@@ -46,7 +46,11 @@ Return _lRet
 Static Function MDLOGM03A()
 Local _aArea	:= GetArea()
 
+//Local _cStatic	:= "S"+"t"+"a"+"t"+"i"+"c"+"C"+"a"+"l"+"l"
 Local _cAlias	:= GetNextAlias()
+Local _cXMLNfe	:= ""
+Local _cNota 	:= ""
+Local _cSerie 	:= ""
 Local _cCodPLP	:= ""
 Local _cExpress	:= GetNewPar("DN_TRANEXP","1056")
 Local _cCnpjEmb := GetNewPar("DN_CGCEMBA","61105722000600")
@@ -123,10 +127,12 @@ While (_cAlias)->( !Eof() )
 
 	CoNout("<< MDLOGM03 >> - ENVIANDO COLETA " + _cCodPLP)
 
+	/*
 	_oJSon							:= Nil 
 	_oJSon							:= Array(#)
 	_oJSon[#"cnpjEmbarcadorOrigem"]	:= RTrim(_cCnpjEmb)
 	_oJSon[#"listaSolicitacoes"]	:= {}
+	*/
 
 	While (_cAlias)->( !Eof() .And. _cCodPLP == (_cAlias)->ZZB_CODIGO )
 
@@ -134,7 +140,19 @@ While (_cAlias)->( !Eof() )
 		// Cria JSON somente de itens não enviados ou com erros |
 		//------------------------------------------------------+
 		If 	(_cAlias)->ZZB_STATUS $ "1/3"
-		
+
+			//--------------------------------+
+			// Valida se XMl está preenchido  |
+			//--------------------------------+
+			_cXMLNfe	:= ""
+			_cNota 		:= (_cAlias)->ZZC_NOTA
+			_cSerie		:= (_cAlias)->ZZC_SERIE
+
+			_oJSon							:= Nil 
+			_oJSon							:= Array(#)
+			_oJSon[#"cnpjEmbarcadorOrigem"]	:= RTrim(_cCnpjEmb)
+			_oJSon[#"listaSolicitacoes"]	:= {}
+
 			aAdd(_oJSon[#"listaSolicitacoes"],Array(#))
 			_oLista := aTail(_oJSon[#"listaSolicitacoes"])	
 			_oLista[#"idSolicitacaoInterno"] 	:= RTrim((_cAlias)->ZZC_NOTA) + RTrim((_cAlias)->ZZC_SERIE)
@@ -145,50 +163,50 @@ While (_cAlias)->( !Eof() )
 
 			_oLista[#"Remetente"]												:= Array(#) 
 			_oLista[#"Remetente"][#"cpf"]										:= Nil
-            _oLista[#"Remetente"][#"cnpj"]										:= RTrim(SM0->M0_CGC)
-            _oLista[#"Remetente"][#"inscricaoEstadual"]							:= RTrim(SM0->M0_INSC)
-            _oLista[#"Remetente"][#"nome"]										:= RTrim(SM0->M0_NOME)
-            _oLista[#"Remetente"][#"razaoSocial"]								:= RTrim(SM0->M0_NOMECOM)
-            _oLista[#"Remetente"][#"telefone"]									:= RTrim(SM0->M0_TEL)
-            _oLista[#"Remetente"][#"email"]										:= Nil
-            _oLista[#"Remetente"][#"Endereco"]									:= Array(#)	
-            _oLista[#"Remetente"][#"Endereco"][#"cep"]							:= SM0->M0_CEPCOB
-            _oLista[#"Remetente"][#"Endereco"][#"logradouro"]					:= SubStr(SM0->M0_ENDCOB, 1, At(",",SM0->M0_ENDCOB) - 1)
-            _oLista[#"Remetente"][#"Endereco"][#"numero"]						:= Alltrim(SubStr(SM0->M0_ENDCOB,At(",",SM0->M0_ENDCOB) + 1))
-            _oLista[#"Remetente"][#"Endereco"][#"complemento"]					:= RTrim(SM0->M0_COMPCOB)
-            _oLista[#"Remetente"][#"Endereco"][#"pontoReferencia"]				:= Nil
-            _oLista[#"Remetente"][#"Endereco"][#"bairro"]						:= RTrim(SM0->M0_BAIRCOB)
-            _oLista[#"Remetente"][#"Endereco"][#"nomeCidade"]					:= RTrim(SM0->M0_CIDCOB)
-            _oLista[#"Remetente"][#"Endereco"][#"siglaEstado"]					:= SM0->M0_ESTCOB
-            _oLista[#"Remetente"][#"Endereco"][#"idCidadeIBGE"]					:= SM0->M0_CODMUN
+			_oLista[#"Remetente"][#"cnpj"]										:= RTrim(SM0->M0_CGC)
+			_oLista[#"Remetente"][#"inscricaoEstadual"]							:= RTrim(SM0->M0_INSC)
+			_oLista[#"Remetente"][#"nome"]										:= RTrim(SM0->M0_NOME)
+			_oLista[#"Remetente"][#"razaoSocial"]								:= RTrim(SM0->M0_NOMECOM)
+			_oLista[#"Remetente"][#"telefone"]									:= RTrim(SM0->M0_TEL)
+			_oLista[#"Remetente"][#"email"]										:= Nil
+			_oLista[#"Remetente"][#"Endereco"]									:= Array(#)	
+			_oLista[#"Remetente"][#"Endereco"][#"cep"]							:= SM0->M0_CEPCOB
+			_oLista[#"Remetente"][#"Endereco"][#"logradouro"]					:= SubStr(SM0->M0_ENDCOB, 1, At(",",SM0->M0_ENDCOB) - 1)
+			_oLista[#"Remetente"][#"Endereco"][#"numero"]						:= Alltrim(SubStr(SM0->M0_ENDCOB,At(",",SM0->M0_ENDCOB) + 1))
+			_oLista[#"Remetente"][#"Endereco"][#"complemento"]					:= RTrim(SM0->M0_COMPCOB)
+			_oLista[#"Remetente"][#"Endereco"][#"pontoReferencia"]				:= Nil
+			_oLista[#"Remetente"][#"Endereco"][#"bairro"]						:= RTrim(SM0->M0_BAIRCOB)
+			_oLista[#"Remetente"][#"Endereco"][#"nomeCidade"]					:= RTrim(SM0->M0_CIDCOB)
+			_oLista[#"Remetente"][#"Endereco"][#"siglaEstado"]					:= SM0->M0_ESTCOB
+			_oLista[#"Remetente"][#"Endereco"][#"idCidadeIBGE"]					:= SM0->M0_CODMUN
 			_oLista[#"Destinatario"]											:= Array(#)		
 			_oLista[#"Destinatario"][#"cpf"]									:= IIF( (_cAlias)->A1_PESSOA == "F", RTrim((_cAlias)->A1_CGC), Nil)
-            _oLista[#"Destinatario"][#"cnpj"]									:= IIF( (_cAlias)->A1_PESSOA == "F", Nil, RTrim((_cAlias)->A1_CGC))
-            _oLista[#"Destinatario"][#"inscricaoEstadual"]						:= IIF( (_cAlias)->A1_PESSOA == "F", Nil, RTrim((_cAlias)->A1_INSCR))
-            _oLista[#"Destinatario"][#"nome"]									:= RTrim((_cAlias)->WSA_NOMDES)
-            _oLista[#"Destinatario"][#"razaoSocial"]							:= IIF( (_cAlias)->A1_PESSOA == "F", Nil, RTrim((_cAlias)->A1_NOME))
-            _oLista[#"Destinatario"][#"telefone"]								:= RTrim((_cAlias)->WSA_TEL01)
-            _oLista[#"Destinatario"][#"email"]									:= RTrim((_cAlias)->A1_EMAIL)
-            _oLista[#"Destinatario"][#"Endereco"]								:= Array(#)	
-            _oLista[#"Destinatario"][#"Endereco"][#"cep"]						:= (_cAlias)->WSA_CEPE
-            _oLista[#"Destinatario"][#"Endereco"][#"logradouro"]				:= RTrim(SubStr((_cAlias)->WSA_ENDENT, 1, At(",",(_cAlias)->WSA_ENDENT) - 1))
-            _oLista[#"Destinatario"][#"Endereco"][#"numero"]					:= RTrim((_cAlias)->WSA_ENDNUM)
-            _oLista[#"Destinatario"][#"Endereco"][#"complemento"]				:= RTrim((_cAlias)->WSA_COMPLE)
-            _oLista[#"Destinatario"][#"Endereco"][#"pontoReferencia"]			:= RTrim((_cAlias)->WSA_REFEN)
-            _oLista[#"Destinatario"][#"Endereco"][#"bairro"]					:= RTrim((_cAlias)->WSA_BAIRRE)
-            _oLista[#"Destinatario"][#"Endereco"][#"nomeCidade"]				:= RTrim((_cAlias)->WSA_MUNE)
-            _oLista[#"Destinatario"][#"Endereco"][#"siglaEstado"]				:= (_cAlias)->WSA_ESTE
-            _oLista[#"Destinatario"][#"Endereco"][#"idCidadeIBGE"]				:= Nil 
+			_oLista[#"Destinatario"][#"cnpj"]									:= IIF( (_cAlias)->A1_PESSOA == "F", Nil, RTrim((_cAlias)->A1_CGC))
+			_oLista[#"Destinatario"][#"inscricaoEstadual"]						:= IIF( (_cAlias)->A1_PESSOA == "F", Nil, RTrim((_cAlias)->A1_INSCR))
+			_oLista[#"Destinatario"][#"nome"]									:= RTrim((_cAlias)->WSA_NOMDES)
+			_oLista[#"Destinatario"][#"razaoSocial"]							:= IIF( (_cAlias)->A1_PESSOA == "F", Nil, RTrim((_cAlias)->A1_NOME))
+			_oLista[#"Destinatario"][#"telefone"]								:= RTrim((_cAlias)->WSA_TEL01)
+			_oLista[#"Destinatario"][#"email"]									:= RTrim((_cAlias)->A1_EMAIL)
+			_oLista[#"Destinatario"][#"Endereco"]								:= Array(#)	
+			_oLista[#"Destinatario"][#"Endereco"][#"cep"]						:= (_cAlias)->WSA_CEPE
+			_oLista[#"Destinatario"][#"Endereco"][#"logradouro"]				:= RTrim(SubStr((_cAlias)->WSA_ENDENT, 1, At(",",(_cAlias)->WSA_ENDENT) - 1))
+			_oLista[#"Destinatario"][#"Endereco"][#"numero"]					:= RTrim((_cAlias)->WSA_ENDNUM)
+			_oLista[#"Destinatario"][#"Endereco"][#"complemento"]				:= RTrim((_cAlias)->WSA_COMPLE)
+			_oLista[#"Destinatario"][#"Endereco"][#"pontoReferencia"]			:= RTrim((_cAlias)->WSA_REFEN)
+			_oLista[#"Destinatario"][#"Endereco"][#"bairro"]					:= RTrim((_cAlias)->WSA_BAIRRE)
+			_oLista[#"Destinatario"][#"Endereco"][#"nomeCidade"]				:= RTrim((_cAlias)->WSA_MUNE)
+			_oLista[#"Destinatario"][#"Endereco"][#"siglaEstado"]				:= (_cAlias)->WSA_ESTE
+			_oLista[#"Destinatario"][#"Endereco"][#"idCidadeIBGE"]				:= Nil 
 			_oLista[#"Expedidor"]												:= Nil 
 			_oLista[#"LogisticaReversa"]										:= Nil 
-         	_oLista[#"DadosAgendamento"]										:= Nil 
+			_oLista[#"DadosAgendamento"]										:= Nil 
 
 			_oLista[#"listaOperacoes"]											:= {}
 			aAdd(_oLista[#"listaOperacoes"],Array(#))
 			_oNota := aTail(_oLista[#"listaOperacoes"])
 			_oNota[#"nroNotaFiscal"]											:= Val((_cAlias)->ZZC_NOTA)
-            _oNota[#"serieNotaFiscal"]											:= Val((_cAlias)->ZZC_SERIE)
-            _oNota[#"dtEmissaoNotaFiscal"]										:= IIF(Empty((_cAlias)->F2_DAUTNFE), FWTimeStamp(3,Date(),Time()), FWTimeStamp(3,sTod((_cAlias)->F2_DAUTNFE),Time()))
+			_oNota[#"serieNotaFiscal"]											:= Val((_cAlias)->ZZC_SERIE)
+			_oNota[#"dtEmissaoNotaFiscal"]										:= IIF(Empty((_cAlias)->F2_DAUTNFE), FWTimeStamp(3,Date(),Time()), FWTimeStamp(3,sTod((_cAlias)->F2_DAUTNFE),Time()))
 			_oNota[#"chaveNotaFiscal"]											:= RTrim((_cAlias)->F2_CHVNFE)
 			_oNota[#"nroCarga"]													:= Nil 
 			_oNota[#"nroPedido"]												:= RTrim((_cAlias)->ZZC_NUMECO) //RTrim((_cAlias)->ZZC_NUMSC5)
@@ -260,16 +278,31 @@ While (_cAlias)->( !Eof() )
 			EndIf 
 
 			_oLista[#"linkCTe"]						:= Nil 
-         	_oLista[#"base64CTe"]					:= Nil 
-         	_oLista[#"xmlCTeAnterior"]				:= Nil 
-         	_oLista[#"chaveCTeAnterior"]			:= Nil 
+			_oLista[#"base64CTe"]					:= Nil 
+			_oLista[#"xmlCTeAnterior"]				:= Nil 
+			_oLista[#"chaveCTeAnterior"]			:= Nil 
+		Endif 
 
-		EndIf	 
+		//--------------------------+
+		// Envia Postagem para DLog |
+		//--------------------------+
+		_cRest  := EncodeUTF8(xToJson(_oJSon))
+
+		_oDLog:cJSon 	:= _cRest 
+		_oDLog:cCodigo	:= _cCodPLP
+		_oDLog:cNota	:= _cNota
+		_oDLog:cSerie	:= _cSerie
+		_oDLog:GeraLista()
 
 		(_cAlias)->( dbSkip() )
 
 	EndDo
-	
+
+	//-------------------+	
+	// Atualiza Postagem |
+	//-------------------+	
+	MDLOGM03B(_cCodPLP)
+	/*
 	//--------------------------+
 	// Envia Postagem para DLog |
 	//--------------------------+
@@ -278,6 +311,7 @@ While (_cAlias)->( !Eof() )
 	_oDLog:cJSon 	:= _cRest 
 	_oDLog:cCodigo	:= _cCodPLP
 	_oDLog:GeraLista()
+	*/
 
 EndDo 
 
@@ -367,3 +401,49 @@ If (_cAlias)->( Eof() )
 EndIf
 
 Return .T.
+
+/************************************************************************************/
+/*/{Protheus.doc} MDLOGM03B
+	@description Atualiza Postagem
+	@type  Static Function
+	@author Bernard M Margarido
+	@since 26/06/2024
+	@version version
+/*/
+/************************************************************************************/
+Static Function MDLOGM03B(_cCodPLP)
+Local _cQuery 	:= ""
+Local _cAlias 	:= ""
+Local _lSuccess	:= .T.
+
+_cQuery := " SELECT " + CRLF
+_cQuery += "	ZZC_STATUS STATUS " + CRLF
+_cQuery += " FROM " + CRLF
+_cQuery += "	" + RetSqlName("ZZC") + " " + CRLF
+_cQuery += " WHERE " + CRLF
+_cQuery += "	ZZC_FILIAL = '" + xFilial("ZZC") + "' AND " + CRLF
+_cQuery += "	ZZC_CODIGO = '" + _cCodPLP + "' AND " + CRLF
+_cQuery += "	D_E_L_E_T_ = '' " + CRLF
+_cQuery += " GROUP BY ZZC_STATUS "
+
+_cAlias := MPSysOpenQuery(_cQuery)
+
+While (_cAlias)->( !Eof() )
+	If (_cAlias)->STATUS <> "2"
+		_lSuccess := .F.
+		Exit 
+	EndIf 
+	(_cAlias)->( dbSkip() )
+EndDo 
+
+dbSelectArea("ZZB")
+ZZB->( dbSetOrder(1) )
+If ZZB->( dbSeek(xFilial("ZZB") + _cCodPLP) )
+	RecLock("ZZB",.F.)
+        ZZB->ZZB_STATUS := IIF(_lSuccess,"2","3")
+    ZZB->( MsUnLock() )
+EndIf 
+
+(_cAlias)->( dbCloseArea() )
+
+Return Nil 

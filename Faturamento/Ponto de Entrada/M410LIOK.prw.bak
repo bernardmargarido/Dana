@@ -18,8 +18,6 @@ User Function M410LIOK()
 
 Local cCliBred	:= ""
 Local cGrpSB1	:= ""
-Local cNCMSB1	:= ""
-Local cEXNCMSB1	:= ""
 Local cQuery	:= ""
 Local bValid	:= ""
 Local cCampo	:= ""
@@ -136,8 +134,6 @@ Else
 				_cNatNFSt	:= aCols[n, _nPosNat]
 				
 				cGrpSB1		:= Posicione("SB1",1,xFilial("SB1")+_cPro,"B1_GRTRIB")
-				cNCMSB1		:= Posicione("SB1",1,xFilial("SB1")+_cPro,"B1_POSIPI")
-				cEXNCMSB1	:= Posicione("SB1",1,xFilial("SB1")+_cPro,"B1_EX_NCM")
 				cCliUF  	:= Posicione("SA1",1,xFilial("SA1")+M->(C5_CLIENTE+C5_LOJAENT),"A1_EST")
 				cCliSuf 	:= Posicione("SA1",1,xFilial("SA1")+M->(C5_CLIENTE+C5_LOJAENT),"A1_CALCSUF")
 				cNumSuf 	:= Posicione("SA1",1,xFilial("SA1")+M->(C5_CLIENTE+C5_LOJAENT),"A1_SUFRAMA")
@@ -227,13 +223,7 @@ Else
 							Endif
 						Else
 							If Alltrim(cTPNatNF) == "1"//Venda
-								If Alltrim(cNCMSB1) == "34011190" .And. Alltrim(cEXNCMSB1) == "01" .And. cCliUF == "RJ" .And. cTipCli $"S/R" .And. TRBSZH->ZH_FILIAL =="05"//Regra Sabonete barra RJ
-									aCols[n, _nPosNat]	:= "VE"
-									aCols[n, _nPosTES]	:= "601"
-								ElseIf Alltrim(cNCMSB1) == "34012010" .And. cCliUF == "RJ" .And. cTipCli $"S/R" .And. TRBSZH->ZH_FILIAL =="05"//Regra Sabonete líquido RJ
-									aCols[n, _nPosNat]	:= "VE"
-									aCols[n, _nPosTES]	:= "601"									
-								Elseif cCliUF == "SP" .And. !Alltrim(cGrpSB1) $"100"
+								If cCliUF == "SP" .And. !Alltrim(cGrpSB1) $"100"
 									If Alltrim(cCliBred)=="S" //Com Base Reduzida
 										aCols[n, _nPosNat]	:= TRBSZH->ZH_CODNAT
 										aCols[n, _nPosTES]	:= cValToChar(TRBSZH->ZH_BRSPSIM)//Base reduzida

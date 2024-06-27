@@ -47,6 +47,7 @@ Return _lRet
 Static Function MDLOGM02A()
 Local _aArea        := GetArea()
 
+Local _cStatic		:= "S"+"t"+"a"+"t"+"i"+"c"+"C"+"a"+"l"+"l"
 Local _cAlias       := GetNextAlias()
 
 Local _nToReg       := 0
@@ -97,6 +98,11 @@ While (_cAlias)->( !Eof() )
     //------------------------+
     WSA->( dbGoTo( (_cAlias)->RECNOWSA) )
 
+    //----------------+
+    // Busca XML NF-e |
+    //----------------+
+    _cXMLNfe :=  Eval( {|| &(_cStatic + "(" + "AECOI013, AEcoI13CC,WSA->WSA_DOC,WSA->WSA_SERIE" + ")") }) 
+
     //--------------------------------+
     // Array contendo os dados da PLP |
     //--------------------------------+
@@ -104,7 +110,9 @@ While (_cAlias)->( !Eof() )
                             (_cAlias)->WSA_SERIE    ,;  // 02. Serie
                             (_cAlias)->WSA_NUMECO   ,;  // 03. Codigo do pedido e-Commerce
                             (_cAlias)->WSA_NUMECL   ,;  // 04. Codigo do pedido e-Commerce (Chave)
-                            (_cAlias)->WSA_NUMSC5   })  // 05. Numero do Pedido Faturamento 
+                            (_cAlias)->WSA_NUMSC5   ,;  // 05. Numero do Pedido Faturamento 
+                            (_cAlias)->F2_CHVNFE    ,;  // 06. Chave NFe
+                            _cXMLNfe                })  // 07. XML NF-e
 
     (_cAlias)->( dbSkip() )
 EndDo
@@ -153,6 +161,7 @@ _cQuery += "	WSA.WSA_SERIE, " + CRLF
 _cQuery += "	WSA.WSA_CLIENT, " + CRLF
 _cQuery += "	WSA.WSA_LOJA, " + CRLF
 _cQuery += "	WSA.WSA_SERPOS, " + CRLF
+_cQuery += "    F2.F2_CHVNFE, " + CRLF
 _cQuery += "	WSA.R_E_C_N_O_ RECNOWSA " + CRLF
 _cQuery += " FROM " + CRLF
 _cQuery += "	" + RetSqlName("WSA") + " WSA  " + CRLF

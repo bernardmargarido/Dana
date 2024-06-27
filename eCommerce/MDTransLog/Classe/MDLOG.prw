@@ -24,6 +24,8 @@ Class MDLog
     Data cJSon          As String 
     Data cJSonRet       As String 
     Data cCodigo        As String
+    Data cNota          As String 
+    Data cSerie         As String
     Data cPassword	    As String
 	Data cCertPath	    As String
 	Data cKeyPath		As String
@@ -64,11 +66,13 @@ Method New() Class MDLog
 
     ::cUser         := GetNewPar("DN_MDLGUSE","")
     ::cPassDlog     := GetNewPar("DN_MDLGPAS","kksmdtras01ksa")
-    ::cToken        := GetNewPar("DN_MDLGTOK","")
+    ::cToken        := GetNewPar("DN_MDLGTOK","d1Zqb0Yvb0w1S0JDc0JycmpXSlJuYmpRNFNkUDJ6R296cG5tRE00WnhVam4zSHova3FNVzFiNWl4dWc4a3dPSEhKd2ZyNmFNYlF0TGJxMmRrTjNiTnhMaXpycnNkSVBiOWh2TG9iVjBNay8vNkNucW9kejE2eVpLem1qTzgzK2RmeHB1N2Mwb1d3UGNTKzUyeGtIRWJTalh1UlM2bXlvOVhFNjZCYmVRVGhURk8ya2VGTDRaSXA3MXc2ZFlxWmJBMXZORW4xanU3MUpvejZsZS9lMEFWWTR0V052NWlrVW9nNkNucG1yWnBud1hjRDEvN291ZUVlT2ZnSGFPQTk3V1haZWhDVitmN1Vqd0VhSEUvYXkrZzdEZjJMV3RZdGkvMks4SWNIRFNzVmM9")
     ::cUrl          := GetNewPar("DN_MDLGURL","http://mdtranslog.sinclog.com.br")
     ::cJSon         := ""
     ::cJSonRet      := ""
     ::cCodigo       := ""
+    ::cNota         := ""
+    ::cSerie        := ""
     ::cPassword	    := ""
 	::cCertPath	    := "" 
 	::cKeyPath		:= "" 
@@ -173,6 +177,8 @@ For _nX := 1 To Len(::aNotas)
         ZZC->ZZC_NUMECO := ::aNotas[_nX][3]
         ZZC->ZZC_NUMECL := ::aNotas[_nX][4]
         ZZC->ZZC_NUMSC5 := ::aNotas[_nX][5]
+        ZZC->ZZC_CHVNFE := ::aNotas[_nX][6]
+        ZZC->ZZC_XMLNFE := ::aNotas[_nX][7]
         ZZC->ZZC_JSON   := ""
         ZZC->ZZC_STATUS := "1"
     ZZC->( MsUnLock() )
@@ -192,6 +198,7 @@ Method GeraLista() Class MDLog
 Local _lRet         := .T.
 Local _lStatus      := .T.
 
+Local _cParam       := ""
 Local _cMemoRest    := ""
 Local _cIdInterno   := ""
 Local _cIdGerada    := ""
@@ -227,7 +234,7 @@ WSA->( dbSetOrder(2) )
 
 ::aHeadOut  := {}
 aAdd(::aHeadOut,"Content-Type: application/json")
-aAdd(::aHeadOut,"Authorization:Bearer " + RTrim(::cPassDlog))
+//aAdd(::aHeadOut,"Authorization:Bearer " + RTrim(::cPassDlog))
 
 //-------------------------+
 // Instancia classe FwRest |
@@ -239,7 +246,9 @@ aAdd(::aHeadOut,"Authorization:Bearer " + RTrim(::cPassDlog))
 //---------------------+
 ::oFwRest:nTimeOut := 600
 
-::oFwRest:SetPath("/Api/Solicitacoes/RegistrarNovaSolicitacao")
+//::oFwRest:SetPath("/Api/Solicitacoes/RegistrarNovaSolicitacao")
+_cParam := "apikey=" + Self:cToken 
+::oFwRest:SetPath("/GerarPedido/Gerar?" + _cParam)
 //::oFwRest:SetPostParams(EncodeUTF8(Self:cJSon))
 ::oFwRest:SetPostParams(Self:cJSon)
 
@@ -250,62 +259,66 @@ If ::oFwRest:Post(::aHeadOut)
     ::cJSonRet	:= DecodeUtf8(::oFwRest:GetResult())
     ::oJSon	    := xFromJson(::cJSonRet)
 
-    If ValType(::oJSon) <> "U" 
-        If !::oJSon[#"erro"] 
-            //-----------------------+
-            // Grava JSON de retorno | 
-            //-----------------------+
-            _oNotas    := ::oJSon[#"resultados"]
-            For _nX := 1 To Len(_oNotas)
-                _cIdInterno := _oNotas[_nX][#"idSolicitacaoInterno"]
-                _cIdGerada  := _oNotas[_nX][#"idSolicitacaoGerada"]
-                _oVolumes   := _oNotas[_nX][#"listaVolumes"]
+    If ValType(::oJSon) <> "U"
+        If Self:oFwRest:oResponseH:cStatusCode == "200"
 
-                //-----------------------------------------+
-                // Grava informações nos itens da postagem | 
-                //-----------------------------------------+
-                If ZZC->( dbSeek(xFilial("ZZC") + ::cCodigo + Padr(SubStr(_cIdInterno,1,6),_nTDoc) + PadR(SubStr(_cIdInterno,7,2),_nTSerie)))
-                    _cNumEco    := ZZC->ZZC_NUMECO
+            //-----------------------------------------+
+            // Grava informações nos itens da postagem | 
+            //-----------------------------------------+
+            If ZZC->( dbSeek(xFilial("ZZC") + Self:cCodigo + Padr(Self:cNota,_nTDoc) + PadR(Self:cSerie,_nTSerie)))
+                _cNumEco    := ZZC->ZZC_NUMECO
 
-                    _oResp                          := Nil 
-                    _oResp                          := Array(#)
-                    _oResp[#"idSolicitacaoInterno"] := _cIdInterno
-                    _oResp[#"idSolicitacaoGerada"]  := _cIdGerada
-                    _oResp[#"listaVolumes"]         := _oVolumes
-                    _oResp[#"linkRastreamento"]     := "https://mdtranslog.uxsolutions.com.br/TrackingFilter/MQA5ADQAMwA4ADYANQA=/P/" + Rtrim(ZZC->ZZC_NUMECO)
-                    //"https://mdtranslog.uxsolutions.com.br/TrackingFilter/MQA5ADQAMwA4ADYANQA=/P/" + Rtrim(ZZC->ZZC_NUMSC5)
-                    _cMemoRest  := EncodeUTF8(xToJson(_oResp))
-                    _lStatus    := .T.
+                /*
+                //-----------------------+
+                // Grava JSON de retorno | 
+                //-----------------------+
+                /*
+                _oNotas    := ::oJSon[#"resultados"]
+                For _nX := 1 To Len(_oNotas)
+                    _cIdInterno := _oNotas[_nX][#"idSolicitacaoInterno"]
+                    _cIdGerada  := _oNotas[_nX][#"idSolicitacaoGerada"]
+                    _oVolumes   := _oNotas[_nX][#"listaVolumes"]
 
-                    RecLock("ZZC",.F.)
-                        ZZC->ZZC_JSON   := _cMemoRest
-                        ZZC->ZZC_STATUS := IIF(_lStatus,"2","3")
-                    ZZC->( MsUnLock() )
+                    
+                Next _nX 
+                _oResp                          := Nil 
+                _oResp                          := Array(#)
+                _oResp[#"idSolicitacaoInterno"] := _cIdInterno
+                _oResp[#"idSolicitacaoGerada"]  := _cIdGerada
+                _oResp[#"listaVolumes"]         := _oVolumes
+                _oResp[#"linkRastreamento"]     := "https://mdtranslog.uxsolutions.com.br/TrackingFilter/MQA5ADQAMwA4ADYANQA=/P/" + Rtrim(ZZC->ZZC_NUMECO)
+                //"https://mdtranslog.uxsolutions.com.br/TrackingFilter/MQA5ADQAMwA4ADYANQA=/P/" + Rtrim(ZZC->ZZC_NUMSC5)
+                _cMemoRest  := EncodeUTF8(xToJson(_oResp))
+                */
+                
+                _lStatus    := .T.
 
-                    //-----------------------------------+    
-                    // Atualiza status pedido e-Commerce |
-                    //-----------------------------------+
-                    If WSA->( dbSeek(xFilial("WSA") + _cNumEco) )
-                        RecLock("WSA",.F.)
-                            WSA->WSA_ENVLOG := "4"
-                            WSA->WSA_CODSTA := "005"
-                            WSA->WSA_DESTAT := Posicione("WS1",1,xFilial("WS1") + "005","WS1_DESCRI")
-                        WSA->( MsUnLock() )
-                    EndIf
+                RecLock("ZZC",.F.)
+                    ZZC->ZZC_JSON   := _cMemoRest
+                    ZZC->ZZC_STATUS := IIF(_lStatus,"2","3")
+                    If Empty(ZZC->ZZC_XMLNFE)
+                        ZZC->ZZC_XMLNFE := Self:cJSon
+                    EndIf 
+                ZZC->( MsUnLock() )
+
+                //-----------------------------------+    
+                // Atualiza status pedido e-Commerce |
+                //-----------------------------------+
+                If WSA->( dbSeek(xFilial("WSA") + _cNumEco) )
+                    RecLock("WSA",.F.)
+                        WSA->WSA_ENVLOG := "4"
+                        WSA->WSA_CODSTA := "005"
+                        WSA->WSA_DESTAT := Posicione("WS1",1,xFilial("WS1") + "005","WS1_DESCRI")
+                    WSA->( MsUnLock() )
                 EndIf
-            Next _nX 
-            
-            //-----------------------+
-            // Atualiza JSON enviado |
-            //-----------------------+
-            RecLock("ZZB",.F.)
-                ZZB->ZZB_JSON   := ::cJSon
-                ZZB->ZZB_STATUS := IIF(_lStatus,"2","3")
-            ZZB->( MsUnLock() )
-        Else 
-            _lRet       := .F.
-            ::cError    := ::oJSon[#"mensagem"] + CRLF
+            EndIf
 
+
+        ElseIf Self:oFwRest:oResponseH:cStatusCode <> "200"
+        
+            _lRet       := .F.
+            ::cError    := ::oJSon[#"Message"] + CRLF
+            /*
             If ValType(::oJSon[#"errosDetalhes"]) <> "U" .And. Len(::oJSon[#"errosDetalhes"]) > 0 
                 For _nX := 1 To Len(::oJSon[#"errosDetalhes"])
                     ::cError += cValToChar(::oJSon[#"errosDetalhes"][_nX][#"code"]) + " "
@@ -314,26 +327,21 @@ If ::oFwRest:Post(::aHeadOut)
                     _cIdInterno := ::oJSon[#"errosDetalhes"][_nX][#"info"][#"idSolicitacaoInterno"] 
                 Next _nX 
             EndIf 
+            */
             //-----------------------------------------+
             // Grava informações nos itens da postagem | 
             //-----------------------------------------+
-            If ZZC->( dbSeek(xFilial("ZZC") + ::cCodigo + Padr(SubStr(_cIdInterno,1,6),_nTDoc) + PadR(SubStr(_cIdInterno,7,2),_nTSerie)))
+            If ZZC->( dbSeek(xFilial("ZZC") + Self:cCodigo + Padr(Self:cNota,_nTDoc) + PadR(Self:cSerie,_nTSerie)))
                 _cNumEco    := ZZC->ZZC_NUMECO
                 RecLock("ZZC",.F.)
                     ZZC->ZZC_JSON   := ::cError
                     ZZC->ZZC_STATUS := "3"
+                    If Empty(ZZC->ZZC_XMLNFE)
+                        ZZC->ZZC_XMLNFE := Self:cJSon
+                    EndIf 
                 ZZC->( MsUnLock() )
                 
             EndIf
-            
-            //-----------------------+
-            // Atualiza JSON enviado |
-            //-----------------------+
-            RecLock("ZZB",.F.)
-                ZZB->ZZB_JSON   := ::cJSon
-                ZZB->ZZB_STATUS := "3"
-            ZZB->( MsUnLock() )
-
         EndIf 
     EndIf
 Else
@@ -345,10 +353,11 @@ Else
         ::oJSon	    := xFromJson(::cJSonRet)
 
         If ValType(::oJSon) <> "U" 
-            If ::oJSon[#"erro"]
+            //If ::oJSon[#"erro"]
                 _lRet       := .F.
-                ::cError    := ::oJSon[#"mensagem"] + CRLF
+                ::cError    := ::oJSon[#"Message"] + CRLF
 
+                /*
                 If ValType(::oJSon[#"errosDetalhes"]) <> "U" .And. Len(::oJSon[#"errosDetalhes"]) > 0 
                     For _nX := 1 To Len(::oJSon[#"errosDetalhes"])
                         ::cError += cValToChar(::oJSon[#"errosDetalhes"][_nX][#"code"]) + " "
@@ -357,29 +366,25 @@ Else
                         _cIdInterno := ::oJSon[#"errosDetalhes"][_nX][#"info"][#"idSolicitacaoInterno"] 
                     Next _nX 
                 EndIf 
+                */
                 //-----------------------------------------+
                 // Grava informações nos itens da postagem | 
                 //-----------------------------------------+
-                If ZZC->( dbSeek(xFilial("ZZC") + ::cCodigo + Padr(SubStr(_cIdInterno,1,6),_nTDoc) + PadR(SubStr(_cIdInterno,7,2),_nTSerie)))
+                If ZZC->( dbSeek(xFilial("ZZC") + Self:cCodigo + Padr(Self:cNota,_nTDoc) + PadR(Self:cSerie,_nTSerie)))
                     _cNumEco    := ZZC->ZZC_NUMECO
                     RecLock("ZZC",.F.)
                         ZZC->ZZC_JSON   := ::cError
                         ZZC->ZZC_STATUS := "3"
+                        If Empty(ZZC->ZZC_XMLNFE)
+                            ZZC->ZZC_XMLNFE := Self:cJSon
+                        EndIf 
                     ZZC->( MsUnLock() )
                 EndIf
-            
-                //-----------------------+
-                // Atualiza JSON enviado |
-                //-----------------------+
-                RecLock("ZZB",.F.)
-                    ZZB->ZZB_JSON   := ::cJSon
-                    ZZB->ZZB_STATUS := "3"
-                ZZB->( MsUnLock() )
-
-            Else
-                _lRet       := .F.
-                ::cError    := "Erro ao enviar coleta MDTransLog."
-            EndIf 
+               
+            //Else
+            //    _lRet       := .F.
+            //    ::cError    := "Erro ao enviar coleta MDTransLog."
+            //EndIf 
         Else
             _lRet       := .F.
             ::cError    := "Erro ao enviar coleta MDTransLog."

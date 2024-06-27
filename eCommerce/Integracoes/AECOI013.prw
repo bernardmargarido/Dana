@@ -512,7 +512,7 @@ Local _cCNPJDEST	:= Space(14)
 
 Local _nX			:= 0
 
-Local _dDtaIni		:= DaySub(Date(),15)
+Local _dDtaIni		:= DaySub(Date(),30)
 Local _dDtaFim		:= Date()
 
 Private oWS 		:= Nil 
