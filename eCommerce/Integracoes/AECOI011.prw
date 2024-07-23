@@ -4259,6 +4259,7 @@ _lGrava := AEcoVldAga(_cIdEnd)
 
 If _lGrava
 	_cCodEnd := GetSxeNum("AGA","AGA_CODIGO")
+	AGA->( dbSetOrder(2) )
 	While AGA->( dbSeek(xFilial("AGA") + _cCodEnd ) )
 		ConfirmSx8()
 		_cCodEnd := GetSxeNum("AGA","AGA_CODIGO")
