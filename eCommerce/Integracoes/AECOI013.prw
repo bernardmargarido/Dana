@@ -146,113 +146,116 @@ EndIf
 //----------------------------------+
 aEcoI13DtaE(WSA->WSA_DOC,WSA->WSA_SERIE,WSA->WSA_CLIENT,WSA->WSA_LOJA,@cChaveNfe,@_cXmlNF,@dDtaEmiss,@_nVlrTotal,@cCfop,@_nVolume)
 
-cOrderID	:= RTrim(WSA->WSA_NUMECO)
-cTracking 	:= Rtrim(WSA->WSA_TRACKI)
-cNumTransp	:= WSA->WSA_TRANSP
+If !Empty(_cXmlNF)
 
-//------------------+
-// Valida se é DLog |
-//------------------+
-If Rtrim(cNumTransp) $ RTrim(_cCodDLog)
-	aEcoI13Url(WSA->WSA_NUMECO,@cUrlTrack,@cTracking)
-EndIf
-//-----------------------+
-// Monta String API Rest |
-//-----------------------+
-_oJson					:= {}        
-_oJson					:= Array(#)	
-_oJson[#"type"]			:= "Output"
-_oJson[#"invoiceNumber"]:= RTrim(WSA->WSA_DOC) + "-" + RTrim(WSA->WSA_SERIE)
+	cOrderID	:= RTrim(WSA->WSA_NUMECO)
+	cTracking 	:= Rtrim(WSA->WSA_TRACKI)
+	cNumTransp	:= WSA->WSA_TRANSP
 
-//------------+
-// Chave NF-e |
-//------------+
-If !Empty(cChaveNfe)
-	_oJson[#"invoiceKey"]	:= cChaveNfe
-EndIf
+	//------------------+
+	// Valida se é DLog |
+	//------------------+
+	If Rtrim(cNumTransp) $ RTrim(_cCodDLog)
+		aEcoI13Url(WSA->WSA_NUMECO,@cUrlTrack,@cTracking)
+	EndIf
+	//-----------------------+
+	// Monta String API Rest |
+	//-----------------------+
+	_oJson					:= {}        
+	_oJson					:= Array(#)	
+	_oJson[#"type"]			:= "Output"
+	_oJson[#"invoiceNumber"]:= RTrim(WSA->WSA_DOC) + "-" + RTrim(WSA->WSA_SERIE)
 
-If Empty(cTracking) .And. At('Shopee',WSA->WSA_NUMECO) > 0 
-	cTracking := RTrim(WSA->WSA_DOC) + RTrim(WSA->WSA_SERIE)
-EndIf 
+	//------------+
+	// Chave NF-e |
+	//------------+
+	If !Empty(cChaveNfe)
+		_oJson[#"invoiceKey"]	:= cChaveNfe
+	EndIf
 
-_oJson[#"courier"]			:= cNumTransp
-_oJson[#"trackingNumber"]	:= cTracking
-_oJson[#"trackingUrl"]		:= cUrlTrack
-_oJson[#"embeddedInvoice"]	:= StrTran(_cXmlNF,'"',"'")
+	If Empty(cTracking) .And. At('Shopee',WSA->WSA_NUMECO) > 0 
+		cTracking := RTrim(WSA->WSA_DOC) + RTrim(WSA->WSA_SERIE)
+	EndIf 
 
-//-------------------------+
-// Posiciona Itens da Nota |
-//-------------------------+
-_oJson[#"items"]	:= {}
+	_oJson[#"courier"]			:= cNumTransp
+	_oJson[#"trackingNumber"]	:= cTracking
+	_oJson[#"trackingUrl"]		:= cUrlTrack
+	_oJson[#"embeddedInvoice"]	:= StrTran(_cXmlNF,'"',"'")
 
-WSB->( dbSetOrder(1) )
-WSB->( dbSeek(xFilial("WSB") + WSA->WSA_NUM ) )
-While WSB->( !Eof() .And. xFilial("WSB") + WSA->WSA_NUM == WSB->WSB_FILIAL + WSB->WSB_NUM )
+	//-------------------------+
+	// Posiciona Itens da Nota |
+	//-------------------------+
+	_oJson[#"items"]	:= {}
 
-	aAdd(_oJson[#"items"],Array(#))
-	_oItens				:= aTail(_oJson[#"items"])   
-	
-	//------------------------------------------+
-	// Posiciona Porduto para pegar codigo Vtex |
-	//------------------------------------------+
-	aEcoI013Sku(WSA->WSA_IDLOJA,WSB->WSB_PRODUT,@nIdSku)
-	
-	cQuant := Alltrim(Str(Int(WSB->WSB_QUANT)))
-	cPrcVen:= cValToChar(RetPrcUni(WSB->WSB_VRUNIT))
+	WSB->( dbSetOrder(1) )
+	WSB->( dbSeek(xFilial("WSB") + WSA->WSA_NUM ) )
+	While WSB->( !Eof() .And. xFilial("WSB") + WSA->WSA_NUM == WSB->WSB_FILIAL + WSB->WSB_NUM )
 
-	_oItens[#"id"]			:= 	IIF(Empty(WSB->WSB_KIT),Alltrim(Str(nIdSku)),RTrim(WSB->WSB_KIT))
-	_oItens[#"quantity"]	:= 	cQuant
-	_oItens[#"price"]		:= 	cPrcVen
+		aAdd(_oJson[#"items"],Array(#))
+		_oItens				:= aTail(_oJson[#"items"])   
 		
-	WSB->( dbSkip() )   
-	
-EndDo
+		//------------------------------------------+
+		// Posiciona Porduto para pegar codigo Vtex |
+		//------------------------------------------+
+		aEcoI013Sku(WSA->WSA_IDLOJA,WSB->WSB_PRODUT,@nIdSku)
+		
+		cQuant := Alltrim(Str(Int(WSB->WSB_QUANT)))
+		cPrcVen:= cValToChar(RetPrcUni(WSB->WSB_VRUNIT))
 
-//-----------------------------+
-// Data e Valor de Faturamento |
-//-----------------------------+
-cDtaFat := IIF(Empty(dDtaEmiss),dTos(dDataBase),dTos(dDtaEmiss))
-cDtaFat := SubStr(cDtaFat,1,4) + "-" + SubStr(cDtaFat,5,2) + "-" + SubStr(cDtaFat,7,2) //+ "T" + SubStr(Time(),1,8)
-cVlrFat	:= cValToChar(RetPrcUni(_nVlrTotal))    
+		_oItens[#"id"]			:= 	IIF(Empty(WSB->WSB_KIT),Alltrim(Str(nIdSku)),RTrim(WSB->WSB_KIT))
+		_oItens[#"quantity"]	:= 	cQuant
+		_oItens[#"price"]		:= 	cPrcVen
+			
+		WSB->( dbSkip() )   
+		
+	EndDo
 
-//------------------------+
-// Data e Valor da Fatura |
-//------------------------+
-_oJson[#"cfop"]			:= cCfop
-_oJson[#"volumes"]		:= _nVolume
-_oJson[#"issuanceDate"]	:= cDtaFat
-_oJson[#"invoiceValue"]	:= cVlrFat
+	//-----------------------------+
+	// Data e Valor de Faturamento |
+	//-----------------------------+
+	cDtaFat := IIF(Empty(dDtaEmiss),dTos(dDataBase),dTos(dDtaEmiss))
+	cDtaFat := SubStr(cDtaFat,1,4) + "-" + SubStr(cDtaFat,5,2) + "-" + SubStr(cDtaFat,7,2) //+ "T" + SubStr(Time(),1,8)
+	cVlrFat	:= cValToChar(RetPrcUni(_nVlrTotal))    
 
-//---------------------------+
-// Transforma Objeto em JSON |
-//---------------------------+
-cRest := xToJson(_oJson)
+	//------------------------+
+	// Data e Valor da Fatura |
+	//------------------------+
+	_oJson[#"cfop"]			:= cCfop
+	_oJson[#"volumes"]		:= _nVolume
+	_oJson[#"issuanceDate"]	:= cDtaFat
+	_oJson[#"invoiceValue"]	:= cVlrFat
 
-//--------------------+
-// Salva JSON enviado |
-//--------------------+
+	//---------------------------+
+	// Transforma Objeto em JSON |
+	//---------------------------+
+	cRest := xToJson(_oJson)
 
-//----------------+
-// Valida ID loja |
-//----------------+
-If WSA->(FieldPos("WSA_IDLOJA")) > 0 .And. !Empty(WSA->WSA_IDLOJA)
-	dbSelectArea("XTC")
-	XTC->( dbSetOrder(1) )
-	XTC->( dbSeek(xFilial("XTC") + WSA->WSA_IDLOJA))
+	//--------------------+
+	// Salva JSON enviado |
+	//--------------------+
 
-	cUrl			:= RTrim(XTC->XTC_URL2)
-	cAppKey			:= RTrim(XTC->XTC_APPKEY)
-	cAppToken		:= RTrim(XTC->XTC_APPTOK)
-Else
-	cUrl			:= GetNewPar("EC_URLREST")
-	cAppKey			:= GetNewPar("EC_APPKEY")
-	cAppToken		:= GetNewPar("EC_APPTOKE")
+	//----------------+
+	// Valida ID loja |
+	//----------------+
+	If WSA->(FieldPos("WSA_IDLOJA")) > 0 .And. !Empty(WSA->WSA_IDLOJA)
+		dbSelectArea("XTC")
+		XTC->( dbSetOrder(1) )
+		XTC->( dbSeek(xFilial("XTC") + WSA->WSA_IDLOJA))
+
+		cUrl			:= RTrim(XTC->XTC_URL2)
+		cAppKey			:= RTrim(XTC->XTC_APPKEY)
+		cAppToken		:= RTrim(XTC->XTC_APPTOK)
+	Else
+		cUrl			:= GetNewPar("EC_URLREST")
+		cAppKey			:= GetNewPar("EC_APPKEY")
+		cAppToken		:= GetNewPar("EC_APPTOKE")
+	EndIf 
+
+	//---------------+
+	// Envia Invoice |
+	//---------------+ 
+	aRet := AEcoI13Inv(WSA->WSA_DOC,WSA->WSA_SERIE,cOrderID,cRest,cUrl,cAppKey,cAppToken)
 EndIf 
-
-//---------------+
-// Envia Invoice |
-//---------------+ 
-aRet := AEcoI13Inv(WSA->WSA_DOC,WSA->WSA_SERIE,cOrderID,cRest,cUrl,cAppKey,cAppToken)
 
 RestArea(aArea)
 Return aRet[1]
@@ -317,7 +320,8 @@ Private _cType	:= ""
 _cQuery := " SELECT " + CRLF
 _cQuery	+= "	ZZC.R_E_C_N_O_ RECNOZZC, " + CRLF
 _cQuery	+= "	ZZC.ZZC_STATUS STATUS, " + CRLF
-_cQuery	+= "	CAST(CAST( ZZC.ZZC_JSON AS BINARY(2048)) AS VARCHAR(2048)) JSON_DLOG " + CRLF
+_cQuery	+= "	CAST(CAST( ZZC.ZZC_JSON AS BINARY(2048)) AS VARCHAR(2048)) JSON_DLOG, " + CRLF
+_cQuery	+= "	CAST(CAST( ZZC.ZZC_XMLNFE AS BINARY(2048)) AS VARCHAR(2048)) JSON_XML " + CRLF
 _cQuery	+= " FROM " + CRLF
 _cQuery	+= "	" + RetSqlName("ZZC") + " ZZC " + CRLF 
 _cQuery	+= " WHERE " + CRLF
@@ -327,8 +331,8 @@ _cQuery	+= "	ZZC.D_E_L_E_T_ = '' " + CRLF
 
 _cAlias := MPSysOpenQuery(_cQuery)
 
-If (_cAlias)->STATUS == "2" .And. !Empty((_cAlias)->JSON_DLOG)
-	//_oJSonUrl 	:= xFromJson(RTrim((_cAlias)->JSON_DLOG))
+If (_cAlias)->STATUS == "2" .And. ( !Empty((_cAlias)->JSON_DLOG) .Or. !Empty((_cAlias)->JSON_DLOG) )
+	/*
 	_oJSonUrl:fromJson(RTrim((_cAlias)->JSON_DLOG))
 	If ValType(_oJSonUrl) <> "U"
 		_cType := '_oJSonUrl["linkRastreamento"]'
@@ -337,6 +341,8 @@ If (_cAlias)->STATUS == "2" .And. !Empty((_cAlias)->JSON_DLOG)
 			cTracking	:= SubStr(cUrlTrack,Rat("/",cUrlTrack) + 1)
 		EndIf 
 	EndIf 
+	*/
+	cTracking	:= 'https://rastrearmeupedido.com.br/rastreamento.html?ce=471&CodPag=DANA COSMÉTICOS - 61105722000600&numeroPedido=' + _cNumEco + '&cap=false
 EndIf
 
 (_cAlias)->( dbCloseArea() )
