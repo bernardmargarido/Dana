@@ -313,7 +313,7 @@ Static Function aEcoI13Url(_cNumEco,cUrlTrack,cTracking)
 Local _cAlias	:= ""
 Local _cQuery   := ""
 
-Local _oJSonUrl	:= JsonObject():New() 
+//Local _oJSonUrl	:= JsonObject():New() 
 
 Private _cType	:= ""
 
