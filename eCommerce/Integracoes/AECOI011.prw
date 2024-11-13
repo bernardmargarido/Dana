@@ -4354,7 +4354,7 @@ cUrlParms := "?f_status=ready-for-handling"
 //cHostName := "f_hostname=" + Lower(RTrim(_cHostName))
 cOrderBy  := "&orderBy=creationDate,asc"
 cPerPage  := "&per_page=100"
-cPage	  := "&page=" + cValToChar(nPage) + "	
+cPage	  := "&page=" + cValToChar(nPage)	
 cQryParam := cUrlParms + cOrderBy + cPerPage + cPage
 //cHtmlPage := HttpGet(cUrl + "/api/oms/pvt/orders" + cQryParam  , /*cUrlParms*/, nTimeOut, aHeadOut, @cXmlHead)
 
