@@ -85,7 +85,8 @@ Local _cQuery   := ""
 Local _cAlias   := ""
 
 _cQuery := " SELECT " + CRLF
-_cQuery += "	WSA_NUMECO " + CRLF
+_cQuery += "	WSA_NUM, " + CRLF
+_cQuery += "	R_E_C_N_O_ RECNOWSA " + CRLF
 _cQuery += " FROM " + CRLF
 _cQuery += "	" + RetSqlName("WSA") + " WSA " + CRLF
 _cQuery += " WHERE " + CRLF
@@ -98,10 +99,15 @@ _cAlias := MPSysOpenQuery(_cQuery)
 
 While (_cAlias)->( !Eof() )
     
-    _oSay:cCaption := "Enviando invoice orcamento " + (_cAlias)->WSA_NUMECO
+    _oSay:cCaption := "Enviando invoice orcamento " + (_cAlias)->WSA_NUM
     ProcessMessages()
 
-    U_AECOI013((_cAlias)->WSA_NUM)
+    If U_AECOI013((_cAlias)->WSA_NUM)
+        WSA->( dbGoTo((_cAlias)->RECNOWSA))
+        RecLock("WSA",.F.)
+            WSA->WSA_ENVLOG := "5"
+        WSA->( MsUnLock() )
+    EndIf 
 
     (_cAlias)->( dbSkip() )
 
