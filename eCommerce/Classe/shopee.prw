@@ -52,7 +52,7 @@ Return Nil
     @version version
 /*/
 /*************************************************************************************************************/
-Method GetToken()
+Method GetToken() Class Shopee    
 Local _lRet     := .T. 
 
 Local _oFwRest  := FWRest():New(Self:_cUrl)

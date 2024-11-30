@@ -66,40 +66,48 @@ If _lContinua
         // Posiciona registro |
         //--------------------+
         WSA->( dbGoTo((_cAlias)->RECNOWSA) )
-            
-        //-----------------------------+
-        // Pagamento pendente/aprovado |
-        //-----------------------------+
-        If WSA->WSA_CODSTA $ "001/002" .And. Empty(WSA->WSA_NUMSL1)
-            LogExec("==> INICIO ORCAMENTO ECOMMERCE " + WSA->WSA_NUM + "DATA/HORA: " + dToc( Date() ) + " AS " + Time() )
-                Begin Transaction 
-                    EcLoj012Orc()
-                End Transaction    
-            LogExec("==> FIM ORCAMENTO ECOMMERCE " + WSA->WSA_NUM + "DATA/HORA: " + dToc( Date() ) + " AS " + Time() )
-        //----------------------------------------+    
-        // Libera pedidos com bloqueio de estoque |
-        //----------------------------------------+
-        ElseIf WSA->WSA_CODSTA $ "002/004" .And. !Empty(WSA->WSA_NUMSC5)
-            LogExec("==> INICIO LIBERACAO ORCAMENTO ECOMMERCE " + WSA->WSA_NUM + "DATA/HORA: " + dToc( Date() ) + " AS " + Time() )
-                Begin Transaction 
-                    //------------------------+
-                    // Libera pedido de Venda | 
-                    //------------------------+
-                    If EcLoj012Lib(WSA->WSA_NUMSC5)
-                        U_GrvStaEc(WSA->WSA_NUMECO,"011")
-                    Else
-                        U_GrvStaEc(WSA->WSA_NUMECO,"004")
-                    EndIf
-                End Transaction   
-            LogExec("==> FIM LIBERACAO ORCAMENTO ECOMMERCE " + WSA->WSA_NUM + "DATA/HORA: " + dToc( Date() ) + " AS " + Time() )
-        //-----------+
-        // Cancelado |
-        //-----------+
-        ElseIf WSA->WSA_CODSTA $ "008"
-            LogExec("==> INICIO CANCELAMENTO ORCAMENTO ECOMMERCE " + WSA->WSA_NUM + "DATA/HORA: " + dToc( Date() ) + " AS " + Time() )
-                //EcLoj012Can()
-            LogExec("==> FIM CANCELAMENTO ORCAMENTO ECOMMERCE " + WSA->WSA_NUM + "DATA/HORA: " + dToc( Date() ) + " AS " + Time() )
-        EndIf
+        
+        // Somente pedidos com total maior que 1 
+        If WSA->WSA_VLRTOT < 1
+            //-----------------------------+
+            // Pagamento pendente/aprovado |
+            //-----------------------------+
+            If WSA->WSA_CODSTA $ "001/002" .And. Empty(WSA->WSA_NUMSL1)
+                LogExec("==> INICIO ORCAMENTO ECOMMERCE " + WSA->WSA_NUM + "DATA/HORA: " + dToc( Date() ) + " AS " + Time() )
+                    Begin Transaction 
+                        EcLoj012Orc()
+                    End Transaction    
+                LogExec("==> FIM ORCAMENTO ECOMMERCE " + WSA->WSA_NUM + "DATA/HORA: " + dToc( Date() ) + " AS " + Time() )
+            //----------------------------------------+    
+            // Libera pedidos com bloqueio de estoque |
+            //----------------------------------------+
+            ElseIf WSA->WSA_CODSTA $ "002/004" .And. !Empty(WSA->WSA_NUMSC5)
+                LogExec("==> INICIO LIBERACAO ORCAMENTO ECOMMERCE " + WSA->WSA_NUM + "DATA/HORA: " + dToc( Date() ) + " AS " + Time() )
+                    Begin Transaction 
+                        //------------------------+
+                        // Libera pedido de Venda | 
+                        //------------------------+
+                        If EcLoj012Lib(WSA->WSA_NUMSC5)
+                            U_GrvStaEc(WSA->WSA_NUMECO,"011")
+                        Else
+                            U_GrvStaEc(WSA->WSA_NUMECO,"004")
+                        EndIf
+                    End Transaction   
+                LogExec("==> FIM LIBERACAO ORCAMENTO ECOMMERCE " + WSA->WSA_NUM + "DATA/HORA: " + dToc( Date() ) + " AS " + Time() )
+            //-----------+
+            // Cancelado |
+            //-----------+
+            ElseIf WSA->WSA_CODSTA $ "008"
+                LogExec("==> INICIO CANCELAMENTO ORCAMENTO ECOMMERCE " + WSA->WSA_NUM + "DATA/HORA: " + dToc( Date() ) + " AS " + Time() )
+                    //EcLoj012Can()
+                LogExec("==> FIM CANCELAMENTO ORCAMENTO ECOMMERCE " + WSA->WSA_NUM + "DATA/HORA: " + dToc( Date() ) + " AS " + Time() )
+            EndIf
+        Else 
+            RecLock("WSA",.F.)
+                WSA->WSA_CODSTA := "888"
+                WSA->WSA_ENVLOG := 'X'
+            WSA->( MsUnLock() )
+        EndIf 
         (_cAlias)->( dbSkip() )
     EndDo
 

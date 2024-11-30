@@ -10,20 +10,22 @@
     @since 10/08/2020
 /*/
 /*********************************************************************************/
-User Function ECLOJM07(_cEmpInt,_cFilInt)
+User Function ECLOJM07(_aParam)
 Local _aArea        := GetArea()
+
+Local _cEmpInt      := IIF(ValType(_aParam) <> "U", _aParam[1], "01")
+Local _cFilInt      := IIF(ValType(_aParam) <> "U", _aParam[2], "06")
 
 Private _lJob       := .T. //IIF(!Empty(_cEmpInt) .And. !Empty(_cFilInt), .T., .F.)
 
-Default _cEmpInt    := "01"
-Default _cFilInt    := "06"
+//Default _cEmpInt    := "01"
+//Default _cFilInt    := "06"
 
 //------------------+
 // Mensagem console |
 //------------------+
 CoNout("<< ECLOJM07 >> - INICIO " + dTos( Date() ) + " - " + Time() )
 
-/*   
 //-----------------------+
 // Abre empresa / filial | 
 //-----------------------+
@@ -35,6 +37,7 @@ EndIf
 //--------------------------+
 // Cria arquivo de semaforo |
 //--------------------------+
+/*
 If !LockByName("ECLOJM07", .T., .T.)
     CoNout("<< ECLOJM07 >> - ROTINA EM USO AGUARDE A FINALIZACAO DO PROCESSO - DATA " + dToc(Date()) + " HORA " + Time() )
     CoNout("<< ECLOJM07 >> - FIM ENVIO INVOICE ECOMMERCE - DATA " + dToc(Date()) + " HORA " + Time() )
@@ -45,7 +48,8 @@ If !LockByName("ECLOJM07", .T., .T.)
     Endif 
     Return Nil 
 EndIf 
-    
+*/
+
 //-----------------------+
 // Integração de Pedidos |
 //-----------------------+
@@ -62,7 +66,7 @@ CoNout("<< ECLOJM07 >> - FIM ENVIO INVOICE ECOMMERCE " + dTos( Date() ) + " - " 
 //----------------------------+
 // Exclui arquivo de semaforo |
 //----------------------------+
-UnLockByName("ECLOJM07", .T., .T.)
+//UnLockByName("ECLOJM07", .T., .T.)
 
 //------------------------+
 // Fecha empresa / filial |
@@ -70,9 +74,8 @@ UnLockByName("ECLOJM07", .T., .T.)
 If _lJob
     RpcClearEnv()
 EndIf    
-*/
 
-EcLojM07A()
+//EcLojM07A()
 
 CoNout("<< ECLOJM07 >> - FIM " + dTos( Date() ) + " - " + Time() )
 
