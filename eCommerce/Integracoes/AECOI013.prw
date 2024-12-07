@@ -365,6 +365,8 @@ Local aRet			:= {.T.,"",""}
 //Local cAppKey		:= GetNewPar("EC_APPKEY")
 //Local cAppToken	:= GetNewPar("EC_APPTOKE")
 
+Local _cJSon		:= ""
+
 Local nTimeOut		:= 240
 
 Local aHeadOut  	:= {}
@@ -380,8 +382,13 @@ MemoWrite("ecommerce\arquivos\invoice\jsoninvoice_" + RTrim(cDocNum) + "_" + RTr
 aAdd(aHeadOut,"Content-Type: application/json" )
 aAdd(aHeadOut,"X-VTEX-API-AppKey:" + cAppKey )
 aAdd(aHeadOut,"X-VTEX-API-AppToken:" + cAppToken ) 
-                     
-cRetPost := HttpPost(cUrl + "/api/oms/pvt/orders/" + Alltrim(cOrderID) + "/invoice","",cRest,nTimeOut,aHeadOut,@cXmlHead) 
+
+//_cJSon := EncodeUTF8(cRest)
+//If ValType(_cJSon) == "U"
+	_cJSon := cRest
+//EndIf 
+
+cRetPost := HttpPost(cUrl + "/api/oms/pvt/orders/" + Alltrim(cOrderID) + "/invoice","",_cJSon,nTimeOut,aHeadOut,@cXmlHead) 
 
 If HTTPGetStatus() == 200 
 	If FWJsonDeserialize(cRetPost,@oXmlRet)
