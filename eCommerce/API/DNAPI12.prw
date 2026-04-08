@@ -668,7 +668,6 @@ aAdd(_aTotais,{                     ;
     MaFisRet(,"NF_VALSOL")          ,;  // 06. Total Solidario
     MaFisRet(,"NF_DESCZF")          })  // 07. Desconto Zona Franca
 
-
 Return Nil 
 
 /************************************************************************************************************/
